@@ -1,0 +1,30 @@
+{
+  "name": "karuma",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "start": "node dist/index.js",
+    "register": "node dist/registerCommands.js",
+    "build": "tsc",
+    "check": "npm run build"
+  },
+  "engines": {
+    "node": "20.x"
+  },
+  "dependencies": {
+    "date-holidays": "^3.27.0",
+    "dayjs": "^1.11.19",
+    "discord.js": "^14.16.3",
+    "dotenv": "^17.2.1",
+    "mysql2": "^3.9.2",
+    "node-cron": "^4.2.1",
+    "timezone": "^1.0.23",
+    "utc": "^0.1.0"
+  },
+  "devDependencies": {
+    "@types/dotenv": "^6.1.1",
+    "@types/mysql": "^2.15.25",
+    "@types/node-cron": "^3.0.11",
+    "typescript": "^5.5.4"
+  }
+}

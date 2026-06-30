@@ -1,0 +1,69 @@
+import { HOTEL_TYPE } from "./hotel";
+
+export const COMMAND_MESSAGES = {
+  ERROR: "🚨 処理中にエラーが発生しました。",
+  UNKNOWN_COMMAND: "不明なコマンドです",
+  CHANNEL_RESTRICTED: "指定のチャンネルでのみ実行可能です。",
+  CURRENTLY_DISABLED: "このコマンドは現在停止中です。",
+};
+
+export const COMMAND_NAMES = {
+  TEST: "test",
+  PANEL: "panel",
+  ADMIN_PANEL: "admin_panel",
+  RETURN_MEMBER: "出戻り",
+  INTERVIEW_PASS: "1面接通過",
+  EVALUATION_SHEET: "2評価シート",
+  SEND: "送金",
+  ROLE_BASED_SEND: "ロール別送金",
+  VIEW: "残高確認",
+  LINK_ACCOUNT: "サブ垢登録",
+  RANKING: "ランキング",
+  OPEN_ACCOUNT: "open_account",
+  ADMIN_OPEN_ACCOUNT: "admin_open_account",
+  CHANGE_NAME: "名前変更",
+  CHANGE_ROLE: "change_role",
+  CHECK_NAME: "0名前チェック",
+  PAY_SALARY: "pay_salary",
+  DEBIT: "debit",
+  INVITE_EXTEND: "invite_extend",
+  SHOW_EVALUATION: "show_evaluation",
+  EXTRA_EXTEND: "評価期間延長",
+  SHOW_EVALUATION_END: "show_evaluation_end",
+};
+
+export const PANEL_COMMAND_NAMES = {
+  VIEW: "view",
+  SEND: "send",
+  SHOP_SEND: "shopSend",
+  HISTORY: "history",
+  DIARY_PRIVATE: "diaryPrivate",
+  DIARY_PUBLIC: "diaryPublic",
+  DIARY_UPDATE: "diaryUpdate",
+  ADMIN_VIEW: "adminView",
+  ADMIN_BURN: "adminBurn",
+  ADMIN_MINT: "adminMint",
+  CHANGE_VC_LIMIT: "changeVcLimit",
+  CHANGE_VC_NAME: "changeVcName",
+  HOTEL_VC_NORMAL: HOTEL_TYPE.NORMAL,
+  HOTEL_VC_SECRET: HOTEL_TYPE.SECRET,
+  HOTEL_VC_SECRETLONG: HOTEL_TYPE.SECRETLONG,
+  HOTEL_VC_FREEDOM: HOTEL_TYPE.FREEDOM,
+  HOTEL_VC_FREEDOMLONG: HOTEL_TYPE.FREEDOMLONG,
+  CASINO_GF: "casinoGf",
+  CASINO_MAJONG: "casinoMajong",
+  CASINO_OTHER: "casinoOther",
+  GAME_SHORT: "gameShort",
+  GAME_LONG: "gameLong",
+  GAME_SHORT_EXTEND: "gameShortExtend",
+  GAME_PASS: "gamePass",
+  MINECRAFT_PASS: "gameMinecraftPass",
+  REDEPLOY: "redeploy",
+  // ADMIN_CHANGE_NAME: "adminChangeName",
+};
+
+export const SALES_DATA_COMMAND_NAMES = {
+  GAME_SHORT: PANEL_COMMAND_NAMES.GAME_SHORT,
+  GAME_LONG: PANEL_COMMAND_NAMES.GAME_LONG,
+  GAME_PASS: PANEL_COMMAND_NAMES.GAME_PASS,
+};

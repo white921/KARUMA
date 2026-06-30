@@ -1,0 +1,16 @@
+export const COLOR = {
+  GREEN: 0x00ff00,
+  RED: 0xff0000,
+  YELLOW: 0xffff00,
+  BLUE: 0x0000ff,
+  PURPLE: 0x800080,
+  ORANGE: 0xffa500,
+  PINK: 0xffc0cb,
+  BROWN: 0xa52a2a,
+  GRAY: 0x808080,
+  BLACK: 0x000000,
+  WHITE: 0xffffff,
+  LIGFT_PINK: 0xfee7ff,
+  MAGENTA: 0xe4007f,
+  COBALT_GREEN: 0x3cb37a,
+};

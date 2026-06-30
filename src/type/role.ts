@@ -1,0 +1,1 @@
+export type RoleAction = "add" | "delete";

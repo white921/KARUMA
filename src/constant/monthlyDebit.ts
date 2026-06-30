@@ -1,0 +1,17 @@
+import { ROLE_IDS, TEST_ROLE_IDS } from "./id";
+
+// export const MONTHLY_DEBIT_AMOUNTS = {
+//   [ROLE_IDS.MAYOIBITO]: 100000,
+// };
+
+// export const MONTHLY_DEBIT_ROLE_IDS = {
+//   MAYOIBITO: ROLE_IDS.MAYOIBITO,
+// };
+
+export const TEST_MONTHLY_DEBIT_AMOUNTS = {
+  [TEST_ROLE_IDS.GIJUTSU_TEST]: 100000,
+};
+
+export const TEST_MONTHLY_DEBIT_ROLE_IDS = {
+  GIJUTSU_TEST: TEST_ROLE_IDS.GIJUTSU_TEST,
+};
