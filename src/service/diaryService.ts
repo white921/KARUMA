@@ -268,7 +268,6 @@ export class DiaryService {
   static async closeInactiveDiaries(client: Client) {
     try {
       const diaries = await this.getDiaries();
-      console.log(diaries);
       for (const diary of diaries) {
         await this.closeDiaryIfInactive(client, diary);
       }

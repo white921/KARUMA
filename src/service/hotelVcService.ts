@@ -33,8 +33,12 @@ import { HOTEL_TYPE } from "../constant/hotel";
 import { PANEL_COMMAND_NAMES } from "../constant/command";
 import { CURRENCY_NAMES } from "../constant/currency";
 import { AETHER_BOT_ID, ROLE_IDS } from "../constant/id";
+import { normalizePollingIntervalMs } from "../util/runtimeConfig";
 
 export class HotelVcService {
+  private static expiredVcCheckerStarted = false;
+  private static expiredVcCheckerRunning = false;
+
   private static async sendHotelVcMessage(
     voiceChannel: VoiceChannel,
     message:
@@ -1014,13 +1018,38 @@ export class HotelVcService {
    */
   static async startExpiredVcChecker(client: Client) {
     try {
-      // 30秒ごとに期限切れVCと空になった無料VCをチェック
+      if (this.expiredVcCheckerStarted) {
+        return;
+      }
+
+      this.expiredVcCheckerStarted = true;
+      const intervalMs = normalizePollingIntervalMs(
+        process.env.EXPIRED_VC_CHECK_INTERVAL_MS,
+        60 * 1000,
+      );
+
+      const runCheck = async () => {
+        if (this.expiredVcCheckerRunning) {
+          return;
+        }
+
+        this.expiredVcCheckerRunning = true;
+
+        try {
+          await this.deleteExpiredVcs(client);
+          await this.deleteEmptyBonusVcs(client);
+        } catch (error) {
+          console.error("expired VC checker error:", error);
+        } finally {
+          this.expiredVcCheckerRunning = false;
+        }
+      };
+
+      await runCheck();
+
       setInterval(async () => {
-        // 期限切れVCを削除（有料VCで期限が過ぎたもの）
-        await this.deleteExpiredVcs(client);
-        // 空になった無料VCをチェックして削除（10秒以上空の状態が続いているもの）
-        await this.deleteEmptyBonusVcs(client);
-      }, 30 * 1000); // 30秒 = 30 * 1000 ミリ秒
+        await runCheck();
+      }, intervalMs);
     } catch (error: any) {
       throw error;
     }

@@ -1,7 +1,5 @@
--- データベース作成
-CREATE DATABASE IF NOT EXISTS aether;
-
-USE aether;
+-- 接続中のデータベースにテーブルを作成する
+-- Railway では MYSQL_DATABASE で指定された DB に接続してから実行する
 
 -- アカウントテーブル
 CREATE TABLE IF NOT EXISTS accounts (
@@ -119,6 +117,13 @@ CREATE TABLE IF NOT EXISTS diaries (
   FOREIGN KEY (creator_user_id) REFERENCES accounts(user_id) ON DELETE CASCADE
 )
 COMMENT='日記情報';
+
+-- Bot口座
+-- 各種購入・付与・減額ログが参照するため、初期状態で用意する
+INSERT INTO accounts (user_id, user_name, wallet)
+VALUES (1482217120593875084, 'KARUMA Bot', 0)
+ON DUPLICATE KEY UPDATE
+  user_name = VALUES(user_name);
 
 -- -- 評価管理テーブル
 -- CREATE TABLE IF NOT EXISTS evaluations (

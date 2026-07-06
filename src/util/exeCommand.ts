@@ -1,6 +1,7 @@
 import { ChatInputCommandInteraction } from "discord.js";
 
 import { execute as test } from "../command/test";
+import { execute as panel } from "../command/panel";
 import { execute as returnMember } from "../command/returnMember";
 import { execute as interview } from "../command/interview";
 import { execute as evaluationSheet } from "../command/evaluationSheet";
@@ -29,6 +30,9 @@ export async function exeCommand(
     switch (command) {
       case COMMAND_NAMES.TEST:
         await test(interaction);
+        break;
+      case COMMAND_NAMES.PANEL:
+        await panel(interaction);
         break;
       case COMMAND_NAMES.RETURN_MEMBER:
         await returnMember(interaction);

@@ -14,6 +14,10 @@ import { exeCommand } from "./util/exeCommand";
 import { sendEphemeralMessage } from "./util/channelMessage";
 import { validateSelectUserMenu } from "./util/select";
 import { getVcMembersCount } from "./util/vc";
+import {
+  isRuntimeFeatureEnabled,
+  shouldRegisterCommandsOnBoot,
+} from "./util/runtimeConfig";
 
 import { handleUserSelectMenu } from "./handler/userSelectHandler";
 import { handleStringSelectMenu } from "./handler/stringSelectHandler";
@@ -22,19 +26,12 @@ import { handlePanelButton } from "./handler/panelButtonHandler";
 import { handleSchedule } from "./handler/scheduleHandler";
 import { handleRoleChange } from "./handler/roleHandler";
 
-import { PanelService } from "./service/panelService";
-import { DiaryPanelService } from "./service/diaryPanelService";
-import { AdminPanelService } from "./service/adminPanelService";
-import { HotelVcPanelService } from "./service/hotelPanelService";
 import { HotelVcService } from "./service/hotelVcService";
-import { CasinoPanelService } from "./service/casinoPanel";
 import { TeleportVcService } from "./service/teleportVcService";
-import { GamePanelService } from "./service/gamePanelService";
 import { AccountService } from "./service/accountService";
 import { VcService } from "./service/vcService";
 import { DiaryService } from "./service/diaryService";
-import { ShopPanelService } from "./service/shopPanelService";
-import { RedeployPanelService } from "./service/redeployPanelService";
+import { BotHealthMonitor } from "./service/botHealthMonitor";
 
 import { COMMAND_NAMES, PANEL_COMMAND_NAMES } from "./constant/command";
 import {
@@ -62,18 +59,23 @@ const client = new Client({
 // bot起動時
 client.once("clientReady", async () => {
   try {
-    await registerCommands();
-    await PanelService.createPanel(client);
-    await DiaryPanelService.createDiaryPanel(client);
-    await AdminPanelService.createAdminPanel(client);
-    await CasinoPanelService.createCasinoPanel(client);
-    await GamePanelService.createGamePanel(client);
-    await ShopPanelService.createShopPanel(client);
-    await handleSchedule(client);
-    await HotelVcPanelService.createNormalHotelVcPanel(client);
-    await HotelVcPanelService.createSpecialHotelVcPanel(client);
-    await RedeployPanelService.createRedeployPanel(client);
-    await HotelVcService.startExpiredVcChecker(client); // 期限切れVCの自動削除チェックを開始
+    BotHealthMonitor.recordGatewayReady("clientReady");
+    BotHealthMonitor.startWatchdog();
+    if (shouldRegisterCommandsOnBoot(process.env.REGISTER_COMMANDS_ON_BOOT)) {
+      await registerCommands();
+    }
+    if (isRuntimeFeatureEnabled(process.env.ENABLE_SCHEDULES, true)) {
+      await handleSchedule(client);
+    } else {
+      console.log("[Runtime] schedules disabled by ENABLE_SCHEDULES");
+    }
+    if (isRuntimeFeatureEnabled(process.env.ENABLE_EXPIRED_VC_CHECKER, true)) {
+      await HotelVcService.startExpiredVcChecker(client); // 期限切れVCの自動削除チェックを開始
+    } else {
+      console.log(
+        "[Runtime] expired VC checker disabled by ENABLE_EXPIRED_VC_CHECKER",
+      );
+    }
     // await RemindToMadoromiService.startRemindToMadoromi(client);
   } catch (error) {
     console.error(error);
@@ -95,11 +97,35 @@ const DEFAULT_PUBLIC_COMMAND = [
 ];
 
 client.on("interactionCreate", async (interaction) => {
+  const interactionContext = interaction.isChatInputCommand()
+    ? `command:${interaction.commandName}`
+    : interaction.isButton()
+      ? `button:${interaction.customId}`
+      : interaction.isUserSelectMenu()
+        ? `user-select:${interaction.customId}`
+        : interaction.isStringSelectMenu()
+          ? `string-select:${interaction.customId}`
+          : interaction.isModalSubmit()
+            ? `modal:${interaction.customId}`
+            : null;
+
+  if (!interactionContext) {
+    return;
+  }
+
+  BotHealthMonitor.recordInteractionReceived(interactionContext);
+
   if (interaction.isChatInputCommand()) {
     const cmd = interaction.commandName;
 
     // 3秒以内に応答しないとタイムアウトするため、最初に応答を遅延させる
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    try {
+      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+      BotHealthMonitor.recordAckSuccess(`${interactionContext}:deferReply`);
+    } catch (error) {
+      BotHealthMonitor.recordAckFailure(`${interactionContext}:deferReply`, error);
+      return;
+    }
 
     try {
       // コマンド実行できるかvalidationかける
@@ -130,9 +156,21 @@ client.on("interactionCreate", async (interaction) => {
         interaction.customId !== PANEL_COMMAND_NAMES.DIARY_UPDATE &&
         interaction.customId !== PANEL_COMMAND_NAMES.REDEPLOY
       ) {
-        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+        try {
+          await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+          BotHealthMonitor.recordAckSuccess(`${interactionContext}:deferReply`);
+        } catch (error) {
+          BotHealthMonitor.recordAckFailure(
+            `${interactionContext}:deferReply`,
+            error,
+          );
+          return;
+        }
       }
       await handlePanelButton(interaction);
+      if (!interaction.deferred) {
+        BotHealthMonitor.recordAckSuccess(`${interactionContext}:handler`);
+      }
     } catch (error: any) {
       console.error(error);
       if (interaction.deferred) {
@@ -140,16 +178,25 @@ client.on("interactionCreate", async (interaction) => {
           content: error.message,
         });
       } else {
-        await interaction.reply({
-          content: error.message,
-          flags: MessageFlags.Ephemeral,
-        });
+        try {
+          await interaction.reply({
+            content: error.message,
+            flags: MessageFlags.Ephemeral,
+          });
+          BotHealthMonitor.recordAckSuccess(`${interactionContext}:errorReply`);
+        } catch (replyError) {
+          BotHealthMonitor.recordAckFailure(
+            `${interactionContext}:errorReply`,
+            replyError,
+          );
+        }
       }
     }
   } else if (interaction.isUserSelectMenu()) {
     try {
       await validateSelectUserMenu(interaction);
       await handleUserSelectMenu(interaction);
+      BotHealthMonitor.recordAckSuccess(`${interactionContext}:handler`);
     } catch (error: any) {
       console.error(error);
       if (interaction.deferred) {
@@ -157,15 +204,24 @@ client.on("interactionCreate", async (interaction) => {
           content: error.message,
         });
       } else {
-        await interaction.reply({
-          content: error.message,
-          flags: MessageFlags.Ephemeral,
-        });
+        try {
+          await interaction.reply({
+            content: error.message,
+            flags: MessageFlags.Ephemeral,
+          });
+          BotHealthMonitor.recordAckSuccess(`${interactionContext}:errorReply`);
+        } catch (replyError) {
+          BotHealthMonitor.recordAckFailure(
+            `${interactionContext}:errorReply`,
+            replyError,
+          );
+        }
       }
     }
   } else if (interaction.isStringSelectMenu()) {
     try {
       await handleStringSelectMenu(interaction);
+      BotHealthMonitor.recordAckSuccess(`${interactionContext}:handler`);
     } catch (error: any) {
       console.error(error);
       if (interaction.deferred) {
@@ -173,15 +229,24 @@ client.on("interactionCreate", async (interaction) => {
           content: error.message,
         });
       } else {
-        await interaction.reply({
-          content: error.message,
-          flags: MessageFlags.Ephemeral,
-        });
+        try {
+          await interaction.reply({
+            content: error.message,
+            flags: MessageFlags.Ephemeral,
+          });
+          BotHealthMonitor.recordAckSuccess(`${interactionContext}:errorReply`);
+        } catch (replyError) {
+          BotHealthMonitor.recordAckFailure(
+            `${interactionContext}:errorReply`,
+            replyError,
+          );
+        }
       }
     }
   } else if (interaction.isModalSubmit()) {
     try {
       await handleModalSubmit(interaction);
+      BotHealthMonitor.recordAckSuccess(`${interactionContext}:handler`);
     } catch (error: any) {
       console.error(error);
       if (interaction.deferred) {
@@ -189,13 +254,39 @@ client.on("interactionCreate", async (interaction) => {
           content: error.message,
         });
       } else {
-        await interaction.reply({
-          content: error.message,
-          flags: MessageFlags.Ephemeral,
-        });
+        try {
+          await interaction.reply({
+            content: error.message,
+            flags: MessageFlags.Ephemeral,
+          });
+          BotHealthMonitor.recordAckSuccess(`${interactionContext}:errorReply`);
+        } catch (replyError) {
+          BotHealthMonitor.recordAckFailure(
+            `${interactionContext}:errorReply`,
+            replyError,
+          );
+        }
       }
     }
   }
+});
+
+client.on("shardDisconnect", (event, shardId) => {
+  BotHealthMonitor.recordGatewayDisconnect(`shard:${shardId}`, event);
+});
+
+client.on("shardReconnecting", (shardId) => {
+  BotHealthMonitor.recordGatewayReconnect(`shard:${shardId}`);
+});
+
+client.on("shardResume", (shardId, replayedEvents) => {
+  BotHealthMonitor.recordGatewayResume(
+    `shard:${shardId}:replayed:${replayedEvents}`,
+  );
+});
+
+client.on("error", (error) => {
+  console.error("discord client error:", error);
 });
 
 client.on("messageCreate", async (message) => {

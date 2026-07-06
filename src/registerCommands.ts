@@ -2,6 +2,7 @@
 import { REST, Routes } from "discord.js";
 
 import { data as test } from "./command/test";
+import { data as panel } from "./command/panel";
 import { data as returnMember } from "./command/returnMember";
 import { data as interview } from "./command/interview";
 import { data as evaluationSheet } from "./command/evaluationSheet";
@@ -23,6 +24,7 @@ import { data as extraExtend } from "./command/extraExtend";
 export async function registerCommands() {
   const commands = [
     test.toJSON(),
+    panel.toJSON(),
     returnMember.toJSON(),
     interview.toJSON(),
     evaluationSheet.toJSON(),

@@ -2,13 +2,14 @@ import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  ChannelType,
   Client,
   EmbedBuilder,
 } from "discord.js";
 
 import { deletePanelMessage } from "../util/channelMessage";
 
-import { THREAD_IDS } from "../constant/id";
+import { TEXT_CHANNEL_IDS } from "../constant/id";
 import { SHOP_PANEL_MESSAGES } from "../constant/panel";
 import { PANEL_COMMAND_NAMES } from "../constant/command";
 import { COLOR } from "../constant/color";
@@ -23,11 +24,9 @@ export class ShopPanelService {
    */
   static async createShopPanel(client: Client) {
     try {
-      const channel = await client.channels.fetch(
-        THREAD_IDS.SHOP_PANEL_THREAD,
-      );
+      const channel = await client.channels.fetch(TEXT_CHANNEL_IDS.SHOP_PANEL);
 
-      if (!channel || !channel.isThread()) {
+      if (!channel || channel.type !== ChannelType.GuildText) {
         console.error(SHOP_PANEL_MESSAGES.ERROR);
         return;
       }

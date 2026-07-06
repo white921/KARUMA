@@ -90,7 +90,6 @@ export async function handleSchedule(client: Client) {
     () => {
       try {
         GameService.removeExpiredRole(client);
-        DiaryService.syncDiaryThreadStates(client);
       } catch (err) {
         console.error("schedule every minute job error:", err);
       }
