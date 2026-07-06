@@ -52,7 +52,7 @@ export class CheckNameService {
         continue;
       }
 
-      if (await hasRole(member, ROLE_IDS.CORE_MEMBER_ROLES.SINMONMATI)) {
+      if (await hasRole(member, ROLE_IDS.CORE_MEMBER_ROLES.MENSETUMATI)) {
         targets.push(member);
       }
     }

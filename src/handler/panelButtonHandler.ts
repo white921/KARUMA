@@ -163,13 +163,13 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
         if (
           (await hasRole(
             interaction.member as GuildMember,
-            ROLE_IDS.CORE_MEMBER_ROLES.KOKUIN,
+            ROLE_IDS.CORE_MEMBER_ROLES.HONMEN,
           )) ||
           (await hasRole(
             interaction.member as GuildMember,
-            ROLE_IDS.SIKKOKAN,
+            ROLE_IDS.KANRISYA,
           )) ||
-          (await hasRole(interaction.member as GuildMember, ROLE_IDS.SOUZOUSYU))
+          (await hasRole(interaction.member as GuildMember, ROLE_IDS.SABANUSI))
         ) {
           const voiceChannelId = await HotelVcService.createHotelVc(
             interaction,
@@ -194,19 +194,6 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
         );
         break;
       case PANEL_COMMAND_NAMES.HOTEL_VC_SECRET:
-        if (
-          await hasRole(
-            interaction.member as GuildMember,
-            ROLE_IDS.YUMEHIKYOU_FREE,
-          )
-        ) {
-          await showSelectUserMenu(
-            interaction,
-            HOTEL_MESSAGES.SELECT_USER,
-            PANEL_COMMAND_NAMES.HOTEL_VC_SECRET,
-          );
-          break;
-        }
         // 現在はRoyal支払いのみ。将来的にチケットを戻す場合は showStringSelectMenu を再利用する
         await showSelectUserMenu(
           interaction,
@@ -216,19 +203,6 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
         );
         break;
       case PANEL_COMMAND_NAMES.HOTEL_VC_SECRETLONG:
-        if (
-          await hasRole(
-            interaction.member as GuildMember,
-            ROLE_IDS.YUMEHIKYOU_FREE,
-          )
-        ) {
-          await showSelectUserMenu(
-            interaction,
-            HOTEL_MESSAGES.SELECT_USER,
-            PANEL_COMMAND_NAMES.HOTEL_VC_SECRETLONG,
-          );
-          break;
-        }
         // 現在はRoyal支払いのみ。将来的にチケットを戻す場合は showStringSelectMenu を再利用する
         await showSelectUserMenu(
           interaction,
@@ -238,27 +212,6 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
         );
         break;
       case PANEL_COMMAND_NAMES.HOTEL_VC_FREEDOM:
-        if (
-          await hasRole(
-            interaction.member as GuildMember,
-            ROLE_IDS.SORAYUME_FREE,
-          )
-        ) {
-          const voiceChannelId = await HotelVcService.createHotelVc(
-            interaction,
-            HOTEL_TYPE_NAMES.FREEDOM,
-            true,
-          );
-          await HotelVcService.insertIntoVcs(
-            voiceChannelId,
-            interaction.user.id,
-            HOTEL_TYPE.FREEDOM,
-            false,
-            true,
-            undefined,
-          );
-          break;
-        }
         // 現在はRoyal支払いのみ。将来的にチケットを戻す場合は showStringSelectMenu を再利用する
         await showConfirmButton(
           interaction,
@@ -267,27 +220,6 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
         );
         break;
       case PANEL_COMMAND_NAMES.HOTEL_VC_FREEDOMLONG:
-        if (
-          await hasRole(
-            interaction.member as GuildMember,
-            ROLE_IDS.SORAYUME_FREE,
-          )
-        ) {
-          const voiceChannelId = await HotelVcService.createHotelVc(
-            interaction,
-            HOTEL_TYPE_NAMES.FREEDOMLONG,
-            true,
-          );
-          await HotelVcService.insertIntoVcs(
-            voiceChannelId,
-            interaction.user.id,
-            HOTEL_TYPE.FREEDOMLONG,
-            false,
-            true,
-            undefined,
-          );
-          break;
-        }
         // 現在はRoyal支払いのみ。将来的にチケットを戻す場合は showStringSelectMenu を再利用する
         await showConfirmButton(
           interaction,

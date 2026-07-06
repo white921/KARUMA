@@ -61,8 +61,8 @@ export class AccountService {
   static async handleMemberLeft(member: GuildMember | PartialGuildMember) {
     const leftCoreMemberRole =
       Object.values(ROLE_IDS.CORE_MEMBER_ROLES).find((roleId) =>
-        roleId !== ROLE_IDS.CORE_MEMBER_ROLES.SINMONMATI &&
-        roleId !== ROLE_IDS.CORE_MEMBER_ROLES.SAI_SINMONMATI &&
+        roleId !== ROLE_IDS.CORE_MEMBER_ROLES.MENSETUMATI &&
+        roleId !== ROLE_IDS.CORE_MEMBER_ROLES.DEMODORI &&
         member.roles.cache.has(roleId),
       ) ?? null;
 

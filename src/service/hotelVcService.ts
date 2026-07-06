@@ -446,32 +446,17 @@ export class HotelVcService {
 
           secretPermissionOverwrites.push(
             {
-              id: ROLE_IDS.HOTEL_LEADER,
+              id: ROLE_IDS.CORE_MEMBER_ROLES.HONMEN,
               type: OverwriteType.Role,
               deny: [PermissionsBitField.Flags.ViewChannel],
             },
             {
-              id: ROLE_IDS.HOTEL_STAFF,
+              id: ROLE_IDS.CORE_MEMBER_ROLES.JUNHONMEN,
               type: OverwriteType.Role,
               deny: [PermissionsBitField.Flags.ViewChannel],
             },
             {
-              id: ROLE_IDS.CORE_MEMBER_ROLES.KOKUIN,
-              type: OverwriteType.Role,
-              deny: [PermissionsBitField.Flags.ViewChannel],
-            },
-            {
-              id: ROLE_IDS.CORE_MEMBER_ROLES.KEIYAKU,
-              type: OverwriteType.Role,
-              deny: [PermissionsBitField.Flags.ViewChannel],
-            },
-            {
-              id: ROLE_IDS.CORE_MEMBER_ROLES.MIKEIYAKU,
-              type: OverwriteType.Role,
-              deny: [PermissionsBitField.Flags.ViewChannel],
-            },
-            {
-              id: ROLE_IDS.CORE_MEMBER_ROLES.HAKUDATUSYA,
+              id: ROLE_IDS.CORE_MEMBER_ROLES.KARIMEN,
               type: OverwriteType.Role,
               deny: [PermissionsBitField.Flags.ViewChannel],
             },
@@ -481,12 +466,7 @@ export class HotelVcService {
               deny: [PermissionsBitField.Flags.ViewChannel],
             },
             {
-              id: ROLE_IDS.CORE_MEMBER_ROLES.SIKKOUSYA,
-              type: OverwriteType.Role,
-              deny: [PermissionsBitField.Flags.ViewChannel],
-            },
-            {
-              id: ROLE_IDS.CORE_MEMBER_ROLES.SINMONMATI,
+              id: ROLE_IDS.CORE_MEMBER_ROLES.MENSETUMATI,
               type: OverwriteType.Role,
               deny: [PermissionsBitField.Flags.ViewChannel],
             },
@@ -542,32 +522,17 @@ export class HotelVcService {
 
           freedomPermissionOverwrites.push(
             {
-              id: ROLE_IDS.HOTEL_LEADER,
+              id: ROLE_IDS.CORE_MEMBER_ROLES.HONMEN,
               type: OverwriteType.Role,
               deny: [PermissionsBitField.Flags.ViewChannel],
             },
             {
-              id: ROLE_IDS.HOTEL_STAFF,
+              id: ROLE_IDS.CORE_MEMBER_ROLES.JUNHONMEN,
               type: OverwriteType.Role,
               deny: [PermissionsBitField.Flags.ViewChannel],
             },
             {
-              id: ROLE_IDS.CORE_MEMBER_ROLES.KOKUIN,
-              type: OverwriteType.Role,
-              deny: [PermissionsBitField.Flags.ViewChannel],
-            },
-            {
-              id: ROLE_IDS.CORE_MEMBER_ROLES.KEIYAKU,
-              type: OverwriteType.Role,
-              deny: [PermissionsBitField.Flags.ViewChannel],
-            },
-            {
-              id: ROLE_IDS.CORE_MEMBER_ROLES.MIKEIYAKU,
-              type: OverwriteType.Role,
-              deny: [PermissionsBitField.Flags.ViewChannel],
-            },
-            {
-              id: ROLE_IDS.CORE_MEMBER_ROLES.HAKUDATUSYA,
+              id: ROLE_IDS.CORE_MEMBER_ROLES.KARIMEN,
               type: OverwriteType.Role,
               deny: [PermissionsBitField.Flags.ViewChannel],
             },
@@ -577,12 +542,7 @@ export class HotelVcService {
               deny: [PermissionsBitField.Flags.ViewChannel],
             },
             {
-              id: ROLE_IDS.CORE_MEMBER_ROLES.SIKKOUSYA,
-              type: OverwriteType.Role,
-              deny: [PermissionsBitField.Flags.ViewChannel],
-            },
-            {
-              id: ROLE_IDS.CORE_MEMBER_ROLES.SINMONMATI,
+              id: ROLE_IDS.CORE_MEMBER_ROLES.MENSETUMATI,
               type: OverwriteType.Role,
               deny: [PermissionsBitField.Flags.ViewChannel],
             },

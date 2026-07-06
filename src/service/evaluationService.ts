@@ -52,7 +52,7 @@ export class EvaluationService {
       if (target.user.bot) {
         continue;
       }
-      if (await hasRole(target, ROLE_IDS.CORE_MEMBER_ROLES.MIKEIYAKU)) {
+      if (await hasRole(target, ROLE_IDS.CORE_MEMBER_ROLES.KARIMEN)) {
         targets.push(target);
       }
     }
@@ -72,8 +72,8 @@ export class EvaluationService {
   }
 
   static async validateEvaluationTarget(targetMember: GuildMember) {
-    if (!(await hasRole(targetMember, ROLE_IDS.CORE_MEMBER_ROLES.MIKEIYAKU))) {
-      throw new Error(EVALUATION_SHEET_MESSAGES.NO_MIKEIYAKU_ROLE);
+    if (!(await hasRole(targetMember, ROLE_IDS.CORE_MEMBER_ROLES.KARIMEN))) {
+      throw new Error(EVALUATION_SHEET_MESSAGES.NO_KARIMEN_ROLE);
     }
   }
 

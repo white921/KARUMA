@@ -123,8 +123,8 @@ export async function copyRoleFromMainToSub(
 
     // 除外ロール(外部管理ロール、everyone、創造主ロール、執行人ロール、技術統括ロール、サーバーブーストロール、ゲームプランロール)
     const excludeRoles = [
-      ROLE_IDS.SOUZOUSYU,
-      ROLE_IDS.SIKKOKAN,
+      ROLE_IDS.SABANUSI,
+      ROLE_IDS.KANRISYA,
       ROLE_IDS.GIJUTU_LEADER,
       ROLE_IDS.SERVER_BOOSTER,
       ROLE_IDS.GAME_SHORT,

@@ -23,8 +23,8 @@ export class AdminOpenAccountService {
 
     if (
       !(await hasRole(member, ROLE_IDS.GINKOU_LEADER)) &&
-      !(await hasRole(member, ROLE_IDS.SIKKOKAN)) &&
-      !(await hasRole(member, ROLE_IDS.SOUZOUSYU)) &&
+      !(await hasRole(member, ROLE_IDS.KANRISYA)) &&
+      !(await hasRole(member, ROLE_IDS.SABANUSI)) &&
       !(await hasRole(member, ROLE_IDS.GIJUTU_LEADER))
     ) {
       throw new Error(ADMIN_MESSAGES.NO_PERMISSION);

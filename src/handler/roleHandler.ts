@@ -20,18 +20,18 @@ export async function handleRoleChange(
   newMember: GuildMember
 ) {
   const hadSinmonmati = oldMember.roles.cache.has(
-    ROLE_IDS.CORE_MEMBER_ROLES.SINMONMATI,
+    ROLE_IDS.CORE_MEMBER_ROLES.MENSETUMATI,
   );
   const hasSinmonmati = newMember.roles.cache.has(
-    ROLE_IDS.CORE_MEMBER_ROLES.SINMONMATI,
+    ROLE_IDS.CORE_MEMBER_ROLES.MENSETUMATI,
   );
   if (
     !hadSinmonmati &&
     hasSinmonmati &&
     (await AccountService.hasAccount(newMember.id))
   ) {
-    await addRole(newMember, ROLE_IDS.CORE_MEMBER_ROLES.SAI_SINMONMATI);
-    await deleteRole(newMember, ROLE_IDS.CORE_MEMBER_ROLES.SINMONMATI);
+    await addRole(newMember, ROLE_IDS.CORE_MEMBER_ROLES.DEMODORI);
+    await deleteRole(newMember, ROLE_IDS.CORE_MEMBER_ROLES.MENSETUMATI);
   }
 
   // 挑戦の印ロールの付与を監視

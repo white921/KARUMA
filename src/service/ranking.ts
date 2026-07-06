@@ -102,7 +102,7 @@ export class RankingService {
    */
   static async validateRanking(guild: Guild, userId: string) {
     const member = await guild.members.fetch(userId);
-    const isShikkokan = await hasRole(member, ROLE_IDS.SIKKOKAN);
+    const isShikkokan = await hasRole(member, ROLE_IDS.KANRISYA);
     if (!isShikkokan) {
       throw new Error(RANKING_MESSAGES.NOT_AUTHORIZED);
     }

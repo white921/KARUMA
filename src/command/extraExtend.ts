@@ -13,10 +13,9 @@ import { ROLE_IDS } from "../constant/id";
 
 const ALLOWED_ROLE_IDS = [
   ROLE_IDS.EVALUATION_LEADER,
-  ROLE_IDS.SIKKOKAN,
-  ROLE_IDS.SOUZOUSYU,
+  ROLE_IDS.KANRISYA,
+  ROLE_IDS.SABANUSI,
   ROLE_IDS.GIJUTU_LEADER,
-  ROLE_IDS.GIJUTUSYA,
 ];
 
 export const data = new SlashCommandBuilder()

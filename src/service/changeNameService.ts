@@ -59,10 +59,9 @@ export class ChangeNameService {
       //ショップ統括と運営以外は利用できない
       if (
         !(await hasRole(user, ROLE_IDS.SHOP_LEADER)) &&
-        !(await hasRole(user, ROLE_IDS.SIKKOKAN)) &&
-        !(await hasRole(user, ROLE_IDS.SOUZOUSYU)) &&
-        !(await hasRole(user, ROLE_IDS.GIJUTU_LEADER)) &&
-        !(await hasRole(user, ROLE_IDS.GIJUTUSYA))
+        !(await hasRole(user, ROLE_IDS.KANRISYA)) &&
+        !(await hasRole(user, ROLE_IDS.SABANUSI)) &&
+        !(await hasRole(user, ROLE_IDS.GIJUTU_LEADER))
       ) {
         throw new Error(CHANGE_NAME_MESSAGES.NO_PERMISSION);
       }
@@ -84,9 +83,8 @@ export class ChangeNameService {
 
       // 準メン以上でない
       if (
-        !(await hasRole(member, ROLE_IDS.CORE_MEMBER_ROLES.KEIYAKU)) &&
-        !(await hasRole(member, ROLE_IDS.CORE_MEMBER_ROLES.KOKUIN)) &&
-        !(await hasRole(member, ROLE_IDS.CORE_MEMBER_ROLES.SIKKOUSYA))
+        !(await hasRole(member, ROLE_IDS.CORE_MEMBER_ROLES.JUNHONMEN)) &&
+        !(await hasRole(member, ROLE_IDS.CORE_MEMBER_ROLES.HONMEN))
       ) {
         throw new Error(CHANGE_NAME_MESSAGES.REQUIRED_ROLE_NOT_FOUND);
       }

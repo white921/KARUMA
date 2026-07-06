@@ -64,7 +64,7 @@ async function assertPanelInstallerRole(
     ? interaction.member
     : await interaction.guild!.members.fetch(interaction.user.id);
 
-  if (!member.roles.cache.has(ROLE_IDS.PANEL_INSTALLER)) {
+  if (!member.roles.cache.has(ROLE_IDS.GIJUTU_LEADER)) {
     throw new Error("このコマンドを実行する権限がありません。");
   }
 }

@@ -26,8 +26,8 @@ export class InterviewService {
       !(await hasRole(member, ROLE_IDS.MENSTU_BUIGINNER)) &&
       !(await hasRole(member, ROLE_IDS.MENSTUKAN)) &&
       !(await hasRole(member, ROLE_IDS.MENSETU_LEADER)) &&
-      !(await hasRole(member, ROLE_IDS.SIKKOKAN)) &&
-      !(await hasRole(member, ROLE_IDS.SOUZOUSYU)) &&
+      !(await hasRole(member, ROLE_IDS.KANRISYA)) &&
+      !(await hasRole(member, ROLE_IDS.SABANUSI)) &&
       !(await hasRole(member, ROLE_IDS.GIJUTU_LEADER))
     ) {
       throw new Error(INTERVIEW_MESSAGES.NO_PERMISSION);
@@ -52,7 +52,7 @@ export class InterviewService {
       if (target.user.bot) {
         continue;
       }
-      if (await hasRole(target, ROLE_IDS.CORE_MEMBER_ROLES.SINMONMATI)) {
+      if (await hasRole(target, ROLE_IDS.CORE_MEMBER_ROLES.MENSETUMATI)) {
         targets.push(target);
       }
     }
@@ -72,7 +72,7 @@ export class InterviewService {
   }
 
   static async validateInterviewTarget(targetMember: GuildMember) {
-    if (!(await hasRole(targetMember, ROLE_IDS.CORE_MEMBER_ROLES.SINMONMATI))) {
+    if (!(await hasRole(targetMember, ROLE_IDS.CORE_MEMBER_ROLES.MENSETUMATI))) {
       throw new Error(INTERVIEW_MESSAGES.NO_SHINMONMATI_ROLE);
     }
 

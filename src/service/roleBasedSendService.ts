@@ -82,8 +82,8 @@ export class RoleBasedSendService {
     const member = interaction.member as GuildMember;
 
     if (
-      !(await hasRole(member, ROLE_IDS.SIKKOKAN)) &&
-      !(await hasRole(member, ROLE_IDS.SOUZOUSYU)) &&
+      !(await hasRole(member, ROLE_IDS.KANRISYA)) &&
+      !(await hasRole(member, ROLE_IDS.SABANUSI)) &&
       !(await hasRole(member, ROLE_IDS.GIJUTU_LEADER))
     ) {
       throw new Error(ROLE_BASED_SEND_MESSAGES.NO_PERMISSION);
