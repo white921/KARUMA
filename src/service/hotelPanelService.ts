@@ -36,9 +36,7 @@ export class HotelVcPanelService {
 
       const embed = new EmbedBuilder()
         .setTitle(HOTEL_VC_PANEL_MESSAGES.TITLE)
-        .setDescription(
-          `${HOTEL_VC_PANEL_MESSAGES.NORMAL_DESCRIPTION}\n${HOTEL_VC_PANEL_MESSAGES.SPECIAL_DISCRIPTION}`
-        )
+        .setDescription(HOTEL_VC_PANEL_MESSAGES.DESCRIPTION)
         .setColor(COLOR.MAGENTA)
         .setThumbnail(
           "https://cdn.discordapp.com/attachments/1434882309089132706/1440341250296512533/ChatGPT_Image_20251118_20_58_59.png?ex=691dcdd2&is=691c7c52&hm=54f9ed0bc5486c1aa1727e5584426ae021412249de0badec12ff90e2afbcd9cc&"
