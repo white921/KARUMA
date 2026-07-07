@@ -1,4 +1,4 @@
-import { Guild } from "discord.js";
+import { Client, Guild } from "discord.js";
 
 import { hasRole, getRoleNameById } from "../util/role";
 import { validateSubAccount } from "../util/subAccount";
@@ -35,7 +35,7 @@ export class SalaryService {
         if (await hasRole(member, roleId)) {
           // 振込処理
           const roleName = await getRoleNameById(guild, roleId);
-          await this.paySalary(member.id, roleName, salary);
+          await this.paySalary(member.id, roleName, salary, guild.client);
         }
       }
     }
@@ -44,7 +44,12 @@ export class SalaryService {
   /**
    * 給料を振込
    */
-  static async paySalary(userId: string, roleName: string, amount: number) {
+  static async paySalary(
+    userId: string,
+    roleName: string,
+    amount: number,
+    client?: Client,
+  ) {
     try {
       if (await validateSubAccount(userId)) {
         return;
@@ -86,6 +91,17 @@ export class SalaryService {
         toUserAmount,
         comment,
       );
+
+      if (client) {
+        await ActionService.createActionLogMessage(
+          { client },
+          COMMAND_NAMES.PAY_SALARY,
+          amount,
+          BOT_ID,
+          userId,
+          comment,
+        );
+      }
     } catch (error) {
       throw error;
     }

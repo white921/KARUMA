@@ -15,6 +15,8 @@ export function resolveActionLogThreadId(commandName: string): string | null {
       return THREAD_IDS.SEND_LOG_THREAD;
     case PANEL_COMMAND_NAMES.SHOP_SEND:
       return THREAD_IDS.SHOP_LOG_THREAD;
+    case COMMAND_NAMES.PAY_SALARY:
+      return THREAD_IDS.SHOP_SALARY_LOG_THREAD;
     case PANEL_COMMAND_NAMES.ADMIN_MINT:
     case COMMAND_NAMES.ROLE_BASED_SEND:
       return THREAD_IDS.MINT_LOG_THREAD;
@@ -134,6 +136,17 @@ export class ActionService {
           if (thread && thread.isThread() && thread.isTextBased()) {
             await (thread as ThreadChannel).send(
               `**ショップ支払い**\n<@${fromUserId}>から<@${toUserId}>に${formatNumber(amount)}${CURRENCY_NAMES}支払いされました！${
+                comment ? `\n備考: ${comment}` : ""
+              }`,
+            );
+          }
+          break;
+        case COMMAND_NAMES.PAY_SALARY:
+          threadId = resolveActionLogThreadId(commandName);
+          thread = await interaction.client.channels.fetch(threadId);
+          if (thread && thread.isThread() && thread.isTextBased()) {
+            await (thread as ThreadChannel).send(
+              `**給与支払い**\n<@${fromUserId}>から<@${toUserId}>に${formatNumber(amount)}${CURRENCY_NAMES}給与を支払いました！${
                 comment ? `\n備考: ${comment}` : ""
               }`,
             );
