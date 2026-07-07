@@ -40,9 +40,7 @@ export class AdminMintService {
       )[0];
 
       const user = interaction.user;
-      if (!(await isTechnician(user))) {
-        await this.validateMint(toUserAccount, interaction, user, amount);
-      }
+      await this.validateMint(toUserAccount, interaction, user, amount);
 
       const toUserAmount = toUserAccount.wallet + amount;
       const connection = await DbService.getConnection();
@@ -75,7 +73,7 @@ export class AdminMintService {
         amount,
         interaction.user.id,
         toUserId,
-        botAccount.wallet,
+        botAccount?.wallet ?? 0,
         toUserAmount,
         comment,
       );
@@ -101,19 +99,18 @@ export class AdminMintService {
       if (!Number.isInteger(amount)) {
         throw new Error(ADMIN_MINT_MESSAGES.IS_NOT_INT);
       }
-      // 管理者銀行パネルの操作権限がない
+      if (!toUserAccount) {
+        throw new Error(ADMIN_MINT_MESSAGES.NOT_FOUND_USER);
+      }
+
+      if (await AccountService.isSubAccount(toUserAccount.user_id)) {
+        throw new Error(ADMIN_MINT_MESSAGES.DO_NOT_MINT_TO_SUB_ACCOUNT);
+      }
+
       const member = await interaction.guild?.members.fetch(user.id);
-      if (member) {
+      if (member && !(await isTechnician(user))) {
         if (!(await hasAdminBankPanelPermission(member))) {
           throw new Error(ADMIN_MESSAGES.NO_PERMISSION);
-        }
-        // 付与先が存在しない
-        if (!toUserAccount) {
-          throw new Error(ADMIN_MINT_MESSAGES.NOT_FOUND_USER);
-        }
-        // 付与先がサブアカウント
-        if (await AccountService.isSubAccount(toUserAccount?.user_id)) {
-          throw new Error(ADMIN_MINT_MESSAGES.DO_NOT_MINT_TO_SUB_ACCOUNT);
         }
       }
     } catch (error: any) {

@@ -39,9 +39,7 @@ export class AdminBurnService {
         await AccountService.getAccountByUserId(burnedUserId)
       )[0];
       const user = interaction.user;
-      if (!(await isTechnician(user))) {
-        await this.validateBurn(burnedUserAccount, interaction, user, amount);
-      }
+      await this.validateBurn(burnedUserAccount, interaction, user, amount);
 
       const burnedUserWallet = burnedUserAccount.wallet - amount;
       const connection = await DbService.getConnection();
@@ -75,7 +73,7 @@ export class AdminBurnService {
         burnedUserId,
         interaction.user.id,
         burnedUserWallet,
-        botAccount.wallet,
+        botAccount?.wallet ?? 0,
         comment,
       );
     } catch (error) {
@@ -101,19 +99,18 @@ export class AdminBurnService {
       if (!Number.isInteger(amount)) {
         throw new Error(ADMIN_BURN_MESSAGES.IS_NOT_INT);
       }
-      // 管理者銀行パネルの操作権限がない
+      if (!burnedUserAccount) {
+        throw new Error(ADMIN_BURN_MESSAGES.NOT_FOUND_USER);
+      }
+
+      if (burnedUserAccount.wallet < amount) {
+        throw new Error(ADMIN_BURN_MESSAGES.NOT_ENOUGH_BALANCE);
+      }
+
       const member = await interaction.guild?.members.fetch(user.id);
-      if (member) {
+      if (member && !(await isTechnician(user))) {
         if (!(await hasAdminBankPanelPermission(member))) {
           throw new Error(ADMIN_MESSAGES.NO_PERMISSION);
-        }
-        //減額先が存在しない
-        if (!burnedUserAccount) {
-          throw new Error(ADMIN_BURN_MESSAGES.NOT_FOUND_USER);
-        }
-        //減額先の残高が足りない
-        if (burnedUserAccount.wallet < amount) {
-          throw new Error(ADMIN_BURN_MESSAGES.NOT_ENOUGH_BALANCE);
         }
       }
     } catch (error: any) {
