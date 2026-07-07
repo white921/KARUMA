@@ -66,3 +66,48 @@ test("salary action log messages are sent to the salary log thread", async () =>
   assert.match(sentMessages[0], /<@1521705594912772227>から<@123456789012345678>に5,000/);
   assert.match(sentMessages[0], /備考: 2026\/7 銀行スタッフの給与振込/);
 });
+
+test("change name logs use the change name log thread", () => {
+  assert.equal(
+    resolveActionLogThreadId(COMMAND_NAMES.CHANGE_NAME),
+    "1521920979490836480",
+  );
+});
+
+test("change name action log messages are sent to the change name log thread", async () => {
+  const sentMessages = [];
+  const fetchedThreadIds = [];
+  const thread = {
+    isThread: () => true,
+    isTextBased: () => true,
+    send: async (message) => {
+      sentMessages.push(message);
+    },
+  };
+  const context = {
+    client: {
+      channels: {
+        fetch: async (threadId) => {
+          fetchedThreadIds.push(threadId);
+          return thread;
+        },
+      },
+    },
+  };
+
+  await ActionService.createActionLogMessage(
+    context,
+    COMMAND_NAMES.CHANGE_NAME,
+    0,
+    "987654321098765432",
+    "123456789012345678",
+    JSON.stringify({ oldName: "旧名", newName: "新名" }),
+  );
+
+  assert.deepEqual(fetchedThreadIds, ["1521920979490836480"]);
+  assert.equal(sentMessages.length, 1);
+  assert.match(sentMessages[0], /^\*\*表示名変更\*\*/);
+  assert.match(sentMessages[0], /実行者: <@987654321098765432>/);
+  assert.match(sentMessages[0], /対象者: <@123456789012345678>/);
+  assert.match(sentMessages[0], /旧名 → 新名/);
+});

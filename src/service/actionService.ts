@@ -17,6 +17,8 @@ export function resolveActionLogThreadId(commandName: string): string | null {
       return THREAD_IDS.SHOP_LOG_THREAD;
     case COMMAND_NAMES.PAY_SALARY:
       return THREAD_IDS.SHOP_SALARY_LOG_THREAD;
+    case COMMAND_NAMES.CHANGE_NAME:
+      return THREAD_IDS.CHANGE_NAME_LOG_THREAD;
     case PANEL_COMMAND_NAMES.ADMIN_MINT:
     case COMMAND_NAMES.ROLE_BASED_SEND:
       return THREAD_IDS.MINT_LOG_THREAD;
@@ -175,19 +177,16 @@ export class ActionService {
             );
           }
           break;
-        // case COMMAND_NAMES.CHANGE_NAME:
-        //   channelId = TEXT_CHANNEL_IDS.CHANGE_NAME_LOG;
-        //   channel = await interaction.client.channels.fetch(channelId);
-        //   // comment: oldName_newName_targetUserId
-        //   const oldName = comment.split("_")[0];
-        //   const newName = comment.split("_")[1];
-        //   const targetUserId = comment.split("_")[2];
-        //   if (channel && channel.isTextBased()) {
-        //     await (channel as TextChannel).send(
-        //       `**表示名変更**\n${oldName}から${newName}に変更しました！\n対象者: <@${targetUserId}>`,
-        //     );
-        //   }
-        //   break;
+        case COMMAND_NAMES.CHANGE_NAME:
+          threadId = resolveActionLogThreadId(commandName);
+          thread = await interaction.client.channels.fetch(threadId);
+          if (thread && thread.isThread() && thread.isTextBased()) {
+            const { oldName, newName } = JSON.parse(comment);
+            await (thread as ThreadChannel).send(
+              `**表示名変更**\n実行者: <@${fromUserId}>\n対象者: <@${toUserId}>\n${oldName} → ${newName}`,
+            );
+          }
+          break;
         case PANEL_COMMAND_NAMES.HOTEL_VC_NORMAL:
         case PANEL_COMMAND_NAMES.HOTEL_VC_SECRET:
         case PANEL_COMMAND_NAMES.HOTEL_VC_SECRETLONG:

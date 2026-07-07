@@ -3,10 +3,12 @@ import { ChatInputCommandInteraction, GuildMember } from "discord.js";
 import { hasRole } from "../util/role";
 
 import { AccountService } from "./accountService";
+import { ActionService } from "./actionService";
 import { DbService } from "./dbService";
 
 import { CHANGE_NAME_MESSAGES } from "../constant/changeName";
 import { ACCOUNT_MESSAGES } from "../constant/account";
+import { COMMAND_NAMES } from "../constant/command";
 import { ROLE_IDS } from "../constant/id";
 
 export class ChangeNameService {
@@ -26,7 +28,8 @@ export class ChangeNameService {
       if (!targetMember) {
         throw new Error(ACCOUNT_MESSAGES.ACCOUNT_NOT_FOUND);
       }
-      // 表示名更新
+      const oldName = targetMember.displayName;
+
       await targetMember.setNickname(newName);
 
       const connection = await DbService.getConnection();
@@ -38,6 +41,15 @@ export class ChangeNameService {
       } finally {
         connection.release();
       }
+
+      await ActionService.createActionLogMessage(
+        interaction,
+        COMMAND_NAMES.CHANGE_NAME,
+        0,
+        interaction.user.id,
+        targetUserId,
+        JSON.stringify({ oldName, newName }),
+      );
     } catch (error) {
       throw error;
     }
