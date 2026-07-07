@@ -83,3 +83,14 @@ test("bot account id is configured for KARUMA", () => {
   assert.equal(BOT_ID, karumaBotId);
   assert.match(createTableSql, new RegExp(`VALUES \\(${karumaBotId}, 'KARUMA Bot', 0\\)`));
 });
+
+test("command registration script invokes and awaits registration when run directly", () => {
+  const registerSource = fs.readFileSync(
+    path.join(__dirname, "../src/registerCommands.ts"),
+    "utf8",
+  );
+
+  assert.match(registerSource, /if\s*\(\s*require\.main\s*===\s*module\s*\)/);
+  assert.match(registerSource, /await\s+rest\.put/);
+  assert.doesNotMatch(registerSource, /\(async\s*\(\)\s*=>/);
+});

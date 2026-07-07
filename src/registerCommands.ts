@@ -1,5 +1,6 @@
 // src/registerCommands.ts
 import { REST, Routes } from "discord.js";
+import dotenv from "dotenv";
 
 import { data as test } from "./command/test";
 import { data as panel } from "./command/panel";
@@ -20,6 +21,16 @@ import { data as checkName } from "./command/checkName";
 // import { data as showEvaluation } from "./command/showEvaluation";
 import { data as extraExtend } from "./command/extraExtend";
 // import { data as showEvaluationEnd } from "./command/showEvaluationEnd";
+
+dotenv.config();
+
+function getRequiredEnv(name: "DISCORD_TOKEN" | "CLIENT_ID" | "GUILD_ID") {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(`❌ ${name} が設定されていません。`);
+  }
+  return value;
+}
 
 export async function registerCommands() {
   const commands = [
@@ -44,19 +55,28 @@ export async function registerCommands() {
     // showEvaluationEnd.toJSON(),
   ];
 
-  const rest = new REST({ version: "10" }).setToken(process.env.DISCORD_TOKEN!);
+  const rest = new REST({ version: "10" }).setToken(
+    getRequiredEnv("DISCORD_TOKEN"),
+  );
 
-  (async () => {
-    try {
-      await rest.put(
-        Routes.applicationGuildCommands(
-          process.env.CLIENT_ID!,
-          process.env.GUILD_ID!
-        ),
-        { body: commands }
-      );
-    } catch (error) {
-      throw new Error("❌ コマンド登録に失敗しました。");
-    }
-  })();
+  try {
+    await rest.put(
+      Routes.applicationGuildCommands(
+        getRequiredEnv("CLIENT_ID"),
+        getRequiredEnv("GUILD_ID"),
+      ),
+      { body: commands },
+    );
+    console.log(`✅ コマンド登録が完了しました。(${commands.length}件)`);
+  } catch (error) {
+    console.error(error);
+    throw new Error("❌ コマンド登録に失敗しました。");
+  }
+}
+
+if (require.main === module) {
+  registerCommands().catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+  });
 }
