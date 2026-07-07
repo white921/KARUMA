@@ -21,12 +21,12 @@ test("technical director monthly salary is 10000 KARUMA", () => {
   });
 });
 
-test("monthly salary job runs at 23:35 Japan time on the first day", () => {
+test("monthly salary job runs at 00:00 Japan time on the first day", () => {
   const scheduleSource = fs.readFileSync(
     path.join(__dirname, "../src/handler/scheduleHandler.ts"),
     "utf8",
   );
 
-  assert.match(scheduleSource, /cron\.schedule\(\s*"35 23 1 \* \*"/);
+  assert.match(scheduleSource, /cron\.schedule\(\s*"0 0 1 \* \*"/);
   assert.match(scheduleSource, /SalaryService\.payMonthlySalaries\(guild!\)/);
 });

@@ -30,9 +30,9 @@ export async function handleSchedule(client: Client) {
   );
 
   cron.schedule(
-    "42 23 * * *",
+    "0 0 1 * *",
     () => {
-      // 毎月1日23:35に実行される処理
+      // 毎月1日0:00に実行される処理
       SalaryService.payMonthlySalaries(guild!);
     },
     { timezone: "Asia/Tokyo" },
