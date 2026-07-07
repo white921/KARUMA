@@ -7,7 +7,7 @@
     "register": "node dist/registerCommands.js",
     "build": "tsc",
     "check": "npm run build",
-    "test": "npm run build && node --test test/panelInstallResolver.test.js test/runtimeOptimization.test.js test/botHealthMonitor.test.js test/commandAccessGuard.test.js test/panelComponents.test.js test/currencyName.test.js test/adminBankPermission.test.js"
+    "test": "npm run build && node --test test/panelInstallResolver.test.js test/runtimeOptimization.test.js test/botHealthMonitor.test.js test/commandAccessGuard.test.js test/panelComponents.test.js test/currencyName.test.js test/adminBankPermission.test.js test/actionLogTargets.test.js"
   },
   "engines": {
     "node": "20.x"

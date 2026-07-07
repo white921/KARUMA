@@ -9,6 +9,28 @@ import { CURRENCY_NAMES } from "../constant/currency";
 import { CASINO_MESSAGES } from "../constant/casino";
 import { formatNumber } from "../util/number";
 
+export function resolveActionLogThreadId(commandName: string): string | null {
+  switch (commandName) {
+    case PANEL_COMMAND_NAMES.SEND:
+      return THREAD_IDS.SEND_LOG_THREAD;
+    case PANEL_COMMAND_NAMES.SHOP_SEND:
+      return THREAD_IDS.SHOP_LOG_THREAD;
+    case PANEL_COMMAND_NAMES.ADMIN_MINT:
+    case COMMAND_NAMES.ROLE_BASED_SEND:
+      return THREAD_IDS.MINT_LOG_THREAD;
+    case PANEL_COMMAND_NAMES.ADMIN_BURN:
+      return THREAD_IDS.BURN_LOG_THREAD;
+    case PANEL_COMMAND_NAMES.CASINO_GF:
+      return THREAD_IDS.CASINO_GF_LOG_THREAD;
+    case PANEL_COMMAND_NAMES.CASINO_MAJONG:
+      return THREAD_IDS.CASINO_MAJONG_LOG_THREAD;
+    case PANEL_COMMAND_NAMES.CASINO_OTHER:
+      return THREAD_IDS.CASINO_OTHER_LOG_THREAD;
+    default:
+      return null;
+  }
+}
+
 export class ActionService {
   private static isDiscordMissingAccessError(error: unknown): boolean {
     return (
@@ -81,7 +103,7 @@ export class ActionService {
       let channel, thread, channelId, threadId;
       switch (commandName) {
         case PANEL_COMMAND_NAMES.SEND:
-          threadId = THREAD_IDS.SEND_LOG_THREAD;
+          threadId = resolveActionLogThreadId(commandName);
           thread = await interaction.client.channels.fetch(threadId);
           if (thread && thread.isThread() && thread.isTextBased()) {
             await (thread as ThreadChannel).send(
@@ -107,7 +129,7 @@ export class ActionService {
           }
           break;
         case PANEL_COMMAND_NAMES.SHOP_SEND:
-          threadId = THREAD_IDS.SHOP_LOG_THREAD;
+          threadId = resolveActionLogThreadId(commandName);
           thread = await interaction.client.channels.fetch(threadId);
           if (thread && thread.isThread() && thread.isTextBased()) {
             await (thread as ThreadChannel).send(
@@ -119,7 +141,7 @@ export class ActionService {
           break;
         case PANEL_COMMAND_NAMES.ADMIN_MINT:
         case COMMAND_NAMES.ROLE_BASED_SEND:
-          threadId = THREAD_IDS.MINT_LOG_THREAD;
+          threadId = resolveActionLogThreadId(commandName);
           thread = await interaction.client.channels.fetch(threadId);
           if (thread && thread.isThread() && thread.isTextBased()) {
             await (thread as ThreadChannel).send(
@@ -130,7 +152,7 @@ export class ActionService {
           }
           break;
         case PANEL_COMMAND_NAMES.ADMIN_BURN:
-          threadId = THREAD_IDS.BURN_LOG_THREAD;
+          threadId = resolveActionLogThreadId(commandName);
           thread = await interaction.client.channels.fetch(threadId);
           if (thread && thread.isThread() && thread.isTextBased()) {
             await (thread as ThreadChannel).send(
@@ -202,7 +224,7 @@ export class ActionService {
           }
           break;
         case PANEL_COMMAND_NAMES.CASINO_GF:
-          threadId = THREAD_IDS.CASINO_GF_LOG_THREAD;
+          threadId = resolveActionLogThreadId(commandName);
           thread = await interaction.client.channels.fetch(threadId);
           if (thread && thread.isThread() && thread.isTextBased()) {
             await (thread as ThreadChannel).send(
@@ -215,7 +237,7 @@ export class ActionService {
           }
           break;
         case PANEL_COMMAND_NAMES.CASINO_MAJONG:
-          threadId = THREAD_IDS.CASINO_MAJONG_LOG_THREAD;
+          threadId = resolveActionLogThreadId(commandName);
           thread = await interaction.client.channels.fetch(threadId);
           if (thread && thread.isThread() && thread.isTextBased()) {
             await (thread as ThreadChannel).send(
@@ -228,7 +250,7 @@ export class ActionService {
           }
           break;
         case PANEL_COMMAND_NAMES.CASINO_OTHER:
-          threadId = THREAD_IDS.CASINO_OTHER_LOG_THREAD;
+          threadId = resolveActionLogThreadId(commandName);
           thread = await interaction.client.channels.fetch(threadId);
           if (thread && thread.isThread() && thread.isTextBased()) {
             await (thread as ThreadChannel).send(
