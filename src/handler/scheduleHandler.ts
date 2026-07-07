@@ -30,7 +30,7 @@ export async function handleSchedule(client: Client) {
   );
 
   cron.schedule(
-    "35 23 1 * *",
+    "42 23 * * *",
     () => {
       // 毎月1日23:35に実行される処理
       SalaryService.payMonthlySalaries(guild!);
