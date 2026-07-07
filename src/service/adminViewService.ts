@@ -1,11 +1,11 @@
 import { User, UserSelectMenuInteraction } from "discord.js";
 
-import { hasRole, isTechnician } from "../util/role";
+import { isTechnician } from "../util/role";
+import { hasAdminBankPanelPermission } from "../util/adminPermission";
 
 import { AccountService } from "./accountService";
 
 import { ADMIN_MESSAGES } from "../constant/admin";
-import { ROLE_IDS } from "../constant/id";
 import { VIEW_MESSAGES } from "../constant/view";
 
 export class AdminViewService {
@@ -48,11 +48,7 @@ export class AdminViewService {
     try {
       const member = await interaction.guild?.members.fetch(user.id);
       if (member) {
-        if (
-          !(await hasRole(member, ROLE_IDS.KANRISYA)) &&
-          !(await hasRole(member, ROLE_IDS.SABANUSI)) &&
-          !(await hasRole(member, ROLE_IDS.GINKOU_LEADER))
-        ) {
+        if (!(await hasAdminBankPanelPermission(member))) {
           throw new Error(ADMIN_MESSAGES.NO_PERMISSION);
         }
       }

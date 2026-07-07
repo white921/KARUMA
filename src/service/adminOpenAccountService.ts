@@ -8,6 +8,7 @@ import {
 import { AccountService } from "./accountService";
 
 import { hasRole } from "../util/role";
+import { hasAdminBankPanelPermission } from "../util/adminPermission";
 
 import { INITIAL_WALLET } from "../constant/account";
 import { ADMIN_MESSAGES } from "../constant/admin";
@@ -21,12 +22,7 @@ export class AdminOpenAccountService {
   ) {
     const member = interaction.member as GuildMember;
 
-    if (
-      !(await hasRole(member, ROLE_IDS.GINKOU_LEADER)) &&
-      !(await hasRole(member, ROLE_IDS.KANRISYA)) &&
-      !(await hasRole(member, ROLE_IDS.SABANUSI)) &&
-      !(await hasRole(member, ROLE_IDS.GIJUTU_LEADER))
-    ) {
+    if (!(await hasAdminBankPanelPermission(member))) {
       throw new Error(ADMIN_MESSAGES.NO_PERMISSION);
     }
 

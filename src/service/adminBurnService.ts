@@ -2,7 +2,8 @@ import { ModalSubmitInteraction, User, MessageFlags } from "discord.js";
 
 import { Account } from "../type/account";
 
-import { hasRole, isTechnician } from "../util/role";
+import { isTechnician } from "../util/role";
+import { hasAdminBankPanelPermission } from "../util/adminPermission";
 
 import { AccountService } from "./accountService";
 import { ActionService } from "./actionService";
@@ -13,7 +14,6 @@ import { PANEL_COMMAND_NAMES } from "../constant/command";
 import { ADMIN_BURN_MESSAGES } from "../constant/adminBurn";
 import { ADMIN_MESSAGES } from "../constant/admin";
 import { BOT_ID } from "../constant/id";
-import { ROLE_IDS } from "../constant/id";
 import { formatNumber } from "../util/number";
 
 export class AdminBurnService {
@@ -101,14 +101,10 @@ export class AdminBurnService {
       if (!Number.isInteger(amount)) {
         throw new Error(ADMIN_BURN_MESSAGES.IS_NOT_INT);
       }
-      //銀行統括ではない
+      // 管理者銀行パネルの操作権限がない
       const member = await interaction.guild?.members.fetch(user.id);
       if (member) {
-        if (
-          !(await hasRole(member, ROLE_IDS.GINKOU_LEADER)) &&
-          !(await hasRole(member, ROLE_IDS.KANRISYA)) &&
-          !(await hasRole(member, ROLE_IDS.SABANUSI))
-        ) {
+        if (!(await hasAdminBankPanelPermission(member))) {
           throw new Error(ADMIN_MESSAGES.NO_PERMISSION);
         }
         //減額先が存在しない
