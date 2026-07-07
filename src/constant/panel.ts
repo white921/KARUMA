@@ -4,7 +4,7 @@ import { HOTEL_TYPE_NAMES, HOTEL_PRICE } from "./hotel";
 import { BOT_ID } from "./id";
 
 export const PANEL_MESSAGES = {
-  TITLE: `${CURRENCY_NAMES}銀行窓口`,
+  TITLE: "教団銀行窓口",
   VIEW: "残高確認",
   HISTORY: "取引履歴",
   SEND: `${CURRENCY_NAMES}送金`,

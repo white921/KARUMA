@@ -3,6 +3,11 @@ const assert = require("node:assert/strict");
 
 const { createBankPanelActionRow } = require("../dist/service/panelService.js");
 const { createShopPanelActionRow } = require("../dist/service/shopPanelService.js");
+const { PANEL_MESSAGES } = require("../dist/constant/panel.js");
+
+test("bank panel title uses the cult bank label", () => {
+  assert.equal(PANEL_MESSAGES.TITLE, "教団銀行窓口");
+});
 
 test("bank panel send button uses a Unicode emoji instead of a custom emoji id", () => {
   const row = createBankPanelActionRow().toJSON();

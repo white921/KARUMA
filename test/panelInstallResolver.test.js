@@ -12,6 +12,13 @@ test("resolves bank panel channel to the bank panel target", () => {
   assert.equal(target, PANEL_INSTALL_TARGETS.BANK);
 });
 
+test("resolves admin bank panel thread to the admin bank panel target", () => {
+  assert.equal(THREAD_IDS.ADMIN_PANEL_THREAD, "1521949472865779916");
+
+  const target = resolvePanelInstallTarget(THREAD_IDS.ADMIN_PANEL_THREAD);
+  assert.equal(target, PANEL_INSTALL_TARGETS.ADMIN_BANK);
+});
+
 test("resolves shop panel channel to the shop panel target", () => {
   const target = resolvePanelInstallTarget(TEXT_CHANNEL_IDS.SHOP_PANEL);
   assert.equal(target, PANEL_INSTALL_TARGETS.SHOP);
