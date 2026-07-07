@@ -10,7 +10,7 @@ import { DbService } from "./dbService";
 
 import { CURRENCY_NAMES } from "../constant/currency";
 import { PANEL_COMMAND_NAMES } from "../constant/command";
-import { AETHER_BOT_ID } from "../constant/id";
+import { BOT_ID } from "../constant/id";
 import { ADMIN_MINT_MESSAGES } from "../constant/adminMint";
 import { ADMIN_MESSAGES } from "../constant/admin";
 import { ROLE_IDS } from "../constant/id";
@@ -31,8 +31,8 @@ export class AdminMintService {
     comment: string,
   ) {
     try {
-      const aetherBotAccount = (
-        await AccountService.getAccountByUserId(AETHER_BOT_ID)
+      const botAccount = (
+        await AccountService.getAccountByUserId(BOT_ID)
       )[0];
 
       const toUserAccount = (
@@ -75,7 +75,7 @@ export class AdminMintService {
         amount,
         interaction.user.id,
         toUserId,
-        aetherBotAccount.wallet,
+        botAccount.wallet,
         toUserAmount,
         comment,
       );

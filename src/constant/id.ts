@@ -182,8 +182,8 @@ export const TEST_THREAD_IDS = {
   SHOP_LOG_THREAD: "1497463656999555262", // ショップログスレッドID
 };
 
-// AETHER_BOTのユーザーID
-export const AETHER_BOT_ID = "1482217120593875084";
+// KARUMA BotのユーザーID
+export const BOT_ID = "1521705594912772227";
 
 // TCのID
 export const TEXT_CHANNEL_IDS = {

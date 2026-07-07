@@ -1,5 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
 
 const {
   shouldRegisterCommandsOnBoot,
@@ -7,6 +9,7 @@ const {
   normalizePollingIntervalMs,
   normalizePositiveInteger,
 } = require("../dist/util/runtimeConfig.js");
+const { BOT_ID } = require("../dist/constant/id.js");
 const {
   resolveMysqlConnectionLimit,
   resolveMysqlSlowAcquireLogMs,
@@ -68,4 +71,15 @@ test("daily shift payload is consolidated into a single message", () => {
   assert.match(payload, /22時/);
   assert.match(payload, /欠席/);
   assert.match(payload, /リアクション/);
+});
+
+test("bot account id is configured for KARUMA", () => {
+  const karumaBotId = "1521705594912772227";
+  const createTableSql = fs.readFileSync(
+    path.join(__dirname, "../src/sql/createTable.sql"),
+    "utf8",
+  );
+
+  assert.equal(BOT_ID, karumaBotId);
+  assert.match(createTableSql, new RegExp(`VALUES \\(${karumaBotId}, 'KARUMA Bot', 0\\)`));
 });

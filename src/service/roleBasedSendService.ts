@@ -14,7 +14,7 @@ import { DbService } from "./dbService";
 import { hasRole } from "../util/role";
 
 import { COMMAND_NAMES } from "../constant/command";
-import { AETHER_BOT_ID, ROLE_IDS } from "../constant/id";
+import { BOT_ID, ROLE_IDS } from "../constant/id";
 import { ROLE_BASED_SEND_MESSAGES } from "../constant/roleBasedSend";
 import { SEND_MESSAGES } from "../constant/send";
 import { CURRENCY_NAMES } from "../constant/currency";
@@ -36,8 +36,8 @@ export class RoleBasedSendService {
   ) {
     await this.validate(interaction, targetRole, amount);
 
-    const aetherBotAccount = (
-      await AccountService.getAccountByUserId(AETHER_BOT_ID)
+    const botAccount = (
+      await AccountService.getAccountByUserId(BOT_ID)
     )[0];
     const members = await interaction.guild!.members.fetch();
     const targetMembers = members.filter((member) =>
@@ -56,7 +56,7 @@ export class RoleBasedSendService {
       await this.sendToTargets(
         interaction,
         interaction.user.id,
-        aetherBotAccount.wallet,
+        botAccount.wallet,
         sendTargets,
         amount,
         comment,

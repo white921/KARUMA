@@ -15,7 +15,7 @@
 
 // import { DebitResult } from "../type/account";
 
-// import { AETHER_BOT_ID, ROLE_IDS, TEXT_CHANNEL_IDS } from "../constant/id";
+// import { BOT_ID, ROLE_IDS, TEXT_CHANNEL_IDS } from "../constant/id";
 // import {
 //   MONTHLY_DEBIT_AMOUNTS,
 //   MONTHLY_DEBIT_ROLE_IDS,
@@ -105,16 +105,16 @@
 //         return usersWithInsufficientBalance;
 //       }
 
-//       const aetherBotAccountList =
-//         await AccountService.getAccountByUserId(AETHER_BOT_ID);
+//       const botAccountList =
+//         await AccountService.getAccountByUserId(BOT_ID);
 //       const toUserAccountList = await AccountService.getAccountByUserId(userId);
 
 //       // アカウントが存在しない場合はスキップ
-//       if (!aetherBotAccountList[0] || !toUserAccountList[0]) {
+//       if (!botAccountList[0] || !toUserAccountList[0]) {
 //         return usersWithInsufficientBalance;
 //       }
 
-//       const aetherBotAccount = aetherBotAccountList[0];
+//       const botAccount = botAccountList[0];
 //       const toUserAccount = toUserAccountList[0];
 
 //       const member = await guild.members.fetch(userId);
@@ -153,9 +153,9 @@
 //       await ActionService.createActionLog(
 //         COMMAND_NAMES.DEBIT,
 //         amount,
-//         AETHER_BOT_ID,
+//         BOT_ID,
 //         userId,
-//         aetherBotAccount.wallet,
+//         botAccount.wallet,
 //         afterWallet,
 //         comment,
 //       );

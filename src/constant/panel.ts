@@ -1,7 +1,7 @@
 import { CURRENCY_NAMES } from "./currency";
 import { GAME_PRICE } from "./game";
 import { HOTEL_TYPE_NAMES, HOTEL_PRICE } from "./hotel";
-import { AETHER_BOT_ID } from "./id";
+import { BOT_ID } from "./id";
 
 export const PANEL_MESSAGES = {
   TITLE: `${CURRENCY_NAMES}銀行窓口`,
@@ -10,7 +10,7 @@ export const PANEL_MESSAGES = {
   SEND: `${CURRENCY_NAMES}送金`,
   SHOP_SEND: `${CURRENCY_NAMES}支払い`,
   ERROR: `${CURRENCY_NAMES}銀行窓口チャンネルが見つからないか、無効な型です。`,
-  DESCRIPTION: `ボタンを押して各操作を行ってください。\nスマートフォンでの操作を推奨しています。\n銀行への送金は<@${AETHER_BOT_ID}>宛てに行ってください。`,
+  DESCRIPTION: `ボタンを押して各操作を行ってください。\nスマートフォンでの操作を推奨しています。\n銀行への送金は<@${BOT_ID}>宛てに行ってください。`,
   BUTTON_NOT_FOUND: "押下されたボタンは登録されていません",
 };
 

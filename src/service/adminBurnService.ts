@@ -12,7 +12,7 @@ import { CURRENCY_NAMES } from "../constant/currency";
 import { PANEL_COMMAND_NAMES } from "../constant/command";
 import { ADMIN_BURN_MESSAGES } from "../constant/adminBurn";
 import { ADMIN_MESSAGES } from "../constant/admin";
-import { AETHER_BOT_ID } from "../constant/id";
+import { BOT_ID } from "../constant/id";
 import { ROLE_IDS } from "../constant/id";
 import { formatNumber } from "../util/number";
 
@@ -32,8 +32,8 @@ export class AdminBurnService {
     comment: string,
   ) {
     try {
-      const aetherBotAccount = (
-        await AccountService.getAccountByUserId(AETHER_BOT_ID)
+      const botAccount = (
+        await AccountService.getAccountByUserId(BOT_ID)
       )[0];
       const burnedUserAccount = (
         await AccountService.getAccountByUserId(burnedUserId)
@@ -75,7 +75,7 @@ export class AdminBurnService {
         burnedUserId,
         interaction.user.id,
         burnedUserWallet,
-        aetherBotAccount.wallet,
+        botAccount.wallet,
         comment,
       );
     } catch (error) {

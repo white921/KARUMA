@@ -26,7 +26,7 @@ import {
   DIARY_TYPE_NAMES,
   DiaryType,
 } from "../constant/diary";
-import { AETHER_BOT_ID, FORUM_IDS, ROLE_IDS } from "../constant/id";
+import { BOT_ID, FORUM_IDS, ROLE_IDS } from "../constant/id";
 import { ACCOUNT_MESSAGES } from "../constant/account";
 
 type DiaryExecutionInteraction = ModalSubmitInteraction | ButtonInteraction;
@@ -106,13 +106,13 @@ export class DiaryService {
     const userAccount = (
       await AccountService.getAccountByUserId(creatorUserId)
     )[0];
-    const aetherBotAccount = (
-      await AccountService.getAccountByUserId(AETHER_BOT_ID)
+    const botAccount = (
+      await AccountService.getAccountByUserId(BOT_ID)
     )[0];
     if (!userAccount) {
       throw new Error(ACCOUNT_MESSAGES.ACCOUNT_NOT_FOUND);
     }
-    if (!aetherBotAccount) {
+    if (!botAccount) {
       throw new Error(ACCOUNT_MESSAGES.ACCOUNT_NOT_FOUND);
     }
 
@@ -129,7 +129,7 @@ export class DiaryService {
         normalizedBody,
         isFree,
         userAccount.wallet,
-        aetherBotAccount.user_id,
+        botAccount.user_id,
       );
       return;
     }
@@ -153,7 +153,7 @@ export class DiaryService {
           normalizedBody,
           isFree,
           userAccount.wallet,
-          aetherBotAccount.user_id,
+          botAccount.user_id,
         );
         return;
       }
@@ -171,7 +171,7 @@ export class DiaryService {
         normalizedBody,
         isFree,
         userAccount.wallet,
-        aetherBotAccount.user_id,
+        botAccount.user_id,
       );
     }
   }
@@ -206,10 +206,10 @@ export class DiaryService {
     const userAccount = (
       await AccountService.getAccountByUserId(creatorUserId)
     )[0];
-    const aetherBotAccount = (
-      await AccountService.getAccountByUserId(AETHER_BOT_ID)
+    const botAccount = (
+      await AccountService.getAccountByUserId(BOT_ID)
     )[0];
-    if (!userAccount || !aetherBotAccount) {
+    if (!userAccount || !botAccount) {
       throw new Error(DIARY_MESSAGES.CREATE_ERROR);
     }
 
@@ -232,7 +232,7 @@ export class DiaryService {
       normalizedBody,
       isFree,
       userAccount.wallet,
-      aetherBotAccount.user_id,
+      botAccount.user_id,
     );
   }
 

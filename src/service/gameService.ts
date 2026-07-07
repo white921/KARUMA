@@ -26,7 +26,7 @@ import { GAME_PRICE, GAME_MESSAGES } from "../constant/game";
 import { PANEL_COMMAND_NAMES } from "../constant/command";
 import { ROLE_IDS, THREAD_IDS } from "../constant/id";
 import { COLOR } from "../constant/color";
-import { AETHER_BOT_ID } from "../constant/id";
+import { BOT_ID } from "../constant/id";
 
 export class GameService {
   /**
@@ -100,8 +100,8 @@ export class GameService {
       const userAccount = (await AccountService.getAccountByUserId(userId))[0];
       const isFree = await this.isFree(member);
 
-      const aetherBotAccount = (
-        await AccountService.getAccountByUserId(AETHER_BOT_ID)
+      const botAccount = (
+        await AccountService.getAccountByUserId(BOT_ID)
       )[0];
 
       // プラン価格とロールIDとコメントを取得
@@ -120,9 +120,9 @@ export class GameService {
           commandName,
           price,
           userId,
-          aetherBotAccount.user_id,
+          botAccount.user_id,
           userAccount.wallet - price,
-          aetherBotAccount.wallet,
+          botAccount.wallet,
           `${comment}を購入しました。`,
         );
       }
@@ -200,8 +200,8 @@ export class GameService {
       const member = interaction.member as GuildMember;
       const userAccount = (await AccountService.getAccountByUserId(userId))[0];
 
-      const aetherBotAccount = (
-        await AccountService.getAccountByUserId(AETHER_BOT_ID)
+      const botAccount = (
+        await AccountService.getAccountByUserId(BOT_ID)
       )[0];
 
       // プラン価格とロールIDとコメントを取得
@@ -260,9 +260,9 @@ export class GameService {
         commandName,
         price,
         userId,
-        aetherBotAccount.user_id,
+        botAccount.user_id,
         userAccount.wallet - price,
-        aetherBotAccount.wallet,
+        botAccount.wallet,
         `${comment}を購入しました。`,
       );
 

@@ -25,7 +25,7 @@ import {
   SHOP_PANEL_MESSAGES,
 } from "../constant/panel";
 import { PANEL_COMMAND_NAMES } from "../constant/command";
-import { ROLE_IDS, AETHER_BOT_ID } from "../constant/id";
+import { ROLE_IDS, BOT_ID } from "../constant/id";
 import { CASINO_MESSAGES } from "../constant/casino";
 import {
   HOTEL_TYPE_NAMES,
@@ -60,7 +60,7 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
       case PANEL_COMMAND_NAMES.SHOP_SEND:
         await showAmountModal(
           interaction,
-          AETHER_BOT_ID,
+          BOT_ID,
           interaction.user.id,
           SHOP_PANEL_MESSAGES.SHOP_SEND,
           PANEL_COMMAND_NAMES.SHOP_SEND,

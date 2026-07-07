@@ -32,7 +32,7 @@ import { VC_ALL_TYPES } from "../constant/vc";
 import { HOTEL_TYPE } from "../constant/hotel";
 import { PANEL_COMMAND_NAMES } from "../constant/command";
 import { CURRENCY_NAMES } from "../constant/currency";
-import { AETHER_BOT_ID, ROLE_IDS } from "../constant/id";
+import { BOT_ID, ROLE_IDS } from "../constant/id";
 import { normalizePollingIntervalMs } from "../util/runtimeConfig";
 
 export class HotelVcService {
@@ -665,17 +665,17 @@ export class HotelVcService {
       }
 
       // アクションログ記録
-      const aetherBotAccount = (
-        await AccountService.getAccountByUserId(AETHER_BOT_ID)
+      const botAccount = (
+        await AccountService.getAccountByUserId(BOT_ID)
       )[0];
       await ActionService.executeActionLog(
         interaction,
         commandId,
         price,
         userId,
-        AETHER_BOT_ID,
+        BOT_ID,
         afterWallet,
-        aetherBotAccount.wallet,
+        botAccount.wallet,
         "",
       );
     } catch (error: any) {

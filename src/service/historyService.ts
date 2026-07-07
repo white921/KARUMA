@@ -25,7 +25,7 @@ import {
 } from "../constant/history";
 import { PANEL_COMMAND_NAMES, COMMAND_NAMES } from "../constant/command";
 import { CURRENCY_NAMES } from "../constant/currency";
-import { AETHER_BOT_ID } from "../constant/id";
+import { BOT_ID } from "../constant/id";
 import { EXTERNALE_MOJI_VIEWS } from "../constant/emoji";
 
 dayjs.extend(utc);
@@ -125,20 +125,20 @@ export class HistoryService {
         : `<@${
             action.from_user_id
           }> から\n+${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.to_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [PANEL_COMMAND_NAMES.SHOP_SEND]: `<@${AETHER_BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [COMMAND_NAMES.ROLE_BASED_SEND]: `<@${AETHER_BOT_ID}> から\n+${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.to_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [PANEL_COMMAND_NAMES.ADMIN_MINT]: `<@${AETHER_BOT_ID}> から\n+${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.to_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [PANEL_COMMAND_NAMES.ADMIN_BURN]: `<@${AETHER_BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [COMMAND_NAMES.PAY_SALARY]: `<@${AETHER_BOT_ID}> から\n+${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.to_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [COMMAND_NAMES.CHANGE_NAME]: `<@${AETHER_BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [PANEL_COMMAND_NAMES.HOTEL_VC_NORMAL]: `<@${AETHER_BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [PANEL_COMMAND_NAMES.HOTEL_VC_SECRET]: `<@${AETHER_BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [PANEL_COMMAND_NAMES.HOTEL_VC_SECRETLONG]: `<@${AETHER_BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [PANEL_COMMAND_NAMES.HOTEL_VC_FREEDOM]: `<@${AETHER_BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [PANEL_COMMAND_NAMES.HOTEL_VC_FREEDOMLONG]: `<@${AETHER_BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [PANEL_COMMAND_NAMES.DIARY_PRIVATE]: `<@${AETHER_BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [PANEL_COMMAND_NAMES.DIARY_PUBLIC]: `<@${AETHER_BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [PANEL_COMMAND_NAMES.DIARY_UPDATE]: `<@${AETHER_BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
+      [PANEL_COMMAND_NAMES.SHOP_SEND]: `<@${BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
+      [COMMAND_NAMES.ROLE_BASED_SEND]: `<@${BOT_ID}> から\n+${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.to_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
+      [PANEL_COMMAND_NAMES.ADMIN_MINT]: `<@${BOT_ID}> から\n+${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.to_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
+      [PANEL_COMMAND_NAMES.ADMIN_BURN]: `<@${BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
+      [COMMAND_NAMES.PAY_SALARY]: `<@${BOT_ID}> から\n+${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.to_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
+      [COMMAND_NAMES.CHANGE_NAME]: `<@${BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
+      [PANEL_COMMAND_NAMES.HOTEL_VC_NORMAL]: `<@${BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
+      [PANEL_COMMAND_NAMES.HOTEL_VC_SECRET]: `<@${BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
+      [PANEL_COMMAND_NAMES.HOTEL_VC_SECRETLONG]: `<@${BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
+      [PANEL_COMMAND_NAMES.HOTEL_VC_FREEDOM]: `<@${BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
+      [PANEL_COMMAND_NAMES.HOTEL_VC_FREEDOMLONG]: `<@${BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
+      [PANEL_COMMAND_NAMES.DIARY_PRIVATE]: `<@${BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
+      [PANEL_COMMAND_NAMES.DIARY_PUBLIC]: `<@${BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
+      [PANEL_COMMAND_NAMES.DIARY_UPDATE]: `<@${BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
       [PANEL_COMMAND_NAMES.CASINO_GF]: isFromUser
         ? `<@${
             action.to_user_id

@@ -121,7 +121,7 @@ COMMENT='日記情報';
 -- Bot口座
 -- 各種購入・付与・減額ログが参照するため、初期状態で用意する
 INSERT INTO accounts (user_id, user_name, wallet)
-VALUES (1482217120593875084, 'KARUMA Bot', 0)
+VALUES (1521705594912772227, 'KARUMA Bot', 0)
 ON DUPLICATE KEY UPDATE
   user_name = VALUES(user_name);
 

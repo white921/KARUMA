@@ -9,7 +9,7 @@ import { PANEL_COMMAND_NAMES } from "../constant/command";
 import { AdminMintService } from "../service/adminMintService";
 import { VcService } from "../service/vcService";
 import { DiaryType } from "../constant/diary";
-import { AETHER_BOT_ID } from "../constant/id";
+import { BOT_ID } from "../constant/id";
 /**
  * モーダルフィールドの値を取得
  * @param interaction モーダルサブミットインタラクション
@@ -86,7 +86,7 @@ export async function handleModalSubmit(interaction: ModalSubmitInteraction) {
         await SendService.send(
           interaction,
           interaction.user.id,
-          AETHER_BOT_ID,
+          BOT_ID,
           amount,
           comment,
           commandId,

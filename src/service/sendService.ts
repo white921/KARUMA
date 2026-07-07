@@ -14,7 +14,7 @@ import { MONTHLY_SEND_LIMIT, SEND_MESSAGES } from "../constant/send";
 import { CURRENCY_NAMES } from "../constant/currency";
 import { PANEL_COMMAND_NAMES } from "../constant/command";
 import { ACCOUNT_MESSAGES } from "../constant/account";
-import { AETHER_BOT_ID } from "../constant/id";
+import { BOT_ID } from "../constant/id";
 
 export class SendService {
   /**
@@ -193,7 +193,7 @@ export class SendService {
       return;
     }
     
-    if (fromUserId === AETHER_BOT_ID || toUserId === AETHER_BOT_ID) {
+    if (fromUserId === BOT_ID || toUserId === BOT_ID) {
       return;
     }
 

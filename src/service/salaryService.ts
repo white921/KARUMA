@@ -7,7 +7,7 @@ import { AccountService } from "./accountService";
 import { DbService } from "./dbService";
 import { ActionService } from "./actionService";
 
-import { AETHER_BOT_ID } from "../constant/id";
+import { BOT_ID } from "../constant/id";
 import {
   SALARY_PAYMENTS,
   SALARY_ROLE_IDS,
@@ -50,8 +50,8 @@ export class SalaryService {
         return;
       }
 
-      const aetherBotAccount = (
-        await AccountService.getAccountByUserId(AETHER_BOT_ID)
+      const botAccount = (
+        await AccountService.getAccountByUserId(BOT_ID)
       )[0];
 
       const toUserAccount = (
@@ -80,9 +80,9 @@ export class SalaryService {
       await ActionService.createActionLog(
         COMMAND_NAMES.PAY_SALARY,
         amount,
-        AETHER_BOT_ID,
+        BOT_ID,
         userId,
-        aetherBotAccount.wallet,
+        botAccount.wallet,
         toUserAmount,
         comment,
       );
