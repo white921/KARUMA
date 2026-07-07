@@ -1,3 +1,3 @@
-export const CURRENCY_NAMES = "KURAMA";
+export const CURRENCY_NAMES = "KARUMA";
 
 export const ZERO = 0;
