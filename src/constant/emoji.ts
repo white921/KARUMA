@@ -1,6 +1,7 @@
 // 外部の絵文字
 export const EXTERNALE_MOJI_VIEWS = {
   WALLET: "💳",
+  ROYAL_COIN: "🪙",
   MOON: "🌙",
   MILKY_WAY: "🌌",
   UNIVESE: "🪐",

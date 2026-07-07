@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction } from "discord.js";
+import { ChatInputCommandInteraction, GuildMember } from "discord.js";
 
 import { execute as test } from "../command/test";
 import { execute as panel } from "../command/panel";
@@ -21,12 +21,51 @@ import { execute as extraExtend } from "../command/extraExtend";
 // import { execute as showEvaluationEnd } from "../command/showEvaluationEnd";
 
 import { COMMAND_MESSAGES, COMMAND_NAMES } from "../constant/command";
+import { ROLE_IDS } from "../constant/id";
+
+export const TEMPORARY_TECHNICAL_DIRECTOR_ONLY_MESSAGE =
+  "現在スラッシュコマンドは一時的に技術統括のみ実行できます。";
+
+type RoleBackedMember = {
+  roles?: {
+    cache?: {
+      has: (roleId: string) => boolean;
+    };
+  };
+};
+
+export function canUseTemporaryTechnicalDirectorOnly(
+  member: unknown,
+): boolean {
+  const roleBackedMember = member as RoleBackedMember | null | undefined;
+  return Boolean(roleBackedMember?.roles?.cache?.has(ROLE_IDS.GIJUTU_LEADER));
+}
+
+export async function assertTemporaryTechnicalDirectorOnly(
+  interaction: Pick<ChatInputCommandInteraction, "guild" | "member" | "user">,
+) {
+  if (canUseTemporaryTechnicalDirectorOnly(interaction.member)) {
+    return;
+  }
+
+  if (interaction.guild && !(interaction.member instanceof GuildMember)) {
+    const member = await interaction.guild.members.fetch(interaction.user.id);
+    if (canUseTemporaryTechnicalDirectorOnly(member)) {
+      return;
+    }
+  }
+
+  throw new Error(TEMPORARY_TECHNICAL_DIRECTOR_ONLY_MESSAGE);
+}
 
 export async function exeCommand(
   interaction: ChatInputCommandInteraction,
   command: string
 ) {
   try {
+    // Temporary global slash-command lock. Remove this line to reopen commands.
+    await assertTemporaryTechnicalDirectorOnly(interaction);
+
     switch (command) {
       case COMMAND_NAMES.TEST:
         await test(interaction);

@@ -13,7 +13,27 @@ import { TEXT_CHANNEL_IDS } from "../constant/id";
 import { PANEL_MESSAGES } from "../constant/panel";
 import { PANEL_COMMAND_NAMES } from "../constant/command";
 import { COLOR } from "../constant/color";
-import { EXTERNALE_MOJI_VIEWS, INTERNAL_EMOJI_IDS } from "../constant/emoji";
+import { EXTERNALE_MOJI_VIEWS } from "../constant/emoji";
+
+export function createBankPanelActionRow() {
+  return new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder()
+      .setCustomId(PANEL_COMMAND_NAMES.VIEW)
+      .setLabel(PANEL_MESSAGES.VIEW)
+      .setStyle(ButtonStyle.Primary)
+      .setEmoji(EXTERNALE_MOJI_VIEWS.WALLET),
+    new ButtonBuilder()
+      .setCustomId(PANEL_COMMAND_NAMES.SEND)
+      .setLabel(PANEL_MESSAGES.SEND)
+      .setStyle(ButtonStyle.Success)
+      .setEmoji(EXTERNALE_MOJI_VIEWS.ROYAL_COIN),
+    new ButtonBuilder()
+      .setCustomId(PANEL_COMMAND_NAMES.HISTORY)
+      .setLabel(PANEL_MESSAGES.HISTORY)
+      .setStyle(ButtonStyle.Secondary)
+      .setEmoji(EXTERNALE_MOJI_VIEWS.HISTORY),
+  );
+}
 
 export class PanelService {
   /**
@@ -43,23 +63,7 @@ export class PanelService {
         );
 
       // コマンドボタンを作成
-      const row1 = new ActionRowBuilder<ButtonBuilder>().addComponents(
-        new ButtonBuilder()
-          .setCustomId(PANEL_COMMAND_NAMES.VIEW)
-          .setLabel(PANEL_MESSAGES.VIEW) 
-          .setStyle(ButtonStyle.Primary)
-          .setEmoji(EXTERNALE_MOJI_VIEWS.WALLET),
-        new ButtonBuilder()
-          .setCustomId(PANEL_COMMAND_NAMES.SEND)
-          .setLabel(PANEL_MESSAGES.SEND)
-          .setStyle(ButtonStyle.Success)
-          .setEmoji({ id: INTERNAL_EMOJI_IDS.ROYAL_COIN }),
-        new ButtonBuilder()
-          .setCustomId(PANEL_COMMAND_NAMES.HISTORY)
-          .setLabel(PANEL_MESSAGES.HISTORY)
-          .setStyle(ButtonStyle.Secondary)
-          .setEmoji(EXTERNALE_MOJI_VIEWS.HISTORY)
-      );
+      const row1 = createBankPanelActionRow();
 
       await deletePanelMessage(channel, client, PANEL_MESSAGES.TITLE);
 

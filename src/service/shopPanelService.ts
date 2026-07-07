@@ -13,7 +13,22 @@ import { TEXT_CHANNEL_IDS } from "../constant/id";
 import { SHOP_PANEL_MESSAGES } from "../constant/panel";
 import { PANEL_COMMAND_NAMES } from "../constant/command";
 import { COLOR } from "../constant/color";
-import { EXTERNALE_MOJI_VIEWS, INTERNAL_EMOJI_IDS } from "../constant/emoji";
+import { EXTERNALE_MOJI_VIEWS } from "../constant/emoji";
+
+export function createShopPanelActionRow() {
+  return new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder()
+      .setCustomId(PANEL_COMMAND_NAMES.SHOP_SEND)
+      .setLabel(SHOP_PANEL_MESSAGES.SHOP_SEND)
+      .setStyle(ButtonStyle.Success)
+      .setEmoji(EXTERNALE_MOJI_VIEWS.ROYAL_COIN),
+    new ButtonBuilder()
+      .setCustomId(PANEL_COMMAND_NAMES.VIEW)
+      .setLabel(SHOP_PANEL_MESSAGES.VIEW)
+      .setStyle(ButtonStyle.Primary)
+      .setEmoji(EXTERNALE_MOJI_VIEWS.WALLET),
+  );
+}
 
 export class ShopPanelService {
   /**
@@ -41,18 +56,7 @@ export class ShopPanelService {
         );
 
       // コマンドボタンを作成
-      const row1 = new ActionRowBuilder<ButtonBuilder>().addComponents(
-        new ButtonBuilder()
-          .setCustomId(PANEL_COMMAND_NAMES.SHOP_SEND)
-          .setLabel(SHOP_PANEL_MESSAGES.SHOP_SEND)
-          .setStyle(ButtonStyle.Success)
-          .setEmoji({ id: INTERNAL_EMOJI_IDS.ROYAL_COIN }),
-        new ButtonBuilder()
-          .setCustomId(PANEL_COMMAND_NAMES.VIEW)
-          .setLabel(SHOP_PANEL_MESSAGES.VIEW)
-          .setStyle(ButtonStyle.Primary)
-          .setEmoji(EXTERNALE_MOJI_VIEWS.WALLET),
-      );
+      const row1 = createShopPanelActionRow();
 
       await deletePanelMessage(channel, client, SHOP_PANEL_MESSAGES.TITLE);
 
