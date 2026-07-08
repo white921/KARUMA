@@ -843,79 +843,36 @@ export class HotelVcService {
   }
 
   /**
-   * 無料VCが空になったときにlast_empty_atを設定
-   * @param channelId VCチャンネルID
+   * 空になった無料ホテルVCを即時削除
+   * @param voiceChannel 空になったVCチャンネル
+   * @returns 削除したかどうか
    */
-  static async setLastEmptyAtForBonusVc(channelId: string) {
+  static async deleteEmptyBonusVcNow(
+    voiceChannel: VoiceChannel,
+  ): Promise<boolean> {
     const connection = await DbService.getConnection();
     try {
       const [rows] = await connection.execute<any[]>(
-        `SELECT is_bonus, last_empty_at FROM vcs 
+        `SELECT is_bonus FROM vcs 
          WHERE channel_id = ? AND is_active = TRUE`,
-        [channelId],
+        [voiceChannel.id],
       );
 
-      if (!rows || rows.length === 0) {
-        return;
+      if (!rows || rows.length === 0 || !rows[0].is_bonus) {
+        return false;
       }
 
-      // 無料VCで、last_empty_atがまだ設定されていない場合のみ設定
-      if (rows[0].is_bonus && !rows[0].last_empty_at) {
-        const updateConnection = await DbService.getConnection();
-        try {
-          await updateConnection.execute(
-            `UPDATE vcs SET last_empty_at = NOW() WHERE channel_id = ?`,
-            [channelId],
-          );
-        } finally {
-          updateConnection.release();
-        }
-      }
-    } catch (error: any) {
-      throw error;
+      await voiceChannel.delete();
+      await updateVcStatus(voiceChannel.id, false);
+      return true;
     } finally {
       connection.release();
     }
   }
 
   /**
-   * 無料VCに人が入ったときにlast_empty_atをリセット
-   * @param channelId VCチャンネルID
-   */
-  static async resetLastEmptyAtForBonusVc(channelId: string) {
-    const connection = await DbService.getConnection();
-    try {
-      const [rows] = await connection.execute<any[]>(
-        `SELECT is_bonus, last_empty_at FROM vcs 
-         WHERE channel_id = ? AND is_active = TRUE`,
-        [channelId],
-      );
-
-      if (!rows || rows.length === 0) {
-        return;
-      }
-
-      // 無料VCで、last_empty_atが設定されている場合のみリセット
-      if (rows[0].is_bonus && rows[0].last_empty_at) {
-        const updateConnection = await DbService.getConnection();
-        try {
-          await updateConnection.execute(
-            `UPDATE vcs SET last_empty_at = NULL WHERE channel_id = ?`,
-            [channelId],
-          );
-        } finally {
-          updateConnection.release();
-        }
-      }
-    } catch (error: any) {
-      throw error;
-    } finally {
-      connection.release();
-    }
-  }
-
-  /**
-   * 空になった無料VCをチェックして削除（10秒以上空の状態が続いているもの）
+   * 空になった無料VCをチェックして削除
+   * 通常はvoiceStateUpdateで即時削除されるが、イベント取りこぼし時の保険として動かす。
    * @param client Discordクライアント
    */
   static async deleteEmptyBonusVcs(client: Client) {
@@ -923,7 +880,7 @@ export class HotelVcService {
     try {
       // 全無料VCを取得
       const [rows] = await connection.execute<any[]>(
-        `SELECT channel_id, last_empty_at FROM vcs 
+        `SELECT channel_id FROM vcs 
          WHERE is_active = TRUE 
          AND is_bonus = TRUE`,
       );
@@ -955,20 +912,8 @@ export class HotelVcService {
           const memberCount = members.size;
 
           if (memberCount === 0) {
-            // 空の場合、last_empty_atが10秒以上前かどうかをチェック
-            if (row.last_empty_at) {
-              const lastEmptyAt = new Date(row.last_empty_at);
-              const now = new Date();
-              const diffSeconds =
-                (now.getTime() - lastEmptyAt.getTime()) / 1000;
-
-              if (diffSeconds >= 10) {
-                // 10秒以上空の状態が続いているので削除
-                await channel.delete();
-
-                await updateVcStatus(channelId, false);
-              }
-            }
+            await channel.delete();
+            await updateVcStatus(channelId, false);
           }
         } catch (error: any) {
           throw error;

@@ -377,14 +377,7 @@ client.on(
           const membersCount = getVcMembersCount(oldChannel);
 
           if (membersCount === 0) {
-            await HotelVcService.setLastEmptyAtForBonusVc(oldChannel.id);
-          }
-        }
-
-        if (newChannel && newChannel.type === ChannelType.GuildVoice) {
-          const membersCount = getVcMembersCount(newChannel);
-          if (membersCount > 0) {
-            await HotelVcService.resetLastEmptyAtForBonusVc(newChannel.id);
+            await HotelVcService.deleteEmptyBonusVcNow(oldChannel);
           }
         }
       }
