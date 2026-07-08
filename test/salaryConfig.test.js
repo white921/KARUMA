@@ -15,7 +15,7 @@ test("monthly salary is paid only to the technical director role", () => {
   });
 });
 
-test("technical director monthly salary is 10000 KARUMA", () => {
+test("technical director monthly salary is 10000 krm", () => {
   assert.deepEqual(SALARY_PAYMENTS, {
     [ROLE_IDS.GIJUTU_LEADER]: 10000,
   });

@@ -15,7 +15,40 @@ import { HOTEL_TYPE_NAMES } from "../constant/hotel";
 import { PANEL_MESSAGES } from "../constant/panel";
 import { PANEL_COMMAND_NAMES } from "../constant/command";
 import { COLOR } from "../constant/color";
-import { EXTERNALE_MOJI_VIEWS } from "../constant/emoji";
+
+export function createHotelVcPanelActionRows() {
+  const row1 = new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder()
+      .setCustomId(PANEL_COMMAND_NAMES.HOTEL_VC_NORMAL)
+      .setLabel(HOTEL_TYPE_NAMES.NORMAL)
+      .setStyle(ButtonStyle.Primary),
+    new ButtonBuilder()
+      .setCustomId(PANEL_COMMAND_NAMES.HOTEL_VC_SECRET)
+      .setLabel(HOTEL_TYPE_NAMES.SECRET)
+      .setStyle(ButtonStyle.Success),
+    new ButtonBuilder()
+      .setCustomId(PANEL_COMMAND_NAMES.HOTEL_VC_SECRETLONG)
+      .setLabel(HOTEL_TYPE_NAMES.SECRETLONG)
+      .setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder()
+      .setCustomId(PANEL_COMMAND_NAMES.HOTEL_VC_FREEDOM)
+      .setLabel(HOTEL_TYPE_NAMES.FREEDOM)
+      .setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder()
+      .setCustomId(PANEL_COMMAND_NAMES.HOTEL_VC_FREEDOMLONG)
+      .setLabel(HOTEL_TYPE_NAMES.FREEDOMLONG)
+      .setStyle(ButtonStyle.Secondary)
+  );
+
+  const row2 = new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder()
+      .setCustomId(PANEL_COMMAND_NAMES.VIEW)
+      .setLabel(PANEL_MESSAGES.VIEW)
+      .setStyle(ButtonStyle.Primary)
+  );
+
+  return [row1, row2];
+}
 
 export class HotelVcPanelService {
   /**
@@ -42,41 +75,7 @@ export class HotelVcPanelService {
           "https://cdn.discordapp.com/attachments/1434882309089132706/1440341250296512533/ChatGPT_Image_20251118_20_58_59.png?ex=691dcdd2&is=691c7c52&hm=54f9ed0bc5486c1aa1727e5584426ae021412249de0badec12ff90e2afbcd9cc&"
         );
 
-      const row1 = new ActionRowBuilder<ButtonBuilder>().addComponents(
-        new ButtonBuilder()
-          .setCustomId(PANEL_COMMAND_NAMES.HOTEL_VC_NORMAL)
-          .setLabel(HOTEL_TYPE_NAMES.NORMAL)
-          .setStyle(ButtonStyle.Primary)
-          .setEmoji(EXTERNALE_MOJI_VIEWS.MOON),
-        new ButtonBuilder()
-          .setCustomId(PANEL_COMMAND_NAMES.HOTEL_VC_SECRET)
-          .setLabel(HOTEL_TYPE_NAMES.SECRET)
-          .setStyle(ButtonStyle.Success)
-          .setEmoji(EXTERNALE_MOJI_VIEWS.MILKY_WAY),
-        new ButtonBuilder()
-          .setCustomId(PANEL_COMMAND_NAMES.HOTEL_VC_SECRETLONG)
-          .setLabel(HOTEL_TYPE_NAMES.SECRETLONG)
-          .setStyle(ButtonStyle.Secondary)
-          .setEmoji(EXTERNALE_MOJI_VIEWS.SPACE),
-        new ButtonBuilder()
-          .setCustomId(PANEL_COMMAND_NAMES.HOTEL_VC_FREEDOM)
-          .setLabel(HOTEL_TYPE_NAMES.FREEDOM)
-          .setStyle(ButtonStyle.Secondary)
-          .setEmoji(EXTERNALE_MOJI_VIEWS.UNIVESE),
-        new ButtonBuilder()
-          .setCustomId(PANEL_COMMAND_NAMES.HOTEL_VC_FREEDOMLONG)
-          .setLabel(HOTEL_TYPE_NAMES.FREEDOMLONG)
-          .setStyle(ButtonStyle.Secondary)
-          .setEmoji(EXTERNALE_MOJI_VIEWS.SPACE)
-      );
-
-      const row2 = new ActionRowBuilder<ButtonBuilder>().addComponents(
-        new ButtonBuilder()
-          .setCustomId(PANEL_COMMAND_NAMES.VIEW)
-          .setLabel(PANEL_MESSAGES.VIEW)
-          .setStyle(ButtonStyle.Primary)
-          .setEmoji(EXTERNALE_MOJI_VIEWS.WALLET)
-      );
+      const [row1, row2] = createHotelVcPanelActionRows();
 
       await deletePanelMessage(channel, client, HOTEL_VC_PANEL_MESSAGES.TITLE);
 
@@ -119,13 +118,11 @@ export class HotelVcPanelService {
         new ButtonBuilder()
           .setCustomId(PANEL_COMMAND_NAMES.HOTEL_VC_NORMAL)
           .setLabel(HOTEL_TYPE_NAMES.NORMAL)
-          .setStyle(ButtonStyle.Primary)
-          .setEmoji(EXTERNALE_MOJI_VIEWS.MOON),
+          .setStyle(ButtonStyle.Primary),
         new ButtonBuilder()
           .setCustomId(PANEL_COMMAND_NAMES.VIEW)
           .setLabel(PANEL_MESSAGES.VIEW)
           .setStyle(ButtonStyle.Primary)
-          .setEmoji(EXTERNALE_MOJI_VIEWS.WALLET)
       );
 
       await deletePanelMessage(channel, client, HOTEL_VC_PANEL_MESSAGES.TITLE);
@@ -173,28 +170,23 @@ export class HotelVcPanelService {
         new ButtonBuilder()
           .setCustomId(PANEL_COMMAND_NAMES.HOTEL_VC_SECRET)
           .setLabel(HOTEL_TYPE_NAMES.SECRET)
-          .setStyle(ButtonStyle.Success)
-          .setEmoji(EXTERNALE_MOJI_VIEWS.MILKY_WAY),
+          .setStyle(ButtonStyle.Success),
         new ButtonBuilder()
           .setCustomId(PANEL_COMMAND_NAMES.HOTEL_VC_SECRETLONG)
           .setLabel(HOTEL_TYPE_NAMES.SECRETLONG)
-          .setStyle(ButtonStyle.Secondary)
-          .setEmoji(EXTERNALE_MOJI_VIEWS.SPACE),
+          .setStyle(ButtonStyle.Secondary),
         new ButtonBuilder()
           .setCustomId(PANEL_COMMAND_NAMES.HOTEL_VC_FREEDOM)
           .setLabel(HOTEL_TYPE_NAMES.FREEDOM)
-          .setStyle(ButtonStyle.Secondary)
-          .setEmoji(EXTERNALE_MOJI_VIEWS.UNIVESE),
+          .setStyle(ButtonStyle.Secondary),
         new ButtonBuilder()
           .setCustomId(PANEL_COMMAND_NAMES.HOTEL_VC_FREEDOMLONG)
           .setLabel(HOTEL_TYPE_NAMES.FREEDOMLONG)
-          .setStyle(ButtonStyle.Secondary)
-          .setEmoji(EXTERNALE_MOJI_VIEWS.SPACE),
+          .setStyle(ButtonStyle.Secondary),
         new ButtonBuilder()
           .setCustomId(PANEL_COMMAND_NAMES.VIEW)
           .setLabel(PANEL_MESSAGES.VIEW)
           .setStyle(ButtonStyle.Primary)
-          .setEmoji(EXTERNALE_MOJI_VIEWS.WALLET)
       );
 
       await deletePanelMessage(channel, client, HOTEL_VC_PANEL_MESSAGES.TITLE);

@@ -213,6 +213,15 @@ export class HotelVcService {
     }
   }
 
+  static async isNormalHotelBonusMember(member: GuildMember): Promise<boolean> {
+    return (
+      (await hasRole(member, ROLE_IDS.CORE_MEMBER_ROLES.HONMEN)) ||
+      (await hasRole(member, ROLE_IDS.CORE_MEMBER_ROLES.JUNHONMEN)) ||
+      (await hasRole(member, ROLE_IDS.KANRISYA)) ||
+      (await hasRole(member, ROLE_IDS.SABANUSI))
+    );
+  }
+
   /**
    * ホテルVCを作成
    * @param interaction ボタンインタラクション

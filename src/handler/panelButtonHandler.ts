@@ -161,15 +161,9 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
         break;
       case PANEL_COMMAND_NAMES.HOTEL_VC_NORMAL:
         if (
-          (await hasRole(
+          await HotelVcService.isNormalHotelBonusMember(
             interaction.member as GuildMember,
-            ROLE_IDS.CORE_MEMBER_ROLES.HONMEN,
-          )) ||
-          (await hasRole(
-            interaction.member as GuildMember,
-            ROLE_IDS.KANRISYA,
-          )) ||
-          (await hasRole(interaction.member as GuildMember, ROLE_IDS.SABANUSI))
+          )
         ) {
           const voiceChannelId = await HotelVcService.createHotelVc(
             interaction,

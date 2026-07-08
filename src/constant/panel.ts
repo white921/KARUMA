@@ -38,8 +38,8 @@ export const ADMIN_PANEL_MESSAGES = {
 
 export const HOTEL_VC_PANEL_MESSAGES = {
   TITLE: "ホテルVCパネル",
-  DESCRIPTION: `ボタンを押してホテルを選択してください。\nスマートフォンでの操作を推奨しています。\n\n**【ホテル案内】**\n**・ ${HOTEL_TYPE_NAMES.NORMAL}**\n${HOTEL_PRICE.NORMAL}${CURRENCY_NAMES}/12h\n通常ツーショットVC\n※使徒ロール所持者は無料のため、残高の引き落としはありません。\n\n**・ ${HOTEL_TYPE_NAMES.SECRET}**\n${HOTEL_PRICE.SECRET}${CURRENCY_NAMES}/12h\n管理者以外に見えないツーショットVC\n\n**・ ${HOTEL_TYPE_NAMES.SECRETLONG}**\n${HOTEL_PRICE.SECRETLONG}${CURRENCY_NAMES}/24h\n管理者以外に見えないツーショットVC\n\n**・ ${HOTEL_TYPE_NAMES.FREEDOM}**\n${HOTEL_PRICE.FREEDOM}${CURRENCY_NAMES}/12h\n大人数で自由に利用できるVC\n\n**・ ${HOTEL_TYPE_NAMES.FREEDOMLONG}**\n${HOTEL_PRICE.FREEDOMLONG}${CURRENCY_NAMES}/24h\n大人数で自由に利用できるVC`,
-  NORMAL_DESCRIPTION: `\nボタンを押してホテルを選択してください。\nスマートフォンでの操作を推奨しています。\n\n**【ホテル案内】**\n**・ ${HOTEL_TYPE_NAMES.NORMAL}**\n${HOTEL_PRICE.NORMAL}${CURRENCY_NAMES}/12h\n通常ツーショットVC\n※使徒ロール所持者は無料のため、残高の引き落としはありません。\n\n`,
+  DESCRIPTION: `ボタンを押してホテルを選択してください。\nスマートフォンでの操作を推奨しています。\n\n**【ホテル案内】**\n**・ ${HOTEL_TYPE_NAMES.NORMAL}**\n${HOTEL_PRICE.NORMAL}${CURRENCY_NAMES}/12h\n通常ツーショットVC\n※使徒・教団員ロール所持者は無料のため、残高の引き落としはありません。\n\n**・ ${HOTEL_TYPE_NAMES.SECRET}**\n${HOTEL_PRICE.SECRET}${CURRENCY_NAMES}/12h\n管理者以外に見えないツーショットVC\n\n**・ ${HOTEL_TYPE_NAMES.SECRETLONG}**\n${HOTEL_PRICE.SECRETLONG}${CURRENCY_NAMES}/24h\n管理者以外に見えないツーショットVC\n\n**・ ${HOTEL_TYPE_NAMES.FREEDOM}**\n${HOTEL_PRICE.FREEDOM}${CURRENCY_NAMES}/12h\n大人数で自由に利用できるVC\n\n**・ ${HOTEL_TYPE_NAMES.FREEDOMLONG}**\n${HOTEL_PRICE.FREEDOMLONG}${CURRENCY_NAMES}/24h\n大人数で自由に利用できるVC`,
+  NORMAL_DESCRIPTION: `\nボタンを押してホテルを選択してください。\nスマートフォンでの操作を推奨しています。\n\n**【ホテル案内】**\n**・ ${HOTEL_TYPE_NAMES.NORMAL}**\n${HOTEL_PRICE.NORMAL}${CURRENCY_NAMES}/12h\n通常ツーショットVC\n※使徒・教団員ロール所持者は無料のため、残高の引き落としはありません。\n\n`,
   SPECIAL_DISCRIPTION: `\nボタンを押してホテルを選択してください。\nスマートフォンでの操作を推奨しています。\n\n**【ホテル案内】**\n**・ ${HOTEL_TYPE_NAMES.SECRET}**\n${HOTEL_PRICE.SECRET}${CURRENCY_NAMES}/12h\n管理者以外に見えないツーショットVC\n\n**・ ${HOTEL_TYPE_NAMES.SECRETLONG}**\n${HOTEL_PRICE.SECRETLONG}${CURRENCY_NAMES}/24h\n管理者以外に見えないツーショットVC\n\n**・ ${HOTEL_TYPE_NAMES.FREEDOM}**\n${HOTEL_PRICE.FREEDOM}${CURRENCY_NAMES}/12h\n大人数で自由に利用できるVC\n\n**・ ${HOTEL_TYPE_NAMES.FREEDOMLONG}**\n${HOTEL_PRICE.FREEDOMLONG}${CURRENCY_NAMES}/24h\n大人数で自由に利用できるVC`,
   ERROR: "ホテルVCパネルチャンネルが見つからないか、無効な型です。",
   CANCEL: "❌ キャンセルしました。",
@@ -78,7 +78,7 @@ export const SHOP_PANEL_MESSAGES = {
   DESCRIPTION:
     "ショップの支払いはこちらのパネルから行ってください。\n コメントにて購入される商品名を明記してください。",
   VIEW: "残高確認",
-  SHOP_SEND: "ショップ支払い",
+  SHOP_SEND: `${CURRENCY_NAMES}支払い`,
   ERROR: "ショップパネルチャンネルが見つからないか、無効な型です。",
 };
 
