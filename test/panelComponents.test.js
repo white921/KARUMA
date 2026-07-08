@@ -81,6 +81,16 @@ test("hotel panel free role wording uses apostle instead of engraving", () => {
   assert.doesNotMatch(description, /刻印/);
 });
 
+test("hotel panel duration labels match minute-based expiration", () => {
+  const description = HOTEL_VC_PANEL_MESSAGES.DESCRIPTION;
+
+  assert.match(description, /30000krm\/1分/);
+  assert.match(description, /50000krm\/2分/);
+  assert.match(description, /50000krm\/1分/);
+  assert.match(description, /90000krm\/2分/);
+  assert.doesNotMatch(description, /12h|24h|12時間|24時間/);
+});
+
 test("normal hotel is free for apostle and cult member roles", async () => {
   assert.equal(
     await HotelVcService.isNormalHotelBonusMember(

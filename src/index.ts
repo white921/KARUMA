@@ -377,7 +377,10 @@ client.on(
           const membersCount = getVcMembersCount(oldChannel);
 
           if (membersCount === 0) {
-            await HotelVcService.deleteEmptyBonusVcNow(oldChannel);
+            const deleted = await HotelVcService.deleteEmptyBonusVcNow(oldChannel);
+            if (!deleted) {
+              await HotelVcService.disconnectBotsFromEmptyPaidHotelVc(oldChannel);
+            }
           }
         }
       }

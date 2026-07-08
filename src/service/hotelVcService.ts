@@ -59,17 +59,17 @@ export class HotelVcService {
   /**
    * ホテルVCの利用時間を取得
    * @param hotelType ホテルVCタイプ
-   * @returns 利用時間（時間）
+   * @returns 利用時間（分）
    */
-  static getHotelVcDurationHours(hotelType: string): number {
+  static getHotelVcDurationMinutes(hotelType: string): number {
     switch (hotelType) {
       case HOTEL_TYPE.NORMAL:
       case HOTEL_TYPE.SECRET:
       case HOTEL_TYPE.FREEDOM:
-        return 12;
+        return 1;
       case HOTEL_TYPE.SECRETLONG:
       case HOTEL_TYPE.FREEDOMLONG:
-        return 24;
+        return 2;
       default:
         throw new Error(HOTEL_MESSAGES.UNDEFINED_TYPE_OF_HOTEL);
     }
@@ -262,8 +262,8 @@ export class HotelVcService {
 
       // 期限切れ時間を取得
       const hotelVcType = this.getHotelTypeFromName(hotelVcTypeName);
-      const durationHours = this.getHotelVcDurationHours(hotelVcType);
-      const expireDateTime = new Date(Date.now() + durationHours * 60 * 60 * 1000);
+      const durationMinutes = this.getHotelVcDurationMinutes(hotelVcType);
+      const expireDateTime = new Date(Date.now() + durationMinutes * 60 * 1000);
       const jstExpireDateTime = expireDateTime.toLocaleString("ja-JP", {
         timeZone: "Asia/Tokyo",
         hour: "2-digit",
@@ -716,8 +716,8 @@ export class HotelVcService {
       // expire_at：特典VC（isBonus=true）の場合はNULL、有料VC（isBonus=false）の場合は利用時間に応じて設定
       let expireAt: Date | null = null;
       if (!isBonus) {
-        const hotelVcTypeDurationHours = this.getHotelVcDurationHours(type);
-        expireAt = new Date(Date.now() + hotelVcTypeDurationHours * 60 * 60 * 1000);
+        const hotelVcTypeDurationMinutes = this.getHotelVcDurationMinutes(type);
+        expireAt = new Date(Date.now() + hotelVcTypeDurationMinutes * 60 * 1000);
       }
       await connection.execute(
         `INSERT INTO vcs (channel_id, owner_id, guest_id, type, is_ticket, is_bonus, expire_at) VALUES (?, ?, ?, ?, ?, ?, ?);`,
@@ -865,6 +865,48 @@ export class HotelVcService {
       await voiceChannel.delete();
       await updateVcStatus(voiceChannel.id, false);
       return true;
+    } finally {
+      connection.release();
+    }
+  }
+
+  /**
+   * 有料ホテルVCにBotだけが残ったとき、チャンネルは残してBotだけ切断する
+   * @param voiceChannel 空になった有料ホテルVC
+   * @returns 切断したBot数
+   */
+  static async disconnectBotsFromEmptyPaidHotelVc(
+    voiceChannel: VoiceChannel,
+  ): Promise<number> {
+    const humanMembers = voiceChannel.members.filter((member) => !member.user.bot);
+    if (humanMembers.size > 0) {
+      return 0;
+    }
+
+    const botMembers = voiceChannel.members.filter((member) => member.user.bot);
+    if (botMembers.size === 0) {
+      return 0;
+    }
+
+    const connection = await DbService.getConnection();
+    try {
+      const [rows] = await connection.execute<any[]>(
+        `SELECT is_bonus FROM vcs 
+         WHERE channel_id = ? AND is_active = TRUE`,
+        [voiceChannel.id],
+      );
+
+      if (!rows || rows.length === 0 || rows[0].is_bonus) {
+        return 0;
+      }
+
+      let disconnectedCount = 0;
+      for (const member of botMembers.values()) {
+        await member.voice.disconnect();
+        disconnectedCount += 1;
+      }
+
+      return disconnectedCount;
     } finally {
       connection.release();
     }

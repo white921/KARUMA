@@ -10,10 +10,10 @@ export const HOTEL_TYPE = {
 
 export const HOTEL_TYPE_NAMES = {
   NORMAL: "通常ホテル",
-  SECRET: "VIPホテル (12時間)",
-  SECRETLONG: "VIPホテル (24時間)",
-  FREEDOM: "フリーダム(12時間)",
-  FREEDOMLONG: "フリーダム(24時間)",
+  SECRET: "VIPホテル (1分)",
+  SECRETLONG: "VIPホテル (2分)",
+  FREEDOM: "フリーダム(1分)",
+  FREEDOMLONG: "フリーダム(2分)",
 };
 
 export const HOTEL_PURCHASE_WAY_TYPE = {
