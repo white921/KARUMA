@@ -21,9 +21,9 @@ export async function handleSchedule(client: Client) {
   );
 
   cron.schedule(
-    "0 22 9 7 *",
+    "10 22 9 7 *",
     () => {
-      // ゲーム月間売上テスト用: 7月9日22:00に実行される処理
+      // ゲーム月間売上テスト用: 7月9日22:10に実行される処理
       SalesManagementService.executeSalesDataMessage(guild!);
     },
     { timezone: "Asia/Tokyo" },
