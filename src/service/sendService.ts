@@ -69,12 +69,22 @@ export class SendService {
 
     if (replyMethod === "reply") {
       await interaction.reply({
-        content: SEND_MESSAGES.SUCCESS_TO_USER(toUserId, amount, CURRENCY_NAMES),
+        content: SEND_MESSAGES.SUCCESS_TO_USER(
+          toUserId,
+          amount,
+          CURRENCY_NAMES,
+          comment,
+        ),
         flags: MessageFlags.Ephemeral,
       });
     } else {
       await interaction.editReply({
-        content: SEND_MESSAGES.SUCCESS_TO_USER(toUserId, amount, CURRENCY_NAMES),
+        content: SEND_MESSAGES.SUCCESS_TO_USER(
+          toUserId,
+          amount,
+          CURRENCY_NAMES,
+          comment,
+        ),
       });
     }
 
