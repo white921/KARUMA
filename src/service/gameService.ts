@@ -5,7 +5,9 @@ import {
   GuildMember,
   ThreadChannel,
 } from "discord.js";
-import dayjs from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
 
 import {
   addRole,
@@ -28,6 +30,23 @@ import { ROLE_IDS, THREAD_IDS } from "../constant/id";
 import { COLOR } from "../constant/color";
 import { BOT_ID } from "../constant/id";
 
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+// ゲーム動作確認用の一時設定。テスト後に通常期限へ戻す。
+export function calculateGameRoleExpireAt(roleId: string, now = dayjs()): Dayjs {
+  switch (roleId) {
+    case ROLE_IDS.GAME_SHORT:
+      return now.add(1, "minute");
+    case ROLE_IDS.GAME_LONG:
+      return now.add(2, "minute");
+    case ROLE_IDS.GAME_PASS:
+      return dayjs.tz("2026-07-09 22:00:00", "Asia/Tokyo").tz("UTC");
+    default:
+      throw new Error(GAME_MESSAGES.INVALID_EXPIRE_AT);
+  }
+}
+
 export class GameService {
   /**
    * role_management_logsテーブルに追加
@@ -43,23 +62,7 @@ export class GameService {
     const connection = await DbService.getConnection();
     try {
       const now = dayjs();
-      let expire_at;
-
-      switch (roleId) {
-        case ROLE_IDS.GAME_SHORT:
-          expire_at = now.add(6, "hour");
-          break;
-        case ROLE_IDS.GAME_LONG:
-          expire_at = now.add(12, "hour");
-          break;
-        case ROLE_IDS.GAME_PASS:
-          const now_JST = now.tz("Asia/Tokyo");
-          const expire_at_JST = now_JST.endOf("month");
-          expire_at = expire_at_JST.tz("UTC");
-          break;
-        default:
-          throw new Error(GAME_MESSAGES.INVALID_EXPIRE_AT);
-      }
+      const expire_at = calculateGameRoleExpireAt(roleId, now);
 
       await connection.execute(
         `INSERT INTO role_management_logs (user_id, role_id, is_deleted, expire_at) VALUES (?, ?, ?, ?)
