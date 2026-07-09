@@ -31,13 +31,13 @@ test("monthly salary job runs at 00:00 Japan time on the first day", () => {
   assert.match(scheduleSource, /SalaryService\.payMonthlySalaries\(guild!\)/);
 });
 
-test("monthly game sales job temporarily runs at 22:10 Japan time on July 9", () => {
+test("monthly game sales job runs at 00:30 Japan time on the first day", () => {
   const scheduleSource = fs.readFileSync(
     path.join(__dirname, "../src/handler/scheduleHandler.ts"),
     "utf8",
   );
 
-  assert.match(scheduleSource, /cron\.schedule\(\s*"10 22 9 7 \*"/);
+  assert.match(scheduleSource, /cron\.schedule\(\s*"30 0 1 \* \*"/);
   assert.match(
     scheduleSource,
     /SalesManagementService\.executeSalesDataMessage\(guild!\)/,

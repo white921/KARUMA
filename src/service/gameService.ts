@@ -33,15 +33,14 @@ import { BOT_ID } from "../constant/id";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-// ゲーム動作確認用の一時設定。テスト後に通常期限へ戻す。
 export function calculateGameRoleExpireAt(roleId: string, now = dayjs()): Dayjs {
   switch (roleId) {
     case ROLE_IDS.GAME_SHORT:
-      return now.add(1, "minute");
+      return now.add(6, "hour");
     case ROLE_IDS.GAME_LONG:
-      return now.add(2, "minute");
+      return now.add(12, "hour");
     case ROLE_IDS.GAME_PASS:
-      return dayjs.tz("2026-07-09 22:00:00", "Asia/Tokyo").tz("UTC");
+      return now.tz("Asia/Tokyo").endOf("month").tz("UTC");
     default:
       throw new Error(GAME_MESSAGES.INVALID_EXPIRE_AT);
   }
