@@ -13,7 +13,15 @@ import { TEXT_CHANNEL_IDS } from "../constant/id";
 import { REDEPLOY_PANEL_MESSAGES } from "../constant/panel";
 import { PANEL_COMMAND_NAMES } from "../constant/command";
 import { COLOR } from "../constant/color";
-import { EXTERNALE_MOJI_VIEWS } from "../constant/emoji";
+
+export function createRedeployPanelActionRow() {
+  return new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder()
+      .setCustomId(PANEL_COMMAND_NAMES.REDEPLOY)
+      .setLabel(REDEPLOY_PANEL_MESSAGES.BUTTON)
+      .setStyle(ButtonStyle.Danger),
+  );
+}
 
 export class RedeployPanelService {
   /**
@@ -42,13 +50,7 @@ export class RedeployPanelService {
         );
 
       // コマンドボタンを作成
-      const row1 = new ActionRowBuilder<ButtonBuilder>().addComponents(
-        new ButtonBuilder()
-          .setCustomId(PANEL_COMMAND_NAMES.REDEPLOY)
-          .setLabel(REDEPLOY_PANEL_MESSAGES.BUTTON)
-          .setStyle(ButtonStyle.Danger)
-          .setEmoji(EXTERNALE_MOJI_VIEWS.RESTART),
-      );
+      const row1 = createRedeployPanelActionRow();
 
       await deletePanelMessage(channel, client, REDEPLOY_PANEL_MESSAGES.TITLE);
 

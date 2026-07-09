@@ -13,7 +13,32 @@ import { TEXT_CHANNEL_IDS } from "../constant/id";
 import { PANEL_COMMAND_NAMES } from "../constant/command";
 import { GAME_PANEL_MESSAGES, PANEL_MESSAGES } from "../constant/panel";
 import { COLOR } from "../constant/color";
-import { EXTERNALE_MOJI_VIEWS } from "../constant/emoji";
+
+export function createGamePanelActionRows() {
+  const row1 = new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder()
+      .setCustomId(PANEL_COMMAND_NAMES.GAME_SHORT)
+      .setLabel(GAME_PANEL_MESSAGES.SHORT)
+      .setStyle(ButtonStyle.Primary),
+    new ButtonBuilder()
+      .setCustomId(PANEL_COMMAND_NAMES.GAME_LONG)
+      .setLabel(GAME_PANEL_MESSAGES.LONG)
+      .setStyle(ButtonStyle.Primary),
+    new ButtonBuilder()
+      .setCustomId(PANEL_COMMAND_NAMES.GAME_PASS)
+      .setLabel(GAME_PANEL_MESSAGES.GAME_PASS)
+      .setStyle(ButtonStyle.Success),
+  );
+
+  const row2 = new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder()
+      .setCustomId(PANEL_COMMAND_NAMES.VIEW)
+      .setLabel(PANEL_MESSAGES.VIEW)
+      .setStyle(ButtonStyle.Secondary),
+  );
+
+  return [row1, row2];
+}
 
 export class GamePanelService {
   /**
@@ -40,31 +65,7 @@ export class GamePanelService {
           );
 
         // コマンドボタンを作成
-        const row1 = new ActionRowBuilder<ButtonBuilder>().addComponents(
-          new ButtonBuilder()
-            .setCustomId(PANEL_COMMAND_NAMES.GAME_SHORT)
-            .setLabel(GAME_PANEL_MESSAGES.SHORT)
-            .setStyle(ButtonStyle.Primary)
-            .setEmoji(EXTERNALE_MOJI_VIEWS.SHORT),
-          new ButtonBuilder()
-            .setCustomId(PANEL_COMMAND_NAMES.GAME_LONG)
-            .setLabel(GAME_PANEL_MESSAGES.LONG)
-            .setStyle(ButtonStyle.Primary)
-            .setEmoji(EXTERNALE_MOJI_VIEWS.LONG),
-          new ButtonBuilder()
-            .setCustomId(PANEL_COMMAND_NAMES.GAME_PASS)
-            .setLabel(GAME_PANEL_MESSAGES.GAME_PASS)
-            .setStyle(ButtonStyle.Success)
-            .setEmoji(EXTERNALE_MOJI_VIEWS.GAME_PASS)
-        );
-
-        const row2 = new ActionRowBuilder<ButtonBuilder>().addComponents(
-          new ButtonBuilder()
-            .setCustomId(PANEL_COMMAND_NAMES.VIEW)
-            .setLabel(PANEL_MESSAGES.VIEW)
-            .setStyle(ButtonStyle.Secondary)
-            .setEmoji(EXTERNALE_MOJI_VIEWS.WALLET)
-        );
+        const [row1, row2] = createGamePanelActionRows();
 
         await deletePanelMessage(
           channel as TextChannel,

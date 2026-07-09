@@ -13,7 +13,27 @@ import { TEXT_CHANNEL_IDS } from "../constant/id";
 import { PANEL_COMMAND_NAMES } from "../constant/command";
 import { CASINO_PANEL_MESSAGES, PANEL_MESSAGES } from "../constant/panel";
 import { COLOR } from "../constant/color";
-import { EXTERNALE_MOJI_VIEWS } from "../constant/emoji";
+
+export function createCasinoPanelActionRow() {
+  return new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder()
+      .setCustomId(PANEL_COMMAND_NAMES.CASINO_GF)
+      .setLabel(CASINO_PANEL_MESSAGES.GF)
+      .setStyle(ButtonStyle.Primary),
+    new ButtonBuilder()
+      .setCustomId(PANEL_COMMAND_NAMES.CASINO_MAJONG)
+      .setLabel(CASINO_PANEL_MESSAGES.MAJONG)
+      .setStyle(ButtonStyle.Success),
+    new ButtonBuilder()
+      .setCustomId(PANEL_COMMAND_NAMES.CASINO_OTHER)
+      .setLabel(CASINO_PANEL_MESSAGES.OTHER)
+      .setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder()
+      .setCustomId(PANEL_COMMAND_NAMES.VIEW)
+      .setLabel(PANEL_MESSAGES.VIEW)
+      .setStyle(ButtonStyle.Primary),
+  );
+}
 
 export class CasinoPanelService {
   /**
@@ -36,28 +56,7 @@ export class CasinoPanelService {
           .setColor(COLOR.GREEN);
 
         // コマンドボタンを作成
-        const row1 = new ActionRowBuilder<ButtonBuilder>().addComponents(
-          new ButtonBuilder()
-            .setCustomId(PANEL_COMMAND_NAMES.CASINO_GF)
-            .setLabel(CASINO_PANEL_MESSAGES.GF)
-            .setStyle(ButtonStyle.Primary)
-            .setEmoji(EXTERNALE_MOJI_VIEWS.GF),
-          new ButtonBuilder()
-            .setCustomId(PANEL_COMMAND_NAMES.CASINO_MAJONG)
-            .setLabel(CASINO_PANEL_MESSAGES.MAJONG)
-            .setStyle(ButtonStyle.Success)
-            .setEmoji(EXTERNALE_MOJI_VIEWS.MAJONG),
-          new ButtonBuilder()
-            .setCustomId(PANEL_COMMAND_NAMES.CASINO_OTHER)
-            .setLabel(CASINO_PANEL_MESSAGES.OTHER)
-            .setStyle(ButtonStyle.Secondary)
-            .setEmoji(EXTERNALE_MOJI_VIEWS.OTHER),
-          new ButtonBuilder()
-          .setCustomId(PANEL_COMMAND_NAMES.VIEW)
-          .setLabel(PANEL_MESSAGES.VIEW)
-          .setStyle(ButtonStyle.Primary)
-          .setEmoji(EXTERNALE_MOJI_VIEWS.WALLET)
-        );
+        const row1 = createCasinoPanelActionRow();
 
         await deletePanelMessage(channel as TextChannel, client, CASINO_PANEL_MESSAGES.TITLE);
 

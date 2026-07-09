@@ -14,6 +14,23 @@ import { ADMIN_PANEL_MESSAGES } from "../constant/panel";
 import { PANEL_COMMAND_NAMES } from "../constant/command";
 import { COLOR } from "../constant/color";
 
+export function createAdminPanelActionRow() {
+  return new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder()
+      .setCustomId(PANEL_COMMAND_NAMES.ADMIN_VIEW)
+      .setLabel(ADMIN_PANEL_MESSAGES.VIEW)
+      .setStyle(ButtonStyle.Primary),
+    new ButtonBuilder()
+      .setCustomId(PANEL_COMMAND_NAMES.ADMIN_MINT)
+      .setLabel(ADMIN_PANEL_MESSAGES.MINT)
+      .setStyle(ButtonStyle.Success),
+    new ButtonBuilder()
+      .setCustomId(PANEL_COMMAND_NAMES.ADMIN_BURN)
+      .setLabel(ADMIN_PANEL_MESSAGES.BURN)
+      .setStyle(ButtonStyle.Danger),
+  );
+}
+
 export class AdminPanelService {
   /**
    * 管理者パネルを作成
@@ -36,23 +53,7 @@ export class AdminPanelService {
           .setColor(COLOR.GREEN);
 
         // コマンドボタンを作成
-        const row1 = new ActionRowBuilder<ButtonBuilder>().addComponents(
-          new ButtonBuilder()
-            .setCustomId(PANEL_COMMAND_NAMES.ADMIN_VIEW)
-            .setLabel(ADMIN_PANEL_MESSAGES.VIEW)
-            .setStyle(ButtonStyle.Primary)
-            .setEmoji("💰"),
-          new ButtonBuilder()
-            .setCustomId(PANEL_COMMAND_NAMES.ADMIN_MINT)
-            .setLabel(ADMIN_PANEL_MESSAGES.MINT)
-            .setStyle(ButtonStyle.Success)
-            .setEmoji("🪙"),
-          new ButtonBuilder()
-            .setCustomId(PANEL_COMMAND_NAMES.ADMIN_BURN)
-            .setLabel(ADMIN_PANEL_MESSAGES.BURN)
-            .setStyle(ButtonStyle.Danger)
-            .setEmoji("🪙"),
-        );
+        const row1 = createAdminPanelActionRow();
 
         await deletePanelMessage(
           channel as TextChannel,

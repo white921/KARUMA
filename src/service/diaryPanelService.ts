@@ -13,7 +13,27 @@ import { THREAD_IDS } from "../constant/id";
 import { DIARY_PANEL_MESSAGES, PANEL_MESSAGES } from "../constant/panel";
 import { PANEL_COMMAND_NAMES } from "../constant/command";
 import { COLOR } from "../constant/color";
-import { EXTERNALE_MOJI_VIEWS } from "../constant/emoji";
+
+export function createDiaryPanelActionRow() {
+  return new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder()
+      .setCustomId(PANEL_COMMAND_NAMES.DIARY_PRIVATE)
+      .setLabel(DIARY_PANEL_MESSAGES.PRIVATE)
+      .setStyle(ButtonStyle.Primary),
+    new ButtonBuilder()
+      .setCustomId(PANEL_COMMAND_NAMES.DIARY_PUBLIC)
+      .setLabel(DIARY_PANEL_MESSAGES.PUBLIC)
+      .setStyle(ButtonStyle.Success),
+    new ButtonBuilder()
+      .setCustomId(PANEL_COMMAND_NAMES.DIARY_UPDATE)
+      .setLabel(DIARY_PANEL_MESSAGES.UPDATE)
+      .setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder()
+      .setCustomId(PANEL_COMMAND_NAMES.VIEW)
+      .setLabel(PANEL_MESSAGES.VIEW)
+      .setStyle(ButtonStyle.Secondary),
+  );
+}
 
 export class DiaryPanelService {
   static async createDiaryPanel(client: Client) {
@@ -36,25 +56,7 @@ export class DiaryPanelService {
         .setDescription(DIARY_PANEL_MESSAGES.DESCRIPTION)
         .setColor(COLOR.PINK);
 
-      const row1 = new ActionRowBuilder<ButtonBuilder>().addComponents(
-        new ButtonBuilder()
-          .setCustomId(PANEL_COMMAND_NAMES.DIARY_PRIVATE)
-          .setLabel(DIARY_PANEL_MESSAGES.PRIVATE)
-          .setStyle(ButtonStyle.Primary),
-        new ButtonBuilder()
-          .setCustomId(PANEL_COMMAND_NAMES.DIARY_PUBLIC)
-          .setLabel(DIARY_PANEL_MESSAGES.PUBLIC)
-          .setStyle(ButtonStyle.Success),
-        new ButtonBuilder()
-          .setCustomId(PANEL_COMMAND_NAMES.DIARY_UPDATE)
-          .setLabel(DIARY_PANEL_MESSAGES.UPDATE)
-          .setStyle(ButtonStyle.Secondary),
-        new ButtonBuilder()
-          .setCustomId(PANEL_COMMAND_NAMES.VIEW)
-          .setLabel(PANEL_MESSAGES.VIEW)
-          .setStyle(ButtonStyle.Secondary)
-          .setEmoji(EXTERNALE_MOJI_VIEWS.WALLET),
-      );
+      const row1 = createDiaryPanelActionRow();
 
       await deletePanelMessage(
         thread as ThreadChannel,

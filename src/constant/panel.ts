@@ -66,11 +66,11 @@ export const CASINO_PANEL_MESSAGES = {
 };
 
 export const GAME_PANEL_MESSAGES = {
-  TITLE: "戯境パネル",
-  DESCRIPTION: `戯境パネルです。\nボタンを押して利用したい時間を選択してください。\nまた、ボタンを押して購入したいPASSを選択してください。\nスマートフォンでの操作を推奨しています。\n\n**【戯境案内】**\n**・6時間プラン**：${GAME_PRICE.SHORT}${CURRENCY_NAMES}\n購入後6時間までご利用できます。\n\n**・12時間プラン**：${GAME_PRICE.LONG}${CURRENCY_NAMES}\n購入後12時間までご利用できます。\n\n**・戯境パス**：${GAME_PRICE.PASS}${CURRENCY_NAMES}\n戯境パスを購入出来ます。\n有効期限：購入した月の月末まで。\n購入後は6時間・12時間プランを押して転送VC、または作成されているVCへ移動してください。\n※戯境パスを購入する前に時間プランを押すと、通常通り引き落としが発生します。\nPASSを購入し、そのままVCの利用をする場合は、**戯境パス → プラン選択**の順で操作してください。\n\n**・残高確認**：現在の${CURRENCY_NAMES}残高を確認できます。`,
+  TITLE: "ゲームパネル",
+  DESCRIPTION: `ゲームパネルです。\nボタンを押して利用したい時間を選択してください。\nまた、ボタンを押して購入したいPASSを選択してください。\nスマートフォンでの操作を推奨しています。\n\n**【ゲーム案内】**\n**・6時間プラン**：${GAME_PRICE.SHORT}${CURRENCY_NAMES}\n購入後6時間までご利用できます。\n\n**・12時間プラン**：${GAME_PRICE.LONG}${CURRENCY_NAMES}\n購入後12時間までご利用できます。\n\n**・ゲームパス**：${GAME_PRICE.PASS}${CURRENCY_NAMES}\nゲームパスを購入出来ます。\n有効期限：購入した月の月末まで。\n購入後は6時間・12時間プランを押して転送VC、または作成されているVCへ移動してください。\n※ゲームパスを購入する前に時間プランを押すと、通常通り引き落としが発生します。\nPASSを購入し、そのままVCの利用をする場合は、**ゲームパス → プラン選択**の順で操作してください。\n\n**・残高確認**：現在の${CURRENCY_NAMES}残高を確認できます。`,
   SHORT: "6時間プラン",
   LONG: "12時間プラン",
-  GAME_PASS: "戯境パス",
+  GAME_PASS: "ゲームパス",
 };
 
 export const SHOP_PANEL_MESSAGES = {

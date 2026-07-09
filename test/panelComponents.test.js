@@ -4,10 +4,17 @@ const assert = require("node:assert/strict");
 const { ROLE_IDS } = require("../dist/constant/id.js");
 const { CURRENCY_NAMES } = require("../dist/constant/currency.js");
 const { createBankPanelActionRow } = require("../dist/service/panelService.js");
+const { createAdminPanelActionRow } = require("../dist/service/adminPanelService.js");
+const { createCasinoPanelActionRow } = require("../dist/service/casinoPanel.js");
+const { createDiaryPanelActionRow } = require("../dist/service/diaryPanelService.js");
+const { createGamePanelActionRows } = require("../dist/service/gamePanelService.js");
 const { createHotelVcPanelActionRows } = require("../dist/service/hotelPanelService.js");
 const { HotelVcService } = require("../dist/service/hotelVcService.js");
+const { createRedeployPanelActionRow } = require("../dist/service/redeployPanelService.js");
 const { createShopPanelActionRow } = require("../dist/service/shopPanelService.js");
+const { VcPanelService } = require("../dist/service/vcPanelService.js");
 const {
+  GAME_PANEL_MESSAGES,
   HOTEL_VC_PANEL_MESSAGES,
   PANEL_MESSAGES,
 } = require("../dist/constant/panel.js");
@@ -35,23 +42,47 @@ test("bank panel send button uses a Unicode emoji instead of a custom emoji id",
   assert.equal(sendButton.emoji.id, undefined);
 });
 
-test("shop panel payment button uses a Unicode emoji instead of a custom emoji id", () => {
-  const row = createShopPanelActionRow().toJSON();
-  const paymentButton = row.components[0];
-
-  assert.equal(paymentButton.label, `${CURRENCY_NAMES}支払い`);
-  assert.equal(paymentButton.emoji.name, "🪙");
-  assert.equal(paymentButton.emoji.id, undefined);
-});
-
-test("hotel panel buttons do not use icons", () => {
-  const rows = createHotelVcPanelActionRows().map((row) => row.toJSON());
-  const buttons = rows.flatMap((row) => row.components);
+function assertButtonsHaveNoIcons(rows) {
+  const buttons = rows.flatMap((row) => row.toJSON().components);
 
   assert.ok(buttons.length > 0);
   for (const button of buttons) {
     assert.equal(button.emoji, undefined);
   }
+}
+
+test("shop panel buttons do not use icons", () => {
+  const row = createShopPanelActionRow().toJSON();
+  const buttons = row.components;
+
+  assert.ok(buttons.length > 0);
+  for (const button of buttons) {
+    assert.equal(button.emoji, undefined);
+  }
+});
+
+test("non-bank panel buttons do not use icons", async () => {
+  assertButtonsHaveNoIcons([createAdminPanelActionRow()]);
+  assertButtonsHaveNoIcons([createCasinoPanelActionRow()]);
+  assertButtonsHaveNoIcons([createDiaryPanelActionRow()]);
+  assertButtonsHaveNoIcons(createGamePanelActionRows());
+  assertButtonsHaveNoIcons([createRedeployPanelActionRow()]);
+
+  const vcPanel = await VcPanelService.createVcPanel(true, true);
+  assertButtonsHaveNoIcons(vcPanel.components);
+});
+
+test("hotel panel buttons do not use icons", () => {
+  assertButtonsHaveNoIcons(createHotelVcPanelActionRows());
+});
+
+test("game panel copy uses game instead of gikyou", () => {
+  assert.equal(GAME_PANEL_MESSAGES.TITLE, "ゲームパネル");
+  assert.equal(GAME_PANEL_MESSAGES.GAME_PASS, "ゲームパス");
+  assert.match(GAME_PANEL_MESSAGES.DESCRIPTION, /ゲームパネルです。/);
+  assert.match(GAME_PANEL_MESSAGES.DESCRIPTION, /【ゲーム案内】/);
+  assert.match(GAME_PANEL_MESSAGES.DESCRIPTION, /ゲームパス/);
+  assert.doesNotMatch(GAME_PANEL_MESSAGES.DESCRIPTION, /戯境/);
 });
 
 test("unified hotel panel description does not repeat shared guidance", () => {

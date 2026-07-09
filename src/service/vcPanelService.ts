@@ -9,7 +9,6 @@ import { IN_CHAT_PANEL_MESSAGES } from "../constant/panel";
 import { COLOR } from "../constant/color";
 import { PANEL_COMMAND_NAMES } from "../constant/command";
 import { HOTEL_VC_PANEL_MESSAGES } from "../constant/panel";
-import { EXTERNALE_MOJI_VIEWS } from "../constant/emoji";
 
 export class VcPanelService {
   /**
@@ -40,7 +39,6 @@ export class VcPanelService {
             .setCustomId(PANEL_COMMAND_NAMES.CHANGE_VC_NAME)
             .setLabel(HOTEL_VC_PANEL_MESSAGES.CHANGE_VC_NAME)
             .setStyle(ButtonStyle.Primary)
-            .setEmoji(EXTERNALE_MOJI_VIEWS.NAME)
         );
       }
 
@@ -51,7 +49,6 @@ export class VcPanelService {
             .setCustomId(PANEL_COMMAND_NAMES.CHANGE_VC_LIMIT)
             .setLabel(HOTEL_VC_PANEL_MESSAGES.CHANGE_VC_LIMIT)
             .setStyle(ButtonStyle.Secondary)
-            .setEmoji(EXTERNALE_MOJI_VIEWS.PEOPLE)
         );
       }
 

@@ -13,20 +13,17 @@ import { TEXT_CHANNEL_IDS } from "../constant/id";
 import { SHOP_PANEL_MESSAGES } from "../constant/panel";
 import { PANEL_COMMAND_NAMES } from "../constant/command";
 import { COLOR } from "../constant/color";
-import { EXTERNALE_MOJI_VIEWS } from "../constant/emoji";
 
 export function createShopPanelActionRow() {
   return new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
       .setCustomId(PANEL_COMMAND_NAMES.SHOP_SEND)
       .setLabel(SHOP_PANEL_MESSAGES.SHOP_SEND)
-      .setStyle(ButtonStyle.Success)
-      .setEmoji(EXTERNALE_MOJI_VIEWS.ROYAL_COIN),
+      .setStyle(ButtonStyle.Success),
     new ButtonBuilder()
       .setCustomId(PANEL_COMMAND_NAMES.VIEW)
       .setLabel(SHOP_PANEL_MESSAGES.VIEW)
-      .setStyle(ButtonStyle.Primary)
-      .setEmoji(EXTERNALE_MOJI_VIEWS.WALLET),
+      .setStyle(ButtonStyle.Primary),
   );
 }
 
