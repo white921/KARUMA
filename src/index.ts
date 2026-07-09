@@ -27,7 +27,11 @@ import { handleSchedule } from "./handler/scheduleHandler";
 import { handleRoleChange } from "./handler/roleHandler";
 
 import { HotelVcService } from "./service/hotelVcService";
-import { TeleportVcService } from "./service/teleportVcService";
+import {
+  isTeleportCategory,
+  isTeleportTriggerVc,
+  TeleportVcService,
+} from "./service/teleportVcService";
 import { AccountService } from "./service/accountService";
 import { VcService } from "./service/vcService";
 import { DiaryService } from "./service/diaryService";
@@ -39,7 +43,6 @@ import {
   FORUM_IDS,
   TEST_CATEGORY_IDS,
   TEST_FORUM_IDS,
-  VC_IDS,
 } from "./constant/id";
 
 // テスト用
@@ -368,8 +371,8 @@ client.on(
 
       const oldInHotel = oldChannel?.parentId === CATEGORY_IDS.HOTEL;
       const newInHotel = newChannel?.parentId === CATEGORY_IDS.HOTEL;
-      const oldInTeleportVc = oldChannel?.parentId === CATEGORY_IDS.GAME;
-      const newInTeleportVc = newChannel?.parentId === CATEGORY_IDS.GAME;
+      const oldInTeleportVc = isTeleportCategory(oldChannel?.parentId ?? null);
+      const newInTeleportVc = isTeleportCategory(newChannel?.parentId ?? null);
 
       // ホテルカテゴリーの処理
       if (oldInHotel || newInHotel) {
@@ -390,16 +393,19 @@ client.on(
         if (
           newChannel &&
           newChannel.type === ChannelType.GuildVoice &&
-          newChannel.id === VC_IDS.TELEPORT &&
+          isTeleportTriggerVc(newChannel.id) &&
           newState.member
         ) {
-          await TeleportVcService.createTeleportVc(newState.member);
+          await TeleportVcService.createTeleportVc(
+            newState.member,
+            newChannel.id,
+          );
         }
 
         if (
           oldChannel &&
           oldChannel.type === ChannelType.GuildVoice &&
-          oldChannel.id !== VC_IDS.TELEPORT
+          !isTeleportTriggerVc(oldChannel.id)
         ) {
           await TeleportVcService.deleteEmptyTeleportVc(oldChannel);
         }

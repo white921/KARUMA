@@ -2,7 +2,6 @@ import {
   VoiceChannel,
   ChannelType,
   GuildMember,
-  GuildBasedChannel,
 } from "discord.js";
 
 import { getVcMembersCount, updateVcStatus } from "../util/vc";
@@ -14,39 +13,88 @@ import { CATEGORY_IDS, VC_IDS } from "../constant/id";
 import { TELEPORT_MESSAGE } from "../constant/teleport";
 import { TELEPORT_TYPE } from "../constant/vc";
 
+export type TeleportVcConfig = {
+  triggerVcId: string;
+  categoryId: string;
+};
+
+export const TELEPORT_VC_CONFIGS: readonly TeleportVcConfig[] = [
+  {
+    triggerVcId: VC_IDS.GAME_TELEPORT,
+    categoryId: CATEGORY_IDS.GAME,
+  },
+  {
+    triggerVcId: VC_IDS.CASINO_TELEPORT,
+    categoryId: CATEGORY_IDS.CASINO,
+  },
+];
+
+export function resolveTeleportVcConfig(
+  channelId: string,
+): TeleportVcConfig | null {
+  return (
+    TELEPORT_VC_CONFIGS.find((config) => config.triggerVcId === channelId) ??
+    null
+  );
+}
+
+export function isTeleportTriggerVc(channelId: string): boolean {
+  return resolveTeleportVcConfig(channelId) !== null;
+}
+
+export function isTeleportCategory(categoryId: string | null): boolean {
+  if (!categoryId) {
+    return false;
+  }
+
+  return TELEPORT_VC_CONFIGS.some((config) => config.categoryId === categoryId);
+}
+
 export class TeleportVcService {
   /**
    * 転送先VCを作成
    * @param member VCに入ったメンバー
+   * @param triggerVcId 転送元VCチャンネルID
    */
-  static async createTeleportVc(member: GuildMember): Promise<void> {
+  static async createTeleportVc(
+    member: GuildMember,
+    triggerVcId: string,
+  ): Promise<void> {
     try {
       const guild = member.guild;
       if (!guild) {
         throw new Error(TELEPORT_MESSAGE.NOT_SERVER_FOUND);
       }
 
+      const teleportConfig = resolveTeleportVcConfig(triggerVcId);
+      if (!teleportConfig) {
+        throw new Error(TELEPORT_MESSAGE.NOT_TELEPORT_VC_FOUND);
+      }
+
       // カテゴリーを取得
-      const category = await guild.channels.fetch(CATEGORY_IDS.GAME);
+      const category = await guild.channels.fetch(teleportConfig.categoryId);
       if (!category) {
         throw new Error(TELEPORT_MESSAGE.NOT_CATEGORY_FOUND);
       }
 
-      let parentVc: GuildBasedChannel | null = null;
+      let parentVc: VoiceChannel | null = null;
 
       try {
         // 親VC（転送用VC）を取得して権限を引き継ぐ
-        parentVc = await guild.channels.fetch(VC_IDS.TELEPORT);
-        if (!parentVc || parentVc.type !== ChannelType.GuildVoice) {
+        const fetchedParentVc = await guild.channels.fetch(
+          teleportConfig.triggerVcId,
+        );
+        if (!fetchedParentVc || fetchedParentVc.type !== ChannelType.GuildVoice) {
           throw new Error(TELEPORT_MESSAGE.NOT_TELEPORT_VC_FOUND);
         }
+        parentVc = fetchedParentVc;
       } catch (error: any) {
         throw new Error(TELEPORT_MESSAGE.NOT_TELEPORT_VC_FOUND);
       }
 
       // 親VCの権限を取得
       const permissionOverwrites = Array.from(
-        (parentVc as VoiceChannel).permissionOverwrites.cache.values(),
+        parentVc.permissionOverwrites.cache.values(),
       ).map((overwrite) => ({
         id: overwrite.id,
         type: overwrite.type,
@@ -61,7 +109,7 @@ export class TeleportVcService {
       const voiceChannel = await guild.channels.create({
         name: channelName,
         type: ChannelType.GuildVoice,
-        parent: CATEGORY_IDS.GAME,
+        parent: teleportConfig.categoryId,
         permissionOverwrites: permissionOverwrites,
       });
 

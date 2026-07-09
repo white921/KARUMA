@@ -24,6 +24,20 @@ test("resolves shop panel channel to the shop panel target", () => {
   assert.equal(target, PANEL_INSTALL_TARGETS.SHOP);
 });
 
+test("resolves game panel channel to the game panel target", () => {
+  assert.equal(TEXT_CHANNEL_IDS.GAME_PANEL, "1524750761110540348");
+
+  const target = resolvePanelInstallTarget(TEXT_CHANNEL_IDS.GAME_PANEL);
+  assert.equal(target, PANEL_INSTALL_TARGETS.GAME);
+});
+
+test("resolves casino panel channel to the casino panel target", () => {
+  assert.equal(TEXT_CHANNEL_IDS.CASINO_PANEL, "1524750874830831708");
+
+  const target = resolvePanelInstallTarget(TEXT_CHANNEL_IDS.CASINO_PANEL);
+  assert.equal(target, PANEL_INSTALL_TARGETS.CASINO);
+});
+
 test("resolves unified hotel panel channel to the hotel panel target", () => {
   assert.equal(TEXT_CHANNEL_IDS.NORMAL_HOTEL_VC_PANEL, "1524065230475362454");
   assert.equal(TEXT_CHANNEL_IDS.SPECIAL_HOTEL_VC_PANEL, "1524065230475362454");
