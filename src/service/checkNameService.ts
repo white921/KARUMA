@@ -10,6 +10,7 @@ import { CHECK_NAME_MESSAGES } from "../constant/checkName";
 type ValidateVcMemberNamesResult = {
   successes: GuildMember[];
   failures: { member: GuildMember; reason: string }[];
+  warnings: { member: GuildMember; reason: string }[];
 };
 
 export class CheckNameService {
@@ -72,14 +73,28 @@ export class CheckNameService {
   ): Promise<ValidateVcMemberNamesResult> {
     await this.validateOperator(user);
     const targets = await this.getVcShinmonmatiMembers(user);
+    const guildMembers = await user.guild.members.fetch();
 
     const successes: GuildMember[] = [];
     const failures: { member: GuildMember; reason: string }[] = [];
+    const warnings: { member: GuildMember; reason: string }[] = [];
 
     for (const member of targets) {
       try {
-        await AccountService.validateName(member.displayName, member.id);
+        // 同名は変更相談の対象であり、名前チェックでは不合格にしない。
+        AccountService.validateNameFormat(member.displayName);
         successes.push(member);
+
+        const duplicateMember = this.findDuplicateDisplayName(
+          member,
+          guildMembers.values(),
+        );
+        if (duplicateMember) {
+          warnings.push({
+            member,
+            reason: CHECK_NAME_MESSAGES.DUPLICATE_NAME(duplicateMember.id),
+          });
+        }
       } catch (error: any) {
         failures.push({
           member,
@@ -88,6 +103,24 @@ export class CheckNameService {
       }
     }
 
-    return { successes, failures };
+    return { successes, failures, warnings };
+  }
+
+  /**
+   * 同じ表示名の人間ユーザーを検索する。本人とBotは比較対象外。
+   */
+  static findDuplicateDisplayName(
+    member: GuildMember,
+    guildMembers: Iterable<GuildMember>,
+  ): GuildMember | undefined {
+    for (const guildMember of guildMembers) {
+      if (
+        guildMember.id !== member.id &&
+        !guildMember.user.bot &&
+        guildMember.displayName === member.displayName
+      ) {
+        return guildMember;
+      }
+    }
   }
 }

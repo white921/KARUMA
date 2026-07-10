@@ -3,4 +3,6 @@ export const CHECK_NAME_MESSAGES = {
   NOT_IN_VOICE_CHANNEL: "❌ VCに参加している状態で実行してください。",
   NO_TARGET_USERS:
     "❌ このVC内に名前チェック対象の「審問待ち」ユーザーがいません。",
+  DUPLICATE_NAME: (memberId: string) =>
+    `⚠️ <@${memberId}> と同じ名前です。変更をお願いする場合があります。`,
 };

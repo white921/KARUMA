@@ -281,39 +281,30 @@ export class AccountService {
    */
   static async validateName(name: string, ignoreUserId?: string) {
     try {
-      // 1. 既存の名前と被っていないかどうか
+      this.validateNameFormat(name);
+
+      // 既存の名前と被っていないかどうか
       const existingAccounts = ignoreUserId
         ? await this.getAccountsByNameExceptUserId(name, ignoreUserId)
         : await this.getAccountByName(name);
       if (existingAccounts.length > 0) {
         throw new Error(ACCOUNT_MESSAGES.ACCOUNT_NAME_SAME);
       }
-
-      // 2. 長さが規定以内か
-      if (name.length > MAX_DISPLAY_NAME_LENGTH - SUB_ACCOUNT_SUFFIX_LENGTH) {
-        throw new Error(ACCOUNT_MESSAGES.ACCOUNT_NAME_TOO_LONG);
-      }
-
-      // 3. 許可される文字だけか
-      // 許可：ひらがな、カタカナ、漢字、英数字、ラテン拡張文字、ギリシャ文字、ハングル、ローマ数字系、. 。 - ー ～ 〜 ! ！ ? ？ 全角スペース 半角スペース
-      const allowedPattern =
-        /^[A-Za-z0-9À-ÖØ-öø-ÿĀ-ſƀ-ɏΑ-Ωα-ω가-힣ぁ-んァ-ヶｦ-ﾟ一-龥々\u2160-\u2188.\-。ー 　～〜!！?？]+$/u;
-      if (!allowedPattern.test(name)) {
-        throw new Error(ACCOUNT_MESSAGES.ACCOUNT_NAME_SYMBOL);
-      }
-
-      // 4. 記号だけの名前かどうか
-      const onlySymbolsPattern = /^[.\-。ー 　～〜!！?？]+$/u;
-      if (onlySymbolsPattern.test(name)) {
-        throw new Error(ACCOUNT_MESSAGES.ACCOUNT_NAME_ONLY_SYMBOLS);
-      }
-
-      // 5. 最後が (sub) で終わっていないかチェック
-      if (/\(sub\)$/i.test(name)) {
-        throw new Error(ACCOUNT_MESSAGES.ACCOUNT_NAME_END_WITH_SUB);
-      }
     } catch (error) {
       throw error;
+    }
+  }
+
+  /**
+   * 名前の書式を確認する。口座の重複は確認しない。
+   */
+  static validateNameFormat(name: string) {
+    if (name.length > MAX_DISPLAY_NAME_LENGTH - SUB_ACCOUNT_SUFFIX_LENGTH) {
+      throw new Error(ACCOUNT_MESSAGES.ACCOUNT_NAME_TOO_LONG);
+    }
+
+    if (!/^[\p{L}\p{N}]+$/u.test(name)) {
+      throw new Error(ACCOUNT_MESSAGES.ACCOUNT_NAME_SYMBOL);
     }
   }
 }

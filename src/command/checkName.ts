@@ -33,6 +33,14 @@ export async function execute(interaction: ChatInputCommandInteraction) {
           )
         : ["- なし"];
 
+    const warningLines =
+      result.warnings.length > 0
+        ? result.warnings.map(
+            ({ member: target, reason }) =>
+              `- <@${target.id}>: ${target.displayName} / ${reason}`,
+          )
+        : ["- なし"];
+
     await interaction.editReply({
       content: [
         "✅ VC内の審問待ちメンバーの名前チェックが完了しました。",
@@ -40,6 +48,8 @@ export async function execute(interaction: ChatInputCommandInteraction) {
         ...successLines,
         `失敗: ${result.failures.length}人`,
         ...failureLines,
+        `要確認（同名）: ${result.warnings.length}人`,
+        ...warningLines,
       ].join("\n"),
     });
   } catch (error) {
