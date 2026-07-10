@@ -39,9 +39,11 @@ export class CheckNameService {
   }
 
   /**
-   * 実行者が参加中のVCから審問待ちロール付きメンバーを取得
+   * 実行者が参加中のVCから面接待ちロール付きメンバーを取得
    */
-  static async getVcShinmonmatiMembers(user: GuildMember): Promise<GuildMember[]> {
+  static async getVcInterviewWaitingMembers(
+    user: GuildMember,
+  ): Promise<GuildMember[]> {
     const voiceChannel = user.voice.channel;
     if (!voiceChannel || voiceChannel.type !== ChannelType.GuildVoice) {
       throw new Error(CHECK_NAME_MESSAGES.NOT_IN_VOICE_CHANNEL);
@@ -67,13 +69,13 @@ export class CheckNameService {
   }
 
   /**
-   * 実行者が参加中のVC内の審問待ちメンバーをまとめて名前チェック
+   * 実行者が参加中のVC内の面接待ちメンバーをまとめて名前チェック
    */
   static async validateVcMemberNames(
     user: GuildMember,
   ): Promise<ValidateVcMemberNamesResult> {
     await this.validateOperator(user);
-    const targets = await this.getVcShinmonmatiMembers(user);
+    const targets = await this.getVcInterviewWaitingMembers(user);
     const guildMembers = await user.guild.members.fetch();
 
     const successes: GuildMember[] = [];

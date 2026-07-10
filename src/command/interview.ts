@@ -17,7 +17,7 @@ import { ACCOUNT_MESSAGES } from "../constant/account";
 
 export const data = new SlashCommandBuilder()
   .setName(COMMAND_NAMES.INTERVIEW_PASS)
-  .setDescription("同じVC内の審問待ちユーザーを面接通過にします")
+  .setDescription("同じVC内の面接待ちユーザーを面接通過にします")
   .addUserOption((option) =>
     option
       .setName("user")

@@ -6,7 +6,14 @@ import { Client, GuildMember, PartialGuildMember } from "discord.js";
 import { AccountService } from "../service/accountService";
 import { addRole, deleteRole } from "../util/role";
 
-import { ROLE_IDS } from "../constant/id";
+import {
+  RETURN_MEMBER_ROLE_CHANGE_EXCLUDED_USER_IDS,
+  ROLE_IDS,
+} from "../constant/id";
+
+export function shouldSkipReturnMemberRoleChange(userId: string): boolean {
+  return RETURN_MEMBER_ROLE_CHANGE_EXCLUDED_USER_IDS.has(userId);
+}
 
 /**
  * ロールの変更に伴う処理を実行するハンドラ
@@ -28,7 +35,8 @@ export async function handleRoleChange(
   if (
     !hadSinmonmati &&
     hasSinmonmati &&
-    (await AccountService.hasAccount(newMember.id))
+    (await AccountService.hasAccount(newMember.id)) &&
+    !shouldSkipReturnMemberRoleChange(newMember.id)
   ) {
     await addRole(newMember, ROLE_IDS.CORE_MEMBER_ROLES.DEMODORI);
     await deleteRole(newMember, ROLE_IDS.CORE_MEMBER_ROLES.MENSETUMATI);

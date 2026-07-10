@@ -73,7 +73,7 @@ export class InterviewService {
 
   static async validateInterviewTarget(targetMember: GuildMember) {
     if (!(await hasRole(targetMember, ROLE_IDS.CORE_MEMBER_ROLES.MENSETUMATI))) {
-      throw new Error(INTERVIEW_MESSAGES.NO_SHINMONMATI_ROLE);
+      throw new Error(INTERVIEW_MESSAGES.NO_INTERVIEW_WAITING_ROLE);
     }
 
     const hasAccount = await AccountService.hasAccount(targetMember.id);

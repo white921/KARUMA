@@ -8,7 +8,7 @@ import { COMMAND_NAMES } from "../constant/command";
 export const data = new SlashCommandBuilder()
   .setName(COMMAND_NAMES.CHECK_NAME)
   .setDescription(
-    "自分が今いるVC内の審問待ちメンバーの名前をまとめて確認します。",
+    "自分が今いるVC内の面接待ちメンバーの名前をまとめて確認します。",
   );
 
 export async function execute(interaction: ChatInputCommandInteraction) {
@@ -43,7 +43,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
     await interaction.editReply({
       content: [
-        "✅ VC内の審問待ちメンバーの名前チェックが完了しました。",
+        "✅ VC内の面接待ちメンバーの名前チェックが完了しました。",
         `成功: ${result.successes.length}人`,
         ...successLines,
         `失敗: ${result.failures.length}人`,

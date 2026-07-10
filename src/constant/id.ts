@@ -125,6 +125,11 @@ export const TEST_ROLE_IDS = {
   },
 };
 
+export const RETURN_MEMBER_ROLE_CHANGE_EXCLUDED_USER_IDS = new Set([
+  "1370974678281097327",
+  "649438093996195851",
+]);
+
 // フォーラムID（評価シート作成用）
 export const FORUM_IDS = {
   SHUSEKI: "1425024827047280680", // 首席審夢官-報告書 https://discordapp.com/channels/1424765533852799077/1425024827047280680
