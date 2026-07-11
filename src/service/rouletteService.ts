@@ -127,13 +127,13 @@ export class RouletteService {
       if (activeRounds.length > 0) {
         throw new Error("前のラウンドが未精算です。先に `/結果` で結果を確定してください。");
       }
-      const [result] = await connection.execute<ResultSetHeader>(
+      await connection.execute<ResultSetHeader>(
         `INSERT INTO roulette_rounds (event_key, stage, status)
          VALUES (?, ?, 'open')`,
         [eventKey, stage],
       );
       await connection.commit();
-      return `🎲 第${stage}部・第${result.insertId}ラウンドのベット受付を開始しました。`;
+      return `🎲 第${stage}部のベット受付を開始しました。`;
     } catch (error) {
       await connection.rollback();
       throw error;
