@@ -28,6 +28,8 @@ import {
   calculateRoulettePayout,
   getAllowedBetKinds,
   getBetLabel,
+  getRouletteResultColor,
+  normalizeRouletteResultColor,
   ROULETTE_BET_LABELS,
   validateRouletteBet,
 } from "./rouletteRules";
@@ -90,6 +92,15 @@ async function getMember(interaction: ChatInputCommandInteraction): Promise<Guil
 }
 
 export class RouletteService {
+  static validateResultColor(result: number, color: string): void {
+    const selectedColor = normalizeRouletteResultColor(color);
+    const actualColor = getRouletteResultColor(result);
+    if (selectedColor !== actualColor) {
+      const actualLabel = actualColor === "red" ? "赤" : actualColor === "black" ? "黒" : "緑";
+      throw new Error(`数字 ${result} の色は ${actualLabel} です。結果を確認してからもう一度実行してください。`);
+    }
+  }
+
   static async assertOperator(interaction: ChatInputCommandInteraction): Promise<void> {
     const member = await getMember(interaction);
     const operatorRoles = [

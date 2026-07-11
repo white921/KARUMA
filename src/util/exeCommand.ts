@@ -19,6 +19,8 @@ import { execute as checkName } from "../command/checkName";
 // import { execute as showEvaluation } from "../command/showEvaluation";
 import { execute as extraExtend } from "../command/extraExtend";
 import { execute as roulette } from "../command/roulette";
+import { execute as rouletteClose } from "../command/rouletteClose";
+import { execute as rouletteBonus } from "../command/rouletteBonus";
 import { execute as result } from "../command/result";
 // import { execute as showEvaluationEnd } from "../command/showEvaluationEnd";
 
@@ -66,7 +68,13 @@ export async function exeCommand(
 ) {
   try {
     // ルーレット運営コマンドはイベント運営ロールにも個別に許可する。
-    if (command !== COMMAND_NAMES.ROULETTE && command !== COMMAND_NAMES.ROULETTE_RESULT) {
+    const rouletteCommands = [
+      COMMAND_NAMES.ROULETTE_OPEN,
+      COMMAND_NAMES.ROULETTE_CLOSE,
+      COMMAND_NAMES.ROULETTE_RESULT,
+      COMMAND_NAMES.ROULETTE_BONUS,
+    ];
+    if (!rouletteCommands.includes(command as typeof rouletteCommands[number])) {
       await assertTemporaryTechnicalDirectorOnly(interaction);
     }
 
@@ -125,11 +133,17 @@ export async function exeCommand(
       case COMMAND_NAMES.EXTRA_EXTEND:
         await extraExtend(interaction);
         break;
-      case COMMAND_NAMES.ROULETTE:
+      case COMMAND_NAMES.ROULETTE_OPEN:
         await roulette(interaction);
+        break;
+      case COMMAND_NAMES.ROULETTE_CLOSE:
+        await rouletteClose(interaction);
         break;
       case COMMAND_NAMES.ROULETTE_RESULT:
         await result(interaction);
+        break;
+      case COMMAND_NAMES.ROULETTE_BONUS:
+        await rouletteBonus(interaction);
         break;
       // case COMMAND_NAMES.SHOW_EVALUATION_END:
       //   await showEvaluationEnd(interaction);

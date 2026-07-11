@@ -30,8 +30,10 @@ export const COMMAND_NAMES = {
   SHOW_EVALUATION: "show_evaluation",
   EXTRA_EXTEND: "評価期間延長",
   SHOW_EVALUATION_END: "show_evaluation_end",
-  ROULETTE: "roulette",
-  ROULETTE_RESULT: "result",
+  ROULETTE_OPEN: "賭け開始",
+  ROULETTE_CLOSE: "賭け終了",
+  ROULETTE_RESULT: "結果",
+  ROULETTE_BONUS: "ボーナス付与",
 };
 
 export const PANEL_COMMAND_NAMES = {

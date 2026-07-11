@@ -4,6 +4,8 @@ const RED_NUMBERS = new Set([
   1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36,
 ]);
 
+export type RouletteResultColor = "red" | "black" | "green";
+
 const STAGE_BET_KINDS: Record<RouletteStage, RouletteBetKind[]> = {
   1: ["red", "black", "even", "odd"],
   2: ["red", "black", "even", "odd", "dozen"],
@@ -26,6 +28,21 @@ export function isRouletteStage(value: number): value is RouletteStage {
 
 export function getAllowedBetKinds(stage: RouletteStage): RouletteBetKind[] {
   return STAGE_BET_KINDS[stage];
+}
+
+export function getRouletteResultColor(result: number): RouletteResultColor {
+  if (!Number.isInteger(result) || result < 0 || result > 36) {
+    throw new Error("結果は0〜36の整数で指定してください。");
+  }
+  if (result === 0) return "green";
+  return RED_NUMBERS.has(result) ? "red" : "black";
+}
+
+export function normalizeRouletteResultColor(value: string): RouletteResultColor | null {
+  if (["赤", "あか", "アカ"].includes(value)) return "red";
+  if (["黒", "くろ", "クロ"].includes(value)) return "black";
+  if (["緑", "みどり", "ミドリ"].includes(value)) return "green";
+  return null;
 }
 
 export function getBetLabel(bet: Pick<RouletteBet, "kind" | "selection">): string {

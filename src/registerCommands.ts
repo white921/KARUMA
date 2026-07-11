@@ -21,6 +21,8 @@ import { data as checkName } from "./command/checkName";
 // import { data as showEvaluation } from "./command/showEvaluation";
 import { data as extraExtend } from "./command/extraExtend";
 import { data as roulette } from "./command/roulette";
+import { data as rouletteClose } from "./command/rouletteClose";
+import { data as rouletteBonus } from "./command/rouletteBonus";
 import { data as result } from "./command/result";
 // import { data as showEvaluationEnd } from "./command/showEvaluationEnd";
 
@@ -55,6 +57,8 @@ export async function registerCommands() {
     // showEvaluation.toJSON(),
     extraExtend.toJSON(),
     roulette.toJSON(),
+    rouletteClose.toJSON(),
+    rouletteBonus.toJSON(),
     result.toJSON(),
     // showEvaluationEnd.toJSON(),
   ];
