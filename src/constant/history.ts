@@ -1,8 +1,6 @@
 import { COMMAND_NAMES, PANEL_COMMAND_NAMES } from "./command";
 import { ROULETTE_ACTION_NAMES } from "./roulette";
 
-export const ACTION_COUNT_PER_PAGE = 10;
-
 export const HISTORY_TITLE_MAPPER = {
   [PANEL_COMMAND_NAMES.SEND]: "送金",
   [PANEL_COMMAND_NAMES.SHOP_SEND]: "ショップ支払い",
