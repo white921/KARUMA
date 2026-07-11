@@ -106,6 +106,7 @@ export class RouletteService {
     const operatorRoles = [
       ROLE_IDS.EVENT_LEADER,
       ROLE_IDS.EVENT_STAFF,
+      ROLE_IDS.GIJUTU_LEADER,
     ];
     if (!operatorRoles.some((roleId) => member.roles.cache.has(roleId))) {
       throw new Error(ROULETTE_MESSAGES.OPERATOR_ONLY);
