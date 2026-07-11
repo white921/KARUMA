@@ -207,10 +207,24 @@ export const TEXT_CHANNEL_IDS = {
   HOTEL_LOG: "1521920498626330666", // 休息管理 > ホテル利用ログ
   GAME_PANEL: "1524750761110540348", // ゲームパネル設置TCID
   CASINO_PANEL: "1524750874830831708", // カジノパネル設置TCID
+  ROULETTE_1ST_PANEL: "1525487297125155047", // ヨーロピアンルーレット第1部パネル
+  ROULETTE_2ND_PANEL: "", // 第2部パネル（環境変数から取得）
+  ROULETTE_3RD_PANEL: "", // 第3部パネル（環境変数から取得）
   INTRO_MALE: "1521109227316449362", // 男性プロフィールチャンネル
   INTRO_FEMALE: "1521109242524733591", // 女性プロフィールチャンネル
   REDEPLOY_PANEL: "1498263044713742396", // Bot再起動パネル TCID https://discordapp.com/channels/1424765533852799077/1498263044713742396
 };
+
+export function getRoulettePanelChannelId(stage: 1 | 2 | 3): string {
+  switch (stage) {
+    case 1:
+      return TEXT_CHANNEL_IDS.ROULETTE_1ST_PANEL;
+    case 2:
+      return process.env.ROULETTE_2ND_PANEL_CHANNEL_ID?.trim() ?? "";
+    case 3:
+      return process.env.ROULETTE_3RD_PANEL_CHANNEL_ID?.trim() ?? "";
+  }
+}
 
 // テスト用のチャンネルID
 export const TEST_CHANNEL_ID = {

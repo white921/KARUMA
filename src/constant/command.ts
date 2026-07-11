@@ -30,6 +30,8 @@ export const COMMAND_NAMES = {
   SHOW_EVALUATION: "show_evaluation",
   EXTRA_EXTEND: "評価期間延長",
   SHOW_EVALUATION_END: "show_evaluation_end",
+  ROULETTE: "roulette",
+  ROULETTE_RESULT: "result",
 };
 
 export const PANEL_COMMAND_NAMES = {

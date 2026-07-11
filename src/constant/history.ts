@@ -1,4 +1,5 @@
 import { COMMAND_NAMES, PANEL_COMMAND_NAMES } from "./command";
+import { ROULETTE_ACTION_NAMES } from "./roulette";
 
 export const ACTION_COUNT_PER_PAGE = 10;
 
@@ -24,4 +25,7 @@ export const HISTORY_TITLE_MAPPER = {
   [PANEL_COMMAND_NAMES.GAME_SHORT_EXTEND]: "【戯境】6時間パック延長",
   [PANEL_COMMAND_NAMES.GAME_PASS]: "【戯境】戯境パス購入",
   [PANEL_COMMAND_NAMES.MINECRAFT_PASS]: "【戯境】Mincraftパス購入",
+  [ROULETTE_ACTION_NAMES.BET]: "【ルーレット】ベット",
+  [ROULETTE_ACTION_NAMES.PAYOUT]: "【ルーレット】配当",
+  [ROULETTE_ACTION_NAMES.BONUS]: "【ルーレット】参加ボーナス",
 };

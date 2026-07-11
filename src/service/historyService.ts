@@ -27,6 +27,7 @@ import { PANEL_COMMAND_NAMES, COMMAND_NAMES } from "../constant/command";
 import { CURRENCY_NAMES } from "../constant/currency";
 import { BOT_ID } from "../constant/id";
 import { EXTERNALE_MOJI_VIEWS } from "../constant/emoji";
+import { ROULETTE_ACTION_NAMES } from "../constant/roulette";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -175,6 +176,9 @@ export class HistoryService {
       [PANEL_COMMAND_NAMES.MINECRAFT_PASS]: `<@${
         action.from_user_id
       }> から\n+${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
+      [ROULETTE_ACTION_NAMES.BET]: `<@${BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
+      [ROULETTE_ACTION_NAMES.PAYOUT]: `<@${BOT_ID}> から\n+${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.to_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
+      [ROULETTE_ACTION_NAMES.BONUS]: `<@${BOT_ID}> から\n+${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.to_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
     };
 
     return historyObject;

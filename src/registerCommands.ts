@@ -20,6 +20,8 @@ import { data as checkName } from "./command/checkName";
 // import { data as inviteExtend } from "./command/inviteExtend";
 // import { data as showEvaluation } from "./command/showEvaluation";
 import { data as extraExtend } from "./command/extraExtend";
+import { data as roulette } from "./command/roulette";
+import { data as result } from "./command/result";
 // import { data as showEvaluationEnd } from "./command/showEvaluationEnd";
 
 dotenv.config();
@@ -52,6 +54,8 @@ export async function registerCommands() {
     // inviteExtend.toJSON(),
     // showEvaluation.toJSON(),
     extraExtend.toJSON(),
+    roulette.toJSON(),
+    result.toJSON(),
     // showEvaluationEnd.toJSON(),
   ];
 

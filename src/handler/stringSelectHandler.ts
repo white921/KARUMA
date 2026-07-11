@@ -5,6 +5,8 @@ import { showSelectUserMenu } from "../util/select";
 
 import { HotelVcService } from "../service/hotelVcService";
 import { VcService } from "../service/vcService";
+import { RouletteService } from "../service/rouletteService";
+import { RouletteBetKind, RouletteStage } from "../type/roulette";
 
 import { HOTEL_PURCHASE_WAY_TYPE } from "../constant/hotel";
 import { PANEL_COMMAND_NAMES } from "../constant/command";
@@ -20,6 +22,18 @@ export async function handleStringSelectMenu(
 ) {
   try {
     const customId = interaction.customId;
+    if (customId.startsWith("rouletteBetSelect_")) {
+      const stage = Number(customId.split("_")[1]);
+      if (stage !== 1 && stage !== 2 && stage !== 3) {
+        throw new Error("ルーレットの部の情報が不正です。");
+      }
+      await RouletteService.showBetAmountModal(
+        interaction,
+        stage as RouletteStage,
+        interaction.values[0] as RouletteBetKind,
+      );
+      return;
+    }
     const commandId = customId.split("_")[0]; // NORMAL, SECRET, SECRETLONG, FREEDOM, FREEDOMLONG
     switch (customId) {
       case "change_vc_limit_select": // VC人数変更の処理

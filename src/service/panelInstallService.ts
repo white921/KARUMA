@@ -1,6 +1,6 @@
 import { ChatInputCommandInteraction, Client, GuildMember } from "discord.js";
 
-import { ROLE_IDS, TEXT_CHANNEL_IDS, THREAD_IDS } from "../constant/id";
+import { getRoulettePanelChannelId, ROLE_IDS, TEXT_CHANNEL_IDS, THREAD_IDS } from "../constant/id";
 import { AdminPanelService } from "./adminPanelService";
 import { CasinoPanelService } from "./casinoPanel";
 import { DiaryPanelService } from "./diaryPanelService";
@@ -9,6 +9,7 @@ import { HotelVcPanelService } from "./hotelPanelService";
 import { PanelService } from "./panelService";
 import { RedeployPanelService } from "./redeployPanelService";
 import { ShopPanelService } from "./shopPanelService";
+import { RoulettePanelService } from "./roulettePanelService";
 
 export const PANEL_INSTALL_TARGETS = {
   BANK: "bank",
@@ -19,6 +20,9 @@ export const PANEL_INSTALL_TARGETS = {
   SHOP: "shop",
   DIARY: "diary",
   REDEPLOY: "redeploy",
+  ROULETTE_1ST: "roulette_1st",
+  ROULETTE_2ND: "roulette_2nd",
+  ROULETTE_3RD: "roulette_3rd",
 } as const;
 
 type PanelInstallTarget =
@@ -33,6 +37,9 @@ const PANEL_INSTALL_TARGET_LABELS: Record<PanelInstallTarget, string> = {
   [PANEL_INSTALL_TARGETS.SHOP]: "ショップパネル",
   [PANEL_INSTALL_TARGETS.DIARY]: "日記パネル",
   [PANEL_INSTALL_TARGETS.REDEPLOY]: "再起動パネル",
+  [PANEL_INSTALL_TARGETS.ROULETTE_1ST]: "ヨーロピアンルーレット第1部パネル",
+  [PANEL_INSTALL_TARGETS.ROULETTE_2ND]: "ヨーロピアンルーレット第2部パネル",
+  [PANEL_INSTALL_TARGETS.ROULETTE_3RD]: "ヨーロピアンルーレット第3部パネル",
 };
 
 const PANEL_INSTALL_CHANNEL_MAP: Record<string, PanelInstallTarget> = {
@@ -50,6 +57,9 @@ const PANEL_INSTALL_CHANNEL_MAP: Record<string, PanelInstallTarget> = {
 export function resolvePanelInstallTarget(
   channelId: string,
 ): PanelInstallTarget | null {
+  if (channelId === getRoulettePanelChannelId(1)) return PANEL_INSTALL_TARGETS.ROULETTE_1ST;
+  if (channelId === getRoulettePanelChannelId(2) && getRoulettePanelChannelId(2)) return PANEL_INSTALL_TARGETS.ROULETTE_2ND;
+  if (channelId === getRoulettePanelChannelId(3) && getRoulettePanelChannelId(3)) return PANEL_INSTALL_TARGETS.ROULETTE_3RD;
   return PANEL_INSTALL_CHANNEL_MAP[channelId] ?? null;
 }
 
@@ -97,6 +107,15 @@ async function installTargetPanel(
       return;
     case PANEL_INSTALL_TARGETS.REDEPLOY:
       await RedeployPanelService.createRedeployPanel(client);
+      return;
+    case PANEL_INSTALL_TARGETS.ROULETTE_1ST:
+      await RoulettePanelService.createPanel(client, 1);
+      return;
+    case PANEL_INSTALL_TARGETS.ROULETTE_2ND:
+      await RoulettePanelService.createPanel(client, 2);
+      return;
+    case PANEL_INSTALL_TARGETS.ROULETTE_3RD:
+      await RoulettePanelService.createPanel(client, 3);
       return;
     default:
       throw new Error("未対応のパネルです。");

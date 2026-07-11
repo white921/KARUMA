@@ -17,6 +17,7 @@ import { VcService } from "../service/vcService";
 import { GameService } from "../service/gameService";
 import { DiaryService } from "../service/diaryService";
 import { RedeployService } from "../service/redeployService";
+import { RouletteService } from "../service/rouletteService";
 
 import {
   ADMIN_PANEL_MESSAGES,
@@ -49,6 +50,22 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
   }
 
   try {
+    if (customId.startsWith("rouletteBetStart_")) {
+      const stage = Number(customId.split("_")[1]);
+      if (stage !== 1 && stage !== 2 && stage !== 3) {
+        throw new Error("ルーレットの部の情報が不正です。");
+      }
+      await RouletteService.showBetTypeSelect(interaction, stage);
+      return;
+    }
+    if (customId.startsWith("rouletteConfirm_")) {
+      await interaction.editReply({ content: await RouletteService.placeBet(interaction), embeds: [], components: [] });
+      return;
+    }
+    if (customId === "rouletteCancel") {
+      await interaction.editReply({ content: "ベットをキャンセルしました。", embeds: [], components: [] });
+      return;
+    }
     switch (customId) {
       case PANEL_COMMAND_NAMES.SEND:
         await showSelectUserMenu(

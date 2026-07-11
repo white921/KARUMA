@@ -10,6 +10,7 @@ import { AdminMintService } from "../service/adminMintService";
 import { VcService } from "../service/vcService";
 import { DiaryType } from "../constant/diary";
 import { BOT_ID } from "../constant/id";
+import { RouletteService } from "../service/rouletteService";
 /**
  * モーダルフィールドの値を取得
  * @param interaction モーダルサブミットインタラクション
@@ -35,6 +36,10 @@ export async function handleModalSubmit(interaction: ModalSubmitInteraction) {
   const commandId = customId.includes("_") ? customId.split("_")[0] : customId;
 
   try {
+    if (customId.startsWith("rouletteBetModal_")) {
+      await RouletteService.showBetConfirmation(interaction);
+      return;
+    }
     switch (commandId) {
       // VC名変更のときはamount/commentがないので分けないとエラーがでる
       case PANEL_COMMAND_NAMES.CHANGE_VC_NAME: {

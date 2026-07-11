@@ -18,6 +18,8 @@ import { execute as checkName } from "../command/checkName";
 // import { execute as inviteExtend } from "../command/inviteExtend";
 // import { execute as showEvaluation } from "../command/showEvaluation";
 import { execute as extraExtend } from "../command/extraExtend";
+import { execute as roulette } from "../command/roulette";
+import { execute as result } from "../command/result";
 // import { execute as showEvaluationEnd } from "../command/showEvaluationEnd";
 
 import { COMMAND_MESSAGES, COMMAND_NAMES } from "../constant/command";
@@ -63,8 +65,10 @@ export async function exeCommand(
   command: string
 ) {
   try {
-    // Temporary global slash-command lock. Remove this line to reopen commands.
-    await assertTemporaryTechnicalDirectorOnly(interaction);
+    // ルーレット運営コマンドはイベント運営ロールにも個別に許可する。
+    if (command !== COMMAND_NAMES.ROULETTE && command !== COMMAND_NAMES.ROULETTE_RESULT) {
+      await assertTemporaryTechnicalDirectorOnly(interaction);
+    }
 
     switch (command) {
       case COMMAND_NAMES.TEST:
@@ -120,6 +124,12 @@ export async function exeCommand(
       //   break;
       case COMMAND_NAMES.EXTRA_EXTEND:
         await extraExtend(interaction);
+        break;
+      case COMMAND_NAMES.ROULETTE:
+        await roulette(interaction);
+        break;
+      case COMMAND_NAMES.ROULETTE_RESULT:
+        await result(interaction);
         break;
       // case COMMAND_NAMES.SHOW_EVALUATION_END:
       //   await showEvaluationEnd(interaction);
