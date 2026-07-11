@@ -13,13 +13,9 @@ export const data = new SlashCommandBuilder()
       .setDescription("出た色")
       .setRequired(true)
       .addChoices(
-        { name: "黒", value: "黒" },
         { name: "赤", value: "赤" },
-        { name: "くろ", value: "くろ" },
-        { name: "あか", value: "あか" },
-        { name: "クロ", value: "クロ" },
-        { name: "アカ", value: "アカ" },
-        { name: "緑（0用）", value: "緑" },
+        { name: "黒", value: "黒" },
+        { name: "緑", value: "緑" },
       ),
   )
   .addIntegerOption((option) =>

@@ -39,9 +39,9 @@ export function getRouletteResultColor(result: number): RouletteResultColor {
 }
 
 export function normalizeRouletteResultColor(value: string): RouletteResultColor | null {
-  if (["赤", "あか", "アカ"].includes(value)) return "red";
-  if (["黒", "くろ", "クロ"].includes(value)) return "black";
-  if (["緑", "みどり", "ミドリ"].includes(value)) return "green";
+  if (value === "赤") return "red";
+  if (value === "黒") return "black";
+  if (value === "緑") return "green";
   return null;
 }
 
