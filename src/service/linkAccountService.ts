@@ -11,7 +11,7 @@ import { ROLE_IDS } from "../constant/id";
 
 export class LinkAccountService {
   /**
-   * 本アカウントで刻印ロールをもっていないユーザーと口座がないユーザーはサブ垢同期を行えない
+   * 本アカウントで使徒ロールをもっていないユーザーと口座がないユーザーはサブ垢同期を行えない
    * @param mainAccount 本アカウントメンバー
    */
   static async validateMainAccount(mainAccount: GuildMember) {

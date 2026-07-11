@@ -1,7 +1,7 @@
 export const EVALUATION_SHEET_MESSAGES = {
   NO_TARGET_USERS:
-    "❌ このVC内に評価シート作成対象の「未契約」ユーザーがいません。",
-  NO_KARIMEN_ROLE: "❌ 対象ユーザーが「未契約」ロールを持っていません。",
+    "❌ このVC内に評価シート作成対象の「見学者」ユーザーがいません。",
+  NO_KARIMEN_ROLE: "❌ 対象ユーザーが「見学者」ロールを持っていません。",
   INTRODUCTION_NOT_FOUND: "❌ 自己紹介メッセージが見つかりませんでした。",
   INVALID_GENDER_ROLE: "❌ 性別ロールの状態が不正です。",
   NOT_IN_VOICE_CHANNEL: "❌ VCに参加している状態で実行してください。",

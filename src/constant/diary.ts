@@ -47,7 +47,7 @@ export const DIARY_MESSAGES = {
     "通常日記をVIP日記へアップグレードしました。\nスレッド: {thread}",
   REOPENED_AND_UPGRADED:
     "クローズされていた日記を再開し、VIP日記へアップグレードしました。\nスレッド: {thread}",
-  FREE_CREATE_NOTE: "刻印ロール所持のため無料で作成されました。",
+  FREE_CREATE_NOTE: "使徒ロール所持のため無料で作成されました。",
   PRIVATE_TITLE_PREFIX: "🔒 ",
   PRIVATE_PERMISSION_NOTE:
     "注意: Discordのフォーラム仕様上、スレッド単位で本人と紐づくサブアカウントのみに書き込みを完全制限する実装は未対応です。",

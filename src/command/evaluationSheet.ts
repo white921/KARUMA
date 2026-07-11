@@ -14,7 +14,7 @@ import { ACCOUNT_MESSAGES } from "../constant/account";
 
 export const data = new SlashCommandBuilder()
   .setName(COMMAND_NAMES.EVALUATION_SHEET)
-  .setDescription("同じVC内の未契約ユーザーの評価シートを作成します")
+  .setDescription("同じVC内の見学者ユーザーの評価シートを作成します")
   .addUserOption((option) =>
     option
       .setName("user")

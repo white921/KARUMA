@@ -5,7 +5,7 @@ export const MAX_EVALUATION_EXTENSION_DAYS = 14;
 export const MAX_EVALUATION_MARU_COUNT = 2;
 
 // 基本評価期間日数
-export const BASE_EVALUATION_DAYS = 15;
+export const BASE_EVALUATION_DAYS = 10;
 
 export const EVALUATION_MESSAGES = {
   EVALUATION_NOT_FOUND: "評価管理レコードが見つかりません。",
