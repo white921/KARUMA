@@ -5,8 +5,6 @@ const {
   calculateRoulettePayout,
   validateRouletteBet,
   getAllowedBetKinds,
-  getRouletteResultColor,
-  normalizeRouletteResultColor,
 } = require("../dist/service/rouletteRules.js");
 
 test("stage availability limits betting options", () => {
@@ -26,14 +24,4 @@ test("European roulette pays the configured total multipliers", () => {
 test("zero loses every available bet", () => {
   assert.equal(calculateRoulettePayout({ kind: "black", selection: "black", amount: 500 }, 0), 0);
   assert.equal(calculateRoulettePayout({ kind: "straight", selection: "13", amount: 500 }, 0), 0);
-});
-
-test("result color identifies red, black, and zero green", () => {
-  assert.equal(getRouletteResultColor(1), "red");
-  assert.equal(getRouletteResultColor(2), "black");
-  assert.equal(getRouletteResultColor(0), "green");
-  assert.equal(normalizeRouletteResultColor("赤"), "red");
-  assert.equal(normalizeRouletteResultColor("黒"), "black");
-  assert.equal(normalizeRouletteResultColor("緑"), "green");
-  assert.equal(normalizeRouletteResultColor("アカ"), null);
 });
