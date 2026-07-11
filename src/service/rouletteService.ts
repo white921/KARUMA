@@ -104,9 +104,6 @@ export class RouletteService {
   static async assertOperator(interaction: ChatInputCommandInteraction): Promise<void> {
     const member = await getMember(interaction);
     const operatorRoles = [
-      ROLE_IDS.SABANUSI,
-      ROLE_IDS.KANRISYA,
-      ROLE_IDS.GIJUTU_LEADER,
       ROLE_IDS.EVENT_LEADER,
       ROLE_IDS.EVENT_STAFF,
     ];
@@ -127,7 +124,7 @@ export class RouletteService {
         [eventKey],
       );
       if (activeRounds.length > 0) {
-        throw new Error("前のラウンドが未精算です。先に `/result 数字` で結果を確定してください。");
+        throw new Error("前のラウンドが未精算です。先に `/結果` で結果を確定してください。");
       }
       const [result] = await connection.execute<ResultSetHeader>(
         `INSERT INTO roulette_rounds (event_key, stage, status)
@@ -155,7 +152,7 @@ export class RouletteService {
         [eventKey],
       );
       if (result.affectedRows === 0) throw new Error("現在、締め切れる受付中のラウンドはありません。");
-      return "🔒 ベット受付を締め切りました。結果は `/result 数字` で確定してください。";
+      return "🔒 ベット受付を締め切りました。結果は `/結果` で確定してください。";
     } finally {
       connection.release();
     }
@@ -184,6 +181,7 @@ export class RouletteService {
   }
 
   static async showBetTypeSelect(interaction: ButtonInteraction, stage: RouletteStage): Promise<void> {
+    await this.assertBettingOpen(stage);
     const options = getAllowedBetKinds(stage).map((kind) => ({
       label: ROULETTE_BET_LABELS[kind],
       value: kind,
@@ -201,6 +199,23 @@ export class RouletteService {
       content: `第${stage}部の賭け方を選択してください。確定後の賭け直しはできません。`,
       components: [row],
     });
+  }
+
+  private static async assertBettingOpen(stage: RouletteStage): Promise<void> {
+    const connection = await DbService.getConnection();
+    try {
+      const [rounds] = await connection.execute<RouletteRoundRow[]>(
+        `SELECT id FROM roulette_rounds
+         WHERE event_key = ? AND stage = ? AND status = 'open'
+         ORDER BY id DESC LIMIT 1`,
+        [getRouletteEventKey(), stage],
+      );
+      if (rounds.length === 0) {
+        throw new Error(ROULETTE_MESSAGES.BETTING_NOT_OPEN_FOR_STAGE(stage));
+      }
+    } finally {
+      connection.release();
+    }
   }
 
   static async showBetAmountModal(
