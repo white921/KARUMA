@@ -88,20 +88,18 @@ export async function changeRoleOfSubAccount(
  */
 export async function removeRolesExcept(member: GuildMember) {
   try {
-    // 除外するロール（everyoneロール、基本ロールなど）
-    const excludeBasicRoles = [
-      member.guild.id, // @everyoneロール
-      ROLE_IDS.BASIC_ROLE_IDS, // 基本ロール（性別、年齢、設定など）
-    ];
+    // @everyoneと基本ロール（性別、年齢、設定など）は残す
+    const preservedRoleIds = new Set([
+      member.guild.id,
+      ...Object.values(ROLE_IDS.BASIC_ROLE_IDS),
+    ]);
 
     // メンバーが持っているロールを取得
     const memberRoles = member.roles.cache.values();
 
     for (const role of memberRoles) {
-      // excludeBasicRolesに含まれるロールは削除しない
-      if (!excludeBasicRoles.includes(role.id)) {
-        await deleteRole(member, role.id);
-      }
+      if (role.managed || preservedRoleIds.has(role.id)) continue;
+      await deleteRole(member, role.id);
     }
   } catch (error) {
     throw error;
@@ -119,10 +117,11 @@ export async function copyRoleFromMainToSub(
 ): Promise<void> {
   try {
     const roles = fromMember.roles.cache.values();
-    const sub_roles = toMember.roles.cache.values();
 
-    // 除外ロール(外部管理ロール、everyone、創造主ロール、執行人ロール、技術統括ロール、サーバーブーストロール、ゲームプランロール)
-    const excludeRoles = [
+    // 基本ロールはサブ垢側に残し、既存のコピー除外対象はコピーしない。
+    const excludedRoleIds = new Set([
+      ...Object.values(ROLE_IDS.BASIC_ROLE_IDS),
+      ROLE_IDS.SUB_ACCOUNT,
       ROLE_IDS.SABANUSI,
       ROLE_IDS.KANRISYA,
       ROLE_IDS.GIJUTU_LEADER,
@@ -130,23 +129,13 @@ export async function copyRoleFromMainToSub(
       ROLE_IDS.GAME_SHORT,
       ROLE_IDS.GAME_LONG,
       ROLE_IDS.GAME_PASS,
-    ];
-
-    for (const role of sub_roles) {
-      if (
-        role.managed == false &&
-        role.id !== fromMember.guild.id &&
-        !excludeRoles.includes(role.id)
-      ) {
-        await deleteRole(toMember, role.id);
-      }
-    }
+    ]);
 
     for (const role of roles) {
       if (
-        role.managed == false &&
+        !role.managed &&
         role.id !== fromMember.guild.id &&
-        !excludeRoles.includes(role.id)
+        !excludedRoleIds.has(role.id)
       ) {
         await addRole(toMember, role.id);
       }

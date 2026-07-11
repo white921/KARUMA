@@ -3,7 +3,12 @@ import {
   SlashCommandBuilder,
   User,
 } from "discord.js";
-import { addRole, isTechnician } from "../util/role";
+import {
+  addRole,
+  copyRoleFromMainToSub,
+  isTechnician,
+  removeRolesExcept,
+} from "../util/role";
 import { LinkAccountService } from "../service/linkAccountService";
 
 import { ROLE_IDS } from "../constant/id";
@@ -37,6 +42,10 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     if (!(await isTechnician(interaction.user))) {
       await LinkAccountService.validateMainAccount(mainMember!);
     }
+
+    // サブ垢の既存ロールを整理し、本垢の同期対象ロールをコピー
+    await removeRolesExcept(subMember!);
+    await copyRoleFromMainToSub(mainMember!, subMember!);
 
     // サブ垢ロール付与
     await addRole(subMember!, ROLE_IDS.SUB_ACCOUNT);
