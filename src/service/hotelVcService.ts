@@ -59,17 +59,17 @@ export class HotelVcService {
   /**
    * ホテルVCの利用時間を取得
    * @param hotelType ホテルVCタイプ
-   * @returns 利用時間（分）
+   * @returns 利用時間（時間）
    */
-  static getHotelVcDurationMinutes(hotelType: string): number {
+  static getHotelVcDurationHours(hotelType: string): number {
     switch (hotelType) {
       case HOTEL_TYPE.NORMAL:
       case HOTEL_TYPE.SECRET:
       case HOTEL_TYPE.FREEDOM:
-        return 1;
+        return 12;
       case HOTEL_TYPE.SECRETLONG:
       case HOTEL_TYPE.FREEDOMLONG:
-        return 2;
+        return 24;
       default:
         throw new Error(HOTEL_MESSAGES.UNDEFINED_TYPE_OF_HOTEL);
     }
@@ -262,8 +262,10 @@ export class HotelVcService {
 
       // 期限切れ時間を取得
       const hotelVcType = this.getHotelTypeFromName(hotelVcTypeName);
-      const durationMinutes = this.getHotelVcDurationMinutes(hotelVcType);
-      const expireDateTime = new Date(Date.now() + durationMinutes * 60 * 1000);
+      const durationHours = this.getHotelVcDurationHours(hotelVcType);
+      const expireDateTime = new Date(
+        Date.now() + durationHours * 60 * 60 * 1000,
+      );
       const jstExpireDateTime = expireDateTime.toLocaleString("ja-JP", {
         timeZone: "Asia/Tokyo",
         hour: "2-digit",
@@ -716,8 +718,10 @@ export class HotelVcService {
       // expire_at：特典VC（isBonus=true）の場合はNULL、有料VC（isBonus=false）の場合は利用時間に応じて設定
       let expireAt: Date | null = null;
       if (!isBonus) {
-        const hotelVcTypeDurationMinutes = this.getHotelVcDurationMinutes(type);
-        expireAt = new Date(Date.now() + hotelVcTypeDurationMinutes * 60 * 1000);
+        const hotelVcTypeDurationHours = this.getHotelVcDurationHours(type);
+        expireAt = new Date(
+          Date.now() + hotelVcTypeDurationHours * 60 * 60 * 1000,
+        );
       }
       await connection.execute(
         `INSERT INTO vcs (channel_id, owner_id, guest_id, type, is_ticket, is_bonus, expire_at) VALUES (?, ?, ?, ?, ?, ?, ?);`,

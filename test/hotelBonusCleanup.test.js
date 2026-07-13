@@ -147,17 +147,17 @@ test("does not disconnect bots from a bonus hotel VC because the channel is dele
   assert.equal(botMember.disconnected, false);
 });
 
-test("VIP and freedom hotel short durations expire after one minute", () => {
-  assert.equal(HotelVcService.getHotelVcDurationMinutes(HOTEL_TYPE.SECRET), 1);
-  assert.equal(HotelVcService.getHotelVcDurationMinutes(HOTEL_TYPE.FREEDOM), 1);
+test("VIP and freedom hotel short durations expire after twelve hours", () => {
+  assert.equal(HotelVcService.getHotelVcDurationHours(HOTEL_TYPE.SECRET), 12);
+  assert.equal(HotelVcService.getHotelVcDurationHours(HOTEL_TYPE.FREEDOM), 12);
 });
 
-test("VIP and freedom hotel long durations expire after two minutes", () => {
-  assert.equal(HotelVcService.getHotelVcDurationMinutes(HOTEL_TYPE.SECRETLONG), 2);
-  assert.equal(HotelVcService.getHotelVcDurationMinutes(HOTEL_TYPE.FREEDOMLONG), 2);
+test("VIP and freedom hotel long durations expire after twenty-four hours", () => {
+  assert.equal(HotelVcService.getHotelVcDurationHours(HOTEL_TYPE.SECRETLONG), 24);
+  assert.equal(HotelVcService.getHotelVcDurationHours(HOTEL_TYPE.FREEDOMLONG), 24);
 });
 
-test("short paid VIP and freedom hotel records expire one minute after creation", async () => {
+test("short paid VIP and freedom hotel records expire twelve hours after creation", async () => {
   const now = new Date("2026-01-01T00:00:00.000Z").getTime();
   Date.now = () => now;
   const statements = [];
@@ -172,11 +172,11 @@ test("short paid VIP and freedom hotel records expire one minute after creation"
 
   assert.equal(insertParams.length, 2);
   for (const params of insertParams) {
-    assert.equal(params[6].getTime(), now + 60 * 1000);
+    assert.equal(params[6].getTime(), now + 12 * 60 * 60 * 1000);
   }
 });
 
-test("long paid VIP and freedom hotel records expire two minutes after creation", async () => {
+test("long paid VIP and freedom hotel records expire twenty-four hours after creation", async () => {
   const now = new Date("2026-01-01T00:00:00.000Z").getTime();
   Date.now = () => now;
   const statements = [];
@@ -203,7 +203,7 @@ test("long paid VIP and freedom hotel records expire two minutes after creation"
 
   assert.equal(insertParams.length, 2);
   for (const params of insertParams) {
-    assert.equal(params[6].getTime(), now + 2 * 60 * 1000);
+    assert.equal(params[6].getTime(), now + 24 * 60 * 60 * 1000);
   }
 });
 
