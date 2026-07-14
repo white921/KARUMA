@@ -34,6 +34,19 @@ export async function handleStringSelectMenu(
       );
       return;
     }
+    if (customId.startsWith("rouletteDozenSelect_")) {
+      const stage = Number(customId.split("_")[1]);
+      if (stage !== 1 && stage !== 2 && stage !== 3) {
+        throw new Error("ルーレットの部の情報が不正です。");
+      }
+      await RouletteService.showBetAmountModal(
+        interaction,
+        stage as RouletteStage,
+        "dozen",
+        interaction.values[0],
+      );
+      return;
+    }
     const commandId = customId.split("_")[0]; // NORMAL, SECRET, SECRETLONG, FREEDOM, FREEDOMLONG
     switch (customId) {
       case "change_vc_limit_select": // VC人数変更の処理

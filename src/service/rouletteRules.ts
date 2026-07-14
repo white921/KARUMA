@@ -15,7 +15,7 @@ export const ROULETTE_BET_LABELS: Record<RouletteBetKind, string> = {
   black: "黒",
   even: "偶数",
   odd: "奇数",
-  dozen: "1〜12",
+  dozen: "ダズン",
   straight: "ストレートアップ",
   split: "スプリット",
 };
@@ -26,6 +26,18 @@ export function isRouletteStage(value: number): value is RouletteStage {
 
 export function getAllowedBetKinds(stage: RouletteStage): RouletteBetKind[] {
   return STAGE_BET_KINDS[stage];
+}
+
+export function getDozenRange(selection: string): string {
+  const ranges: Record<string, string> = {
+    1: "1-12",
+    2: "13-24",
+    3: "25-36",
+  };
+  if (!/^[1-3]$/.test(selection)) {
+    throw new Error("ダズンは1・2・3から選択してください。");
+  }
+  return ranges[selection];
 }
 
 export function getBetLabel(bet: Pick<RouletteBet, "kind" | "selection">): string {

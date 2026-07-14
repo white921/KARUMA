@@ -28,6 +28,7 @@ import {
   calculateRoulettePayout,
   getAllowedBetKinds,
   getBetLabel,
+  getDozenRange,
   ROULETTE_BET_LABELS,
   validateRouletteBet,
 } from "./rouletteRules";
@@ -212,20 +213,40 @@ export class RouletteService {
     interaction: StringSelectMenuInteraction,
     stage: RouletteStage,
     kind: RouletteBetKind,
+    selection?: string,
   ): Promise<void> {
     if (!getAllowedBetKinds(stage).includes(kind)) {
       throw new Error("この部では選択できない賭け方です。");
     }
+
+    if (kind === "dozen" && !selection) {
+      const select = new StringSelectMenuBuilder()
+        .setCustomId(`rouletteDozenSelect_${stage}`)
+        .setPlaceholder("ダズンの範囲を選択してください")
+        .addOptions(
+          { label: "1（1〜12）", value: "1" },
+          { label: "2（13〜24）", value: "2" },
+          { label: "3（25〜36）", value: "3" },
+        );
+      const row = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(select);
+      await interaction.update({
+        content: "ダズンの範囲を選択してください。",
+        components: [row],
+      });
+      return;
+    }
+
+    const resolvedSelection = kind === "dozen" && selection
+      ? getDozenRange(selection)
+      : selection;
+    if (resolvedSelection) {
+      validateRouletteBet(stage, kind, resolvedSelection, 1);
+    }
     const modal = new ModalBuilder()
-      .setCustomId(`rouletteBetModal_${stage}_${kind}`)
+      .setCustomId(`rouletteBetModal_${stage}_${kind}${resolvedSelection ? `_${resolvedSelection}` : ""}`)
       .setTitle(`第${stage}部：${ROULETTE_BET_LABELS[kind]}`);
 
-    if (kind === "dozen") {
-      modal.addComponents(new ActionRowBuilder<TextInputBuilder>().addComponents(
-        new TextInputBuilder().setCustomId("selection").setLabel("範囲（1-12 / 13-24 / 25-36）")
-          .setStyle(TextInputStyle.Short).setPlaceholder("例: 13-24").setRequired(true).setMaxLength(5),
-      ));
-    } else if (kind === "straight") {
+    if (kind === "straight") {
       modal.addComponents(new ActionRowBuilder<TextInputBuilder>().addComponents(
         new TextInputBuilder().setCustomId("selection").setLabel("数字（1〜36）")
           .setStyle(TextInputStyle.Short).setPlaceholder("例: 13").setRequired(true).setMaxLength(2),
@@ -244,12 +265,12 @@ export class RouletteService {
   }
 
   static async showBetConfirmation(interaction: ModalSubmitInteraction): Promise<void> {
-    const [, stageValue, kindValue] = interaction.customId.split("_");
+    const [, stageValue, kindValue, selectedValue] = interaction.customId.split("_");
     const stage = parseStage(stageValue);
     const kind = kindValue as RouletteBetKind;
     const selection = ["red", "black", "even", "odd"].includes(kind)
       ? kind
-      : interaction.fields.getTextInputValue("selection").trim();
+      : selectedValue ?? interaction.fields.getTextInputValue("selection").trim();
     const amount = Number(interaction.fields.getTextInputValue("amount").trim());
     validateRouletteBet(stage, kind, selection, amount);
     const bet: RouletteBet = { kind, selection, amount };
