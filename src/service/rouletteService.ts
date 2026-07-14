@@ -334,7 +334,7 @@ export class RouletteService {
          VALUES (?, ?, ?, ?, ?)`,
         [round.id, interaction.user.id, kind, selection, amount],
       );
-      await this.insertActionLog(connection, ROULETTE_ACTION_NAMES.BET, amount, interaction.user.id, BOT_ID, userAfterWallet, botAfterWallet, `イベント:${eventKey} 第${stage}部 #${round.id} ${getBetLabel({ kind, selection })}`);
+      await this.insertActionLog(connection, ROULETTE_ACTION_NAMES.BET, amount, interaction.user.id, BOT_ID, userAfterWallet, botAfterWallet, "ルーレットイベント");
       await connection.commit();
       return `✅ 第${stage}部・第${roundNumber}ラウンドに **${getBetLabel({ kind, selection })}** へ **${amount.toLocaleString()}${CURRENCY_NAMES}** をベットしました。`;
     } catch (error) {
@@ -381,7 +381,7 @@ export class RouletteService {
         const userAfterWallet = users[0].wallet + payout;
         botWallet -= payout;
         await connection.execute("UPDATE accounts SET wallet = ? WHERE user_id = ?", [userAfterWallet, row.user_id]);
-        await this.insertActionLog(connection, ROULETTE_ACTION_NAMES.PAYOUT, payout, BOT_ID, row.user_id, botWallet, userAfterWallet, `イベント:${eventKey} 第${round.stage}部 #${round.id} 結果:${result} ${getBetLabel(bet)}`);
+        await this.insertActionLog(connection, ROULETTE_ACTION_NAMES.PAYOUT, payout, BOT_ID, row.user_id, botWallet, userAfterWallet, "ルーレットイベント");
         winners.push({ userId: row.user_id, payout, bet });
       }
       await connection.execute("UPDATE accounts SET wallet = ? WHERE user_id = ?", [botWallet, BOT_ID]);
@@ -429,7 +429,7 @@ export class RouletteService {
         const userAfterWallet = users[0].wallet + ROULETTE_PARTICIPATION_BONUS;
         botWallet -= ROULETTE_PARTICIPATION_BONUS;
         await connection.execute("UPDATE accounts SET wallet = ? WHERE user_id = ?", [userAfterWallet, userId]);
-        await this.insertActionLog(connection, ROULETTE_ACTION_NAMES.BONUS, ROULETTE_PARTICIPATION_BONUS, BOT_ID, userId, botWallet, userAfterWallet, `イベント:${eventKey} 参加ボーナス`);
+        await this.insertActionLog(connection, ROULETTE_ACTION_NAMES.BONUS, ROULETTE_PARTICIPATION_BONUS, BOT_ID, userId, botWallet, userAfterWallet, "ルーレットイベント");
         paidCount += 1;
       }
       await connection.execute("UPDATE accounts SET wallet = ? WHERE user_id = ?", [botWallet, BOT_ID]);
