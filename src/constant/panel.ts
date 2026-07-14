@@ -48,6 +48,7 @@ export const HOTEL_VC_PANEL_MESSAGES = {
   FREEDOM: HOTEL_TYPE_NAMES.FREEDOM,
   CHANGE_VC_LIMIT: "人数変更",
   CHANGE_VC_NAME: "VC名変更",
+  TICKET_VIEW: "チケット確認",
 };
 
 export const IN_CHAT_PANEL_MESSAGES = {
@@ -76,9 +77,10 @@ export const GAME_PANEL_MESSAGES = {
 export const SHOP_PANEL_MESSAGES = {
   TITLE: "ショップパネル",
   DESCRIPTION:
-    "ショップの支払いはこちらのパネルから行ってください。\nコメントにて購入される商品名を明記してください。\n\n**【市場ガチャ】**\n1回5,000krm／1日5回まで。\nホテル無料券は当選時に自動付与され、ホテルパネルで利用できます。その他の無料券・割引券・教祖遠隔は、既存のチケットBotでチケットを作成し、当選メッセージを提示して利用してください。\n招待での抽選は現在準備中です。",
+    "ショップの支払いはこちらのパネルから行ってください。\n支払い前に使用するチケットを選択し、商品名を明記してください。\n\n**【市場ガチャ】**\n1回5,000krm／1日5回まで。\nホテル無料券・ショップ割引券は当選時に自動付与され、それぞれのパネルで利用できます。ショップ割引券は100万krm未満の商品にのみ使用できます。その他の無料券・教祖遠隔は、既存のチケットBotでチケットを作成し、当選メッセージを提示して利用してください。\n招待での抽選は現在準備中です。",
   VIEW: "残高確認",
   SHOP_SEND: `${CURRENCY_NAMES}支払い`,
+  TICKET_VIEW: "チケット確認",
   MARKET_GACHA_DRAW: "市場ガチャを引く",
   ERROR: "ショップパネルチャンネルが見つからないか、無効な型です。",
 };

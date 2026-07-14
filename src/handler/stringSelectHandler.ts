@@ -2,6 +2,7 @@ import { StringSelectMenuInteraction } from "discord.js";
 
 import { showConfirmButton } from "../util/button";
 import { showSelectUserMenu } from "../util/select";
+import { showShopAmountModal } from "../util/modal";
 
 import { HotelFreeTicketService } from "../service/hotelFreeTicketService";
 import { VcService } from "../service/vcService";
@@ -11,6 +12,10 @@ import { RouletteBetKind, RouletteStage } from "../type/roulette";
 import { HOTEL_PURCHASE_WAY_TYPE } from "../constant/hotel";
 import { PANEL_COMMAND_NAMES } from "../constant/command";
 import { HOTEL_MESSAGES } from "../constant/hotel";
+import {
+  isShopTicketType,
+  SHOP_TICKET_NONE,
+} from "../constant/shopTicket";
 
 /**
  * 文字列のプルダウンを選択した時のハンドラ
@@ -45,6 +50,14 @@ export async function handleStringSelectMenu(
         "dozen",
         interaction.values[0],
       );
+      return;
+    }
+    if (customId === "shop_ticket_select") {
+      const ticketType = interaction.values[0];
+      if (ticketType !== SHOP_TICKET_NONE && !isShopTicketType(ticketType)) {
+        throw new Error("無効なショップチケットです。");
+      }
+      await showShopAmountModal(interaction, ticketType);
       return;
     }
     const commandId = customId.split("_")[0]; // NORMAL, SECRET, SECRETLONG, FREEDOM, FREEDOMLONG

@@ -3,6 +3,7 @@ import { ButtonInteraction, GuildMember } from "discord.js";
 import {
   showSelectUserMenu,
   showSelectNumberMenu,
+  showShopTicketSelectMenu,
 } from "../util/select";
 import { showConfirmButton } from "../util/button";
 import { showStringModal, showAmountModal } from "../util/modal";
@@ -19,15 +20,15 @@ import { RedeployService } from "../service/redeployService";
 import { RouletteService } from "../service/rouletteService";
 import { MarketGachaService } from "../service/marketGachaService";
 import { HotelFreeTicketService } from "../service/hotelFreeTicketService";
+import { TicketViewService } from "../service/ticketViewService";
 
 import {
   ADMIN_PANEL_MESSAGES,
   PANEL_MESSAGES,
   HOTEL_VC_PANEL_MESSAGES,
-  SHOP_PANEL_MESSAGES,
 } from "../constant/panel";
 import { PANEL_COMMAND_NAMES } from "../constant/command";
-import { ROLE_IDS, BOT_ID } from "../constant/id";
+import { ROLE_IDS } from "../constant/id";
 import { CASINO_MESSAGES } from "../constant/casino";
 import {
   HOTEL_TYPE_NAMES,
@@ -76,13 +77,10 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
         );
         break;
       case PANEL_COMMAND_NAMES.SHOP_SEND:
-        await showAmountModal(
-          interaction,
-          BOT_ID,
-          interaction.user.id,
-          SHOP_PANEL_MESSAGES.SHOP_SEND,
-          PANEL_COMMAND_NAMES.SHOP_SEND,
-        );
+        await showShopTicketSelectMenu(interaction);
+        break;
+      case PANEL_COMMAND_NAMES.SHOP_TICKET_VIEW:
+        await TicketViewService.viewShopTickets(interaction);
         break;
       case PANEL_COMMAND_NAMES.MARKET_GACHA_DRAW:
         await MarketGachaService.draw(interaction);
@@ -207,6 +205,9 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
           PANEL_COMMAND_NAMES.HOTEL_VC_NORMAL,
           HOTEL_PURCHASE_WAY_TYPE.MONEY,
         );
+        break;
+      case PANEL_COMMAND_NAMES.HOTEL_TICKET_VIEW:
+        await TicketViewService.viewHotelTickets(interaction);
         break;
       case PANEL_COMMAND_NAMES.HOTEL_VC_SECRET:
         await showSelectUserMenu(

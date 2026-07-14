@@ -13,6 +13,11 @@ import { AccountService } from "../service/accountService";
 import { COLOR } from "../constant/color";
 import { SELECT_MESSAGES } from "../constant/select";
 import { HOTEL_PURCHASE_WAY_TYPE } from "../constant/hotel";
+import {
+  SHOP_TICKET_NONE,
+  SHOP_TICKETS,
+} from "../constant/shopTicket";
+import { ShopTicketService } from "../service/shopTicketService";
 
 /**
  * ユーザー選択メニューを表示
@@ -140,6 +145,54 @@ export async function showStringSelectMenu(
   } catch (error: any) {
     throw error;
   }
+}
+
+/** ショップ支払いで消費するチケットを選択する。 */
+export async function showShopTicketSelectMenu(interaction: ButtonInteraction) {
+  const ownedTickets = await ShopTicketService.getOwnedTickets(interaction.user.id);
+  const quantities = new Map(
+    ownedTickets.map((ticket) => [ticket.type, ticket.quantity]),
+  );
+  const options = [
+    {
+      label: "チケットを消費しない",
+      value: SHOP_TICKET_NONE,
+      description: "通常価格で支払う",
+    },
+    ...SHOP_TICKETS.flatMap((ticket) => {
+      const quantity = quantities.get(ticket.type) ?? 0;
+      return quantity > 0
+        ? [
+            {
+              label: `${ticket.label}（所持: ${quantity}枚）`,
+              value: ticket.type,
+              description: "100万krm未満の商品に使用可能",
+            },
+          ]
+        : [];
+    }),
+  ];
+  const select = new StringSelectMenuBuilder()
+    .setCustomId("shop_ticket_select")
+    .setPlaceholder("使用するチケットを選択してください")
+    .setMinValues(1)
+    .setMaxValues(1)
+    .addOptions(options);
+  const row = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+    select,
+  );
+  const embed = new EmbedBuilder()
+    .setTitle("🎫 使用するチケットを選択")
+    .setDescription(
+      "チケットを使わない場合は「チケットを消費しない」を選択してください。\n割引券は100万krm未満の商品にのみ使えます。",
+    )
+    .setColor(COLOR.GREEN);
+
+  await interaction.reply({
+    embeds: [embed],
+    components: [row],
+    ephemeral: true,
+  });
 }
 
 /**

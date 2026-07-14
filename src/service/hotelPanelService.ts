@@ -44,7 +44,11 @@ export function createHotelVcPanelActionRows() {
     new ButtonBuilder()
       .setCustomId(PANEL_COMMAND_NAMES.VIEW)
       .setLabel(PANEL_MESSAGES.VIEW)
-      .setStyle(ButtonStyle.Primary)
+      .setStyle(ButtonStyle.Primary),
+    new ButtonBuilder()
+      .setCustomId(PANEL_COMMAND_NAMES.HOTEL_TICKET_VIEW)
+      .setLabel(HOTEL_VC_PANEL_MESSAGES.TICKET_VIEW)
+      .setStyle(ButtonStyle.Secondary),
   );
 
   return [row1, row2];
@@ -122,7 +126,11 @@ export class HotelVcPanelService {
         new ButtonBuilder()
           .setCustomId(PANEL_COMMAND_NAMES.VIEW)
           .setLabel(PANEL_MESSAGES.VIEW)
-          .setStyle(ButtonStyle.Primary)
+          .setStyle(ButtonStyle.Primary),
+        new ButtonBuilder()
+          .setCustomId(PANEL_COMMAND_NAMES.HOTEL_TICKET_VIEW)
+          .setLabel(HOTEL_VC_PANEL_MESSAGES.TICKET_VIEW)
+          .setStyle(ButtonStyle.Secondary),
       );
 
       await deletePanelMessage(channel, client, HOTEL_VC_PANEL_MESSAGES.TITLE);
@@ -183,10 +191,16 @@ export class HotelVcPanelService {
           .setCustomId(PANEL_COMMAND_NAMES.HOTEL_VC_FREEDOMLONG)
           .setLabel(HOTEL_TYPE_NAMES.FREEDOMLONG)
           .setStyle(ButtonStyle.Secondary),
+      );
+      const row2 = new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder()
           .setCustomId(PANEL_COMMAND_NAMES.VIEW)
           .setLabel(PANEL_MESSAGES.VIEW)
-          .setStyle(ButtonStyle.Primary)
+          .setStyle(ButtonStyle.Primary),
+        new ButtonBuilder()
+          .setCustomId(PANEL_COMMAND_NAMES.HOTEL_TICKET_VIEW)
+          .setLabel(HOTEL_VC_PANEL_MESSAGES.TICKET_VIEW)
+          .setStyle(ButtonStyle.Secondary),
       );
 
       await deletePanelMessage(channel, client, HOTEL_VC_PANEL_MESSAGES.TITLE);
@@ -194,7 +208,7 @@ export class HotelVcPanelService {
       // 新しい管理者パネルメッセージを送信
       await channel.send({
         embeds: [embed],
-        components: [row1],
+        components: [row1, row2],
       });
     } catch (error) {
       throw error;

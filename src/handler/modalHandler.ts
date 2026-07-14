@@ -9,8 +9,12 @@ import { PANEL_COMMAND_NAMES } from "../constant/command";
 import { AdminMintService } from "../service/adminMintService";
 import { VcService } from "../service/vcService";
 import { DiaryType } from "../constant/diary";
-import { BOT_ID } from "../constant/id";
 import { RouletteService } from "../service/rouletteService";
+import { ShopPaymentService } from "../service/shopPaymentService";
+import {
+  isShopTicketType,
+  SHOP_TICKET_NONE,
+} from "../constant/shopTicket";
 /**
  * モーダルフィールドの値を取得
  * @param interaction モーダルサブミットインタラクション
@@ -88,13 +92,17 @@ export async function handleModalSubmit(interaction: ModalSubmitInteraction) {
       case PANEL_COMMAND_NAMES.SHOP_SEND: {
         const amount = Number(getModalFieldValue(interaction, "amount"));
         const comment = getModalFieldValue(interaction, "comment");
-        await SendService.send(
+        const ticketType = customId.slice(
+          `${PANEL_COMMAND_NAMES.SHOP_SEND}_`.length,
+        );
+        if (ticketType !== SHOP_TICKET_NONE && !isShopTicketType(ticketType)) {
+          throw new Error("無効なショップチケットです。");
+        }
+        await ShopPaymentService.pay(
           interaction,
-          interaction.user.id,
-          BOT_ID,
           amount,
           comment,
-          commandId,
+          ticketType,
         );
         break;
       }

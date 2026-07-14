@@ -28,6 +28,10 @@ export function createShopPanelActionRow() {
       .setCustomId(PANEL_COMMAND_NAMES.VIEW)
       .setLabel(SHOP_PANEL_MESSAGES.VIEW)
       .setStyle(ButtonStyle.Primary),
+    new ButtonBuilder()
+      .setCustomId(PANEL_COMMAND_NAMES.SHOP_TICKET_VIEW)
+      .setLabel(SHOP_PANEL_MESSAGES.TICKET_VIEW)
+      .setStyle(ButtonStyle.Secondary),
   );
 }
 

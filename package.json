@@ -7,7 +7,7 @@
     "register": "node dist/registerCommands.js",
     "build": "tsc",
     "check": "npm run build",
-    "test": "npm run build && node --test test/panelInstallResolver.test.js test/runtimeOptimization.test.js test/botHealthMonitor.test.js test/commandAccessGuard.test.js test/panelComponents.test.js test/currencyName.test.js test/sendCompletionMessage.test.js test/salaryConfig.test.js test/adminBankPermission.test.js test/actionLogTargets.test.js test/adminGrantLogging.test.js test/hotelBonusCleanup.test.js test/teleportVcConfig.test.js test/gameRoleExpiry.test.js test/nameValidation.test.js test/evaluationConfig.test.js test/returnMemberRoleChange.test.js test/subAccountRoleSync.test.js test/rouletteRules.test.js test/historyEmbedLimit.test.js test/rankingPermission.test.js test/marketGacha.test.js"
+    "test": "npm run build && node --test test/panelInstallResolver.test.js test/runtimeOptimization.test.js test/botHealthMonitor.test.js test/commandAccessGuard.test.js test/panelComponents.test.js test/currencyName.test.js test/sendCompletionMessage.test.js test/salaryConfig.test.js test/adminBankPermission.test.js test/actionLogTargets.test.js test/adminGrantLogging.test.js test/hotelBonusCleanup.test.js test/teleportVcConfig.test.js test/gameRoleExpiry.test.js test/nameValidation.test.js test/evaluationConfig.test.js test/returnMemberRoleChange.test.js test/subAccountRoleSync.test.js test/rouletteRules.test.js test/historyEmbedLimit.test.js test/rankingPermission.test.js test/marketGacha.test.js test/shopTicket.test.js"
   },
   "engines": {
     "node": "20.x"

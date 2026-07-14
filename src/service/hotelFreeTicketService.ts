@@ -8,7 +8,10 @@ import {
 import { PANEL_COMMAND_NAMES } from "../constant/command";
 import { DbService } from "./dbService";
 
-type TicketRow = RowDataPacket & { quantity: number };
+type TicketRow = RowDataPacket & {
+  ticket_type: HotelFreeTicketType;
+  quantity: number;
+};
 
 export class HotelFreeTicketService {
   static getTicketType(commandId: string): HotelFreeTicketType | undefined {
@@ -31,6 +34,32 @@ export class HotelFreeTicketService {
         [userId, ticketType],
       );
       return Number(rows[0]?.quantity ?? 0) > 0;
+    } finally {
+      connection.release();
+    }
+  }
+
+  static async getTicketQuantities(
+    userId: string,
+  ): Promise<Record<HotelFreeTicketType, number>> {
+    const quantities: Record<HotelFreeTicketType, number> = {
+      [HOTEL_FREE_TICKET_TYPE.SECRET]: 0,
+      [HOTEL_FREE_TICKET_TYPE.FREEDOM]: 0,
+    };
+    const connection = await DbService.getConnection();
+    try {
+      const [rows] = await connection.execute<TicketRow[]>(
+        `SELECT ticket_type, quantity
+         FROM hotel_free_tickets
+         WHERE user_id = ? AND quantity > 0`,
+        [userId],
+      );
+      for (const row of rows) {
+        if (row.ticket_type in quantities) {
+          quantities[row.ticket_type] = Number(row.quantity);
+        }
+      }
+      return quantities;
     } finally {
       connection.release();
     }

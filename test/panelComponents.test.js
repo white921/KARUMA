@@ -3,6 +3,7 @@ const assert = require("node:assert/strict");
 
 const { ROLE_IDS } = require("../dist/constant/id.js");
 const { CURRENCY_NAMES } = require("../dist/constant/currency.js");
+const { PANEL_COMMAND_NAMES } = require("../dist/constant/command.js");
 const { createBankPanelActionRow } = require("../dist/service/panelService.js");
 const { createAdminPanelActionRow } = require("../dist/service/adminPanelService.js");
 const { createCasinoPanelActionRow } = require("../dist/service/casinoPanel.js");
@@ -59,6 +60,19 @@ test("shop panel buttons do not use icons", () => {
   for (const button of buttons) {
     assert.equal(button.emoji, undefined);
   }
+});
+
+test("hotel and shop panels include their ticket confirmation buttons", () => {
+  const hotelButtonIds = createHotelVcPanelActionRows()
+    .flatMap((row) => row.toJSON().components)
+    .map((button) => button.custom_id);
+  const shopButtonIds = createShopPanelActionRow()
+    .toJSON()
+    .components
+    .map((button) => button.custom_id);
+
+  assert.ok(hotelButtonIds.includes(PANEL_COMMAND_NAMES.HOTEL_TICKET_VIEW));
+  assert.ok(shopButtonIds.includes(PANEL_COMMAND_NAMES.SHOP_TICKET_VIEW));
 });
 
 test("non-bank panel buttons do not use icons", async () => {

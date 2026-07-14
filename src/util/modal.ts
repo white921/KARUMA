@@ -5,9 +5,11 @@ import {
   TextInputStyle,
   UserSelectMenuInteraction,
   ButtonInteraction,
+  StringSelectMenuInteraction,
 } from "discord.js";
 
 import { PANEL_COMMAND_NAMES } from "../constant/command";
+import { SHOP_TICKET_NONE, ShopTicketType } from "../constant/shopTicket";
 
 /**
  * 数値入力モーダルを表示
@@ -65,6 +67,38 @@ export async function showAmountModal(
   } catch (error: any) {
     throw error;
   }
+}
+
+/** ショップ用の支払いモーダルを表示する。チケット選択はモーダル直前のプルダウンで行う。 */
+export async function showShopAmountModal(
+  interaction: StringSelectMenuInteraction,
+  ticketType: ShopTicketType | typeof SHOP_TICKET_NONE,
+) {
+  const modal = new ModalBuilder()
+    .setCustomId(`${PANEL_COMMAND_NAMES.SHOP_SEND}_${ticketType}`)
+    .setTitle("ショップ支払い");
+
+  const amountInput = new TextInputBuilder()
+    .setCustomId("amount")
+    .setLabel("商品価格（割引前）")
+    .setStyle(TextInputStyle.Short)
+    .setPlaceholder("金額を入力してください")
+    .setRequired(true)
+    .setMinLength(1)
+    .setMaxLength(10);
+  const commentInput = new TextInputBuilder()
+    .setCustomId("comment")
+    .setLabel("商品名")
+    .setStyle(TextInputStyle.Paragraph)
+    .setPlaceholder("購入する商品名を入力してください")
+    .setRequired(true)
+    .setMaxLength(200);
+
+  modal.addComponents(
+    new ActionRowBuilder<TextInputBuilder>().addComponents(amountInput),
+    new ActionRowBuilder<TextInputBuilder>().addComponents(commentInput),
+  );
+  await interaction.showModal(modal);
 }
 
 /**

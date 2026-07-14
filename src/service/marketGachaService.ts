@@ -19,7 +19,9 @@ import { BOT_ID } from "../constant/id";
 import { CURRENCY_NAMES } from "../constant/currency";
 import { DbService } from "./dbService";
 import { HotelFreeTicketService } from "./hotelFreeTicketService";
+import { ShopTicketService } from "./shopTicketService";
 import { HOTEL_FREE_TICKET_TYPE, HotelFreeTicketType } from "../constant/hotel";
+import { SHOP_TICKET_TYPE, ShopTicketType } from "../constant/shopTicket";
 
 type WalletRow = RowDataPacket & { wallet: number };
 type AudioAssetRow = RowDataPacket & {
@@ -52,6 +54,19 @@ export class MarketGachaService {
     }
   }
 
+  private static getShopTicketGrant(
+    prize: MarketGachaPrize,
+  ): ShopTicketType | undefined {
+    switch (prize.key) {
+      case "discount_5":
+        return SHOP_TICKET_TYPE.DISCOUNT_5;
+      case "discount_10":
+        return SHOP_TICKET_TYPE.DISCOUNT_10;
+      default:
+        return undefined;
+    }
+  }
+
   private static getTicketInstructions(
     prize: MarketGachaPrize,
     audioAsset?: MarketGachaAudioAsset,
@@ -62,6 +77,10 @@ export class MarketGachaService {
 
     if (this.getHotelTicketGrant(prize)) {
       return "無料券をホテルパネルで使える状態にしました。";
+    }
+
+    if (this.getShopTicketGrant(prize)) {
+      return "ショップ支払いで使える状態にしました。";
     }
 
     return "既存のチケットBotでチケットを作成し、\n`市場ガチャ当選：" +
@@ -174,6 +193,14 @@ export class MarketGachaService {
           interaction.user.id,
           hotelTicketGrant.ticketType,
           hotelTicketGrant.quantity,
+        );
+      }
+      const shopTicketGrant = this.getShopTicketGrant(prize);
+      if (shopTicketGrant) {
+        await ShopTicketService.grant(
+          connection,
+          interaction.user.id,
+          shopTicketGrant,
         );
       }
       await connection.execute(
