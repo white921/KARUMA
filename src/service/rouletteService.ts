@@ -256,8 +256,12 @@ export class RouletteService {
       ));
     } else if (kind === "split") {
       modal.addComponents(new ActionRowBuilder<TextInputBuilder>().addComponents(
-        new TextInputBuilder().setCustomId("selection").setLabel("二つの数字（1-36）")
-          .setStyle(TextInputStyle.Short).setPlaceholder("例: 13-14").setRequired(true).setMaxLength(5),
+        new TextInputBuilder().setCustomId("splitFirst").setLabel("1つ目の数字（1〜36）")
+          .setStyle(TextInputStyle.Short).setPlaceholder("例: 13").setRequired(true).setMaxLength(2),
+      ));
+      modal.addComponents(new ActionRowBuilder<TextInputBuilder>().addComponents(
+        new TextInputBuilder().setCustomId("splitSecond").setLabel("2つ目の数字（1〜36）")
+          .setStyle(TextInputStyle.Short).setPlaceholder("例: 14").setRequired(true).setMaxLength(2),
       ));
     }
     modal.addComponents(new ActionRowBuilder<TextInputBuilder>().addComponents(
@@ -273,7 +277,9 @@ export class RouletteService {
     const kind = kindValue as RouletteBetKind;
     const selection = ["red", "black", "even", "odd"].includes(kind)
       ? kind
-      : selectedValue ?? interaction.fields.getTextInputValue("selection").trim();
+      : kind === "split"
+        ? `${interaction.fields.getTextInputValue("splitFirst").trim()}-${interaction.fields.getTextInputValue("splitSecond").trim()}`
+        : selectedValue ?? interaction.fields.getTextInputValue("selection").trim();
     const amount = Number(interaction.fields.getTextInputValue("amount").trim());
     validateRouletteBet(stage, kind, selection, amount);
     const bet: RouletteBet = { kind, selection, amount };
