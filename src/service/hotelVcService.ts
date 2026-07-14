@@ -794,6 +794,14 @@ export class HotelVcService {
         isBonus,
         guestId,
       );
+      if (isTicket) {
+        await interaction.editReply({
+          content:
+            `✅ **${hotelVcTypeName}**を作成しました！\n` +
+            "チケットを1枚消費しました。\n" +
+            `<#${voiceChannelId}>`,
+        });
+      }
     } catch (error: any) {
       throw error;
     }

@@ -1,7 +1,6 @@
 import { ButtonInteraction, GuildMember } from "discord.js";
 
 import {
-  showStringSelectMenu,
   showSelectUserMenu,
   showSelectNumberMenu,
 } from "../util/select";
@@ -210,12 +209,16 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
         );
         break;
       case PANEL_COMMAND_NAMES.HOTEL_VC_SECRET:
-        await showStringSelectMenu(
+        await showSelectUserMenu(
           interaction,
-          await HotelFreeTicketService.hasTicket(
+          HOTEL_MESSAGES.SELECT_USER,
+          PANEL_COMMAND_NAMES.HOTEL_VC_SECRET,
+          (await HotelFreeTicketService.hasTicket(
             interaction.user.id,
             PANEL_COMMAND_NAMES.HOTEL_VC_SECRET,
-          ),
+          ))
+            ? HOTEL_PURCHASE_WAY_TYPE.TICKET
+            : HOTEL_PURCHASE_WAY_TYPE.MONEY,
         );
         break;
       case PANEL_COMMAND_NAMES.HOTEL_VC_SECRETLONG:
@@ -228,12 +231,15 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
         );
         break;
       case PANEL_COMMAND_NAMES.HOTEL_VC_FREEDOM:
-        await showStringSelectMenu(
+        await showConfirmButton(
           interaction,
-          await HotelFreeTicketService.hasTicket(
+          PANEL_COMMAND_NAMES.HOTEL_VC_FREEDOM,
+          (await HotelFreeTicketService.hasTicket(
             interaction.user.id,
             PANEL_COMMAND_NAMES.HOTEL_VC_FREEDOM,
-          ),
+          ))
+            ? HOTEL_PURCHASE_WAY_TYPE.TICKET
+            : HOTEL_PURCHASE_WAY_TYPE.MONEY,
         );
         break;
       case PANEL_COMMAND_NAMES.HOTEL_VC_FREEDOMLONG:
