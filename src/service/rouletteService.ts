@@ -52,6 +52,7 @@ type AccountRow = RowDataPacket & { wallet: number };
 
 export type RouletteSettlement = {
   roundId: number;
+  roundNumber: number;
   stage: RouletteStage;
   result: number;
   winners: Array<{ userId: string; payout: number; bet: RouletteBet }>;
@@ -117,13 +118,14 @@ export class RouletteService {
       if (activeRounds.length > 0) {
         throw new Error("前のラウンドが未精算です。先に `/結果` で結果を確定してください。");
       }
-      await connection.execute<ResultSetHeader>(
+      const [inserted] = await connection.execute<ResultSetHeader>(
         `INSERT INTO roulette_rounds (event_key, stage, status)
          VALUES (?, ?, 'open')`,
         [eventKey, stage],
       );
+      const roundNumber = await this.getRoundNumber(connection, eventKey, stage, inserted.insertId);
       await connection.commit();
-      return `🎲 第${stage}部のベット受付を開始しました。`;
+      return `🎲 第${stage}部・第${roundNumber}ラウンドのベット受付を開始しました。`;
     } catch (error) {
       await connection.rollback();
       throw error;
@@ -164,8 +166,9 @@ export class RouletteService {
         "SELECT COUNT(*) AS count FROM roulette_bets WHERE round_id = ?",
         [round.id],
       );
+      const roundNumber = await this.getRoundNumber(connection, eventKey, round.stage, round.id);
       const statusLabel = round.status === "open" ? "受付中" : round.status === "closed" ? "締切済み" : "精算済み";
-      return `第${round.stage}部・第${round.id}ラウンド：${statusLabel}（ベット ${countRows[0].count} 件）`;
+      return `第${round.stage}部・第${roundNumber}ラウンド：${statusLabel}（ベット ${countRows[0].count} 件）`;
     } finally {
       connection.release();
     }
@@ -301,6 +304,7 @@ export class RouletteService {
       );
       const round = rounds[0];
       if (!round || round.stage !== stage) throw new Error(ROULETTE_MESSAGES.BETTING_CLOSED);
+      const roundNumber = await this.getRoundNumber(connection, eventKey, stage, round.id);
 
       const [existing] = await connection.execute<RowDataPacket[]>(
         "SELECT id FROM roulette_bets WHERE round_id = ? AND user_id = ? FOR UPDATE",
@@ -332,7 +336,7 @@ export class RouletteService {
       );
       await this.insertActionLog(connection, ROULETTE_ACTION_NAMES.BET, amount, interaction.user.id, BOT_ID, userAfterWallet, botAfterWallet, `イベント:${eventKey} 第${stage}部 #${round.id} ${getBetLabel({ kind, selection })}`);
       await connection.commit();
-      return `✅ 第${stage}部・第${round.id}ラウンドに **${getBetLabel({ kind, selection })}** へ **${amount.toLocaleString()}${CURRENCY_NAMES}** をベットしました。`;
+      return `✅ 第${stage}部・第${roundNumber}ラウンドに **${getBetLabel({ kind, selection })}** へ **${amount.toLocaleString()}${CURRENCY_NAMES}** をベットしました。`;
     } catch (error) {
       await connection.rollback();
       throw error;
@@ -355,6 +359,7 @@ export class RouletteService {
       );
       const round = rounds[0];
       if (!round) throw new Error(ROULETTE_MESSAGES.NO_OPEN_ROUND);
+      const roundNumber = await this.getRoundNumber(connection, eventKey, round.stage, round.id);
       const [bets] = await connection.execute<RouletteBetRow[]>(
         "SELECT id, user_id, bet_kind, selection, amount FROM roulette_bets WHERE round_id = ? FOR UPDATE",
         [round.id],
@@ -387,7 +392,7 @@ export class RouletteService {
         [result, round.id],
       );
       await connection.commit();
-      return { roundId: round.id, stage: round.stage, result, winners, betCount: bets.length };
+      return { roundId: round.id, roundNumber, stage: round.stage, result, winners, betCount: bets.length };
     } catch (error) {
       await connection.rollback();
       throw error;
@@ -443,7 +448,7 @@ export class RouletteService {
       ? "当選者はいません。"
       : settlement.winners.map((winner) => `<@${winner.userId}>：${getBetLabel(winner.bet)} → **${winner.payout.toLocaleString()}${CURRENCY_NAMES}**`).join("\n");
     return new EmbedBuilder()
-      .setTitle(`🎰 第${settlement.stage}部・第${settlement.roundId}ラウンド 結果`)
+      .setTitle(`🎰 第${settlement.stage}部・第${settlement.roundNumber}ラウンド 結果`)
       .setDescription(`結果：**${settlement.result}**${settlement.result === 0 ? "（緑の0：全ベット没収）" : ""}\nベット数：${settlement.betCount}件\n\n**当選・配当**\n${winnerLines}`)
       .setColor(settlement.result === 0 ? 0x168c4a : 0xf0b90b);
   }
@@ -464,5 +469,19 @@ export class RouletteService {
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [commandName, amount, fromUserId, toUserId, fromAfterWallet, toAfterWallet, comment],
     );
+  }
+
+  private static async getRoundNumber(
+    connection: Awaited<ReturnType<typeof DbService.getConnection>>,
+    eventKey: string,
+    stage: RouletteStage,
+    roundId: number,
+  ): Promise<number> {
+    const [rows] = await connection.execute<RowDataPacket[]>(
+      `SELECT COUNT(*) AS count FROM roulette_rounds
+       WHERE event_key = ? AND stage = ? AND id <= ?`,
+      [eventKey, stage, roundId],
+    );
+    return Number(rows[0]?.count ?? 0);
   }
 }
