@@ -20,6 +20,7 @@ import { updateVcStatus } from "../util/vc";
 import { AccountService } from "./accountService";
 import { ActionService } from "./actionService";
 import { DbService } from "./dbService";
+import { HotelFreeTicketService } from "./hotelFreeTicketService";
 import { VcPanelService } from "./vcPanelService";
 
 import {
@@ -763,7 +764,7 @@ export class HotelVcService {
         selectedHotelPurchaseWay === HOTEL_PURCHASE_WAY_TYPE.TICKET;
 
       if (isTicket) {
-        // TODO: チケット支払いの実装
+        await HotelFreeTicketService.consume(interaction.user.id, commandId);
       } else {
         await this.hotelVcPaymentByRoyal(
           interaction,

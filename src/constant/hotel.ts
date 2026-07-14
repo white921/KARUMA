@@ -21,6 +21,15 @@ export const HOTEL_PURCHASE_WAY_TYPE = {
   TICKET: "チケット",
 };
 
+/** 市場ガチャで付与する、12時間ホテル専用の無料券種別 */
+export const HOTEL_FREE_TICKET_TYPE = {
+  SECRET: "SECRET",
+  FREEDOM: "FREEDOM",
+} as const;
+
+export type HotelFreeTicketType =
+  (typeof HOTEL_FREE_TICKET_TYPE)[keyof typeof HOTEL_FREE_TICKET_TYPE];
+
 export const HOTEL_PRICE = {
   NORMAL: 10000,
   SECRET: 30000,

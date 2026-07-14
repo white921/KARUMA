@@ -3,7 +3,7 @@ import { StringSelectMenuInteraction } from "discord.js";
 import { showConfirmButton } from "../util/button";
 import { showSelectUserMenu } from "../util/select";
 
-import { HotelVcService } from "../service/hotelVcService";
+import { HotelFreeTicketService } from "../service/hotelFreeTicketService";
 import { VcService } from "../service/vcService";
 import { RouletteService } from "../service/rouletteService";
 import { RouletteBetKind, RouletteStage } from "../type/roulette";
@@ -51,12 +51,15 @@ export async function handleStringSelectMenu(
           // チケットのバリデーションのためのif
           // もう少し綺麗にしたい
           if (selectedHotelPurchaseWay === HOTEL_PURCHASE_WAY_TYPE.TICKET) {
-            await HotelVcService.validateTicket(interaction);
+            if (!(await HotelFreeTicketService.hasTicket(interaction.user.id, commandId))) {
+              throw new Error(HOTEL_MESSAGES.HAS_NOT_TICKET);
+            }
           }
-          showSelectUserMenu(
+          await showSelectUserMenu(
             interaction,
             HOTEL_MESSAGES.SELECT_USER,
             commandId,
+            selectedHotelPurchaseWay,
           );
           return;
         }
@@ -70,7 +73,9 @@ export async function handleStringSelectMenu(
             );
             break;
           case HOTEL_PURCHASE_WAY_TYPE.TICKET:
-            await HotelVcService.validateTicket(interaction);
+            if (!(await HotelFreeTicketService.hasTicket(interaction.user.id, commandId))) {
+              throw new Error(HOTEL_MESSAGES.HAS_NOT_TICKET);
+            }
             await showConfirmButton(
               interaction,
               commandId,

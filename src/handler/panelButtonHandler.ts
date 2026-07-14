@@ -18,6 +18,8 @@ import { GameService } from "../service/gameService";
 import { DiaryService } from "../service/diaryService";
 import { RedeployService } from "../service/redeployService";
 import { RouletteService } from "../service/rouletteService";
+import { MarketGachaService } from "../service/marketGachaService";
+import { HotelFreeTicketService } from "../service/hotelFreeTicketService";
 
 import {
   ADMIN_PANEL_MESSAGES,
@@ -82,6 +84,9 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
           SHOP_PANEL_MESSAGES.SHOP_SEND,
           PANEL_COMMAND_NAMES.SHOP_SEND,
         );
+        break;
+      case PANEL_COMMAND_NAMES.MARKET_GACHA_DRAW:
+        await MarketGachaService.draw(interaction);
         break;
       case PANEL_COMMAND_NAMES.VIEW:
         await ViewService.view(interaction);
@@ -205,12 +210,12 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
         );
         break;
       case PANEL_COMMAND_NAMES.HOTEL_VC_SECRET:
-        // 現在はRoyal支払いのみ。将来的にチケットを戻す場合は showStringSelectMenu を再利用する
-        await showSelectUserMenu(
+        await showStringSelectMenu(
           interaction,
-          HOTEL_MESSAGES.SELECT_USER,
-          PANEL_COMMAND_NAMES.HOTEL_VC_SECRET,
-          HOTEL_PURCHASE_WAY_TYPE.MONEY,
+          await HotelFreeTicketService.hasTicket(
+            interaction.user.id,
+            PANEL_COMMAND_NAMES.HOTEL_VC_SECRET,
+          ),
         );
         break;
       case PANEL_COMMAND_NAMES.HOTEL_VC_SECRETLONG:
@@ -223,11 +228,12 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
         );
         break;
       case PANEL_COMMAND_NAMES.HOTEL_VC_FREEDOM:
-        // 現在はRoyal支払いのみ。将来的にチケットを戻す場合は showStringSelectMenu を再利用する
-        await showConfirmButton(
+        await showStringSelectMenu(
           interaction,
-          PANEL_COMMAND_NAMES.HOTEL_VC_FREEDOM,
-          HOTEL_PURCHASE_WAY_TYPE.MONEY,
+          await HotelFreeTicketService.hasTicket(
+            interaction.user.id,
+            PANEL_COMMAND_NAMES.HOTEL_VC_FREEDOM,
+          ),
         );
         break;
       case PANEL_COMMAND_NAMES.HOTEL_VC_FREEDOMLONG:

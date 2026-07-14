@@ -40,6 +40,7 @@ export const PANEL_COMMAND_NAMES = {
   VIEW: "view",
   SEND: "send",
   SHOP_SEND: "shopSend",
+  MARKET_GACHA_DRAW: "marketGachaDraw",
   HISTORY: "history",
   DIARY_PRIVATE: "diaryPrivate",
   DIARY_PUBLIC: "diaryPublic",

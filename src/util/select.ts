@@ -97,7 +97,10 @@ export async function validateSelectUserMenu(
  * @param interaction
  * @returns
  */
-export async function showStringSelectMenu(interaction: ButtonInteraction) {
+export async function showStringSelectMenu(
+  interaction: ButtonInteraction,
+  canUseFreeTicket = false,
+) {
   try {
     const guild = interaction.guild;
     if (!guild) return;
@@ -107,16 +110,15 @@ export async function showStringSelectMenu(interaction: ButtonInteraction) {
     const hotelPurchaseWaySelectMenu = new StringSelectMenuBuilder()
       .setCustomId(`${commandId}_hotel_purchase_way_select`)
       .setPlaceholder(`ホテル購入方法を選択してください`)
-      .addOptions(
+      .addOptions([
         {
           label: HOTEL_PURCHASE_WAY_TYPE.MONEY,
           value: HOTEL_PURCHASE_WAY_TYPE.MONEY,
         },
-        // {
-        //   label: HOTEL_PURCHASE_WAY_TYPE.TICKET,
-        //   value: HOTEL_PURCHASE_WAY_TYPE.TICKET,
-        // }
-      )
+        ...(canUseFreeTicket
+          ? [{ label: HOTEL_PURCHASE_WAY_TYPE.TICKET, value: HOTEL_PURCHASE_WAY_TYPE.TICKET }]
+          : []),
+      ])
       .setMinValues(1)
       .setMaxValues(1);
 

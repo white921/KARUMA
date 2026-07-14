@@ -21,6 +21,10 @@ export function createShopPanelActionRow() {
       .setLabel(SHOP_PANEL_MESSAGES.SHOP_SEND)
       .setStyle(ButtonStyle.Success),
     new ButtonBuilder()
+      .setCustomId(PANEL_COMMAND_NAMES.MARKET_GACHA_DRAW)
+      .setLabel(SHOP_PANEL_MESSAGES.MARKET_GACHA_DRAW)
+      .setStyle(ButtonStyle.Danger),
+    new ButtonBuilder()
       .setCustomId(PANEL_COMMAND_NAMES.VIEW)
       .setLabel(SHOP_PANEL_MESSAGES.VIEW)
       .setStyle(ButtonStyle.Primary),
