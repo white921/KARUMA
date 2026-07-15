@@ -19,6 +19,7 @@ import {
 import { EVALUATION_SHEET_MESSAGES } from "../constant/evaluationSheet";
 import { BASE_EVALUATION_DAYS } from "../constant/evaluation";
 import { hasRole } from "../util/role";
+import { EvaluationSheetArchiveService } from "./evaluationSheetArchiveService";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -166,33 +167,52 @@ export class EvaluationService {
   static async createEvaluationSheets(
     targetMember: GuildMember,
     introductionMessageUrl: string,
+    createdByUserId: string,
   ) {
     const forumIds = this.getEvaluationForumIds();
-    const createdForumIds: string[] = [];
+    const createdThreads: { forumId: string; threadId: string }[] = [];
     const content = this.createEvaluationSheetContent(
       targetMember,
       introductionMessageUrl,
     );
 
-    for (const forumId of forumIds) {
-      const forum = await targetMember.client.channels.fetch(forumId);
-      if (!forum || forum.type !== ChannelType.GuildForum) {
-        throw new Error(
-          EVALUATION_SHEET_MESSAGES.CREATE_EVALUATION_SHEET_ERROR,
-        );
+    try {
+      for (const forumId of forumIds) {
+        const forum = await targetMember.client.channels.fetch(forumId);
+        if (!forum || forum.type !== ChannelType.GuildForum) {
+          throw new Error(
+            EVALUATION_SHEET_MESSAGES.CREATE_EVALUATION_SHEET_ERROR,
+          );
+        }
+
+        const thread = await (forum as ForumChannel).threads.create({
+          name: targetMember.displayName + this.createEvaluationPeriodText(),
+          message: {
+            content,
+          },
+        });
+        createdThreads.push({ forumId, threadId: thread.id });
       }
 
-      await (forum as ForumChannel).threads.create({
-        name: targetMember.displayName + this.createEvaluationPeriodText(),
-        message: {
-          content,
-        },
-      });
-      createdForumIds.push(forumId);
+      await EvaluationSheetArchiveService.registerActiveSheets(
+        targetMember.id,
+        createdByUserId,
+        createdThreads,
+      );
+    } catch (error) {
+      await Promise.all(
+        createdThreads.map(async ({ threadId }) => {
+          const channel = await targetMember.client.channels.fetch(threadId).catch(() => null);
+          if (channel?.isThread()) {
+            await channel.delete("評価シートのDB登録に失敗したため削除").catch(() => undefined);
+          }
+        }),
+      );
+      throw error;
     }
 
     return {
-      createdForumIds,
+      createdForumIds: createdThreads.map(({ forumId }) => forumId),
     };
   }
 

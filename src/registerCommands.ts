@@ -7,6 +7,8 @@ import { data as panel } from "./command/panel";
 import { data as returnMember } from "./command/returnMember";
 import { data as interview } from "./command/interview";
 import { data as evaluationSheet } from "./command/evaluationSheet";
+import { data as evaluationSheetArchive } from "./command/evaluationSheetArchive";
+import { data as evaluationSheetRestore } from "./command/evaluationSheetRestore";
 import { data as send } from "./command/send";
 import { data as roleBasedSend } from "./command/roleBasedSend";
 import { data as view } from "./command/view";
@@ -43,6 +45,8 @@ export async function registerCommands() {
     returnMember.toJSON(),
     interview.toJSON(),
     evaluationSheet.toJSON(),
+    evaluationSheetArchive.toJSON(),
+    evaluationSheetRestore.toJSON(),
     send.toJSON(),
     roleBasedSend.toJSON(),
     view.toJSON(),

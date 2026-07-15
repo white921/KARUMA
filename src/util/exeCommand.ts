@@ -5,6 +5,8 @@ import { execute as panel } from "../command/panel";
 import { execute as returnMember } from "../command/returnMember";
 import { execute as interview } from "../command/interview";
 import { execute as evaluationSheet } from "../command/evaluationSheet";
+import { execute as evaluationSheetArchive } from "../command/evaluationSheetArchive";
+import { execute as evaluationSheetRestore } from "../command/evaluationSheetRestore";
 import { execute as send } from "../command/send";
 import { execute as roleBasedSend } from "../command/roleBasedSend";
 import { execute as view } from "../command/view";
@@ -74,7 +76,12 @@ export async function exeCommand(
       COMMAND_NAMES.ROULETTE_RESULT,
       COMMAND_NAMES.ROULETTE_BONUS,
     ];
-    if (!rouletteCommands.includes(command as typeof rouletteCommands[number])) {
+    const commandsWithOwnPermissionCheck = [
+      ...rouletteCommands,
+      COMMAND_NAMES.EVALUATION_SHEET_ARCHIVE,
+      COMMAND_NAMES.EVALUATION_SHEET_RESTORE,
+    ];
+    if (!commandsWithOwnPermissionCheck.includes(command as typeof commandsWithOwnPermissionCheck[number])) {
       await assertTemporaryTechnicalDirectorOnly(interaction);
     }
 
@@ -93,6 +100,12 @@ export async function exeCommand(
         break;
       case COMMAND_NAMES.EVALUATION_SHEET:
         await evaluationSheet(interaction);
+        break;
+      case COMMAND_NAMES.EVALUATION_SHEET_ARCHIVE:
+        await evaluationSheetArchive(interaction);
+        break;
+      case COMMAND_NAMES.EVALUATION_SHEET_RESTORE:
+        await evaluationSheetRestore(interaction);
         break;
       case COMMAND_NAMES.SEND:
         await send(interaction);

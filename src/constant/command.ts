@@ -14,6 +14,8 @@ export const COMMAND_NAMES = {
   RETURN_MEMBER: "出戻り",
   INTERVIEW_PASS: "1面接通過",
   EVALUATION_SHEET: "2評価シート",
+  EVALUATION_SHEET_ARCHIVE: "評価シート保存削除",
+  EVALUATION_SHEET_RESTORE: "評価シート復元",
   SEND: "送金",
   ROLE_BASED_SEND: "ロール別送金",
   VIEW: "残高確認",

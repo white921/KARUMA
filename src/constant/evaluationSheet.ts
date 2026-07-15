@@ -11,5 +11,14 @@ export const EVALUATION_SHEET_MESSAGES = {
   EXTEND_NO_PERMISSION:
     "❌ このコマンドは評価統括 / 執行官 / 創造主 / 技術統括 / 技術者 のみ実行できます。",
   EXTEND_NO_TARGET: "ℹ️ 延長対象の評価シートが見つかりませんでした。",
+  ARCHIVE_NO_PERMISSION:
+    "❌ このコマンドは技術統括 / 鯖主 / 評価員統括 / 管理者のみ実行できます。",
+  INVALID_USER_ID: "❌ DiscordユーザーIDを正しく入力してください。",
+  ACTIVE_SHEET_ALREADY_EXISTS:
+    "❌ このユーザーには保存・削除前の評価シートがすでにあります。",
+  ACTIVE_SHEET_NOT_FOUND: "❌ 保存・削除できる評価シートが見つかりませんでした。",
+  RESTORE_NOT_IN_EVALUATION_THREAD:
+    "❌ 評価シート復元は評価フォーラム内のスレッドで実行してください。",
+  ARCHIVE_NOT_FOUND: "❌ 復元できる過去の評価は見つかりませんでした。",
   TEMPLATE: "自己紹介: {introductionLink}\n\n",
 };

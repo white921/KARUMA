@@ -59,6 +59,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
         const { createdForumIds } = await EvaluationService.createEvaluationSheets(
           targetMember,
           introductionMessageUrl,
+          interaction.user.id,
         );
 
         createdUsers.push(`<@${targetMember.id}> (${createdForumIds.length}件作成)`);
