@@ -22,7 +22,6 @@ export const data = new SlashCommandBuilder()
 export async function execute(interaction: ChatInputCommandInteraction) {
   const operator = interaction.member as GuildMember;
   assertCanManageEvaluationSheetArchive(operator);
-  EvaluationService.validateCommandCategory(interaction);
 
   const user = interaction.options.getUser("user", true);
   const targetMember = await interaction.guild?.members.fetch(user.id).catch(() => null);
