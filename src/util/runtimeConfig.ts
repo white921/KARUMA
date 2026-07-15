@@ -24,13 +24,14 @@ export function isRuntimeFeatureEnabled(
 export function normalizePollingIntervalMs(
   value: string | undefined,
   fallbackMs: number,
+  minIntervalMs = 30_000,
 ): number {
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) {
     return fallbackMs;
   }
 
-  return Math.max(30_000, parsed);
+  return Math.max(minIntervalMs, parsed);
 }
 
 export function normalizePositiveInteger(

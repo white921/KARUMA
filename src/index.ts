@@ -101,15 +101,15 @@ const DEFAULT_PUBLIC_COMMAND = [
 
 client.on("interactionCreate", async (interaction) => {
   const interactionContext = interaction.isChatInputCommand()
-    ? `command:${interaction.commandName}`
+    ? `command:${interaction.commandName}:${interaction.id}`
     : interaction.isButton()
-      ? `button:${interaction.customId}`
-      : interaction.isUserSelectMenu()
-        ? `user-select:${interaction.customId}`
-        : interaction.isStringSelectMenu()
-          ? `string-select:${interaction.customId}`
-          : interaction.isModalSubmit()
-            ? `modal:${interaction.customId}`
+      ? `button:${interaction.customId}:${interaction.id}`
+    : interaction.isUserSelectMenu()
+        ? `user-select:${interaction.customId}:${interaction.id}`
+      : interaction.isStringSelectMenu()
+          ? `string-select:${interaction.customId}:${interaction.id}`
+        : interaction.isModalSubmit()
+            ? `modal:${interaction.customId}:${interaction.id}`
             : null;
 
   if (!interactionContext) {
@@ -118,6 +118,7 @@ client.on("interactionCreate", async (interaction) => {
 
   BotHealthMonitor.recordInteractionReceived(interactionContext);
 
+  try {
   if (interaction.isChatInputCommand()) {
     const cmd = interaction.commandName;
 
@@ -271,6 +272,9 @@ client.on("interactionCreate", async (interaction) => {
         }
       }
     }
+  }
+  } finally {
+    BotHealthMonitor.recordInteractionCompleted(interactionContext);
   }
 });
 

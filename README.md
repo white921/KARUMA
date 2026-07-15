@@ -63,10 +63,13 @@ npm run start
   - ヨーロピアンルーレット第3部パネルを置くTCのID
 - `BOT_HEALTH_CHECK_INTERVAL_MS`
   - Bot健全性監視の実行間隔
-  - デフォルトは `60000` ミリ秒
+  - デフォルトは `15000` ミリ秒
 - `BOT_HEALTH_ACK_TIMEOUT_MS`
   - interaction受信後にACK完了を待つ最大時間
   - デフォルトは `30000` ミリ秒
+- `BOT_HEALTH_HANDLER_TIMEOUT_MS`
+  - interaction のACK後、処理完了を待つ最大時間
+  - デフォルトは `45000` ミリ秒
 - `BOT_HEALTH_GATEWAY_DISCONNECT_TIMEOUT_MS`
   - gateway切断後に自己再起動するまでの猶予
   - デフォルトは `300000` ミリ秒

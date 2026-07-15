@@ -32,6 +32,7 @@ test("polling interval falls back to the default when env is invalid", () => {
   assert.equal(normalizePollingIntervalMs(undefined, 60000), 60000);
   assert.equal(normalizePollingIntervalMs("abc", 60000), 60000);
   assert.equal(normalizePollingIntervalMs("1000", 60000), 30000);
+  assert.equal(normalizePollingIntervalMs("1000", 60000, 15000), 15000);
 });
 
 test("runtime feature flags preserve the provided default unless explicitly set", () => {

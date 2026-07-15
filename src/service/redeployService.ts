@@ -16,12 +16,10 @@ type DeploymentRedeployResponse = {
 
 export class RedeployService {
   private static getProjectToken() {
-    console.log("RAILWAY_PROJECT_TOKEN:", process.env.RAILWAY_PROJECT_TOKEN);
     return process.env.RAILWAY_PROJECT_TOKEN;
   }
 
   private static getDeploymentId() {
-    console.log("RAILWAY_DEPLOYMENT_ID:", process.env.RAILWAY_DEPLOYMENT_ID);
     return process.env.RAILWAY_DEPLOYMENT_ID;
   }
 

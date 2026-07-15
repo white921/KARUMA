@@ -6,6 +6,7 @@ const {
   recordInteractionReceived,
   recordAckSuccess,
   recordAckFailure,
+  recordInteractionCompleted,
   recordGatewayReady,
   recordGatewayDisconnect,
   recordWatchdogTick,
@@ -14,6 +15,7 @@ const {
 
 const baseThresholds = {
   ackTimeoutMs: 30_000,
+  handlerTimeoutMs: 45_000,
   gatewayDisconnectTimeoutMs: 300_000,
   maxConsecutiveAckFailures: 3,
 };
@@ -56,6 +58,17 @@ test("restarts after repeated ack failures", () => {
   assert.equal(result.reason, "consecutive_ack_failures");
 });
 
+test("restarts when an acknowledged interaction handler does not finish", () => {
+  let state = createInitialBotHealthState();
+  state = recordInteractionReceived(state, 1_000, "command:view");
+  state = recordAckSuccess(state, 1_100, "command:view:deferReply");
+
+  const result = shouldRestartFromHealthState(state, 46_100, baseThresholds);
+
+  assert.equal(result.shouldRestart, true);
+  assert.equal(result.reason, "interaction_handler_timeout");
+});
+
 test("restarts when the gateway stays disconnected for too long", () => {
   let state = createInitialBotHealthState();
   state = recordGatewayReady(state, 1_000);
@@ -67,7 +80,7 @@ test("restarts when the gateway stays disconnected for too long", () => {
   assert.equal(result.reason, "gateway_disconnect_timeout");
 });
 
-test("records ack duration and removes the matching pending interaction", () => {
+test("records ack duration and keeps the interaction in flight until completion", () => {
   let state = createInitialBotHealthState();
   state = recordInteractionReceived(state, 1_000, "command:view");
   state = recordInteractionReceived(state, 2_000, "button:send");
@@ -75,10 +88,15 @@ test("records ack duration and removes the matching pending interaction", () => 
   state = recordAckSuccess(state, 2_250, "button:send:deferReply");
 
   assert.equal(state.pendingInteractionCount, 1);
+  assert.equal(state.inFlightInteractionCount, 2);
   assert.equal(state.oldestPendingInteractionAt, 1_000);
   assert.equal(state.lastAckDurationMs, 250);
   assert.equal(state.maxAckDurationMs, 250);
   assert.equal(state.lastAckContext, "button:send:deferReply");
+
+  state = recordInteractionCompleted(state, "button:send");
+
+  assert.equal(state.inFlightInteractionCount, 1);
 });
 
 test("records watchdog lag when the event loop delays the health timer", () => {

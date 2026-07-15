@@ -8,11 +8,20 @@ export type PendingInteraction = {
   receivedAt: number;
 };
 
+export type InFlightInteraction = {
+  context: string;
+  receivedAt: number;
+  acknowledgedAt: number | null;
+};
+
 export type BotHealthState = {
   lastInteractionReceivedAt: number | null;
   oldestPendingInteractionAt: number | null;
   pendingInteractionCount: number;
   pendingInteractions: PendingInteraction[];
+  oldestAcknowledgedInteractionAt: number | null;
+  inFlightInteractionCount: number;
+  inFlightInteractions: InFlightInteraction[];
   lastAckSucceededAt: number | null;
   lastAckDurationMs: number | null;
   maxAckDurationMs: number | null;
@@ -29,6 +38,7 @@ export type BotHealthState = {
 
 export type BotHealthThresholds = {
   ackTimeoutMs: number;
+  handlerTimeoutMs: number;
   gatewayDisconnectTimeoutMs: number;
   maxConsecutiveAckFailures: number;
 };
@@ -39,13 +49,15 @@ export type BotHealthDecision =
       shouldRestart: true;
       reason:
         | "interaction_ack_timeout"
+        | "interaction_handler_timeout"
         | "consecutive_ack_failures"
         | "gateway_disconnect_timeout";
     };
 
 const DEFAULT_ACK_TIMEOUT_MS = 30_000;
+const DEFAULT_HANDLER_TIMEOUT_MS = 45_000;
 const DEFAULT_GATEWAY_DISCONNECT_TIMEOUT_MS = 300_000;
-const DEFAULT_HEALTH_CHECK_INTERVAL_MS = 60_000;
+const DEFAULT_HEALTH_CHECK_INTERVAL_MS = 15_000;
 const DEFAULT_MAX_CONSECUTIVE_ACK_FAILURES = 3;
 
 export function createInitialBotHealthState(): BotHealthState {
@@ -54,6 +66,9 @@ export function createInitialBotHealthState(): BotHealthState {
     oldestPendingInteractionAt: null,
     pendingInteractionCount: 0,
     pendingInteractions: [],
+    oldestAcknowledgedInteractionAt: null,
+    inFlightInteractionCount: 0,
+    inFlightInteractions: [],
     lastAckSucceededAt: null,
     lastAckDurationMs: null,
     maxAckDurationMs: null,
@@ -124,6 +139,29 @@ function getOldestPendingInteractionAt(
     : null;
 }
 
+function findInFlightInteractionIndex(
+  inFlightInteractions: InFlightInteraction[],
+  context?: string,
+): number {
+  if (!context) {
+    return inFlightInteractions.length > 0 ? 0 : -1;
+  }
+
+  return inFlightInteractions.findIndex((inFlight) =>
+    context === inFlight.context || context.startsWith(`${inFlight.context}:`),
+  );
+}
+
+function getOldestAcknowledgedInteractionAt(
+  inFlightInteractions: InFlightInteraction[],
+): number | null {
+  const acknowledgedAt = inFlightInteractions
+    .map((inFlight) => inFlight.acknowledgedAt)
+    .filter((value): value is number => value !== null);
+
+  return acknowledgedAt.length > 0 ? Math.min(...acknowledgedAt) : null;
+}
+
 export function recordInteractionReceived(
   state: BotHealthState,
   now: number,
@@ -136,6 +174,14 @@ export function recordInteractionReceived(
       receivedAt: now,
     },
   ];
+  const inFlightInteractions = [
+    ...state.inFlightInteractions,
+    {
+      context,
+      receivedAt: now,
+      acknowledgedAt: null,
+    },
+  ];
 
   return {
     ...state,
@@ -145,6 +191,8 @@ export function recordInteractionReceived(
     ),
     pendingInteractionCount: pendingInteractions.length,
     pendingInteractions,
+    inFlightInteractionCount: inFlightInteractions.length,
+    inFlightInteractions,
   };
 }
 
@@ -160,6 +208,17 @@ export function recordAckSuccess(
   const lastAckDurationMs = pendingInteraction
     ? now - pendingInteraction.receivedAt
     : null;
+  const inFlightIndex = findInFlightInteractionIndex(
+    state.inFlightInteractions,
+    context,
+  );
+  const inFlightInteractions = inFlightIndex < 0
+    ? state.inFlightInteractions
+    : state.inFlightInteractions.map((inFlight, index) =>
+      index === inFlightIndex
+        ? { ...inFlight, acknowledgedAt: now }
+        : inFlight,
+    );
 
   return {
     ...state,
@@ -175,6 +234,11 @@ export function recordAckSuccess(
     oldestPendingInteractionAt: getOldestPendingInteractionAt(
       pendingInteractions,
     ),
+    oldestAcknowledgedInteractionAt: getOldestAcknowledgedInteractionAt(
+      inFlightInteractions,
+    ),
+    inFlightInteractionCount: inFlightInteractions.length,
+    inFlightInteractions,
   };
 }
 
@@ -184,6 +248,16 @@ export function recordAckFailure(
   context = "unknown",
 ): BotHealthState {
   const { pendingInteractions } = completePendingInteraction(state, context);
+  const inFlightIndex = findInFlightInteractionIndex(
+    state.inFlightInteractions,
+    context,
+  );
+  const inFlightInteractions = inFlightIndex < 0
+    ? state.inFlightInteractions
+    : [
+      ...state.inFlightInteractions.slice(0, inFlightIndex),
+      ...state.inFlightInteractions.slice(inFlightIndex + 1),
+    ];
 
   return {
     ...state,
@@ -194,6 +268,39 @@ export function recordAckFailure(
     oldestPendingInteractionAt: getOldestPendingInteractionAt(
       pendingInteractions,
     ),
+    oldestAcknowledgedInteractionAt: getOldestAcknowledgedInteractionAt(
+      inFlightInteractions,
+    ),
+    inFlightInteractionCount: inFlightInteractions.length,
+    inFlightInteractions,
+  };
+}
+
+export function recordInteractionCompleted(
+  state: BotHealthState,
+  context: string,
+): BotHealthState {
+  const inFlightIndex = findInFlightInteractionIndex(
+    state.inFlightInteractions,
+    context,
+  );
+
+  if (inFlightIndex < 0) {
+    return state;
+  }
+
+  const inFlightInteractions = [
+    ...state.inFlightInteractions.slice(0, inFlightIndex),
+    ...state.inFlightInteractions.slice(inFlightIndex + 1),
+  ];
+
+  return {
+    ...state,
+    oldestAcknowledgedInteractionAt: getOldestAcknowledgedInteractionAt(
+      inFlightInteractions,
+    ),
+    inFlightInteractionCount: inFlightInteractions.length,
+    inFlightInteractions,
   };
 }
 
@@ -269,6 +376,16 @@ export function shouldRestartFromHealthState(
     };
   }
 
+  if (
+    state.oldestAcknowledgedInteractionAt !== null &&
+    now - state.oldestAcknowledgedInteractionAt >= thresholds.handlerTimeoutMs
+  ) {
+    return {
+      shouldRestart: true,
+      reason: "interaction_handler_timeout",
+    };
+  }
+
   if (state.consecutiveAckFailures >= thresholds.maxConsecutiveAckFailures) {
     return {
       shouldRestart: true,
@@ -295,6 +412,10 @@ function getThresholdsFromEnv(): BotHealthThresholds {
       process.env.BOT_HEALTH_ACK_TIMEOUT_MS,
       DEFAULT_ACK_TIMEOUT_MS,
     ),
+    handlerTimeoutMs: normalizePollingIntervalMs(
+      process.env.BOT_HEALTH_HANDLER_TIMEOUT_MS,
+      DEFAULT_HANDLER_TIMEOUT_MS,
+    ),
     gatewayDisconnectTimeoutMs: normalizePollingIntervalMs(
       process.env.BOT_HEALTH_GATEWAY_DISCONNECT_TIMEOUT_MS,
       DEFAULT_GATEWAY_DISCONNECT_TIMEOUT_MS,
@@ -311,6 +432,7 @@ function getHealthCheckIntervalMs(): number {
   return normalizePollingIntervalMs(
     process.env.BOT_HEALTH_CHECK_INTERVAL_MS,
     DEFAULT_HEALTH_CHECK_INTERVAL_MS,
+    15_000,
   );
 }
 
@@ -337,6 +459,10 @@ export class BotHealthMonitor {
   static recordAckFailure(context: string, error: unknown) {
     this.state = recordAckFailure(this.state, Date.now(), context);
     console.error(`[BotHealthMonitor] interaction ack failed: ${context}`, error);
+  }
+
+  static recordInteractionCompleted(context: string) {
+    this.state = recordInteractionCompleted(this.state, context);
   }
 
   static recordGatewayReady(source: string) {
