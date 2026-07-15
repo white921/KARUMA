@@ -15,7 +15,17 @@ test("splits long history into fields within Discord's field limit", () => {
   assert.ok(fields.every((field) => field.value.length <= 900));
 });
 
-test("paginates history by content length instead of a fixed action count", () => {
+test("paginates normal history in groups of ten", () => {
+  const entries = Array.from({ length: 12 }, (_, index) => `${index}:entry`);
+
+  const pages = HistoryService.createHistoryPages(entries);
+
+  assert.equal(pages.length, 2);
+  assert.equal(pages[0].length, 10);
+  assert.equal(pages[1].length, 2);
+});
+
+test("paginates early only when ten entries exceed Discord's content limit", () => {
   const entries = Array.from({ length: 12 }, (_, index) => `${index}:${"x".repeat(600)}`);
 
   const pages = HistoryService.createHistoryPages(entries);

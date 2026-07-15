@@ -32,6 +32,7 @@ dayjs.extend(timezone);
 // Discordのフィールド上限（1,024文字）とEmbed全体上限（6,000文字）より余裕を持たせる。
 const HISTORY_FIELD_VALUE_MAX_LENGTH = 900;
 const HISTORY_PAGE_CONTENT_MAX_LENGTH = 5_000;
+const HISTORY_PAGE_ITEM_LIMIT = 10;
 
 export class HistoryService {
   /**
@@ -194,8 +195,8 @@ export class HistoryService {
   }
 
   /**
-   * 履歴文字列をEmbed全体の安全な文字数内に収まるページへ分割する。
-   * 固定件数ではなく、履歴本文の長さに応じて1ページの件数を調整する。
+   * 履歴文字列を1ページ最大10件で分割する。
+   * 10件分がEmbed全体の安全な文字数を超える場合だけは、送信エラーを防ぐため早めに改ページする。
    */
   static createHistoryPages(historyStrings: string[]): string[][] {
     const pages: string[][] = [];
@@ -206,7 +207,9 @@ export class HistoryService {
       const separatorLength = currentPage.length > 0 ? 2 : 0;
       if (
         currentPage.length > 0 &&
-        currentLength + separatorLength + historyString.length > HISTORY_PAGE_CONTENT_MAX_LENGTH
+        (currentPage.length >= HISTORY_PAGE_ITEM_LIMIT ||
+          currentLength + separatorLength + historyString.length >
+            HISTORY_PAGE_CONTENT_MAX_LENGTH)
       ) {
         pages.push(currentPage);
         currentPage = [];
