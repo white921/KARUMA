@@ -56,13 +56,21 @@ export async function execute(interaction: ChatInputCommandInteraction) {
           await EvaluationService.findLatestIntroductionMessage(targetMember);
         const introductionMessageUrl =
           EvaluationService.createIntroductionMessageUrl(introductionMessage);
-        const { createdForumIds } = await EvaluationService.createEvaluationSheets(
+        const { createdForumIds, restoredForumIds, restoreFailures } = await EvaluationService.createEvaluationSheets(
           targetMember,
           introductionMessageUrl,
           interaction.user.id,
         );
 
-        createdUsers.push(`<@${targetMember.id}> (${createdForumIds.length}件作成)`);
+        const restoredText = restoredForumIds.length > 0
+          ? `・過去評価 ${restoredForumIds.length}件を添付`
+          : "";
+        const restoreFailureText = restoreFailures.length > 0
+          ? `・過去評価の添付失敗 ${restoreFailures.length}件`
+          : "";
+        createdUsers.push(
+          `<@${targetMember.id}> (${createdForumIds.length}件作成${restoredText}${restoreFailureText})`,
+        );
       } catch (error: any) {
         errorUsers.push(`<@${targetMember.id}>: ${error.message}`);
       }

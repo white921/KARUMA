@@ -39,7 +39,12 @@ test("保存削除コマンド用のDiscordユーザーIDを検証する", () =>
 
 test("HTML transcriptは本文をエスケープし、添付URLを記録する", () => {
   const message = {
-    author: { tag: "<評価員>" },
+    author: {
+      username: "evaluator",
+      globalName: "評価員グローバル名",
+      displayAvatarURL: () => "https://cdn.example.test/avatar.png",
+    },
+    member: { displayName: "評価員表示名" },
     createdTimestamp: Date.UTC(2026, 6, 15),
     content: "<script>alert('xss')</script>",
     embeds: [],
@@ -57,4 +62,7 @@ test("HTML transcriptは本文をエスケープし、添付URLを記録する",
   assert.doesNotMatch(html, /<script>alert/);
   assert.match(html, /x=1&amp;y=2/);
   assert.match(html, /memo\.txt/);
+  assert.match(html, /評価員表示名/);
+  assert.match(html, /@evaluator/);
+  assert.match(html, /cdn\.example\.test\/avatar\.png/);
 });

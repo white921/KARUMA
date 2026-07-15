@@ -211,8 +211,32 @@ export class EvaluationService {
       throw error;
     }
 
+    const restoredForumIds: string[] = [];
+    const restoreFailures: { forumId: string; reason: string }[] = [];
+    for (const { forumId, threadId } of createdThreads) {
+      try {
+        const channel = await targetMember.client.channels.fetch(threadId);
+        if (channel?.isThread()) {
+          const restored = await EvaluationSheetArchiveService.attachLatestArchiveToThread(
+            targetMember.id,
+            channel,
+          );
+          if (restored) {
+            restoredForumIds.push(forumId);
+          }
+        }
+      } catch (error: any) {
+        restoreFailures.push({
+          forumId,
+          reason: error?.message ?? String(error),
+        });
+      }
+    }
+
     return {
       createdForumIds: createdThreads.map(({ forumId }) => forumId),
+      restoredForumIds,
+      restoreFailures,
     };
   }
 
