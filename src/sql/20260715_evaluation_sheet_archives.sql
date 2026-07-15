@@ -27,6 +27,22 @@ CREATE TABLE IF NOT EXISTS evaluation_sheet_threads (
 )
 COMMENT='評価シートのフォーラム別スレッド対応';
 
+-- 対象ユーザーごとの現在の評価スレッド。新規作成時は user_id + forum_id で更新する。
+CREATE TABLE IF NOT EXISTS evaluation_sheet_current_threads (
+  user_id BIGINT NOT NULL COMMENT '評価対象のDiscordユーザーID',
+  forum_id BIGINT NOT NULL COMMENT '親フォーラムID',
+  thread_id BIGINT NOT NULL COMMENT '現在の評価スレッドID',
+  session_id INTEGER NOT NULL COMMENT '現在の評価シートセッションID',
+  status ENUM('active', 'deleted') NOT NULL DEFAULT 'active' COMMENT '現在有効なスレッドならactive',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (user_id, forum_id),
+  UNIQUE KEY uq_evaluation_sheet_current_threads_thread (thread_id),
+  KEY idx_evaluation_sheet_current_threads_session_status (session_id, status),
+  FOREIGN KEY (session_id) REFERENCES evaluation_sheet_sessions(id) ON DELETE CASCADE
+)
+COMMENT='ユーザーごとの現在の評価スレッド対応';
+
 CREATE TABLE IF NOT EXISTS evaluation_sheet_archives (
   id INTEGER NOT NULL AUTO_INCREMENT COMMENT '評価アーカイブID',
   session_id INTEGER NOT NULL COMMENT '評価シートセッションID',

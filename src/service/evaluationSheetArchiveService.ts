@@ -94,6 +94,17 @@ export class EvaluationSheetArchiveService {
            VALUES (?, ?, ?)`,
           [result.insertId, thread.forumId, thread.threadId],
         );
+        await connection.execute(
+          `INSERT INTO evaluation_sheet_current_threads
+           (user_id, forum_id, thread_id, session_id, status)
+           VALUES (?, ?, ?, ?, 'active')
+           ON DUPLICATE KEY UPDATE
+             thread_id = VALUES(thread_id),
+             session_id = VALUES(session_id),
+             status = 'active',
+             updated_at = CURRENT_TIMESTAMP`,
+          [userId, thread.forumId, thread.threadId, result.insertId],
+        );
       }
       await connection.commit();
     } catch (error) {
@@ -114,7 +125,7 @@ export class EvaluationSheetArchiveService {
     if (!session) {
       throw new Error(EVALUATION_SHEET_MESSAGES.ACTIVE_SHEET_NOT_FOUND);
     }
-    const threads = await this.getThreads(session.id);
+    const threads = await this.getCurrentThreads(userId, session.id);
     if (threads.length !== 2) {
       throw new Error(EVALUATION_SHEET_MESSAGES.ACTIVE_SHEET_NOT_FOUND);
     }
@@ -155,7 +166,7 @@ export class EvaluationSheetArchiveService {
     }
 
     if (deletedCount === threads.length) {
-      await this.markDeleted(session.id);
+      await this.markDeleted(userId, session.id);
     }
     return {
       savedCount,
@@ -238,13 +249,17 @@ export class EvaluationSheetArchiveService {
     }
   }
 
-  private static async getThreads(sessionId: number): Promise<EvaluationSheetThreadRecord[]> {
+  private static async getCurrentThreads(
+    userId: string,
+    sessionId: number,
+  ): Promise<EvaluationSheetThreadRecord[]> {
     const connection = await DbService.getConnection();
     try {
       const [rows] = await connection.execute<ThreadRow[]>(
-        `SELECT forum_id, thread_id FROM evaluation_sheet_threads
-         WHERE session_id = ? ORDER BY forum_id`,
-        [sessionId],
+        `SELECT forum_id, thread_id FROM evaluation_sheet_current_threads
+         WHERE user_id = ? AND session_id = ? AND status = 'active'
+         ORDER BY forum_id`,
+        [userId, sessionId],
       );
       return rows.map((row) => ({ forumId: row.forum_id, threadId: row.thread_id }));
     } finally {
@@ -285,15 +300,26 @@ export class EvaluationSheetArchiveService {
     }
   }
 
-  private static async markDeleted(sessionId: number): Promise<void> {
+  private static async markDeleted(userId: string, sessionId: number): Promise<void> {
     const connection = await DbService.getConnection();
     try {
+      await connection.beginTransaction();
       await connection.execute(
         `UPDATE evaluation_sheet_sessions
          SET status = 'deleted', deleted_at = CURRENT_TIMESTAMP
          WHERE id = ? AND status = 'saved'`,
         [sessionId],
       );
+      await connection.execute(
+        `UPDATE evaluation_sheet_current_threads
+         SET status = 'deleted', updated_at = CURRENT_TIMESTAMP
+         WHERE user_id = ? AND session_id = ? AND status = 'active'`,
+        [userId, sessionId],
+      );
+      await connection.commit();
+    } catch (error) {
+      await connection.rollback();
+      throw error;
     } finally {
       connection.release();
     }

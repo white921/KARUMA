@@ -1,5 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
 
 const {
   canManageEvaluationSheetArchive,
@@ -35,6 +37,15 @@ test("保存削除コマンド用のDiscordユーザーIDを検証する", () =>
   assert.equal(isDiscordUserId("12345678901234567890"), true);
   assert.equal(isDiscordUserId("12345"), false);
   assert.equal(isDiscordUserId("12345678901234567x"), false);
+});
+
+test("現在の評価スレッドはユーザーIDとフォーラムIDで一意に管理する", () => {
+  const migration = fs.readFileSync(
+    path.join(__dirname, "../src/sql/20260715_evaluation_sheet_current_threads.sql"),
+    "utf8",
+  );
+  assert.match(migration, /PRIMARY KEY \(user_id, forum_id\)/);
+  assert.match(migration, /ON DUPLICATE KEY UPDATE/);
 });
 
 test("HTML transcriptは本文をエスケープし、添付URLを記録する", () => {

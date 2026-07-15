@@ -93,7 +93,7 @@ npm run start
 
 ## 評価シートの保存・削除・復元
 
-`/2評価シート` で作成した2つの評価スレッドは、対象DiscordユーザーIDとともにDBへ記録されます。既存DBにはデプロイ前に `src/sql/20260715_evaluation_sheet_archives.sql` を適用してください（新規DBでは `src/sql/createTable.sql` に含まれます）。
+`/2評価シート` で作成した2つの評価スレッドは、対象DiscordユーザーIDとともにDBへ記録されます。既存DBにはデプロイ前に `src/sql/20260715_evaluation_sheet_archives.sql` と `src/sql/20260715_evaluation_sheet_current_threads.sql` をこの順で適用してください（新規DBでは `src/sql/createTable.sql` に含まれます）。
 
 評価本文を保存するため、Discord Developer Portal の Bot 設定で **Message Content Intent** も有効にしてください。コード側でも同Intentを要求しています。有効化せずに起動するとDiscordが接続を拒否します。
 
@@ -106,6 +106,8 @@ npm run start
 通常の `/2評価シート` で作成した場合も、過去評価があれば自動で添付されます。HTMLには投稿者のDiscordアイコン、サーバー表示名、ユーザー名、日時を記録します。
 
 保存に失敗した場合はスレッドを削除しません。保存後に削除だけ失敗した場合も、再実行すれば再保存せず削除を再試行します。
+
+現在の評価スレッドは `user_id + forum_id` を主キーとして管理します。同じユーザーが再度仮メンになった場合、作成された新しいスレッドIDでその行を更新します。過去のスレッドIDと評価本文はアーカイブとして保持されます。
 
 ## ヨーロピアンルーレット（2026-07-17）
 
