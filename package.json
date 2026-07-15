@@ -13,6 +13,7 @@
     "node": "20.x"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1087.0",
     "date-holidays": "^3.27.0",
     "dayjs": "^1.11.19",
     "discord.js": "^14.16.3",

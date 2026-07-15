@@ -76,6 +76,14 @@ npm run start
 - `BOT_HEALTH_MAX_CONSECUTIVE_ACK_FAILURES`
   - 連続ACK失敗で自己再起動するしきい値
   - デフォルトは `3`
+- `EVALUATION_ARCHIVE_R2_ENDPOINT`
+  - 評価シートHTMLを保存するCloudflare R2のS3 APIエンドポイント
+- `EVALUATION_ARCHIVE_R2_ACCESS_KEY_ID` / `EVALUATION_ARCHIVE_R2_SECRET_ACCESS_KEY`
+  - 上記バケットに限定した「Object Read & Write」権限のR2 APIトークン
+- `EVALUATION_ARCHIVE_R2_BUCKET`
+  - 評価シートHTMLを保存するR2バケット名
+- `EVALUATION_ARCHIVE_PUBLIC_BASE_URL`
+  - 公開バケットのURL（末尾の`/`なし）。本番ではカスタムドメインを使用する
 
 `RAILWAY_DEPLOYMENT_ID` は Railway の組み込み環境変数をそのまま利用します。
 
@@ -93,7 +101,7 @@ npm run start
 
 ## 評価シートの保存・削除・復元
 
-`/2評価シート` で作成した2つの評価スレッドは、対象DiscordユーザーIDとともにDBへ記録されます。既存DBにはデプロイ前に `src/sql/20260715_evaluation_sheet_archives.sql` と `src/sql/20260715_evaluation_sheet_current_threads.sql` をこの順で適用してください（新規DBでは `src/sql/createTable.sql` に含まれます）。
+`/2評価シート` で作成した2つの評価スレッドは、対象DiscordユーザーIDとともにDBへ記録されます。既存DBにはデプロイ前に `src/sql/20260715_evaluation_sheet_archives.sql` と `src/sql/20260715_evaluation_sheet_current_threads.sql` をこの順で適用してください（新規DBでは `src/sql/createTable.sql` に含まれます）。評価シートの保存・削除を使う前に、Cloudflare R2の公開バケットと以下のR2環境変数も設定してください。
 
 評価本文を保存するため、Discord Developer Portal の Bot 設定で **Message Content Intent** も有効にしてください。コード側でも同Intentを要求しています。有効化せずに起動するとDiscordが接続を拒否します。
 
@@ -105,7 +113,9 @@ npm run start
 
 通常の `/2評価シート` で作成した場合も、過去評価があれば自動で添付されます。HTMLには投稿者のDiscordアイコン、サーバー表示名、ユーザー名、日時を記録します。
 
-復元時は各フォーラムの直近アーカイブ1件を、固有ファイル名で添付します。以前の復元HTMLを次の評価ログ内でリンクとして保存しないため、元スレッド削除後にリンク切れとなることはありません。
+復元時は各フォーラムの直近アーカイブ1件を、固有ファイル名で添付します。全アーカイブは同時にCloudflare R2へHTMLファイルとして保存され、次回保存時に過去評価HTMLへの添付はR2の固定URLリンクへ置き換えられます。そのため、元スレッド削除後もHTML内の過去評価リンクは切れません。
+
+R2は公開バケットとして設定します。評価内容をURLを知る人に見せてもよい運用であることを確認してください。CloudflareではR2バケットにカスタムドメインを接続して公開し、開発用の`r2.dev` URLは本番用途に使わないでください。
 
 保存に失敗した場合はスレッドを削除しません。保存後に削除だけ失敗した場合も、再実行すれば再保存せず削除を再試行します。
 

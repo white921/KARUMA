@@ -10,6 +10,9 @@ const {
 const {
   EvaluationSheetArchiveService,
 } = require("../dist/service/evaluationSheetArchiveService.js");
+const {
+  EvaluationSheetArchiveStorageService,
+} = require("../dist/service/evaluationSheetArchiveStorageService.js");
 const { ROLE_IDS } = require("../dist/constant/id.js");
 
 function memberWithRoles(roleIds) {
@@ -68,6 +71,7 @@ test("HTML transcriptは本文をエスケープし、添付URLを記録する",
     "12345678901234567",
     "テスト評価",
     [message],
+    new Map([[42, "https://evaluations.example.test/evaluation-sheets/42.html"]]),
   );
 
   assert.match(html, /&lt;script&gt;/);
@@ -77,7 +81,9 @@ test("HTML transcriptは本文をエスケープし、添付URLを記録する",
   assert.match(html, /評価員表示名/);
   assert.match(html, /@evaluator/);
   assert.match(html, /cdn\.example\.test\/avatar\.png/);
-  assert.doesNotMatch(html, /past-evaluation-12345678901234567-42\.html/);
+  assert.match(html, /https:\/\/evaluations\.example\.test\/evaluation-sheets\/42\.html/);
+  assert.match(html, /過去評価を開く/);
+  assert.doesNotMatch(html, /https:\/\/example\.test\/old/);
 });
 
 test("復元用HTMLのファイル名はアーカイブごとに一意", () => {
@@ -89,4 +95,34 @@ test("復元用HTMLのファイル名はアーカイブごとに一意", () => {
     EvaluationSheetArchiveService.createArchiveFileName("12345678901234567", 1),
     EvaluationSheetArchiveService.createArchiveFileName("12345678901234567", 2),
   );
+});
+
+test("評価HTMLの公開URLはR2の固定パスを使う", () => {
+  const original = {
+    endpoint: process.env.EVALUATION_ARCHIVE_R2_ENDPOINT,
+    accessKeyId: process.env.EVALUATION_ARCHIVE_R2_ACCESS_KEY_ID,
+    secretAccessKey: process.env.EVALUATION_ARCHIVE_R2_SECRET_ACCESS_KEY,
+    bucket: process.env.EVALUATION_ARCHIVE_R2_BUCKET,
+    publicBaseUrl: process.env.EVALUATION_ARCHIVE_PUBLIC_BASE_URL,
+  };
+  process.env.EVALUATION_ARCHIVE_R2_ENDPOINT = "https://account.r2.cloudflarestorage.com";
+  process.env.EVALUATION_ARCHIVE_R2_ACCESS_KEY_ID = "test-key";
+  process.env.EVALUATION_ARCHIVE_R2_SECRET_ACCESS_KEY = "test-secret";
+  process.env.EVALUATION_ARCHIVE_R2_BUCKET = "evaluation-archives";
+  process.env.EVALUATION_ARCHIVE_PUBLIC_BASE_URL = "https://evaluations.example.test/";
+
+  assert.equal(
+    EvaluationSheetArchiveStorageService.getPublicUrl(42),
+    "https://evaluations.example.test/evaluation-sheets/42.html",
+  );
+
+  const restore = (key, value) => {
+    if (value === undefined) delete process.env[key];
+    else process.env[key] = value;
+  };
+  restore("EVALUATION_ARCHIVE_R2_ENDPOINT", original.endpoint);
+  restore("EVALUATION_ARCHIVE_R2_ACCESS_KEY_ID", original.accessKeyId);
+  restore("EVALUATION_ARCHIVE_R2_SECRET_ACCESS_KEY", original.secretAccessKey);
+  restore("EVALUATION_ARCHIVE_R2_BUCKET", original.bucket);
+  restore("EVALUATION_ARCHIVE_PUBLIC_BASE_URL", original.publicBaseUrl);
 });
