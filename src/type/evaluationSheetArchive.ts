@@ -6,6 +6,7 @@ export interface EvaluationSheetThreadRecord {
 }
 
 export interface EvaluationSheetArchiveRecord {
+  archiveId?: number;
   html: string;
   messageCount: number;
   archivedAt: Date;

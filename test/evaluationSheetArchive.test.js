@@ -61,6 +61,7 @@ test("HTML transcriptは本文をエスケープし、添付URLを記録する",
     embeds: [],
     attachments: new Map([
       ["1", { name: "memo.txt", url: "https://example.test/file?x=1&y=2" }],
+      ["2", { name: "past-evaluation-12345678901234567-42.html", url: "https://example.test/old" }],
     ]),
   };
   const html = EvaluationSheetArchiveService.createTranscriptHtml(
@@ -76,4 +77,16 @@ test("HTML transcriptは本文をエスケープし、添付URLを記録する",
   assert.match(html, /評価員表示名/);
   assert.match(html, /@evaluator/);
   assert.match(html, /cdn\.example\.test\/avatar\.png/);
+  assert.doesNotMatch(html, /past-evaluation-12345678901234567-42\.html/);
+});
+
+test("復元用HTMLのファイル名はアーカイブごとに一意", () => {
+  assert.equal(
+    EvaluationSheetArchiveService.createArchiveFileName("12345678901234567", 1),
+    "past-evaluation-12345678901234567-1.html",
+  );
+  assert.notEqual(
+    EvaluationSheetArchiveService.createArchiveFileName("12345678901234567", 1),
+    EvaluationSheetArchiveService.createArchiveFileName("12345678901234567", 2),
+  );
 });

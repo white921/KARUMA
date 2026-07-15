@@ -25,6 +25,7 @@ interface ThreadRow extends RowDataPacket {
 }
 
 interface ArchiveRow extends RowDataPacket {
+  id: number;
   transcript_html: string;
   message_count: number;
   archived_at: Date;
@@ -32,32 +33,37 @@ interface ArchiveRow extends RowDataPacket {
 }
 
 export class EvaluationSheetArchiveService {
-  static async attachLatestArchiveToThread(
+  static async attachArchivesToThread(
     userId: string,
     thread: ThreadChannel,
-  ): Promise<boolean> {
+  ): Promise<number> {
     const forumId = thread.parentId;
     if (!forumId) {
-      return false;
+      return 0;
     }
-    const archive = await this.getLatestArchiveForForum(userId, forumId);
-    if (!archive) {
-      return false;
+    const archives = await this.getArchivesForForum(userId, forumId);
+    for (const archive of archives) {
+      const date = archive.archivedAt.toLocaleDateString("ja-JP", {
+        timeZone: "Asia/Tokyo",
+      });
+      await thread.send({
+        content: `📄 <@${userId}> の過去評価（${date}）を添付します。`,
+        files: [
+          {
+            attachment: Buffer.from(
+              this.removeGeneratedArchiveLinks(archive.html),
+              "utf8",
+            ),
+            name: this.createArchiveFileName(userId, archive.archiveId!),
+          },
+        ],
+      });
     }
-    await thread.send({
-      content: `📄 <@${userId}> の過去評価を添付します。`,
-      files: [
-        {
-          attachment: Buffer.from(archive.html, "utf8"),
-          name: this.createArchiveFileName(userId),
-        },
-      ],
-    });
-    return true;
+    return archives.length;
   }
 
-  static createArchiveFileName(userId: string): string {
-    return `past-evaluation-${userId}.html`;
+  static createArchiveFileName(userId: string, archiveId: number): string {
+    return `past-evaluation-${userId}-${archiveId}.html`;
   }
 
   static async registerActiveSheets(
@@ -175,31 +181,28 @@ export class EvaluationSheetArchiveService {
     };
   }
 
-  static async getLatestArchiveForForum(
+  static async getArchivesForForum(
     userId: string,
     forumId: string,
-  ): Promise<EvaluationSheetArchiveRecord | null> {
+  ): Promise<EvaluationSheetArchiveRecord[]> {
     const connection = await DbService.getConnection();
     try {
       const [rows] = await connection.execute<ArchiveRow[]>(
-        `SELECT archive.transcript_html, archive.message_count, archive.archived_at,
+        `SELECT archive.id, archive.transcript_html, archive.message_count, archive.archived_at,
                 archive.source_thread_id
          FROM evaluation_sheet_archives archive
          INNER JOIN evaluation_sheet_sessions session ON session.id = archive.session_id
          WHERE archive.user_id = ? AND archive.forum_id = ? AND session.status = 'deleted'
-         ORDER BY archive.archived_at DESC
-         LIMIT 1`,
+         ORDER BY archive.archived_at ASC, archive.id ASC`,
         [userId, forumId],
       );
-      if (rows.length === 0) {
-        return null;
-      }
-      return {
-        html: rows[0].transcript_html,
-        messageCount: rows[0].message_count,
-        archivedAt: rows[0].archived_at,
-        sourceThreadId: rows[0].source_thread_id,
-      };
+      return rows.map((row) => ({
+        archiveId: row.id,
+        html: row.transcript_html,
+        messageCount: row.message_count,
+        archivedAt: row.archived_at,
+        sourceThreadId: row.source_thread_id,
+      }));
     } finally {
       connection.release();
     }
@@ -337,13 +340,27 @@ export class EvaluationSheetArchiveService {
     );
     const time = this.escapeHtml(new Date(message.createdTimestamp).toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" }));
     const contentParts = [message.content, ...message.embeds.map((embed) => [embed.title, embed.description, ...(embed.fields?.map((field) => `${field.name}: ${field.value}`) ?? [])].filter(Boolean).join("\n"))].filter(Boolean);
-    const attachments = [...message.attachments.values()].map((attachment) =>
+    const attachments = [...message.attachments.values()]
+      .filter((attachment) => !this.isGeneratedArchiveFile(attachment.name))
+      .map((attachment) =>
       `<li><a href="${this.escapeHtml(attachment.url)}">${this.escapeHtml(attachment.name ?? attachment.url)}</a></li>`,
-    ).join("");
+      )
+      .join("");
     return `<article><header><img class="avatar" src="${avatarUrl}" alt=""><div class="author"><strong>${displayName}</strong><span>${username}</span></div><time>${time}</time></header><div class="content">${this.escapeHtml(contentParts.join("\n\n") || "（本文なし）")}</div>${attachments ? `<ul class="attachments">${attachments}</ul>` : ""}</article>`;
   }
 
   private static escapeHtml(value: string): string {
     return value.replace(/[&<>"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[char] ?? char));
+  }
+
+  private static isGeneratedArchiveFile(fileName: string | null): boolean {
+    return /^past-evaluation-\d{17,20}(?:-\d+)?\.html$/i.test(fileName ?? "");
+  }
+
+  private static removeGeneratedArchiveLinks(html: string): string {
+    return html.replace(
+      /<li><a href="[^"]+">past-evaluation-\d{17,20}(?:-\d+)?\.html<\/a><\/li>/gi,
+      "",
+    );
   }
 }
