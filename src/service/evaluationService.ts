@@ -217,11 +217,11 @@ export class EvaluationService {
       try {
         const channel = await targetMember.client.channels.fetch(threadId);
         if (channel?.isThread()) {
-          const restoredCount = await EvaluationSheetArchiveService.attachArchivesToThread(
+          const restored = await EvaluationSheetArchiveService.attachLatestArchiveToThread(
             targetMember.id,
             channel,
           );
-          if (restoredCount > 0) {
+          if (restored) {
             restoredForumIds.push(forumId);
           }
         }

@@ -33,33 +33,34 @@ interface ArchiveRow extends RowDataPacket {
 }
 
 export class EvaluationSheetArchiveService {
-  static async attachArchivesToThread(
+  static async attachLatestArchiveToThread(
     userId: string,
     thread: ThreadChannel,
-  ): Promise<number> {
+  ): Promise<boolean> {
     const forumId = thread.parentId;
     if (!forumId) {
-      return 0;
+      return false;
     }
-    const archives = await this.getArchivesForForum(userId, forumId);
-    for (const archive of archives) {
-      const date = archive.archivedAt.toLocaleDateString("ja-JP", {
-        timeZone: "Asia/Tokyo",
-      });
-      await thread.send({
-        content: `📄 <@${userId}> の過去評価（${date}）を添付します。`,
-        files: [
-          {
-            attachment: Buffer.from(
-              this.removeGeneratedArchiveLinks(archive.html),
-              "utf8",
-            ),
-            name: this.createArchiveFileName(userId, archive.archiveId!),
-          },
-        ],
-      });
+    const archive = await this.getLatestArchiveForForum(userId, forumId);
+    if (!archive) {
+      return false;
     }
-    return archives.length;
+    const date = archive.archivedAt.toLocaleDateString("ja-JP", {
+      timeZone: "Asia/Tokyo",
+    });
+    await thread.send({
+      content: `📄 <@${userId}> の直近の過去評価（${date}）を添付します。`,
+      files: [
+        {
+          attachment: Buffer.from(
+            this.removeGeneratedArchiveLinks(archive.html),
+            "utf8",
+          ),
+          name: this.createArchiveFileName(userId, archive.archiveId!),
+        },
+      ],
+    });
+    return true;
   }
 
   static createArchiveFileName(userId: string, archiveId: number): string {
@@ -181,10 +182,10 @@ export class EvaluationSheetArchiveService {
     };
   }
 
-  static async getArchivesForForum(
+  static async getLatestArchiveForForum(
     userId: string,
     forumId: string,
-  ): Promise<EvaluationSheetArchiveRecord[]> {
+  ): Promise<EvaluationSheetArchiveRecord | null> {
     const connection = await DbService.getConnection();
     try {
       const [rows] = await connection.execute<ArchiveRow[]>(
@@ -193,16 +194,20 @@ export class EvaluationSheetArchiveService {
          FROM evaluation_sheet_archives archive
          INNER JOIN evaluation_sheet_sessions session ON session.id = archive.session_id
          WHERE archive.user_id = ? AND archive.forum_id = ? AND session.status = 'deleted'
-         ORDER BY archive.archived_at ASC, archive.id ASC`,
+         ORDER BY archive.archived_at DESC, archive.id DESC
+         LIMIT 1`,
         [userId, forumId],
       );
-      return rows.map((row) => ({
-        archiveId: row.id,
-        html: row.transcript_html,
-        messageCount: row.message_count,
-        archivedAt: row.archived_at,
-        sourceThreadId: row.source_thread_id,
-      }));
+      if (rows.length === 0) {
+        return null;
+      }
+      return {
+        archiveId: rows[0].id,
+        html: rows[0].transcript_html,
+        messageCount: rows[0].message_count,
+        archivedAt: rows[0].archived_at,
+        sourceThreadId: rows[0].source_thread_id,
+      };
     } finally {
       connection.release();
     }
