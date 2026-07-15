@@ -247,6 +247,20 @@ CREATE TABLE IF NOT EXISTS market_gacha_draws (
 )
 COMMENT='市場ガチャ抽選履歴';
 
+-- 一日一回のおみくじ。draw_date はアプリ側で日本時間の日付を保存する。
+CREATE TABLE IF NOT EXISTS omikuji_draws (
+  id INTEGER NOT NULL AUTO_INCREMENT COMMENT 'おみくじ抽選ID',
+  user_id BIGINT NOT NULL COMMENT '抽選したDiscordユーザーID',
+  draw_date DATE NOT NULL COMMENT '日本時間の抽選日',
+  fortune VARCHAR(16) NOT NULL COMMENT '小吉・中吉・大吉',
+  amount INTEGER NOT NULL COMMENT '付与通貨額',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '抽選日時',
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_omikuji_draws_user_date (user_id, draw_date),
+  FOREIGN KEY (user_id) REFERENCES accounts(user_id) ON DELETE CASCADE
+)
+COMMENT='一日一回のおみくじ抽選履歴';
+
 CREATE TABLE IF NOT EXISTS market_gacha_audio_assets (
   id INTEGER NOT NULL AUTO_INCREMENT COMMENT '音源ID',
   category VARCHAR(32) NOT NULL COMMENT 'superchat または song_cover',

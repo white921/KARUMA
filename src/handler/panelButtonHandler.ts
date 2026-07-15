@@ -21,6 +21,7 @@ import { RouletteService } from "../service/rouletteService";
 import { MarketGachaService } from "../service/marketGachaService";
 import { HotelFreeTicketService } from "../service/hotelFreeTicketService";
 import { TicketViewService } from "../service/ticketViewService";
+import { OmikujiService } from "../service/omikujiService";
 
 import {
   ADMIN_PANEL_MESSAGES,
@@ -84,6 +85,9 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
         break;
       case PANEL_COMMAND_NAMES.MARKET_GACHA_DRAW:
         await MarketGachaService.draw(interaction);
+        break;
+      case PANEL_COMMAND_NAMES.OMIKUJI_DRAW:
+        await OmikujiService.draw(interaction);
         break;
       case PANEL_COMMAND_NAMES.VIEW:
         await ViewService.view(interaction);

@@ -24,6 +24,13 @@ test("resolves shop panel channel to the shop panel target", () => {
   assert.equal(target, PANEL_INSTALL_TARGETS.SHOP);
 });
 
+test("resolves omikuji panel channel to the omikuji panel target", () => {
+  assert.equal(TEXT_CHANNEL_IDS.OMIKUJI_PANEL, "1526626039844049037");
+
+  const target = resolvePanelInstallTarget(TEXT_CHANNEL_IDS.OMIKUJI_PANEL);
+  assert.equal(target, PANEL_INSTALL_TARGETS.OMIKUJI);
+});
+
 test("resolves game panel channel to the game panel target", () => {
   assert.equal(TEXT_CHANNEL_IDS.GAME_PANEL, "1524750761110540348");
 

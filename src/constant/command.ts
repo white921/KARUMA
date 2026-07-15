@@ -44,6 +44,7 @@ export const PANEL_COMMAND_NAMES = {
   SHOP_SEND: "shopSend",
   SHOP_TICKET_VIEW: "shopTicketView",
   MARKET_GACHA_DRAW: "marketGachaDraw",
+  OMIKUJI_DRAW: "omikujiDraw",
   HISTORY: "history",
   DIARY_PRIVATE: "diaryPrivate",
   DIARY_PUBLIC: "diaryPublic",
