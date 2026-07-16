@@ -68,7 +68,6 @@ export function createOmikujiSpecialLogEmbed(
   avatarUrl: string,
   prize: OmikujiPrize,
   actualAmount: number,
-  afterWallet: number,
 ): EmbedBuilder {
   const result = prize.fortune === "超大吉" ? "🎉 超大吉" : "💀 凶";
   const actualAmountText = `${actualAmount >= 0 ? "+" : "-"}${Math.abs(
@@ -84,12 +83,11 @@ export function createOmikujiSpecialLogEmbed(
     .addFields(
       { name: "結果", value: prize.fortune, inline: true },
       { name: "増減", value: actualAmountText, inline: true },
-      { name: "残高", value: `${afterWallet.toLocaleString()}${CURRENCY_NAMES}`, inline: true },
       ...(wasBalanceCapped
         ? [
             {
               name: "補足",
-              value: `本来の減額: -${Math.abs(prize.amount).toLocaleString()}${CURRENCY_NAMES}（残高不足のため0${CURRENCY_NAMES}まで）`,
+              value: `本来の減額: -${Math.abs(prize.amount).toLocaleString()}${CURRENCY_NAMES}（残高不足のため減額は可能な額まで）`,
             },
           ]
         : []),
@@ -257,7 +255,6 @@ export class OmikujiService {
           avatarUrl,
           prize,
           actualAmount,
-          afterWallet,
         ),
       ],
     });

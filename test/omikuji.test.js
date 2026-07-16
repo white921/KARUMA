@@ -84,13 +84,13 @@ test("special omikuji log includes the member display name and icon", () => {
     "https://cdn.example.test/avatar.png",
     superFortune,
     50_000,
-    55_000,
   ).toJSON();
 
   assert.equal(TEXT_CHANNEL_IDS.OMIKUJI_SPECIAL_LOG, "1527279894013153381");
   assert.equal(embed.author.name, "表示名テスト");
   assert.equal(embed.author.icon_url, "https://cdn.example.test/avatar.png");
   assert.equal(embed.thumbnail.url, "https://cdn.example.test/avatar.png");
+  assert.equal(embed.fields.some((field) => field.name === "残高"), false);
 });
 
 test("omikuji rejects invalid random values", () => {
