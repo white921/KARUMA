@@ -25,9 +25,9 @@ export type MarketGachaPrize = {
 
 /** 確率の単位は %。合計が100になることをテストで保証する。 */
 export const MARKET_GACHA_PRIZES: readonly MarketGachaPrize[] = [
-  { key: "secret_free_1", label: "シークレット無料 1回", probability: 10 },
-  { key: "secret_free_3", label: "シークレット無料 3回", probability: 6 },
-  { key: "freedom_free_1", label: "フリーダム無料 1回", probability: 3 },
+  { key: "secret_free_1", label: "シークレット無料チケット 1枚", probability: 10 },
+  { key: "secret_free_3", label: "シークレット無料チケット 3枚", probability: 6 },
+  { key: "freedom_free_1", label: "フリーダム無料チケット 1枚", probability: 3 },
   { key: "cult_chat_free", label: "教祖雑談無料", probability: 10 },
   { key: "custom_role_week", label: "カスタムロール 一週間", probability: 1 },
   {

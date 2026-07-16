@@ -11,8 +11,9 @@ const {
   canBypassMarketGachaDailyLimit,
   createMarketGachaConfirmationRow,
   createMarketGachaPaymentSelectionRow,
+  formatMarketGachaDrawLog,
 } = require("../dist/service/marketGachaService.js");
-const { ROLE_IDS } = require("../dist/constant/id.js");
+const { ROLE_IDS, THREAD_IDS } = require("../dist/constant/id.js");
 const { PANEL_COMMAND_NAMES } = require("../dist/constant/command.js");
 
 function memberWithRoles(roleIds) {
@@ -98,8 +99,57 @@ test("ticket-based prizes guide users to the general inquiry market ticket", () 
 
   assert.match(instructions, /総合お問い合わせ/);
   assert.match(instructions, /教団市場チケット/);
+  assert.match(instructions, /スクショしてチケット内に送信/);
   assert.match(
     instructions,
     /https:\/\/discord\.com\/channels\/1520329128883126392\/1520368587255189545/,
   );
+});
+
+test("hotel ticket prizes use ticket labels and explain priority consumption", () => {
+  const { MarketGachaService } = require("../dist/service/marketGachaService.js");
+  const secretTicket = MARKET_GACHA_PRIZES.find((item) => item.key === "secret_free_1");
+  const freedomTicket = MARKET_GACHA_PRIZES.find((item) => item.key === "freedom_free_1");
+
+  assert.equal(secretTicket.label, "シークレット無料チケット 1枚");
+  assert.equal(freedomTicket.label, "フリーダム無料チケット 1枚");
+  assert.match(
+    MarketGachaService.getTicketInstructions(secretTicket),
+    /次回シークレットを使用時に、優先的にチケットが消費/,
+  );
+  assert.match(
+    MarketGachaService.getTicketInstructions(freedomTicket),
+    /次回フリーダムを使用時に、優先的にチケットが消費/,
+  );
+});
+
+test("shop discount prize directs users to the market ticket guidance", () => {
+  const { MarketGachaService } = require("../dist/service/marketGachaService.js");
+  const discountTicket = MARKET_GACHA_PRIZES.find((item) => item.key === "discount_5");
+  const instructions = MarketGachaService.getTicketInstructions(discountTicket);
+
+  assert.match(instructions, /教団市場チケットを切り/);
+  assert.match(instructions, /チケット内の案内に従ってください/);
+});
+
+test("audio prize result confirms DM delivery and uses the audio type", () => {
+  const { MarketGachaService } = require("../dist/service/marketGachaService.js");
+  const superchat = MARKET_GACHA_PRIZES.find((item) => item.key === "superchat");
+  const instructions = MarketGachaService.getTicketInstructions(superchat, {
+    performerName: "教祖",
+    publicUrl: "https://example.com/file",
+  });
+
+  assert.match(instructions, /教祖.*サプボです！/);
+  assert.match(instructions, /ファイルのURLをDMにて送信/);
+});
+
+test("market gacha log records the drawer, prize, and payment", () => {
+  const prize = MARKET_GACHA_PRIZES.find((item) => item.key === "remote_control");
+  const log = formatMarketGachaDrawLog("123", prize, "invite_point");
+
+  assert.equal(THREAD_IDS.MARKET_GACHA_LOG_THREAD, "1527185274399096972");
+  assert.match(log, /<@123>/);
+  assert.match(log, /教祖遠隔/);
+  assert.match(log, /招待ポイント1pt/);
 });

@@ -4,6 +4,7 @@ import {
   ButtonInteraction,
   ButtonStyle,
   GuildMember,
+  ThreadChannel,
 } from "discord.js";
 import { RowDataPacket } from "mysql2";
 import { PoolConnection, ResultSetHeader } from "mysql2/promise";
@@ -16,7 +17,7 @@ import {
   selectMarketGachaPrize,
 } from "../constant/marketGacha";
 import { PANEL_COMMAND_NAMES } from "../constant/command";
-import { BOT_ID, ROLE_IDS } from "../constant/id";
+import { BOT_ID, ROLE_IDS, THREAD_IDS } from "../constant/id";
 import { CURRENCY_NAMES } from "../constant/currency";
 import { DbService } from "./dbService";
 import { HotelFreeTicketService } from "./hotelFreeTicketService";
@@ -93,6 +94,18 @@ export function canBypassMarketGachaDailyLimit(member: unknown): boolean {
   );
 }
 
+export function formatMarketGachaDrawLog(
+  userId: string,
+  prize: MarketGachaPrize,
+  paymentSource: MarketGachaPaymentSource,
+): string {
+  const payment =
+    paymentSource === "currency"
+      ? `5,000${CURRENCY_NAMES}`
+      : `招待ポイント${INVITE_POINT_GACHA_COST}pt`;
+  return `🎰 **市場ガチャログ**\nユーザー: <@${userId}>\n景品: **${prize.label}**\n支払い: ${payment}`;
+}
+
 export class MarketGachaService {
   static async showPaymentSelection(interaction: ButtonInteraction): Promise<void> {
     await interaction.editReply({
@@ -151,20 +164,65 @@ export class MarketGachaService {
     audioAsset?: MarketGachaAudioAsset,
   ): string {
     if (audioAsset) {
-      return `**${audioAsset.performerName}** の当選ファイルです。下の「当選ファイルを開く」から受け取ってください。`;
+      const audioPrizeName = prize.audioCategory === "superchat" ? "サプボ" : "歌みた";
+      return `**${audioAsset.performerName}** の${audioPrizeName}です！\nファイルのURLをDMにて送信したのでご確認ください。`;
     }
 
-    if (this.getHotelTicketGrant(prize)) {
-      return "無料券をホテルパネルで使える状態にしました。";
+    const hotelTicketGrant = this.getHotelTicketGrant(prize);
+    if (hotelTicketGrant?.ticketType === HOTEL_FREE_TICKET_TYPE.SECRET) {
+      return "次回シークレットを使用時に、優先的にチケットが消費されるようになります。";
+    }
+    if (hotelTicketGrant?.ticketType === HOTEL_FREE_TICKET_TYPE.FREEDOM) {
+      return "次回フリーダムを使用時に、優先的にチケットが消費されるようになります。";
     }
 
     if (this.getShopTicketGrant(prize)) {
-      return "ショップ支払いで使える状態にしました。";
+      return "[総合お問い合わせ](https://discord.com/channels/1520329128883126392/1520368587255189545)にて教団市場チケットを切り、チケット内の案内に従ってください。";
     }
 
-    return "[総合お問い合わせ](https://discord.com/channels/1520329128883126392/1520368587255189545)にて教団市場チケットを切っていただき、\n`市場ガチャ当選：" +
-      prize.label +
-      "`\nと当選メッセージを提示してください。";
+    return "[総合お問い合わせ](https://discord.com/channels/1520329128883126392/1520368587255189545)にて教団市場チケットを切り、当選メッセージをスクショしてチケット内に送信してください。";
+  }
+
+  private static async sendAudioPrizeDm(
+    interaction: ButtonInteraction,
+    prize: MarketGachaPrize,
+    audioAsset: MarketGachaAudioAsset,
+  ): Promise<boolean> {
+    const audioPrizeName = prize.audioCategory === "superchat" ? "サプボ" : "歌みた";
+    try {
+      await interaction.user.send(
+        `🎉 **${audioAsset.performerName}** の${audioPrizeName}です！\nファイルURL: <${audioAsset.publicUrl}>`,
+      );
+      return true;
+    } catch (error) {
+      console.error("[MarketGachaService] failed to send audio prize DM", {
+        userId: interaction.user.id,
+        prizeKey: prize.key,
+        error,
+      });
+      return false;
+    }
+  }
+
+  private static async sendDrawLog(
+    interaction: ButtonInteraction,
+    prize: MarketGachaPrize,
+    paymentSource: MarketGachaPaymentSource,
+  ): Promise<void> {
+    try {
+      const channel = await interaction.client.channels.fetch(
+        THREAD_IDS.MARKET_GACHA_LOG_THREAD,
+      );
+      if (!channel || !channel.isThread() || !channel.isTextBased()) {
+        throw new Error("市場ガチャログスレッドが見つからないか、書き込みできません。");
+      }
+      await (channel as ThreadChannel).send(
+        formatMarketGachaDrawLog(interaction.user.id, prize, paymentSource),
+      );
+    } catch (error) {
+      // ログ送信の失敗によって、確定済みのガチャ結果を利用者へ返せなくしない。
+      console.error("[MarketGachaService] failed to send draw log", error);
+    }
   }
 
   private static async selectAudioAsset(
@@ -323,17 +381,10 @@ export class MarketGachaService {
       connection.release();
     }
 
-    // Discord添付の容量上限を受けず、R2の元ファイルを確実に渡せるリンク方式にする。
-    const audioComponents = audioAsset
-      ? [
-          new ActionRowBuilder<ButtonBuilder>().addComponents(
-            new ButtonBuilder()
-              .setLabel("当選ファイルを開く")
-              .setStyle(ButtonStyle.Link)
-              .setURL(audioAsset.publicUrl),
-          ),
-        ]
-      : [];
+    await this.sendDrawLog(interaction, prize, paymentSource);
+    const audioDmDelivered = audioAsset
+      ? await this.sendAudioPrizeDm(interaction, prize, audioAsset)
+      : false;
     await interaction.editReply({
       content:
         "🎉 **市場ガチャ当選！**\n" +
@@ -344,8 +395,10 @@ export class MarketGachaService {
         (isDailyLimitExempt
           ? "技術統括テスト中のため、1日の回数制限は適用されません。\n\n"
           : `本日の残り回数：${remainingDraws}回\n\n`) +
-        this.getTicketInstructions(prize, audioAsset),
-      components: audioComponents,
+        (audioAsset && !audioDmDelivered
+          ? "ファイルのURLをDMに送信できませんでした。DMの受信設定を確認後、総合お問い合わせへご連絡ください。"
+          : this.getTicketInstructions(prize, audioAsset)),
+      components: [],
     });
   }
 
