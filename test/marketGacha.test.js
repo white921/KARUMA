@@ -63,3 +63,16 @@ test("audio prizes select their files from the matching database category", () =
   assert.equal(superchat.audioCategory, "superchat");
   assert.equal(songCover.audioCategory, "song_cover");
 });
+
+test("ticket-based prizes guide users to the general inquiry market ticket", () => {
+  const { MarketGachaService } = require("../dist/service/marketGachaService.js");
+  const prize = MARKET_GACHA_PRIZES.find((item) => item.key === "remote_control");
+  const instructions = MarketGachaService.getTicketInstructions(prize);
+
+  assert.match(instructions, /総合お問い合わせ/);
+  assert.match(instructions, /教団市場チケット/);
+  assert.match(
+    instructions,
+    /https:\/\/discord\.com\/channels\/1520329128883126392\/1520368587255189545/,
+  );
+});

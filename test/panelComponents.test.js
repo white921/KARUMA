@@ -85,6 +85,17 @@ test("shop panel includes the invite point gacha button", () => {
   assert.ok(shopButtonIds.includes(PANEL_COMMAND_NAMES.INVITE_POINT_GACHA_DRAW));
 });
 
+test("shop panel links ticket-based gacha prizes to general inquiry", () => {
+  assert.match(
+    require("../dist/constant/panel.js").SHOP_PANEL_MESSAGES.DESCRIPTION,
+    /\[総合お問い合わせ\]\(https:\/\/discord\.com\/channels\/1520329128883126392\/1520368587255189545\)/,
+  );
+  assert.match(
+    require("../dist/constant/panel.js").SHOP_PANEL_MESSAGES.DESCRIPTION,
+    /教団市場チケット/,
+  );
+});
+
 test("non-bank panel buttons do not use icons", async () => {
   assertButtonsHaveNoIcons([createAdminPanelActionRow()]);
   assertButtonsHaveNoIcons([createCasinoPanelActionRow()]);

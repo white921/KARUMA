@@ -96,7 +96,7 @@ export class MarketGachaService {
       return "ショップ支払いで使える状態にしました。";
     }
 
-    return "既存のチケットBotでチケットを作成し、\n`市場ガチャ当選：" +
+    return "[総合お問い合わせ](https://discord.com/channels/1520329128883126392/1520368587255189545)にて教団市場チケットを切っていただき、\n`市場ガチャ当選：" +
       prize.label +
       "`\nと当選メッセージを提示してください。";
   }
