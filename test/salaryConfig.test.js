@@ -36,8 +36,15 @@ test("monthly salary config includes all requested roles", () => {
     MONSTER_STAFF: ROLE_IDS.MONSTER_STAFF,
     HONMEN: ROLE_IDS.CORE_MEMBER_ROLES.HONMEN,
     JUNHONMEN: ROLE_IDS.CORE_MEMBER_ROLES.JUNHONMEN,
-    KARIMEN: ROLE_IDS.CORE_MEMBER_ROLES.KARIMEN,
   });
+});
+
+test("provisional members are excluded from monthly salary", () => {
+  assert.equal(
+    Object.values(SALARY_ROLE_IDS).includes(ROLE_IDS.CORE_MEMBER_ROLES.KARIMEN),
+    false,
+  );
+  assert.equal(SALARY_PAYMENTS[ROLE_IDS.CORE_MEMBER_ROLES.KARIMEN], undefined);
 });
 
 test("monthly salary defaults to zero except for the technical director", () => {

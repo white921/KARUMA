@@ -30,6 +30,13 @@ test("salary logs use the salary log thread", () => {
   );
 });
 
+test("server boost reward logs use the salary log thread", () => {
+  assert.equal(
+    resolveActionLogThreadId(COMMAND_NAMES.SERVER_BOOST),
+    "1521752853742358579",
+  );
+});
+
 test("salary action log messages are sent to the salary log thread", async () => {
   const sentMessages = [];
   const fetchedThreadIds = [];
@@ -65,6 +72,31 @@ test("salary action log messages are sent to the salary log thread", async () =>
   assert.match(sentMessages[0], /^\*\*給与支払い\*\*/);
   assert.match(sentMessages[0], /<@1521705594912772227>から<@123456789012345678>に5,000/);
   assert.match(sentMessages[0], /備考: 2026\/7 銀行スタッフの給与振込/);
+});
+
+test("server boost reward messages identify the reward", async () => {
+  const sentMessages = [];
+  const thread = {
+    isThread: () => true,
+    isTextBased: () => true,
+    send: async (message) => sentMessages.push(message),
+  };
+  const context = {
+    client: { channels: { fetch: async () => thread } },
+  };
+
+  await ActionService.createActionLogMessage(
+    context,
+    COMMAND_NAMES.SERVER_BOOST,
+    30000,
+    "1521705594912772227",
+    "123456789012345678",
+    "サーバーブースト2回目の報酬",
+  );
+
+  assert.equal(sentMessages.length, 1);
+  assert.match(sentMessages[0], /^\*\*サーバーブースト報酬\*\*/);
+  assert.match(sentMessages[0], /<@123456789012345678>に30,000/);
 });
 
 test("change name logs use the change name log thread", () => {

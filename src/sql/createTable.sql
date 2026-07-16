@@ -34,6 +34,19 @@ CREATE TABLE IF NOT EXISTS actions (
 )
 COMMENT='アクションログ';
 
+CREATE TABLE IF NOT EXISTS server_boost_rewards (
+  id INTEGER NOT NULL AUTO_INCREMENT COMMENT 'サーバーブースト報酬ID',
+  user_id BIGINT NOT NULL COMMENT 'DiscordユーザーID',
+  boost_started_at BIGINT NOT NULL COMMENT '今回のブースト開始日時（Unixミリ秒）',
+  boost_count INTEGER NOT NULL COMMENT '累計ブースト回数',
+  amount INTEGER NOT NULL COMMENT '付与通貨額',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT '付与日時',
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_server_boost_rewards_user_start (user_id, boost_started_at),
+  FOREIGN KEY (user_id) REFERENCES accounts(user_id) ON DELETE CASCADE
+)
+COMMENT='サーバーブースト報酬履歴';
+
 -- サブ垢管理テーブル
 CREATE TABLE IF NOT EXISTS sub_accounts (
   id INTEGER NOT NULL AUTO_INCREMENT COMMENT 'サブ垢管理ID',

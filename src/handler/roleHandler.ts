@@ -4,6 +4,7 @@ import { Client, GuildMember, PartialGuildMember } from "discord.js";
 // import { RemindToMadoromiService } from "../service/remindToMadoromiService";
 // import { EvaluationService } from "../service/evaluationService";
 import { AccountService } from "../service/accountService";
+import { ServerBoostService } from "../service/serverBoostService";
 import { addRole, deleteRole } from "../util/role";
 
 import {
@@ -41,6 +42,8 @@ export async function handleRoleChange(
     await addRole(newMember, ROLE_IDS.CORE_MEMBER_ROLES.DEMODORI);
     await deleteRole(newMember, ROLE_IDS.CORE_MEMBER_ROLES.MENSETUMATI);
   }
+
+  await ServerBoostService.handleMemberUpdate(oldMember, newMember, client);
 
   // 挑戦の印ロールの付与を監視
   // const hadTyosen = oldMember.roles.cache.has(ROLE_IDS.TYOSEN_NO_SHIRUSHI);

@@ -2,6 +2,7 @@ import { ROLE_IDS } from "./id";
 
 export const SERVER_BOOST_FIRST_REWARD = 30000;
 export const SERVER_BOOST_AFTER_REWARD = 5000;
+export const SERVER_BOOST_HIGH_REWARD_COUNT = 2;
 
 // 月ごとの給与額。0 のロールには給与を支給しません。
 export const SALARY_PAYMENTS: Record<string, number> = {
@@ -39,7 +40,6 @@ export const SALARY_PAYMENTS: Record<string, number> = {
   // メンバー
   [ROLE_IDS.CORE_MEMBER_ROLES.HONMEN]: 0,
   [ROLE_IDS.CORE_MEMBER_ROLES.JUNHONMEN]: 0,
-  [ROLE_IDS.CORE_MEMBER_ROLES.KARIMEN]: 0,
 };
 export const SALARY_ROLE_IDS: Record<string, string> = {
   SABANUSI: ROLE_IDS.SABANUSI,
@@ -71,7 +71,6 @@ export const SALARY_ROLE_IDS: Record<string, string> = {
 
   HONMEN: ROLE_IDS.CORE_MEMBER_ROLES.HONMEN,
   JUNHONMEN: ROLE_IDS.CORE_MEMBER_ROLES.JUNHONMEN,
-  KARIMEN: ROLE_IDS.CORE_MEMBER_ROLES.KARIMEN,
 };
 
 export const TEST_SALARY_PAYMENTS: Record<string, number> = {};
