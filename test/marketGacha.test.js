@@ -142,6 +142,7 @@ test("audio prize result confirms DM delivery and uses the audio type", () => {
 
   assert.match(instructions, /教祖.*サプボです！/);
   assert.match(instructions, /ファイルのURLをDMにて送信/);
+  assert.match(instructions, /転載・転送・保存・画面録画等は禁止/);
 });
 
 test("market gacha log records the drawer, prize, and payment", () => {

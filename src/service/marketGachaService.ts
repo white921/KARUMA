@@ -43,6 +43,8 @@ type MarketGachaAudioAsset = {
 };
 
 export type MarketGachaPaymentSource = "currency" | "invite_point";
+const AUDIO_PRIZE_PROHIBITION_NOTICE =
+  "※転載・転送・保存・画面録画等は禁止です。";
 
 export function createMarketGachaPaymentSelectionRow() {
   return new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -165,7 +167,7 @@ export class MarketGachaService {
   ): string {
     if (audioAsset) {
       const audioPrizeName = prize.audioCategory === "superchat" ? "サプボ" : "歌みた";
-      return `**${audioAsset.performerName}** の${audioPrizeName}です！\nファイルのURLをDMにて送信したのでご確認ください。`;
+      return `**${audioAsset.performerName}** の${audioPrizeName}です！\nファイルのURLをDMにて送信したのでご確認ください。\n${AUDIO_PRIZE_PROHIBITION_NOTICE}`;
     }
 
     const hotelTicketGrant = this.getHotelTicketGrant(prize);
@@ -191,7 +193,7 @@ export class MarketGachaService {
     const audioPrizeName = prize.audioCategory === "superchat" ? "サプボ" : "歌みた";
     try {
       await interaction.user.send(
-        `🎉 **${audioAsset.performerName}** の${audioPrizeName}です！\nファイルURL: <${audioAsset.publicUrl}>`,
+        `🎉 **${audioAsset.performerName}** の${audioPrizeName}です！\nファイルURL: <${audioAsset.publicUrl}>\n\n${AUDIO_PRIZE_PROHIBITION_NOTICE}`,
       );
       return true;
     } catch (error) {
@@ -396,7 +398,7 @@ export class MarketGachaService {
           ? "技術統括テスト中のため、1日の回数制限は適用されません。\n\n"
           : `本日の残り回数：${remainingDraws}回\n\n`) +
         (audioAsset && !audioDmDelivered
-          ? "ファイルのURLをDMに送信できませんでした。DMの受信設定を確認後、総合お問い合わせへご連絡ください。"
+          ? `ファイルのURLをDMに送信できませんでした。DMの受信設定を確認後、総合お問い合わせへご連絡ください。\n${AUDIO_PRIZE_PROHIBITION_NOTICE}`
           : this.getTicketInstructions(prize, audioAsset)),
       components: [],
     });
