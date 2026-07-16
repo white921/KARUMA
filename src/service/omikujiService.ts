@@ -1,13 +1,80 @@
-import { ButtonInteraction } from "discord.js";
+import { ButtonInteraction, EmbedBuilder, GuildMember, TextChannel } from "discord.js";
 import { ResultSetHeader, RowDataPacket } from "mysql2";
 
 import { PANEL_COMMAND_NAMES } from "../constant/command";
 import { CURRENCY_NAMES } from "../constant/currency";
-import { BOT_ID } from "../constant/id";
-import { selectOmikujiPrize } from "../constant/omikuji";
+import { BOT_ID, TEXT_CHANNEL_IDS } from "../constant/id";
+import { OmikujiPrize, selectOmikujiPrize } from "../constant/omikuji";
+import { COLOR } from "../constant/color";
 import { DbService } from "./dbService";
 
 type WalletRow = RowDataPacket & { wallet: number };
+
+export function calculateOmikujiWalletAfter(
+  currentWallet: number,
+  amount: number,
+): number {
+  return Math.max(0, currentWallet + amount);
+}
+
+export function formatOmikujiDrawReply(
+  prize: OmikujiPrize,
+  afterWallet: number,
+  wasBalanceCapped: boolean,
+): string {
+  if (prize.amount < 0) {
+    if (wasBalanceCapped) {
+      return (
+        `💀 **${prize.fortune}！**\n` +
+        `本来は**${Math.abs(prize.amount).toLocaleString()}${CURRENCY_NAMES}**の減額ですが、残高が足りないので今回は残高**0${CURRENCY_NAMES}**で許してあげます。`
+      );
+    }
+    return (
+      `💀 **${prize.fortune}！**\n` +
+      `**${Math.abs(prize.amount).toLocaleString()}${CURRENCY_NAMES}** を失いました…。\n` +
+      `現在の残高：${afterWallet.toLocaleString()}${CURRENCY_NAMES}`
+    );
+  }
+
+  return (
+    `🎊 **${prize.fortune}！**\n` +
+    `**${prize.amount.toLocaleString()}${CURRENCY_NAMES}** を獲得しました！\n` +
+    `現在の残高：${afterWallet.toLocaleString()}${CURRENCY_NAMES}`
+  );
+}
+
+export function createOmikujiSpecialLogEmbed(
+  displayName: string,
+  avatarUrl: string,
+  prize: OmikujiPrize,
+  actualAmount: number,
+  afterWallet: number,
+): EmbedBuilder {
+  const result = prize.fortune === "超大吉" ? "🎉 超大吉" : "💀 凶";
+  const actualAmountText = `${actualAmount >= 0 ? "+" : "-"}${Math.abs(
+    actualAmount,
+  ).toLocaleString()}${CURRENCY_NAMES}`;
+  const wasBalanceCapped = actualAmount !== prize.amount;
+
+  return new EmbedBuilder()
+    .setTitle(`おみくじ ${result}`)
+    .setAuthor({ name: displayName, iconURL: avatarUrl })
+    .setThumbnail(avatarUrl)
+    .setColor(prize.fortune === "超大吉" ? COLOR.YELLOW : COLOR.RED)
+    .addFields(
+      { name: "結果", value: prize.fortune, inline: true },
+      { name: "増減", value: actualAmountText, inline: true },
+      { name: "残高", value: `${afterWallet.toLocaleString()}${CURRENCY_NAMES}`, inline: true },
+      ...(wasBalanceCapped
+        ? [
+            {
+              name: "補足",
+              value: `本来の減額: -${Math.abs(prize.amount).toLocaleString()}${CURRENCY_NAMES}（残高不足のため0${CURRENCY_NAMES}まで）`,
+            },
+          ]
+        : []),
+    );
+}
 
 export function getJapanDate(date = new Date()): string {
   const parts = new Intl.DateTimeFormat("en-US", {
@@ -38,6 +105,8 @@ export class OmikujiService {
     const connection = await DbService.getConnection();
 
     let afterWallet = 0;
+    let actualAmount = 0;
+    let wasBalanceCapped = false;
     try {
       await connection.beginTransaction();
       try {
@@ -67,7 +136,10 @@ export class OmikujiService {
         throw new Error("おみくじの口座情報が見つかりません。");
       }
 
-      afterWallet = Number(user.wallet) + prize.amount;
+      const currentWallet = Number(user.wallet);
+      afterWallet = calculateOmikujiWalletAfter(currentWallet, prize.amount);
+      actualAmount = afterWallet - currentWallet;
+      wasBalanceCapped = prize.amount < 0 && actualAmount !== prize.amount;
       await connection.execute(
         "UPDATE accounts SET wallet = ? WHERE user_id = ?",
         [afterWallet, interaction.user.id],
@@ -78,7 +150,7 @@ export class OmikujiService {
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [
           PANEL_COMMAND_NAMES.OMIKUJI_DRAW,
-          prize.amount,
+          actualAmount,
           BOT_ID,
           interaction.user.id,
           Number(bot.wallet),
@@ -94,11 +166,53 @@ export class OmikujiService {
       connection.release();
     }
 
+    if (prize.fortune === "凶" || prize.fortune === "超大吉") {
+      await this.sendSpecialResultLog(
+        interaction,
+        prize,
+        actualAmount,
+        afterWallet,
+      );
+    }
+
     await interaction.editReply({
-      content:
-        `🎊 **${prize.fortune}！**\n` +
-        `**${prize.amount.toLocaleString()}${CURRENCY_NAMES}** を獲得しました！\n` +
-        `現在の残高：${afterWallet.toLocaleString()}${CURRENCY_NAMES}`,
+      content: formatOmikujiDrawReply(prize, afterWallet, wasBalanceCapped),
+    });
+  }
+
+  private static async sendSpecialResultLog(
+    interaction: ButtonInteraction,
+    prize: OmikujiPrize,
+    actualAmount: number,
+    afterWallet: number,
+  ): Promise<void> {
+    const member =
+      interaction.member instanceof GuildMember
+        ? interaction.member
+        : await interaction.guild?.members
+            .fetch(interaction.user.id)
+            .catch(() => null);
+    const displayName = member?.displayName ?? interaction.user.displayName;
+    const avatarUrl = member
+      ? member.displayAvatarURL({ extension: "png" })
+      : interaction.user.displayAvatarURL({ extension: "png" });
+    const channel = await interaction.client.channels.fetch(
+      TEXT_CHANNEL_IDS.OMIKUJI_SPECIAL_LOG,
+    );
+    if (!channel || !channel.isTextBased()) {
+      throw new Error("おみくじ特別結果ログチャンネルが見つからないか、無効な型です。");
+    }
+
+    await (channel as TextChannel).send({
+      embeds: [
+        createOmikujiSpecialLogEmbed(
+          displayName,
+          avatarUrl,
+          prize,
+          actualAmount,
+          afterWallet,
+        ),
+      ],
     });
   }
 }

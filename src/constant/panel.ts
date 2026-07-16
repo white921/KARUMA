@@ -89,7 +89,7 @@ export const SHOP_PANEL_MESSAGES = {
 export const OMIKUJI_PANEL_MESSAGES = {
   TITLE: "今日の運勢おみくじ",
   DESCRIPTION:
-    "無料で引けるおみくじです。\n日本時間で1日1回まで引けます。\n\n小吉：1,000krm（35%）\n中吉：2,000krm（60%）\n大吉：5,000krm（5%）",
+    "無料で引けるおみくじです。\n日本時間で1日1回まで引けます。\n\n小吉：1,000krm（34.5%）\n中吉：2,000krm（59%）\n大吉：5,000krm（5%）\n凶：-3,000krm（1%）\n超大吉：50,000krm（0.5%）",
   DRAW: "おみくじを引く",
   ERROR: "おみくじパネルチャンネルが見つからないか、無効な型です。",
 };
