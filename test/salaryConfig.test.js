@@ -47,14 +47,28 @@ test("provisional members are excluded from monthly salary", () => {
   assert.equal(SALARY_PAYMENTS[ROLE_IDS.CORE_MEMBER_ROLES.KARIMEN], undefined);
 });
 
-test("monthly salary defaults to zero except for the technical director", () => {
-  assert.equal(SALARY_PAYMENTS[ROLE_IDS.GIJUTU_LEADER], 10000);
-
-  for (const roleId of Object.values(SALARY_ROLE_IDS)) {
-    if (roleId !== ROLE_IDS.GIJUTU_LEADER) {
-      assert.equal(SALARY_PAYMENTS[roleId], 0);
-    }
-  }
+test("monthly salary follows the provided compensation table", () => {
+  assert.equal(SALARY_PAYMENTS[ROLE_IDS.SABANUSI], 1000000);
+  assert.equal(SALARY_PAYMENTS[ROLE_IDS.KANRISYA], 500000);
+  assert.equal(SALARY_PAYMENTS[ROLE_IDS.GINKOU_LEADER], 200000);
+  assert.equal(SALARY_PAYMENTS[ROLE_IDS.SHOP_LEADER], 150000);
+  assert.equal(SALARY_PAYMENTS[ROLE_IDS.GAME_LEADER], 130000);
+  assert.equal(SALARY_PAYMENTS[ROLE_IDS.SHOKUNIN_LEADER], 150000);
+  assert.equal(SALARY_PAYMENTS[ROLE_IDS.MENSETU_LEADER], 150000);
+  assert.equal(SALARY_PAYMENTS[ROLE_IDS.MONSTER_LEADER], 150000);
+  assert.equal(SALARY_PAYMENTS[ROLE_IDS.EVALUATION_LEADER], 250000);
+  assert.equal(SALARY_PAYMENTS[ROLE_IDS.EVALUATION_1KYUU], 200000);
+  assert.equal(SALARY_PAYMENTS[ROLE_IDS.EVALUATION_2KYUU], 150000);
+  assert.equal(SALARY_PAYMENTS[ROLE_IDS.EVALUATION_3KYUU], 100000);
+  assert.equal(SALARY_PAYMENTS[ROLE_IDS.EVALUATION_BUIGINNER], 0);
+  assert.equal(SALARY_PAYMENTS[ROLE_IDS.GINKOU_STAFF], 50000);
+  assert.equal(SALARY_PAYMENTS[ROLE_IDS.SHOP_STAFF], 30000);
+  assert.equal(SALARY_PAYMENTS[ROLE_IDS.GAME_STAFF], 30000);
+  assert.equal(SALARY_PAYMENTS[ROLE_IDS.SHOKUNIN_STAFF], 0);
+  assert.equal(SALARY_PAYMENTS[ROLE_IDS.MONSTER_STAFF], 50000);
+  assert.equal(SALARY_PAYMENTS[ROLE_IDS.MENSTUKAN], 0);
+  assert.equal(SALARY_PAYMENTS[ROLE_IDS.CORE_MEMBER_ROLES.HONMEN], 60000);
+  assert.equal(SALARY_PAYMENTS[ROLE_IDS.CORE_MEMBER_ROLES.JUNHONMEN], 40000);
 });
 
 test("monthly salary job runs at 00:00 Japan time on the first day", () => {
