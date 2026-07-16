@@ -159,11 +159,24 @@ client.on("interactionCreate", async (interaction) => {
         interaction.customId !== PANEL_COMMAND_NAMES.REDEPLOY
       ) {
         try {
-          await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-          BotHealthMonitor.recordAckSuccess(`${interactionContext}:deferReply`);
+          if (interaction.customId.startsWith("history_page_")) {
+            // ページ送りは、現在表示中の取引履歴メッセージを更新する。
+            await interaction.deferUpdate();
+            BotHealthMonitor.recordAckSuccess(
+              `${interactionContext}:deferUpdate`,
+            );
+          } else {
+            await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+            BotHealthMonitor.recordAckSuccess(
+              `${interactionContext}:deferReply`,
+            );
+          }
         } catch (error) {
+          const acknowledgement = interaction.customId.startsWith("history_page_")
+            ? "deferUpdate"
+            : "deferReply";
           BotHealthMonitor.recordAckFailure(
-            `${interactionContext}:deferReply`,
+            `${interactionContext}:${acknowledgement}`,
             error,
           );
           return;
