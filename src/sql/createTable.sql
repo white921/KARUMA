@@ -269,12 +269,36 @@ CREATE TABLE IF NOT EXISTS market_gacha_draws (
   user_id BIGINT NOT NULL COMMENT '抽選したDiscordユーザーID',
   prize_key VARCHAR(64) NOT NULL COMMENT '景品識別子',
   prize_name VARCHAR(128) NOT NULL COMMENT '抽選時点の景品名',
+  payment_source VARCHAR(16) NOT NULL DEFAULT 'currency' COMMENT 'currency または invite_point',
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '抽選日時',
   PRIMARY KEY (id),
   KEY idx_market_gacha_draws_user_created (user_id, created_at),
   FOREIGN KEY (user_id) REFERENCES accounts(user_id) ON DELETE CASCADE
 )
 COMMENT='市場ガチャ抽選履歴';
+
+CREATE TABLE IF NOT EXISTS invite_point_balances (
+  user_id BIGINT NOT NULL COMMENT 'DiscordユーザーID',
+  points INTEGER NOT NULL DEFAULT 0 COMMENT '現在の招待ポイント',
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (user_id),
+  FOREIGN KEY (user_id) REFERENCES accounts(user_id) ON DELETE CASCADE
+)
+COMMENT='招待ポイント残高';
+
+CREATE TABLE IF NOT EXISTS invite_point_transactions (
+  id INTEGER NOT NULL AUTO_INCREMENT COMMENT '招待ポイント取引ID',
+  user_id BIGINT NOT NULL COMMENT '対象DiscordユーザーID',
+  operator_user_id BIGINT DEFAULT NULL COMMENT '付与実行者。ガチャ消費時はNULL',
+  transaction_type VARCHAR(32) NOT NULL COMMENT 'grant または gacha_draw',
+  amount INTEGER NOT NULL COMMENT '増減ポイント。消費は負数',
+  balance_after INTEGER NOT NULL COMMENT '取引後残高',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_invite_point_transactions_user_created (user_id, created_at),
+  FOREIGN KEY (user_id) REFERENCES accounts(user_id) ON DELETE CASCADE
+)
+COMMENT='招待ポイント付与・消費履歴';
 
 -- 一日一回のおみくじ。draw_date はアプリ側で日本時間の日付を保存する。
 CREATE TABLE IF NOT EXISTS omikuji_draws (

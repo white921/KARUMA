@@ -37,6 +37,7 @@ export const COMMAND_NAMES = {
   ROULETTE_CLOSE: "賭け終了",
   ROULETTE_RESULT: "結果",
   ROULETTE_BONUS: "ボーナス付与",
+  INVITE_POINT_ADD: "招待ポイント追加",
 };
 
 export const PANEL_COMMAND_NAMES = {
@@ -45,6 +46,7 @@ export const PANEL_COMMAND_NAMES = {
   SHOP_SEND: "shopSend",
   SHOP_TICKET_VIEW: "shopTicketView",
   MARKET_GACHA_DRAW: "marketGachaDraw",
+  INVITE_POINT_GACHA_DRAW: "invitePointGachaDraw",
   OMIKUJI_DRAW: "omikujiDraw",
   HISTORY: "history",
   DIARY_PRIVATE: "diaryPrivate",

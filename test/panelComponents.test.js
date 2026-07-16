@@ -76,6 +76,15 @@ test("hotel and shop panels include their ticket confirmation buttons", () => {
   assert.ok(shopButtonIds.includes(PANEL_COMMAND_NAMES.SHOP_TICKET_VIEW));
 });
 
+test("shop panel includes the invite point gacha button", () => {
+  const shopButtonIds = createShopPanelActionRow()
+    .toJSON()
+    .components
+    .map((button) => button.custom_id);
+
+  assert.ok(shopButtonIds.includes(PANEL_COMMAND_NAMES.INVITE_POINT_GACHA_DRAW));
+});
+
 test("non-bank panel buttons do not use icons", async () => {
   assertButtonsHaveNoIcons([createAdminPanelActionRow()]);
   assertButtonsHaveNoIcons([createCasinoPanelActionRow()]);

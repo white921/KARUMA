@@ -26,6 +26,7 @@ import { data as roulette } from "./command/roulette";
 import { data as rouletteClose } from "./command/rouletteClose";
 import { data as rouletteBonus } from "./command/rouletteBonus";
 import { data as result } from "./command/result";
+import { data as invitePointAdd } from "./command/invitePointAdd";
 // import { data as showEvaluationEnd } from "./command/showEvaluationEnd";
 
 dotenv.config();
@@ -64,6 +65,7 @@ export async function registerCommands() {
     rouletteClose.toJSON(),
     rouletteBonus.toJSON(),
     result.toJSON(),
+    invitePointAdd.toJSON(),
     // showEvaluationEnd.toJSON(),
   ];
 

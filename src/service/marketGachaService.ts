@@ -20,8 +20,10 @@ import { CURRENCY_NAMES } from "../constant/currency";
 import { DbService } from "./dbService";
 import { HotelFreeTicketService } from "./hotelFreeTicketService";
 import { ShopTicketService } from "./shopTicketService";
+import { InvitePointService } from "./invitePointService";
 import { HOTEL_FREE_TICKET_TYPE, HotelFreeTicketType } from "../constant/hotel";
 import { SHOP_TICKET_TYPE, ShopTicketType } from "../constant/shopTicket";
+import { INVITE_POINT_GACHA_COST } from "../constant/invitePoint";
 
 type WalletRow = RowDataPacket & { wallet: number };
 type AudioAssetRow = RowDataPacket & {
@@ -120,12 +122,16 @@ export class MarketGachaService {
   /**
    * 市場ガチャを一回実行する。日次上限、残高引落し、抽選記録を単一トランザクションで確定する。
    */
-  static async draw(interaction: ButtonInteraction): Promise<void> {
+  static async draw(
+    interaction: ButtonInteraction,
+    paymentSource: "currency" | "invite_point" = "currency",
+  ): Promise<void> {
     const prize = selectMarketGachaPrize(Math.random());
     const connection = await DbService.getConnection();
 
     let remainingDraws = 0;
     let afterWallet = 0;
+    let afterInvitePoints: number | undefined;
     let audioAsset: MarketGachaAudioAsset | undefined;
     try {
       await connection.beginTransaction();
@@ -146,38 +152,48 @@ export class MarketGachaService {
       // 当選ファイルが未登録なら、料金を引き落とす前に中止する。
       audioAsset = await this.selectAudioAsset(connection, prize.audioCategory);
 
-      const [userRows] = await connection.execute<WalletRow[]>(
-        "SELECT wallet FROM accounts WHERE user_id = ? FOR UPDATE",
-        [interaction.user.id],
-      );
-      const [botRows] = await connection.execute<WalletRow[]>(
-        "SELECT wallet FROM accounts WHERE user_id = ? FOR UPDATE",
-        [BOT_ID],
-      );
-      const user = userRows[0];
-      const bot = botRows[0];
-      if (!user || !bot) {
-        throw new Error("市場ガチャの口座情報が見つかりません。");
-      }
-      if (Number(user.wallet) < MARKET_GACHA_PRICE) {
-        throw new Error(
-          `残高が不足しています。必要な残高: ${MARKET_GACHA_PRICE.toLocaleString()}${CURRENCY_NAMES}`,
+      let botAfterWallet = 0;
+      if (paymentSource === "currency") {
+        const [userRows] = await connection.execute<WalletRow[]>(
+          "SELECT wallet FROM accounts WHERE user_id = ? FOR UPDATE",
+          [interaction.user.id],
+        );
+        const [botRows] = await connection.execute<WalletRow[]>(
+          "SELECT wallet FROM accounts WHERE user_id = ? FOR UPDATE",
+          [BOT_ID],
+        );
+        const user = userRows[0];
+        const bot = botRows[0];
+        if (!user || !bot) {
+          throw new Error("市場ガチャの口座情報が見つかりません。");
+        }
+        if (Number(user.wallet) < MARKET_GACHA_PRICE) {
+          throw new Error(
+            `残高が不足しています。必要な残高: ${MARKET_GACHA_PRICE.toLocaleString()}${CURRENCY_NAMES}`,
+          );
+        }
+
+        afterWallet = Number(user.wallet) - MARKET_GACHA_PRICE;
+        botAfterWallet = Number(bot.wallet) + MARKET_GACHA_PRICE;
+        await connection.execute("UPDATE accounts SET wallet = ? WHERE user_id = ?", [
+          afterWallet,
+          interaction.user.id,
+        ]);
+        await connection.execute("UPDATE accounts SET wallet = ? WHERE user_id = ?", [
+          botAfterWallet,
+          BOT_ID,
+        ]);
+      } else {
+        afterInvitePoints = await InvitePointService.consumeForGacha(
+          connection,
+          interaction.user.id,
         );
       }
-
-      afterWallet = Number(user.wallet) - MARKET_GACHA_PRICE;
-      const botAfterWallet = Number(bot.wallet) + MARKET_GACHA_PRICE;
-      await connection.execute("UPDATE accounts SET wallet = ? WHERE user_id = ?", [
-        afterWallet,
-        interaction.user.id,
-      ]);
-      await connection.execute("UPDATE accounts SET wallet = ? WHERE user_id = ?", [
-        botAfterWallet,
-        BOT_ID,
-      ]);
       const [drawResult] = await connection.execute<ResultSetHeader>(
-        "INSERT INTO market_gacha_draws (user_id, prize_key, prize_name) VALUES (?, ?, ?)",
-        [interaction.user.id, prize.key, prize.label],
+        `INSERT INTO market_gacha_draws
+         (user_id, prize_key, prize_name, payment_source)
+         VALUES (?, ?, ?, ?)`,
+        [interaction.user.id, prize.key, prize.label, paymentSource],
       );
       if (audioAsset) {
         await connection.execute(
@@ -203,20 +219,22 @@ export class MarketGachaService {
           shopTicketGrant,
         );
       }
-      await connection.execute(
-        `INSERT INTO actions
-         (command_name, amount, from_user_id, to_user_id, from_after_wallet, to_after_wallet, comment)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [
-          PANEL_COMMAND_NAMES.MARKET_GACHA_DRAW,
-          MARKET_GACHA_PRICE,
-          interaction.user.id,
-          BOT_ID,
-          afterWallet,
-          botAfterWallet,
-          prize.label,
-        ],
-      );
+      if (paymentSource === "currency") {
+        await connection.execute(
+          `INSERT INTO actions
+           (command_name, amount, from_user_id, to_user_id, from_after_wallet, to_after_wallet, comment)
+           VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          [
+            PANEL_COMMAND_NAMES.MARKET_GACHA_DRAW,
+            MARKET_GACHA_PRICE,
+            interaction.user.id,
+            BOT_ID,
+            afterWallet,
+            botAfterWallet,
+            prize.label,
+          ],
+        );
+      }
 
       await connection.commit();
       remainingDraws = MARKET_GACHA_DAILY_LIMIT - drawRows.length - 1;
@@ -242,6 +260,9 @@ export class MarketGachaService {
       content:
         "🎉 **市場ガチャ当選！**\n" +
         `景品：**${prize.label}**\n` +
+        (paymentSource === "invite_point"
+          ? `消費：${INVITE_POINT_GACHA_COST}招待ポイント／残り：${afterInvitePoints}pt\n`
+          : "") +
         `本日の残り回数：${remainingDraws}回\n\n` +
         this.getTicketInstructions(prize, audioAsset),
       components: audioComponents,

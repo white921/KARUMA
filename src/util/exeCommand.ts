@@ -24,6 +24,7 @@ import { execute as roulette } from "../command/roulette";
 import { execute as rouletteClose } from "../command/rouletteClose";
 import { execute as rouletteBonus } from "../command/rouletteBonus";
 import { execute as result } from "../command/result";
+import { execute as invitePointAdd } from "../command/invitePointAdd";
 // import { execute as showEvaluationEnd } from "../command/showEvaluationEnd";
 
 import { COMMAND_MESSAGES, COMMAND_NAMES } from "../constant/command";
@@ -80,6 +81,7 @@ export async function exeCommand(
       ...rouletteCommands,
       COMMAND_NAMES.EVALUATION_SHEET_ARCHIVE,
       COMMAND_NAMES.EVALUATION_SHEET_RESTORE,
+      COMMAND_NAMES.INVITE_POINT_ADD,
     ];
     if (!commandsWithOwnPermissionCheck.includes(command as typeof commandsWithOwnPermissionCheck[number])) {
       await assertTemporaryTechnicalDirectorOnly(interaction);
@@ -157,6 +159,9 @@ export async function exeCommand(
         break;
       case COMMAND_NAMES.ROULETTE_BONUS:
         await rouletteBonus(interaction);
+        break;
+      case COMMAND_NAMES.INVITE_POINT_ADD:
+        await invitePointAdd(interaction);
         break;
       // case COMMAND_NAMES.SHOW_EVALUATION_END:
       //   await showEvaluationEnd(interaction);

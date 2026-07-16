@@ -86,6 +86,9 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
       case PANEL_COMMAND_NAMES.MARKET_GACHA_DRAW:
         await MarketGachaService.draw(interaction);
         break;
+      case PANEL_COMMAND_NAMES.INVITE_POINT_GACHA_DRAW:
+        await MarketGachaService.draw(interaction, "invite_point");
+        break;
       case PANEL_COMMAND_NAMES.OMIKUJI_DRAW:
         await OmikujiService.draw(interaction);
         break;

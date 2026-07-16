@@ -25,6 +25,10 @@ export function createShopPanelActionRow() {
       .setLabel(SHOP_PANEL_MESSAGES.MARKET_GACHA_DRAW)
       .setStyle(ButtonStyle.Danger),
     new ButtonBuilder()
+      .setCustomId(PANEL_COMMAND_NAMES.INVITE_POINT_GACHA_DRAW)
+      .setLabel(SHOP_PANEL_MESSAGES.INVITE_POINT_GACHA_DRAW)
+      .setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder()
       .setCustomId(PANEL_COMMAND_NAMES.VIEW)
       .setLabel(SHOP_PANEL_MESSAGES.VIEW)
       .setStyle(ButtonStyle.Primary),
