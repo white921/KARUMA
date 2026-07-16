@@ -16,7 +16,8 @@ export function canBypassOmikujiDailyLimit(member: unknown): boolean {
     | null
     | undefined;
   return Boolean(
-    roleBackedMember?.roles?.cache?.has(ROLE_IDS.GIJUTU_LEADER),
+    roleBackedMember?.roles?.cache?.has(ROLE_IDS.GIJUTU_LEADER) ||
+      roleBackedMember?.roles?.cache?.has(ROLE_IDS.SABANUSI),
   );
 }
 
@@ -207,7 +208,7 @@ export class OmikujiService {
       content:
         formatOmikujiDrawReply(prize, afterWallet, wasBalanceCapped) +
         (isDailyLimitExempt
-          ? "\n\n技術統括テスト中のため、本日は何度でも引けます。"
+          ? "\n\n技術統括・鯖主テスト中のため、本日は何度でも引けます。"
           : ""),
     });
   }

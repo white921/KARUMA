@@ -49,9 +49,13 @@ test("omikuji never makes a wallet balance negative", () => {
   assert.equal(calculateOmikujiWalletAfter(0, -3_000), 0);
 });
 
-test("technical director bypasses the omikuji daily limit", () => {
+test("technical director and server owner bypass the omikuji daily limit", () => {
   assert.equal(
     canBypassOmikujiDailyLimit(memberWithRoles([ROLE_IDS.GIJUTU_LEADER])),
+    true,
+  );
+  assert.equal(
+    canBypassOmikujiDailyLimit(memberWithRoles([ROLE_IDS.SABANUSI])),
     true,
   );
   assert.equal(

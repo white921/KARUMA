@@ -92,7 +92,8 @@ export function canBypassMarketGachaDailyLimit(member: unknown): boolean {
     | null
     | undefined;
   return Boolean(
-    roleBackedMember?.roles?.cache?.has(ROLE_IDS.GIJUTU_LEADER),
+    roleBackedMember?.roles?.cache?.has(ROLE_IDS.GIJUTU_LEADER) ||
+      roleBackedMember?.roles?.cache?.has(ROLE_IDS.SABANUSI),
   );
 }
 
@@ -395,7 +396,7 @@ export class MarketGachaService {
           ? `消費：${INVITE_POINT_GACHA_COST}招待ポイント／残り：${afterInvitePoints}pt\n`
           : "") +
         (isDailyLimitExempt
-          ? "技術統括テスト中のため、1日の回数制限は適用されません。\n\n"
+          ? "技術統括・鯖主テスト中のため、1日の回数制限は適用されません。\n\n"
           : `本日の残り回数：${remainingDraws}回\n\n`) +
         (audioAsset && !audioDmDelivered
           ? `ファイルのURLをDMに送信できませんでした。DMの受信設定を確認後、総合お問い合わせへご連絡ください。\n${AUDIO_PRIZE_PROHIBITION_NOTICE}`

@@ -49,9 +49,13 @@ test("market gacha charge and daily limit follow the market specification", () =
   assert.equal(MARKET_GACHA_DAILY_LIMIT, 5);
 });
 
-test("technical director bypasses only the market gacha daily limit", () => {
+test("technical director and server owner bypass the market gacha daily limit", () => {
   assert.equal(
     canBypassMarketGachaDailyLimit(memberWithRoles([ROLE_IDS.GIJUTU_LEADER])),
+    true,
+  );
+  assert.equal(
+    canBypassMarketGachaDailyLimit(memberWithRoles([ROLE_IDS.SABANUSI])),
     true,
   );
   assert.equal(
