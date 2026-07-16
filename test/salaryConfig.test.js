@@ -50,10 +50,12 @@ test("provisional members are excluded from monthly salary", () => {
 test("monthly salary follows the provided compensation table", () => {
   assert.equal(SALARY_PAYMENTS[ROLE_IDS.SABANUSI], 1000000);
   assert.equal(SALARY_PAYMENTS[ROLE_IDS.KANRISYA], 500000);
+  assert.equal(SALARY_PAYMENTS[ROLE_IDS.GIJUTU_LEADER], 200000);
   assert.equal(SALARY_PAYMENTS[ROLE_IDS.GINKOU_LEADER], 200000);
   assert.equal(SALARY_PAYMENTS[ROLE_IDS.SHOP_LEADER], 150000);
   assert.equal(SALARY_PAYMENTS[ROLE_IDS.GAME_LEADER], 130000);
   assert.equal(SALARY_PAYMENTS[ROLE_IDS.SHOKUNIN_LEADER], 150000);
+  assert.equal(SALARY_PAYMENTS[ROLE_IDS.EVENT_LEADER], 170000);
   assert.equal(SALARY_PAYMENTS[ROLE_IDS.MENSETU_LEADER], 150000);
   assert.equal(SALARY_PAYMENTS[ROLE_IDS.MONSTER_LEADER], 150000);
   assert.equal(SALARY_PAYMENTS[ROLE_IDS.EVALUATION_LEADER], 250000);
