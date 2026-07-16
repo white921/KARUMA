@@ -1,14 +1,24 @@
 import { ButtonInteraction, EmbedBuilder, GuildMember, TextChannel } from "discord.js";
-import { ResultSetHeader, RowDataPacket } from "mysql2";
+import { RowDataPacket } from "mysql2";
 
 import { PANEL_COMMAND_NAMES } from "../constant/command";
 import { CURRENCY_NAMES } from "../constant/currency";
-import { BOT_ID, TEXT_CHANNEL_IDS } from "../constant/id";
+import { BOT_ID, ROLE_IDS, TEXT_CHANNEL_IDS } from "../constant/id";
 import { OmikujiPrize, selectOmikujiPrize } from "../constant/omikuji";
 import { COLOR } from "../constant/color";
 import { DbService } from "./dbService";
 
 type WalletRow = RowDataPacket & { wallet: number };
+
+export function canBypassOmikujiDailyLimit(member: unknown): boolean {
+  const roleBackedMember = member as
+    | { roles?: { cache?: { has: (roleId: string) => boolean } } }
+    | null
+    | undefined;
+  return Boolean(
+    roleBackedMember?.roles?.cache?.has(ROLE_IDS.GIJUTU_LEADER),
+  );
+}
 
 export function calculateOmikujiWalletAfter(
   currentWallet: number,
@@ -25,20 +35,30 @@ export function formatOmikujiDrawReply(
   if (prize.amount < 0) {
     if (wasBalanceCapped) {
       return (
-        `💀 **${prize.fortune}！**\n` +
-        `本来は**${Math.abs(prize.amount).toLocaleString()}${CURRENCY_NAMES}**の減額ですが、残高が足りないので今回は残高**0${CURRENCY_NAMES}**で許してあげます。`
+        `📜 **教祖のお告げ：${prize.fortune}**\n` +
+        `本来は**${Math.abs(prize.amount).toLocaleString()}${CURRENCY_NAMES}**の減額だが、残高が足りないなら仕方ない。今回は残高**0${CURRENCY_NAMES}**で許してあげよう。これから善行を積むのだよ。`
       );
     }
     return (
-      `💀 **${prize.fortune}！**\n` +
-      `**${Math.abs(prize.amount).toLocaleString()}${CURRENCY_NAMES}** を失いました…。\n` +
+      `📜 **教祖のお告げ：${prize.fortune}**\n` +
+      `今日は己を見つめ直す日だ。**${Math.abs(prize.amount).toLocaleString()}${CURRENCY_NAMES}** を納め、次はよりよい行いを心がけなさい。\n` +
       `現在の残高：${afterWallet.toLocaleString()}${CURRENCY_NAMES}`
     );
   }
 
+  const messages: Record<OmikujiPrize["fortune"], string> = {
+    小吉: "ささやかな福を授けよう。日々の積み重ねを大切にするのだよ。",
+    中吉: "よい流れが来ている。その調子で励むのだよ。",
+    大吉: "大いに祝福しよう。この運を周りにも分け与えるのだよ。",
+    超大吉: "天はそなたを祝福している。今日の恵みに感謝し、堂々と進みなさい。",
+    凶: "",
+  };
+  const message = messages[prize.fortune];
+
   return (
-    `🎊 **${prize.fortune}！**\n` +
-    `**${prize.amount.toLocaleString()}${CURRENCY_NAMES}** を獲得しました！\n` +
+    `📜 **教祖のお告げ：${prize.fortune}**\n` +
+    `${message}\n` +
+    `**${prize.amount.toLocaleString()}${CURRENCY_NAMES}** を授けよう。\n` +
     `現在の残高：${afterWallet.toLocaleString()}${CURRENCY_NAMES}`
   );
 }
@@ -97,11 +117,13 @@ export function getJapanDate(date = new Date()): string {
 
 export class OmikujiService {
   /**
-   * 日本時間で一日一回だけ抽選し、当選記録・残高・取引履歴を同一トランザクションで確定する。
+   * 通常メンバーは日本時間で一日一回、技術統括は回数制限なしで抽選する。
+   * 当選記録・残高・取引履歴は同一トランザクションで確定する。
    */
   static async draw(interaction: ButtonInteraction): Promise<void> {
     const prize = selectOmikujiPrize(Math.random());
     const drawDate = getJapanDate();
+    const isDailyLimitExempt = await this.isDailyLimitExempt(interaction);
     const connection = await DbService.getConnection();
 
     let afterWallet = 0;
@@ -109,30 +131,33 @@ export class OmikujiService {
     let wasBalanceCapped = false;
     try {
       await connection.beginTransaction();
-      try {
-        await connection.execute<ResultSetHeader>(
-          `INSERT INTO omikuji_draws (user_id, draw_date, fortune, amount)
-           VALUES (?, ?, ?, ?)`,
-          [interaction.user.id, drawDate, prize.fortune, prize.amount],
-        );
-      } catch (error: any) {
-        if (error?.code === "ER_DUP_ENTRY") {
-          throw new Error("おみくじは日本時間で1日1回までです。次の0:00以降に引けます。");
-        }
-        throw error;
-      }
-
       const [userRows] = await connection.execute<WalletRow[]>(
         "SELECT wallet FROM accounts WHERE user_id = ? FOR UPDATE",
         [interaction.user.id],
       );
+      const user = userRows[0];
+      if (!user) {
+        throw new Error("おみくじの口座情報が見つかりません。");
+      }
+
+      if (!isDailyLimitExempt) {
+        const [drawRows] = await connection.execute<RowDataPacket[]>(
+          `SELECT id FROM omikuji_draws
+           WHERE user_id = ? AND draw_date = ?
+           LIMIT 1`,
+          [interaction.user.id, drawDate],
+        );
+        if (drawRows.length > 0) {
+          throw new Error("おみくじは日本時間で1日1回までです。次の0:00以降に引けます。");
+        }
+      }
+
       const [botRows] = await connection.execute<WalletRow[]>(
         "SELECT wallet FROM accounts WHERE user_id = ?",
         [BOT_ID],
       );
-      const user = userRows[0];
       const bot = botRows[0];
-      if (!user || !bot) {
+      if (!bot) {
         throw new Error("おみくじの口座情報が見つかりません。");
       }
 
@@ -140,6 +165,11 @@ export class OmikujiService {
       afterWallet = calculateOmikujiWalletAfter(currentWallet, prize.amount);
       actualAmount = afterWallet - currentWallet;
       wasBalanceCapped = prize.amount < 0 && actualAmount !== prize.amount;
+      await connection.execute(
+        `INSERT INTO omikuji_draws (user_id, draw_date, fortune, amount)
+         VALUES (?, ?, ?, ?)`,
+        [interaction.user.id, drawDate, prize.fortune, prize.amount],
+      );
       await connection.execute(
         "UPDATE accounts SET wallet = ? WHERE user_id = ?",
         [afterWallet, interaction.user.id],
@@ -176,8 +206,25 @@ export class OmikujiService {
     }
 
     await interaction.editReply({
-      content: formatOmikujiDrawReply(prize, afterWallet, wasBalanceCapped),
+      content:
+        formatOmikujiDrawReply(prize, afterWallet, wasBalanceCapped) +
+        (isDailyLimitExempt
+          ? "\n\n技術統括テスト中のため、本日は何度でも引けます。"
+          : ""),
     });
+  }
+
+  private static async isDailyLimitExempt(
+    interaction: ButtonInteraction,
+  ): Promise<boolean> {
+    if (interaction.member instanceof GuildMember) {
+      return canBypassOmikujiDailyLimit(interaction.member);
+    }
+
+    const member = interaction.guild
+      ? await interaction.guild.members.fetch(interaction.user.id)
+      : undefined;
+    return canBypassOmikujiDailyLimit(member);
   }
 
   private static async sendSpecialResultLog(

@@ -7,13 +7,25 @@ const {
 } = require("../dist/constant/omikuji.js");
 const { getJapanDate } = require("../dist/service/omikujiService.js");
 const {
+  canBypassOmikujiDailyLimit,
   calculateOmikujiWalletAfter,
   createOmikujiSpecialLogEmbed,
   formatOmikujiDrawReply,
 } = require("../dist/service/omikujiService.js");
 const { TEXT_CHANNEL_IDS } = require("../dist/constant/id.js");
+const { ROLE_IDS } = require("../dist/constant/id.js");
 const { PANEL_COMMAND_NAMES } = require("../dist/constant/command.js");
 const { createOmikujiPanelActionRow } = require("../dist/service/omikujiPanelService.js");
+
+function memberWithRoles(roleIds) {
+  return {
+    roles: {
+      cache: {
+        has: (roleId) => roleIds.includes(roleId),
+      },
+    },
+  };
+}
 
 test("omikuji probabilities total 100 percent", () => {
   assert.equal(OMIKUJI_PRIZES.reduce((sum, prize) => sum + prize.probability, 0), 100);
@@ -37,11 +49,31 @@ test("omikuji never makes a wallet balance negative", () => {
   assert.equal(calculateOmikujiWalletAfter(0, -3_000), 0);
 });
 
+test("technical director bypasses the omikuji daily limit", () => {
+  assert.equal(
+    canBypassOmikujiDailyLimit(memberWithRoles([ROLE_IDS.GIJUTU_LEADER])),
+    true,
+  );
+  assert.equal(
+    canBypassOmikujiDailyLimit(memberWithRoles([ROLE_IDS.KANRISYA])),
+    false,
+  );
+});
+
 test("omikuji excuses an insufficient balance on a bad fortune", () => {
   const badFortune = OMIKUJI_PRIZES.find((prize) => prize.fortune === "凶");
   assert.ok(badFortune);
-  assert.match(formatOmikujiDrawReply(badFortune, 0, true), /残高が足りない/);
+  assert.match(formatOmikujiDrawReply(badFortune, 0, true), /教祖のお告げ/);
   assert.match(formatOmikujiDrawReply(badFortune, 0, true), /0krm/);
+  assert.match(formatOmikujiDrawReply(badFortune, 0, true), /許してあげよう/);
+});
+
+test("every omikuji result is delivered as the founder's guidance", () => {
+  for (const prize of OMIKUJI_PRIZES) {
+    const reply = formatOmikujiDrawReply(prize, 10_000, false);
+    assert.match(reply, /教祖のお告げ/);
+    assert.match(reply, new RegExp(prize.fortune));
+  }
 });
 
 test("special omikuji log includes the member display name and icon", () => {
