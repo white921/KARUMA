@@ -9,16 +9,45 @@ const {
   SALARY_ROLE_IDS,
 } = require("../dist/constant/salary.js");
 
-test("monthly salary is paid only to the technical director role", () => {
+test("monthly salary config includes all requested roles", () => {
   assert.deepEqual(SALARY_ROLE_IDS, {
+    SABANUSI: ROLE_IDS.SABANUSI,
+    KANRISYA: ROLE_IDS.KANRISYA,
+    MENSETU_LEADER: ROLE_IDS.MENSETU_LEADER,
     GIJUTU_LEADER: ROLE_IDS.GIJUTU_LEADER,
+    GINKOU_LEADER: ROLE_IDS.GINKOU_LEADER,
+    EVALUATION_LEADER: ROLE_IDS.EVALUATION_LEADER,
+    SHOP_LEADER: ROLE_IDS.SHOP_LEADER,
+    GAME_LEADER: ROLE_IDS.GAME_LEADER,
+    SHOKUNIN_LEADER: ROLE_IDS.SHOKUNIN_LEADER,
+    EVENT_LEADER: ROLE_IDS.EVENT_LEADER,
+    MONSTER_LEADER: ROLE_IDS.MONSTER_LEADER,
+    EVALUATION_1KYUU: ROLE_IDS.EVALUATION_1KYUU,
+    EVALUATION_2KYUU: ROLE_IDS.EVALUATION_2KYUU,
+    EVALUATION_3KYUU: ROLE_IDS.EVALUATION_3KYUU,
+    EVALUATION_BUIGINNER: ROLE_IDS.EVALUATION_BUIGINNER,
+    MENSTUKAN: ROLE_IDS.MENSTUKAN,
+    MENSTU_BUIGINNER: ROLE_IDS.MENSTU_BUIGINNER,
+    GINKOU_STAFF: ROLE_IDS.GINKOU_STAFF,
+    SHOP_STAFF: ROLE_IDS.SHOP_STAFF,
+    GAME_STAFF: ROLE_IDS.GAME_STAFF,
+    SHOKUNIN_STAFF: ROLE_IDS.SHOKUNIN_STAFF,
+    EVENT_STAFF: ROLE_IDS.EVENT_STAFF,
+    MONSTER_STAFF: ROLE_IDS.MONSTER_STAFF,
+    HONMEN: ROLE_IDS.CORE_MEMBER_ROLES.HONMEN,
+    JUNHONMEN: ROLE_IDS.CORE_MEMBER_ROLES.JUNHONMEN,
+    KARIMEN: ROLE_IDS.CORE_MEMBER_ROLES.KARIMEN,
   });
 });
 
-test("technical director monthly salary is 10000 krm", () => {
-  assert.deepEqual(SALARY_PAYMENTS, {
-    [ROLE_IDS.GIJUTU_LEADER]: 10000,
-  });
+test("monthly salary defaults to zero except for the technical director", () => {
+  assert.equal(SALARY_PAYMENTS[ROLE_IDS.GIJUTU_LEADER], 10000);
+
+  for (const roleId of Object.values(SALARY_ROLE_IDS)) {
+    if (roleId !== ROLE_IDS.GIJUTU_LEADER) {
+      assert.equal(SALARY_PAYMENTS[roleId], 0);
+    }
+  }
 });
 
 test("monthly salary job runs at 00:00 Japan time on the first day", () => {
