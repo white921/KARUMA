@@ -9,8 +9,11 @@ const {
 } = require("../dist/constant/marketGacha.js");
 const {
   canBypassMarketGachaDailyLimit,
+  createMarketGachaConfirmationRow,
+  createMarketGachaPaymentSelectionRow,
 } = require("../dist/service/marketGachaService.js");
 const { ROLE_IDS } = require("../dist/constant/id.js");
+const { PANEL_COMMAND_NAMES } = require("../dist/constant/command.js");
 
 function memberWithRoles(roleIds) {
   return {
@@ -54,6 +57,30 @@ test("technical director bypasses only the market gacha daily limit", () => {
     canBypassMarketGachaDailyLimit(memberWithRoles([ROLE_IDS.KANRISYA])),
     false,
   );
+});
+
+test("market gacha payment selector offers krm and invite points", () => {
+  const buttonIds = createMarketGachaPaymentSelectionRow()
+    .toJSON()
+    .components
+    .map((button) => button.custom_id);
+
+  assert.ok(buttonIds.includes(PANEL_COMMAND_NAMES.MARKET_GACHA_PAYMENT_CURRENCY));
+  assert.ok(buttonIds.includes(PANEL_COMMAND_NAMES.MARKET_GACHA_PAYMENT_INVITE_POINT));
+});
+
+test("market gacha confirmation button keeps the selected payment source", () => {
+  const currencyIds = createMarketGachaConfirmationRow("currency")
+    .toJSON()
+    .components
+    .map((button) => button.custom_id);
+  const invitePointIds = createMarketGachaConfirmationRow("invite_point")
+    .toJSON()
+    .components
+    .map((button) => button.custom_id);
+
+  assert.ok(currencyIds.includes(PANEL_COMMAND_NAMES.MARKET_GACHA_CONFIRM_CURRENCY));
+  assert.ok(invitePointIds.includes(PANEL_COMMAND_NAMES.MARKET_GACHA_CONFIRM_INVITE_POINT));
 });
 
 test("audio prizes select their files from the matching database category", () => {

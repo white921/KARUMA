@@ -41,6 +41,48 @@ type MarketGachaAudioAsset = {
   publicUrl: string;
 };
 
+export type MarketGachaPaymentSource = "currency" | "invite_point";
+
+export function createMarketGachaPaymentSelectionRow() {
+  return new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder()
+      .setCustomId(PANEL_COMMAND_NAMES.MARKET_GACHA_PAYMENT_CURRENCY)
+      .setLabel(`5,000${CURRENCY_NAMES}で引く`)
+      .setStyle(ButtonStyle.Success),
+    new ButtonBuilder()
+      .setCustomId(PANEL_COMMAND_NAMES.MARKET_GACHA_PAYMENT_INVITE_POINT)
+      .setLabel(`招待ポイント${INVITE_POINT_GACHA_COST}ptで引く`)
+      .setStyle(ButtonStyle.Primary),
+    new ButtonBuilder()
+      .setCustomId(PANEL_COMMAND_NAMES.MARKET_GACHA_CANCEL)
+      .setLabel("キャンセル")
+      .setStyle(ButtonStyle.Secondary),
+  );
+}
+
+export function createMarketGachaConfirmationRow(
+  paymentSource: MarketGachaPaymentSource,
+) {
+  const confirmCustomId =
+    paymentSource === "currency"
+      ? PANEL_COMMAND_NAMES.MARKET_GACHA_CONFIRM_CURRENCY
+      : PANEL_COMMAND_NAMES.MARKET_GACHA_CONFIRM_INVITE_POINT;
+  return new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder()
+      .setCustomId(confirmCustomId)
+      .setLabel("この内容で引く")
+      .setStyle(ButtonStyle.Danger),
+    new ButtonBuilder()
+      .setCustomId(PANEL_COMMAND_NAMES.MARKET_GACHA_DRAW)
+      .setLabel("支払い方法を選び直す")
+      .setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder()
+      .setCustomId(PANEL_COMMAND_NAMES.MARKET_GACHA_CANCEL)
+      .setLabel("キャンセル")
+      .setStyle(ButtonStyle.Secondary),
+  );
+}
+
 export function canBypassMarketGachaDailyLimit(member: unknown): boolean {
   const roleBackedMember = member as
     | { roles?: { cache?: { has: (roleId: string) => boolean } } }
@@ -52,6 +94,30 @@ export function canBypassMarketGachaDailyLimit(member: unknown): boolean {
 }
 
 export class MarketGachaService {
+  static async showPaymentSelection(interaction: ButtonInteraction): Promise<void> {
+    await interaction.editReply({
+      content:
+        "**市場ガチャの支払い方法を選択してください。**\n" +
+        `5,000${CURRENCY_NAMES}または招待ポイント${INVITE_POINT_GACHA_COST}ptを消費します。`,
+      components: [createMarketGachaPaymentSelectionRow()],
+    });
+  }
+
+  static async showDrawConfirmation(
+    interaction: ButtonInteraction,
+    paymentSource: MarketGachaPaymentSource,
+  ): Promise<void> {
+    const paymentDescription =
+      paymentSource === "currency"
+        ? `5,000${CURRENCY_NAMES}`
+        : `招待ポイント${INVITE_POINT_GACHA_COST}pt`;
+    await interaction.editReply({
+      content:
+        `**確認**\n${paymentDescription}を消費して市場ガチャを引きます。\nよろしいですか？`,
+      components: [createMarketGachaConfirmationRow(paymentSource)],
+    });
+  }
+
   private static getHotelTicketGrant(prize: MarketGachaPrize):
     | { ticketType: HotelFreeTicketType; quantity: number }
     | undefined {
@@ -135,7 +201,7 @@ export class MarketGachaService {
    */
   static async draw(
     interaction: ButtonInteraction,
-    paymentSource: "currency" | "invite_point" = "currency",
+    paymentSource: MarketGachaPaymentSource = "currency",
   ): Promise<void> {
     const prize = selectMarketGachaPrize(Math.random());
     const isDailyLimitExempt = await this.isDailyLimitExempt(interaction);

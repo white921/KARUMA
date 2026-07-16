@@ -84,10 +84,25 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
         await TicketViewService.viewShopTickets(interaction);
         break;
       case PANEL_COMMAND_NAMES.MARKET_GACHA_DRAW:
-        await MarketGachaService.draw(interaction);
+        await MarketGachaService.showPaymentSelection(interaction);
         break;
       case PANEL_COMMAND_NAMES.INVITE_POINT_GACHA_DRAW:
+        await MarketGachaService.showDrawConfirmation(interaction, "invite_point");
+        break;
+      case PANEL_COMMAND_NAMES.MARKET_GACHA_PAYMENT_CURRENCY:
+        await MarketGachaService.showDrawConfirmation(interaction, "currency");
+        break;
+      case PANEL_COMMAND_NAMES.MARKET_GACHA_PAYMENT_INVITE_POINT:
+        await MarketGachaService.showDrawConfirmation(interaction, "invite_point");
+        break;
+      case PANEL_COMMAND_NAMES.MARKET_GACHA_CONFIRM_CURRENCY:
+        await MarketGachaService.draw(interaction, "currency");
+        break;
+      case PANEL_COMMAND_NAMES.MARKET_GACHA_CONFIRM_INVITE_POINT:
         await MarketGachaService.draw(interaction, "invite_point");
+        break;
+      case PANEL_COMMAND_NAMES.MARKET_GACHA_CANCEL:
+        await interaction.editReply({ content: "市場ガチャをキャンセルしました。", components: [] });
         break;
       case PANEL_COMMAND_NAMES.OMIKUJI_DRAW:
         await OmikujiService.draw(interaction);

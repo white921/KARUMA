@@ -76,13 +76,14 @@ test("hotel and shop panels include their ticket confirmation buttons", () => {
   assert.ok(shopButtonIds.includes(PANEL_COMMAND_NAMES.SHOP_TICKET_VIEW));
 });
 
-test("shop panel includes the invite point gacha button", () => {
+test("shop panel starts the gacha flow from one button", () => {
   const shopButtonIds = createShopPanelActionRow()
     .toJSON()
     .components
     .map((button) => button.custom_id);
 
-  assert.ok(shopButtonIds.includes(PANEL_COMMAND_NAMES.INVITE_POINT_GACHA_DRAW));
+  assert.ok(shopButtonIds.includes(PANEL_COMMAND_NAMES.MARKET_GACHA_DRAW));
+  assert.ok(!shopButtonIds.includes(PANEL_COMMAND_NAMES.INVITE_POINT_GACHA_DRAW));
 });
 
 test("shop panel links ticket-based gacha prizes to general inquiry", () => {

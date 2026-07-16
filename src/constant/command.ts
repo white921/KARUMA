@@ -46,6 +46,12 @@ export const PANEL_COMMAND_NAMES = {
   SHOP_SEND: "shopSend",
   SHOP_TICKET_VIEW: "shopTicketView",
   MARKET_GACHA_DRAW: "marketGachaDraw",
+  MARKET_GACHA_PAYMENT_CURRENCY: "marketGachaPaymentCurrency",
+  MARKET_GACHA_PAYMENT_INVITE_POINT: "marketGachaPaymentInvitePoint",
+  MARKET_GACHA_CONFIRM_CURRENCY: "marketGachaConfirmCurrency",
+  MARKET_GACHA_CONFIRM_INVITE_POINT: "marketGachaConfirmInvitePoint",
+  MARKET_GACHA_CANCEL: "marketGachaCancel",
+  // 旧市場パネルとの互換用。新しいパネルでは支払い方法を選択する。
   INVITE_POINT_GACHA_DRAW: "invitePointGachaDraw",
   OMIKUJI_DRAW: "omikujiDraw",
   HISTORY: "history",
