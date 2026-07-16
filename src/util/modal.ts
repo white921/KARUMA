@@ -80,9 +80,9 @@ export async function showShopAmountModal(
 
   const amountInput = new TextInputBuilder()
     .setCustomId("amount")
-    .setLabel("商品価格（割引前）")
+    .setLabel("支払い金額（割引後）")
     .setStyle(TextInputStyle.Short)
-    .setPlaceholder("金額を入力してください")
+    .setPlaceholder("割引適用後の金額を入力してください")
     .setRequired(true)
     .setMinLength(1)
     .setMaxLength(10);

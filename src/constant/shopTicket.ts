@@ -40,12 +40,3 @@ export function getShopTicket(type: ShopTicketType): ShopTicket {
   }
   return ticket;
 }
-
-export function calculateShopTicketDiscount(
-  amount: number,
-  ticketType: ShopTicketType,
-): { discountAmount: number; paymentAmount: number } {
-  const ticket = getShopTicket(ticketType);
-  const discountAmount = Math.floor((amount * ticket.discountRate) / 100);
-  return { discountAmount, paymentAmount: amount - discountAmount };
-}

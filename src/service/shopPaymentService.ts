@@ -1,8 +1,7 @@
 import { MessageFlags, ModalSubmitInteraction } from "discord.js";
-import { PoolConnection, RowDataPacket } from "mysql2/promise";
+import { RowDataPacket } from "mysql2/promise";
 
 import {
-  calculateShopTicketDiscount,
   getShopTicket,
   SHOP_TICKET_MAX_APPLICABLE_AMOUNT,
   SHOP_TICKET_NONE,
@@ -30,12 +29,11 @@ export class ShopPaymentService {
   private static createTicketLogComment(
     productName: string,
     ticketType: ShopTicketType | typeof SHOP_TICKET_NONE,
-    discountAmount: number,
   ): string {
     if (ticketType === SHOP_TICKET_NONE) {
       return `${productName}\n使用チケット: 消費しない`;
     }
-    return `${productName}\n使用チケット: ${getShopTicket(ticketType).label}\n割引額: ${discountAmount.toLocaleString()}${CURRENCY_NAMES}`;
+    return `${productName}\n使用チケット: ${getShopTicket(ticketType).label}`;
   }
 
   static async pay(
@@ -58,8 +56,6 @@ export class ShopPaymentService {
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     const connection = await DbService.getConnection();
-    let paymentAmount = amount;
-    let discountAmount = 0;
     let afterWallet = 0;
     let botAfterWallet = 0;
     let logComment = "";
@@ -81,21 +77,16 @@ export class ShopPaymentService {
 
       if (ticketType !== SHOP_TICKET_NONE) {
         await ShopTicketService.consume(connection, interaction.user.id, ticketType);
-        ({ discountAmount, paymentAmount } = calculateShopTicketDiscount(
-          amount,
-          ticketType,
-        ));
       }
-      if (Number(user.wallet) < paymentAmount) {
+      if (Number(user.wallet) < amount) {
         throw new Error("残高が不足しています。");
       }
 
-      afterWallet = Number(user.wallet) - paymentAmount;
-      botAfterWallet = Number(bot.wallet) + paymentAmount;
+      afterWallet = Number(user.wallet) - amount;
+      botAfterWallet = Number(bot.wallet) + amount;
       logComment = this.createTicketLogComment(
         productName.trim(),
         ticketType,
-        discountAmount,
       );
 
       await connection.execute("UPDATE accounts SET wallet = ? WHERE user_id = ?", [
@@ -112,7 +103,7 @@ export class ShopPaymentService {
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [
           PANEL_COMMAND_NAMES.SHOP_SEND,
-          paymentAmount,
+          amount,
           interaction.user.id,
           BOT_ID,
           afterWallet,
@@ -130,16 +121,16 @@ export class ShopPaymentService {
 
     await interaction.editReply({
       content:
-        `✅ ショップへ ${paymentAmount.toLocaleString()}${CURRENCY_NAMES}支払いました！\n` +
+        `✅ ショップへ ${amount.toLocaleString()}${CURRENCY_NAMES}支払いました！\n` +
         `商品名: ${productName.trim()}\n` +
         (ticketType === SHOP_TICKET_NONE
           ? "使用チケット: 消費しない"
-          : `使用チケット: ${getShopTicket(ticketType).label}\n割引額: ${discountAmount.toLocaleString()}${CURRENCY_NAMES}`),
+          : `使用チケット: ${getShopTicket(ticketType).label}`),
     });
     await ActionService.createActionLogMessage(
       interaction,
       PANEL_COMMAND_NAMES.SHOP_SEND,
-      paymentAmount,
+      amount,
       interaction.user.id,
       BOT_ID,
       logComment,
