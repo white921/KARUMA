@@ -99,7 +99,7 @@ npm run start
 - サプボ・歌みた：R2の公開URLと演者名をDBから選び、当選者本人だけに見える「当選ファイルを開く」ボタンで渡す。Discordの添付容量上限を受けない
 - 音源テーブルと配信履歴により、誰のどのファイルを渡したかを抽選ごとに記録する
 
-既存DBに導入する場合は、デプロイ前に `src/sql/20260713_market_gacha.sql`、`src/sql/20260714_market_gacha_audio.sql`、`src/sql/20260718_shop_tickets.sql`、`src/sql/20260716_invite_points.sql` をこの順で適用してください。新規DBでは `src/sql/createTable.sql` に含まれています。適用後、技術統括が市場パネルのチャンネルで `/panel` を実行してパネルを更新してください。
+既存DBに導入する場合は、デプロイ前に `src/sql/20260713_market_gacha.sql`、`src/sql/20260714_market_gacha_audio.sql`、`src/sql/20260718_shop_tickets.sql`、`src/sql/20260716_invite_points.sql`、`src/sql/20260716_market_gacha_audio_correction.sql` をこの順で適用してください。新規DBでは `src/sql/createTable.sql` に含まれています。適用後、技術統括が市場パネルのチャンネルで `/panel` を実行してパネルを更新してください。
 
 ## 評価シートの保存・削除・復元
 

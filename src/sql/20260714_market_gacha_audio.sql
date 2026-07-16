@@ -30,7 +30,7 @@ INSERT INTO market_gacha_audio_assets
   (category, performer_name, object_key, file_name, public_url)
 VALUES
   ('superchat', '教祖', 'superchat/kyoso/YouCut_20260628_114125860.mp4', 'YouCut_20260628_114125860.mp4', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/superchat/kyoso/YouCut_20260628_114125860.mp4'),
-  ('superchat', '教祖', 'superchat/kyoso/YouCut_20260622_135046734.mp4', 'YouCut_20260622_135046734.mp4', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/superchat/kyoso/YouCut_20260622_135046734.mp4'),
+  ('song_cover', '教祖', 'superchat/kyoso/YouCut_20260622_135046734.mp4', 'YouCut_20260622_135046734.mp4', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/superchat/kyoso/YouCut_20260622_135046734.mp4'),
   ('superchat', '教祖', 'superchat/kyoso/YouCut_20260604_204843312.mp4', 'YouCut_20260604_204843312.mp4', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/superchat/kyoso/YouCut_20260604_204843312.mp4'),
   ('song_cover', '教祖', 'song-cover/kyoso/YouCut_20260529_203035054.mp4', 'YouCut_20260529_203035054.mp4', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/song-cover/kyoso/YouCut_20260529_203035054.mp4'),
   ('superchat', '聖金', 'superchat/seikin/trim_B20B1C9A-508E-44CC-A98F-F9979DEE8CC4.mp4', 'trim_B20B1C9A-508E-44CC-A98F-F9979DEE8CC4.mp4', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/superchat/seikin/trim_B20B1C9A-508E-44CC-A98F-F9979DEE8CC4.mp4'),
