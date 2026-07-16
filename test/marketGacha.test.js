@@ -129,7 +129,7 @@ test("shop discount prize directs users to the market ticket guidance", () => {
   const instructions = MarketGachaService.getTicketInstructions(discountTicket);
 
   assert.match(instructions, /教団市場チケットを切り/);
-  assert.match(instructions, /チケット内の案内に従ってください/);
+  assert.match(instructions, /割引券を使用する旨を従業員にお伝えください/);
 });
 
 test("audio prize result confirms DM delivery and uses the audio type", () => {

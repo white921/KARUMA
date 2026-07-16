@@ -177,7 +177,7 @@ export class MarketGachaService {
     }
 
     if (this.getShopTicketGrant(prize)) {
-      return "[総合お問い合わせ](https://discord.com/channels/1520329128883126392/1520368587255189545)にて教団市場チケットを切り、チケット内の案内に従ってください。";
+      return "[総合お問い合わせ](https://discord.com/channels/1520329128883126392/1520368587255189545)にて教団市場チケットを切り、割引券を使用する旨を従業員にお伝えください。";
     }
 
     return "[総合お問い合わせ](https://discord.com/channels/1520329128883126392/1520368587255189545)にて教団市場チケットを切り、当選メッセージをスクショしてチケット内に送信してください。";

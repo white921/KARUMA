@@ -95,6 +95,10 @@ test("shop panel links ticket-based gacha prizes to general inquiry", () => {
     require("../dist/constant/panel.js").SHOP_PANEL_MESSAGES.DESCRIPTION,
     /教団市場チケット/,
   );
+  assert.match(
+    require("../dist/constant/panel.js").SHOP_PANEL_MESSAGES.DESCRIPTION,
+    /割引券を使用する旨を従業員にお伝えください/,
+  );
 });
 
 test("non-bank panel buttons do not use icons", async () => {
