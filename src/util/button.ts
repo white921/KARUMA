@@ -14,9 +14,12 @@ import { HotelVcService } from "../service/hotelVcService";
 import { GameService } from "../service/gameService";
 
 import { PANEL_COMMAND_NAMES } from "../constant/command";
-import { HOTEL_PURCHASE_WAY_TYPE } from "../constant/hotel";
-import { HOTEL_TYPE_NAMES } from "../constant/hotel";
-import { HOTEL_PRICE } from "../constant/hotel";
+import {
+  HOTEL_MESSAGES,
+  HOTEL_PRICE,
+  HOTEL_PURCHASE_WAY_TYPE,
+  HOTEL_TYPE_NAMES,
+} from "../constant/hotel";
 import { CURRENCY_NAMES } from "../constant/currency";
 import { COLOR } from "../constant/color";
 import { DIARY_MESSAGES, DIARY_PRICE, DIARY_TYPE } from "../constant/diary";
@@ -116,7 +119,9 @@ export async function showConfirmButton(
           embed.setDescription(
             `**${selectedHotelPurchaseWay}**を消費して**${
               HOTEL_TYPE_NAMES.SECRET
-            }**を購入しますか？\n選択したユーザー: <@${selectedUserId || ""}>`,
+            }**を購入しますか？\n選択したユーザー: <@${selectedUserId || ""}>\n${
+              HOTEL_MESSAGES.TICKET_PRIORITY_NOTICE
+            }`,
           );
           if (selectedMemberIconUrl) {
             embed.setImage(selectedMemberIconUrl);
@@ -177,7 +182,9 @@ export async function showConfirmButton(
         ) {
           embed.setTitle(`🏦 ${HOTEL_TYPE_NAMES.FREEDOM}`);
           embed.setDescription(
-            `**${selectedHotelPurchaseWay}**を消費して**${HOTEL_TYPE_NAMES.FREEDOM}**を購入しますか？`,
+            `**${selectedHotelPurchaseWay}**を消費して**${
+              HOTEL_TYPE_NAMES.FREEDOM
+            }**を購入しますか？\n${HOTEL_MESSAGES.TICKET_PRIORITY_NOTICE}`,
           );
           embed.setColor(COLOR.YELLOW);
         }

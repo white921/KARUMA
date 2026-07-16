@@ -50,4 +50,5 @@ export const HOTEL_MESSAGES = {
   DELETE_EMPTY_BONUS_VC_FAILED: "空になった無料VCの削除に失敗しました",
   CHECK_VC_EMPTY_FAILED: "VCの空チェックに失敗しました",
   HAS_NOT_TICKET: "チケットがありません",
+  TICKET_PRIORITY_NOTICE: "※無料券を所持しているため、チケットを優先して消費します。",
 };

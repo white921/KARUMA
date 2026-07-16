@@ -3,6 +3,7 @@ const assert = require("node:assert/strict");
 
 const { ROLE_IDS } = require("../dist/constant/id.js");
 const { CURRENCY_NAMES } = require("../dist/constant/currency.js");
+const { HOTEL_MESSAGES } = require("../dist/constant/hotel.js");
 const { PANEL_COMMAND_NAMES } = require("../dist/constant/command.js");
 const { createBankPanelActionRow } = require("../dist/service/panelService.js");
 const { createAdminPanelActionRow } = require("../dist/service/adminPanelService.js");
@@ -135,6 +136,13 @@ test("hotel panel duration labels match hour-based expiration", () => {
   assert.match(description, /50000krm\/12時間/);
   assert.match(description, /90000krm\/24時間/);
   assert.doesNotMatch(description, /1分|2分/);
+});
+
+test("hotel ticket confirmation notice explains ticket priority", () => {
+  assert.equal(
+    HOTEL_MESSAGES.TICKET_PRIORITY_NOTICE,
+    "※無料券を所持しているため、チケットを優先して消費します。",
+  );
 });
 
 test("normal hotel is free for apostle and cult member roles", async () => {
