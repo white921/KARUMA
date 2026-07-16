@@ -7,6 +7,20 @@ const {
   MARKET_GACHA_PRIZES,
   selectMarketGachaPrize,
 } = require("../dist/constant/marketGacha.js");
+const {
+  canBypassMarketGachaDailyLimit,
+} = require("../dist/service/marketGachaService.js");
+const { ROLE_IDS } = require("../dist/constant/id.js");
+
+function memberWithRoles(roleIds) {
+  return {
+    roles: {
+      cache: {
+        has: (roleId) => roleIds.includes(roleId),
+      },
+    },
+  };
+}
 
 test("market gacha prize probabilities total 100 percent", () => {
   const total = MARKET_GACHA_PRIZES.reduce((sum, prize) => sum + prize.probability, 0);
@@ -29,6 +43,17 @@ test("market gacha rejects invalid random values", () => {
 test("market gacha charge and daily limit follow the market specification", () => {
   assert.equal(MARKET_GACHA_PRICE, 5000);
   assert.equal(MARKET_GACHA_DAILY_LIMIT, 5);
+});
+
+test("technical director bypasses only the market gacha daily limit", () => {
+  assert.equal(
+    canBypassMarketGachaDailyLimit(memberWithRoles([ROLE_IDS.GIJUTU_LEADER])),
+    true,
+  );
+  assert.equal(
+    canBypassMarketGachaDailyLimit(memberWithRoles([ROLE_IDS.KANRISYA])),
+    false,
+  );
 });
 
 test("audio prizes select their files from the matching database category", () => {

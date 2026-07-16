@@ -3,6 +3,7 @@ import {
   ButtonBuilder,
   ButtonInteraction,
   ButtonStyle,
+  GuildMember,
 } from "discord.js";
 import { RowDataPacket } from "mysql2";
 import { PoolConnection, ResultSetHeader } from "mysql2/promise";
@@ -15,7 +16,7 @@ import {
   selectMarketGachaPrize,
 } from "../constant/marketGacha";
 import { PANEL_COMMAND_NAMES } from "../constant/command";
-import { BOT_ID } from "../constant/id";
+import { BOT_ID, ROLE_IDS } from "../constant/id";
 import { CURRENCY_NAMES } from "../constant/currency";
 import { DbService } from "./dbService";
 import { HotelFreeTicketService } from "./hotelFreeTicketService";
@@ -39,6 +40,16 @@ type MarketGachaAudioAsset = {
   fileName: string;
   publicUrl: string;
 };
+
+export function canBypassMarketGachaDailyLimit(member: unknown): boolean {
+  const roleBackedMember = member as
+    | { roles?: { cache?: { has: (roleId: string) => boolean } } }
+    | null
+    | undefined;
+  return Boolean(
+    roleBackedMember?.roles?.cache?.has(ROLE_IDS.GIJUTU_LEADER),
+  );
+}
 
 export class MarketGachaService {
   private static getHotelTicketGrant(prize: MarketGachaPrize):
@@ -127,6 +138,7 @@ export class MarketGachaService {
     paymentSource: "currency" | "invite_point" = "currency",
   ): Promise<void> {
     const prize = selectMarketGachaPrize(Math.random());
+    const isDailyLimitExempt = await this.isDailyLimitExempt(interaction);
     const connection = await DbService.getConnection();
 
     let remainingDraws = 0;
@@ -145,7 +157,7 @@ export class MarketGachaService {
          FOR UPDATE`,
         [interaction.user.id],
       );
-      if (drawRows.length >= MARKET_GACHA_DAILY_LIMIT) {
+      if (!isDailyLimitExempt && drawRows.length >= MARKET_GACHA_DAILY_LIMIT) {
         throw new Error(`市場ガチャは1日${MARKET_GACHA_DAILY_LIMIT}回までです。`);
       }
 
@@ -263,9 +275,24 @@ export class MarketGachaService {
         (paymentSource === "invite_point"
           ? `消費：${INVITE_POINT_GACHA_COST}招待ポイント／残り：${afterInvitePoints}pt\n`
           : "") +
-        `本日の残り回数：${remainingDraws}回\n\n` +
+        (isDailyLimitExempt
+          ? "技術統括テスト中のため、1日の回数制限は適用されません。\n\n"
+          : `本日の残り回数：${remainingDraws}回\n\n`) +
         this.getTicketInstructions(prize, audioAsset),
       components: audioComponents,
     });
+  }
+
+  private static async isDailyLimitExempt(
+    interaction: ButtonInteraction,
+  ): Promise<boolean> {
+    if (interaction.member instanceof GuildMember) {
+      return canBypassMarketGachaDailyLimit(interaction.member);
+    }
+
+    const member = interaction.guild
+      ? await interaction.guild.members.fetch(interaction.user.id)
+      : undefined;
+    return canBypassMarketGachaDailyLimit(member);
   }
 }
