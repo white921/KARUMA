@@ -8,7 +8,7 @@ import { SalaryService } from "../service/salaryService";
 import { GameService } from "../service/gameService";
 import { SalesManagementService } from "../service/salesManagementService";
 import { InterviewShiftService } from "../service/interviewShiftService";
-import { DiaryService } from "../service/diaryService";
+// import { DiaryService } from "../service/diaryService";
 import { DailyMessageService } from "../service/dailyMessageService";
 import { RedeployService } from "../service/redeployService";
 
@@ -61,11 +61,11 @@ export async function handleSchedule(client: Client) {
   // );
 
   cron.schedule(
-    "0 7 * * *",
-    () => {
-      // 毎日7:00に実行される処理
+    "0 21,22,23 * * *",
+    async () => {
+      // 毎日21:00・22:00・23:00に実行される処理
       try {
-        InterviewShiftService.sendDailyShiftMessage(client);
+        await InterviewShiftService.sendDailyShiftMessage(client);
       } catch (err) {
         console.error("schedule interview shift job error:", err);
       }
@@ -97,17 +97,17 @@ export async function handleSchedule(client: Client) {
     { timezone: "Asia/Tokyo" },
   );
 
-  cron.schedule(
-    "10 0 * * *",
-    () => {
-      try {
-        DiaryService.closeInactiveDiaries(client);
-      } catch (err) {
-        console.error("schedule daily diary cleanup job error:", err);
-      }
-    },
-    { timezone: "Asia/Tokyo" },
-  );
+  // cron.schedule(
+  //   "10 0 * * *",
+  //   () => {
+  //     try {
+  //       DiaryService.closeInactiveDiaries(client);
+  //     } catch (err) {
+  //       console.error("schedule daily diary cleanup job error:", err);
+  //     }
+  //   },
+  //   { timezone: "Asia/Tokyo" },
+  // );
 
   cron.schedule(
     "45 0,4,8,12,16,20 * * *",

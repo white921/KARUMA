@@ -9,7 +9,7 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 const WEEK_DAYS = ["日", "月", "火", "水", "木", "金", "土"];
-const SHIFT_OPTIONS = ["21時", "22時", "欠席"];
+const SHIFT_OPTIONS = ["21時", "22時", "23時", "欠席"];
 
 export function buildDailyShiftMessagePayload(dateLabel: string): string {
   return [

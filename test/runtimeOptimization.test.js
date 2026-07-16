@@ -9,7 +9,7 @@ const {
   normalizePollingIntervalMs,
   normalizePositiveInteger,
 } = require("../dist/util/runtimeConfig.js");
-const { BOT_ID } = require("../dist/constant/id.js");
+const { BOT_ID, TEXT_CHANNEL_IDS } = require("../dist/constant/id.js");
 const {
   resolveMysqlConnectionLimit,
   resolveMysqlSlowAcquireLogMs,
@@ -70,8 +70,29 @@ test("daily shift payload is consolidated into a single message", () => {
   assert.match(payload, /7月3日\(木\)/);
   assert.match(payload, /21時/);
   assert.match(payload, /22時/);
+  assert.match(payload, /23時/);
   assert.match(payload, /欠席/);
   assert.match(payload, /リアクション/);
+});
+
+test("interviewer shift notifications target the configured channel at 21, 22, and 23 Japan time", () => {
+  const scheduleSource = fs.readFileSync(
+    path.join(__dirname, "../src/handler/scheduleHandler.ts"),
+    "utf8",
+  );
+
+  assert.equal(TEXT_CHANNEL_IDS.MENSTU_SHIFT, "1527175478102851685");
+  assert.match(scheduleSource, /cron\.schedule\(\s*"0 21,22,23 \* \* \*"/);
+  assert.match(scheduleSource, /await InterviewShiftService\.sendDailyShiftMessage\(client\)/);
+});
+
+test("daily diary cleanup schedule is disabled", () => {
+  const scheduleSource = fs.readFileSync(
+    path.join(__dirname, "../src/handler/scheduleHandler.ts"),
+    "utf8",
+  );
+
+  assert.doesNotMatch(scheduleSource, /^\s+DiaryService\.closeInactiveDiaries\(client\);/m);
 });
 
 test("bot account id is configured for KARUMA", () => {
