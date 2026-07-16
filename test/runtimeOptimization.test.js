@@ -75,14 +75,14 @@ test("daily shift payload is consolidated into a single message", () => {
   assert.match(payload, /リアクション/);
 });
 
-test("interviewer shift notifications target the configured channel at 21, 22, and 23 Japan time", () => {
+test("interviewer shift notifications target the configured channel at 7 Japan time", () => {
   const scheduleSource = fs.readFileSync(
     path.join(__dirname, "../src/handler/scheduleHandler.ts"),
     "utf8",
   );
 
   assert.equal(TEXT_CHANNEL_IDS.MENSTU_SHIFT, "1527175478102851685");
-  assert.match(scheduleSource, /cron\.schedule\(\s*"0 21,22,23 \* \* \*"/);
+  assert.match(scheduleSource, /cron\.schedule\(\s*"0 7 \* \* \*"/);
   assert.match(scheduleSource, /await InterviewShiftService\.sendDailyShiftMessage\(client\)/);
 });
 
