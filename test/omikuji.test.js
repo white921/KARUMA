@@ -7,6 +7,7 @@ const {
 } = require("../dist/constant/omikuji.js");
 const { getJapanDate } = require("../dist/service/omikujiService.js");
 const {
+  assertOmikujiDrawAllowed,
   canBypassOmikujiDailyLimit,
   calculateOmikujiWalletAfter,
   createOmikujiSpecialLogEmbed,
@@ -47,6 +48,11 @@ test("omikuji never makes a wallet balance negative", () => {
   assert.equal(calculateOmikujiWalletAfter(5_000, -3_000), 2_000);
   assert.equal(calculateOmikujiWalletAfter(1_000, -3_000), 0);
   assert.equal(calculateOmikujiWalletAfter(0, -3_000), 0);
+});
+
+test("sub accounts cannot draw omikuji", () => {
+  assert.doesNotThrow(() => assertOmikujiDrawAllowed(false));
+  assert.throws(() => assertOmikujiDrawAllowed(true), /サブアカウント/);
 });
 
 test("technical director and server owner bypass the omikuji daily limit", () => {

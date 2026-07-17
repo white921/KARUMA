@@ -4,8 +4,13 @@ import { RowDataPacket } from "mysql2";
 import { PANEL_COMMAND_NAMES } from "../constant/command";
 import { CURRENCY_NAMES } from "../constant/currency";
 import { BOT_ID, ROLE_IDS, TEXT_CHANNEL_IDS } from "../constant/id";
-import { OmikujiPrize, selectOmikujiPrize } from "../constant/omikuji";
+import {
+  OmikujiPrize,
+  OMIKUJI_MESSAGES,
+  selectOmikujiPrize,
+} from "../constant/omikuji";
 import { COLOR } from "../constant/color";
+import { AccountService } from "./accountService";
 import { DbService } from "./dbService";
 
 type WalletRow = RowDataPacket & { wallet: number };
@@ -19,6 +24,12 @@ export function canBypassOmikujiDailyLimit(member: unknown): boolean {
     roleBackedMember?.roles?.cache?.has(ROLE_IDS.GIJUTU_LEADER) ||
       roleBackedMember?.roles?.cache?.has(ROLE_IDS.SABANUSI),
   );
+}
+
+export function assertOmikujiDrawAllowed(isSubAccount: boolean): void {
+  if (isSubAccount) {
+    throw new Error(OMIKUJI_MESSAGES.SUB_ACCOUNT_NOT_ALLOWED);
+  }
 }
 
 export function calculateOmikujiWalletAfter(
@@ -118,8 +129,12 @@ export class OmikujiService {
   /**
    * 通常メンバーは日本時間で一日一回、技術統括は回数制限なしで抽選する。
    * 当選記録・残高・取引履歴は同一トランザクションで確定する。
-   */
+  */
   static async draw(interaction: ButtonInteraction): Promise<void> {
+    assertOmikujiDrawAllowed(
+      await AccountService.isSubAccount(interaction.user.id),
+    );
+
     const prize = selectOmikujiPrize(Math.random());
     const drawDate = getJapanDate();
     const isDailyLimitExempt = await this.isDailyLimitExempt(interaction);

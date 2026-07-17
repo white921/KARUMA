@@ -13,6 +13,10 @@ export const OMIKUJI_PRIZES: readonly OmikujiPrize[] = [
   { fortune: "超大吉", amount: 50_000, probability: 0.5 },
 ];
 
+export const OMIKUJI_MESSAGES = {
+  SUB_ACCOUNT_NOT_ALLOWED: "サブアカウントではおみくじを引けません。",
+};
+
 export function selectOmikujiPrize(randomValue: number): OmikujiPrize {
   if (!Number.isFinite(randomValue) || randomValue < 0 || randomValue >= 1) {
     throw new Error("おみくじ乱数の値が不正です。");
