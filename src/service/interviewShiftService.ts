@@ -12,16 +12,20 @@ const WEEK_DAYS = ["日", "月", "火", "水", "木", "金", "土"];
 const SHIFT_OPTIONS = ["21時", "22時", "23時", "欠席"];
 
 export function buildDailyShiftMessagePayloads(dateLabel: string): string[] {
-  return SHIFT_OPTIONS.map((option) =>
+  return SHIFT_OPTIONS.map((option, index) =>
     [
-      `<@&${ROLE_IDS.MENSETU_LEADER}><@&${ROLE_IDS.MENSTUKAN}>`,
+      index === 0
+        ? `<@&${ROLE_IDS.MENSETU_LEADER}><@&${ROLE_IDS.MENSTUKAN}>`
+        : null,
       `${dateLabel}`,
       "本日の面接のシフトを提出してください",
       "",
       option,
       "",
       "該当する場合は、このメッセージにリアクションをつけてください。",
-    ].join("\n"),
+    ]
+      .filter((line): line is string => line !== null)
+      .join("\n"),
   );
 }
 

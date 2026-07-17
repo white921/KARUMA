@@ -69,6 +69,10 @@ test("daily shift payloads are separated by shift option", () => {
   const payloads = buildDailyShiftMessagePayloads("7月3日(木)");
 
   assert.equal(payloads.length, 4);
+  assert.match(payloads[0], /^<@&\d+><@&\d+>/);
+  for (const payload of payloads.slice(1)) {
+    assert.doesNotMatch(payload, /<@&\d+>/);
+  }
   assert.deepEqual(
     payloads.map((payload) => {
       assert.match(payload, /7月3日\(木\)/);
