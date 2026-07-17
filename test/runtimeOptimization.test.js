@@ -65,22 +65,16 @@ test("mysql runtime settings are configurable with safe defaults", () => {
   assert.equal(resolveMysqlSlowAcquireLogMs("2500"), 2500);
 });
 
-test("daily shift payloads are separated by shift option", () => {
+test("daily shift payloads use one shared introduction and separate shift options", () => {
   const payloads = buildDailyShiftMessagePayloads("7月3日(木)");
+  const [introduction, ...options] = payloads;
 
-  assert.equal(payloads.length, 4);
-  assert.match(payloads[0], /^<@&\d+><@&\d+>/);
-  for (const payload of payloads.slice(1)) {
-    assert.doesNotMatch(payload, /<@&\d+>/);
-  }
-  assert.deepEqual(
-    payloads.map((payload) => {
-      assert.match(payload, /7月3日\(木\)/);
-      assert.match(payload, /リアクション/);
-      return payload.match(/(?:21時|22時|23時|欠席)/)?.[0];
-    }),
-    ["21時", "22時", "23時", "欠席"],
-  );
+  assert.equal(payloads.length, 5);
+  assert.match(introduction, /^<@&\d+><@&\d+>/);
+  assert.match(introduction, /7月3日\(木\)/);
+  assert.match(introduction, /本日の面接のシフトを提出してください/);
+  assert.match(introduction, /リアクション/);
+  assert.deepEqual(options, ["21時", "22時", "23時", "欠席"]);
 });
 
 test("interviewer shift notifications target the configured channel at 00:30 Japan time", () => {
