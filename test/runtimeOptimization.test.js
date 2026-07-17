@@ -15,7 +15,7 @@ const {
   resolveMysqlSlowAcquireLogMs,
 } = require("../dist/service/dbService.js");
 const {
-  buildDailyShiftMessagePayload,
+  buildDailyShiftMessagePayloads,
 } = require("../dist/service/interviewShiftService.js");
 
 test("command registration on boot is disabled by default", () => {
@@ -65,24 +65,29 @@ test("mysql runtime settings are configurable with safe defaults", () => {
   assert.equal(resolveMysqlSlowAcquireLogMs("2500"), 2500);
 });
 
-test("daily shift payload is consolidated into a single message", () => {
-  const payload = buildDailyShiftMessagePayload("7月3日(木)");
-  assert.match(payload, /7月3日\(木\)/);
-  assert.match(payload, /21時/);
-  assert.match(payload, /22時/);
-  assert.match(payload, /23時/);
-  assert.match(payload, /欠席/);
-  assert.match(payload, /リアクション/);
+test("daily shift payloads are separated by shift option", () => {
+  const payloads = buildDailyShiftMessagePayloads("7月3日(木)");
+
+  assert.equal(payloads.length, 4);
+  assert.deepEqual(
+    payloads.map((payload) => {
+      assert.match(payload, /7月3日\(木\)/);
+      assert.match(payload, /リアクション/);
+      return payload.match(/(?:21時|22時|23時|欠席)/)?.[0];
+    }),
+    ["21時", "22時", "23時", "欠席"],
+  );
 });
 
-test("interviewer shift notifications target the configured channel at 7 Japan time", () => {
+test("interviewer shift notifications target the configured channel at 00:30 Japan time", () => {
   const scheduleSource = fs.readFileSync(
     path.join(__dirname, "../src/handler/scheduleHandler.ts"),
     "utf8",
   );
 
   assert.equal(TEXT_CHANNEL_IDS.MENSTU_SHIFT, "1527175478102851685");
-  assert.match(scheduleSource, /cron\.schedule\(\s*"0 7 \* \* \*"/);
+  assert.match(scheduleSource, /cron\.schedule\(\s*"30 0 \* \* \*"/);
+  assert.match(scheduleSource, /timezone:\s*"Asia\/Tokyo"/);
   assert.match(scheduleSource, /await InterviewShiftService\.sendDailyShiftMessage\(client\)/);
 });
 

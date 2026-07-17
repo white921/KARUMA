@@ -61,9 +61,9 @@ export async function handleSchedule(client: Client) {
   // );
 
   cron.schedule(
-    "0 7 * * *",
+    "30 0 * * *",
     async () => {
-      // 毎日7:00に実行される処理
+      // 毎日0:30に実行される処理
       try {
         await InterviewShiftService.sendDailyShiftMessage(client);
       } catch (err) {

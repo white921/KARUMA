@@ -11,17 +11,18 @@ dayjs.extend(timezone);
 const WEEK_DAYS = ["日", "月", "火", "水", "木", "金", "土"];
 const SHIFT_OPTIONS = ["21時", "22時", "23時", "欠席"];
 
-export function buildDailyShiftMessagePayload(dateLabel: string): string {
-  return [
-    `<@&${ROLE_IDS.MENSETU_LEADER}><@&${ROLE_IDS.MENSTUKAN}>`,
-    `${dateLabel}`,
-    "本日の面接のシフトを提出してください",
-    "",
-    "選択肢",
-    ...SHIFT_OPTIONS.map((option) => `- ${option}`),
-    "",
-    "出席できる時間または欠席にリアクションをつけてください。",
-  ].join("\n");
+export function buildDailyShiftMessagePayloads(dateLabel: string): string[] {
+  return SHIFT_OPTIONS.map((option) =>
+    [
+      `<@&${ROLE_IDS.MENSETU_LEADER}><@&${ROLE_IDS.MENSTUKAN}>`,
+      `${dateLabel}`,
+      "本日の面接のシフトを提出してください",
+      "",
+      option,
+      "",
+      "該当する場合は、このメッセージにリアクションをつけてください。",
+    ].join("\n"),
+  );
 }
 
 export class InterviewShiftService {
@@ -39,6 +40,8 @@ export class InterviewShiftService {
     const weekDay = WEEK_DAYS[now.day()];
     const dateLabel = now.format(`M月D日(${weekDay})`);
 
-    await channel.send(buildDailyShiftMessagePayload(dateLabel));
+    for (const payload of buildDailyShiftMessagePayloads(dateLabel)) {
+      await channel.send(payload);
+    }
   }
 }
