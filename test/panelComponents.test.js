@@ -144,11 +144,11 @@ test("unified hotel panel description has no unintended leading spaces", () => {
   assert.deepEqual(linesWithLeadingSpaces, []);
 });
 
-test("hotel panel free role wording uses apostle instead of engraving", () => {
+test("hotel panel lists every role eligible for a free normal hotel", () => {
   const description = HOTEL_VC_PANEL_MESSAGES.DESCRIPTION;
 
   assert.equal(typeof description, "string");
-  assert.match(description, /使徒・教団員ロール所持者/);
+  assert.match(description, /使徒・教団員・教祖・司教・裏方ロール所持者/);
   assert.doesNotMatch(description, /刻印/);
 });
 
@@ -170,18 +170,20 @@ test("hotel ticket confirmation notice explains ticket priority", () => {
   );
 });
 
-test("normal hotel is free for apostle and cult member roles", async () => {
-  assert.equal(
-    await HotelVcService.isNormalHotelBonusMember(
-      memberWithRoles([ROLE_IDS.CORE_MEMBER_ROLES.HONMEN]),
-    ),
-    true,
-  );
-  assert.equal(
-    await HotelVcService.isNormalHotelBonusMember(
-      memberWithRoles([ROLE_IDS.CORE_MEMBER_ROLES.JUNHONMEN]),
-    ),
-    true,
-  );
+test("normal hotel is free for every eligible role", async () => {
+  const eligibleRoleIds = [
+    ROLE_IDS.CORE_MEMBER_ROLES.HONMEN,
+    ROLE_IDS.CORE_MEMBER_ROLES.JUNHONMEN,
+    ROLE_IDS.SABANUSI,
+    ROLE_IDS.KANRISYA,
+    "1520399373995872316", // 裏方
+  ];
+
+  for (const roleId of eligibleRoleIds) {
+    assert.equal(
+      await HotelVcService.isNormalHotelBonusMember(memberWithRoles([roleId])),
+      true,
+    );
+  }
   assert.equal(await HotelVcService.isNormalHotelBonusMember(memberWithRoles([])), false);
 });
