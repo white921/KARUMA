@@ -34,12 +34,15 @@ import {
 } from "./service/teleportVcService";
 import { AccountService } from "./service/accountService";
 import { VcService } from "./service/vcService";
+import { DiaryService } from "./service/diaryService";
 import { BotHealthMonitor } from "./service/botHealthMonitor";
 
 import { COMMAND_NAMES, PANEL_COMMAND_NAMES } from "./constant/command";
 import {
   CATEGORY_IDS,
+  FORUM_IDS,
   TEST_CATEGORY_IDS,
+  TEST_FORUM_IDS,
 } from "./constant/id";
 
 // テスト用
@@ -52,7 +55,7 @@ const client = new Client({
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMembers,
     GatewayIntentBits.GuildMessages,
-    // 日記本文の受信機能を停止中のため、Message Content Intent は要求しない。
+    GatewayIntentBits.MessageContent,
     GatewayIntentBits.GuildVoiceStates,
   ],
 });
@@ -307,13 +310,22 @@ client.on("error", (error) => {
   console.error("discord client error:", error);
 });
 
-// 日記機能を停止中のため、日記フォーラムのメッセージ本文は受信・保存しない。
-// client.on("messageCreate", async (message) => {
-//   if (!message.inGuild() || !message.channel.isThread()) return;
-//   const diaryForumIds = [FORUM_IDS.DIARY, TEST_FORUM_IDS.DIARY];
-//   if (!diaryForumIds.includes(message.channel.parentId ?? "")) return;
-//   await DiaryService.handleDiaryMessage(message);
-// });
+client.on("messageCreate", async (message) => {
+  try {
+    if (!message.inGuild() || !message.channel.isThread()) {
+      return;
+    }
+
+    const diaryForumIds = [FORUM_IDS.DIARY, TEST_FORUM_IDS.DIARY];
+    if (!diaryForumIds.includes(message.channel.parentId ?? "")) {
+      return;
+    }
+
+    await DiaryService.handleDiaryMessage(message);
+  } catch (error) {
+    console.error(error);
+  }
+});
 
 client.on(
   "guildMemberRemove",

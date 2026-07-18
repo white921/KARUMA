@@ -8,7 +8,7 @@ import { SalaryService } from "../service/salaryService";
 import { GameService } from "../service/gameService";
 import { SalesManagementService } from "../service/salesManagementService";
 import { InterviewShiftService } from "../service/interviewShiftService";
-// import { DiaryService } from "../service/diaryService";
+import { DiaryService } from "../service/diaryService";
 import { DailyMessageService } from "../service/dailyMessageService";
 import { RedeployService } from "../service/redeployService";
 
@@ -97,17 +97,17 @@ export async function handleSchedule(client: Client) {
     { timezone: "Asia/Tokyo" },
   );
 
-  // cron.schedule(
-  //   "10 0 * * *",
-  //   () => {
-  //     try {
-  //       DiaryService.closeInactiveDiaries(client);
-  //     } catch (err) {
-  //       console.error("schedule daily diary cleanup job error:", err);
-  //     }
-  //   },
-  //   { timezone: "Asia/Tokyo" },
-  // );
+  cron.schedule(
+    "10 0 * * *",
+    async () => {
+      try {
+        await DiaryService.closeInactiveDiaries(client);
+      } catch (err) {
+        console.error("schedule daily diary cleanup job error:", err);
+      }
+    },
+    { timezone: "Asia/Tokyo" },
+  );
 
   cron.schedule(
     "45 0,4,8,12,16,20 * * *",
