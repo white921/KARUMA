@@ -89,13 +89,22 @@ test("interviewer shift notifications target the configured channel at 00:30 Jap
   assert.match(scheduleSource, /await InterviewShiftService\.sendDailyShiftMessage\(client\)/);
 });
 
-test("daily diary cleanup schedule is disabled", () => {
+test("diary moderation and inactivity cleanup are enabled", () => {
+  const indexSource = fs.readFileSync(
+    path.join(__dirname, "../src/index.ts"),
+    "utf8",
+  );
   const scheduleSource = fs.readFileSync(
     path.join(__dirname, "../src/handler/scheduleHandler.ts"),
     "utf8",
   );
 
-  assert.doesNotMatch(scheduleSource, /^\s+DiaryService\.closeInactiveDiaries\(client\);/m);
+  assert.match(indexSource, /GatewayIntentBits\.MessageContent/);
+  assert.match(indexSource, /client\.on\("messageCreate", async \(message\) => \{/);
+  assert.match(indexSource, /await DiaryService\.handleDiaryMessage\(message\);/);
+  assert.match(scheduleSource, /cron\.schedule\(\s*"10 0 \* \* \*"/);
+  assert.match(scheduleSource, /await DiaryService\.closeInactiveDiaries\(client\);/);
+  assert.match(scheduleSource, /timezone:\s*"Asia\/Tokyo"/);
 });
 
 test("bot account id is configured for KARUMA", () => {
