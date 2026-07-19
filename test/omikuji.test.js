@@ -5,28 +5,18 @@ const {
   OMIKUJI_PRIZES,
   selectOmikujiPrize,
 } = require("../dist/constant/omikuji.js");
-const { getJapanDate } = require("../dist/service/omikujiService.js");
+const omikujiService = require("../dist/service/omikujiService.js");
+const { getJapanDate } = omikujiService;
 const {
   assertOmikujiDrawAllowed,
-  canBypassOmikujiDailyLimit,
   calculateOmikujiWalletAfter,
   createOmikujiSpecialLogEmbed,
   formatOmikujiDrawReply,
-} = require("../dist/service/omikujiService.js");
+} = omikujiService;
 const { TEXT_CHANNEL_IDS } = require("../dist/constant/id.js");
-const { ROLE_IDS } = require("../dist/constant/id.js");
 const { PANEL_COMMAND_NAMES } = require("../dist/constant/command.js");
+const { OMIKUJI_PANEL_MESSAGES } = require("../dist/constant/panel.js");
 const { createOmikujiPanelActionRow } = require("../dist/service/omikujiPanelService.js");
-
-function memberWithRoles(roleIds) {
-  return {
-    roles: {
-      cache: {
-        has: (roleId) => roleIds.includes(roleId),
-      },
-    },
-  };
-}
 
 test("omikuji probabilities total 100 percent", () => {
   assert.equal(OMIKUJI_PRIZES.reduce((sum, prize) => sum + prize.probability, 0), 100);
@@ -55,19 +45,8 @@ test("sub accounts cannot draw omikuji", () => {
   assert.throws(() => assertOmikujiDrawAllowed(true), /サブアカウント/);
 });
 
-test("technical director and server owner bypass the omikuji daily limit", () => {
-  assert.equal(
-    canBypassOmikujiDailyLimit(memberWithRoles([ROLE_IDS.GIJUTU_LEADER])),
-    true,
-  );
-  assert.equal(
-    canBypassOmikujiDailyLimit(memberWithRoles([ROLE_IDS.SABANUSI])),
-    true,
-  );
-  assert.equal(
-    canBypassOmikujiDailyLimit(memberWithRoles([ROLE_IDS.KANRISYA])),
-    false,
-  );
+test("omikuji has no role-based daily-limit bypass", () => {
+  assert.equal("canBypassOmikujiDailyLimit" in omikujiService, false);
 });
 
 test("omikuji excuses an insufficient balance on a bad fortune", () => {
@@ -116,6 +95,8 @@ test("omikuji date uses Japan time", () => {
 
 test("omikuji panel uses the configured channel and draw button", () => {
   assert.equal(TEXT_CHANNEL_IDS.OMIKUJI_PANEL, "1526626039844049037");
+  assert.match(OMIKUJI_PANEL_MESSAGES.DESCRIPTION, /何度でも引ける/);
+  assert.doesNotMatch(OMIKUJI_PANEL_MESSAGES.DESCRIPTION, /1日1回/);
   const row = createOmikujiPanelActionRow().toJSON();
   assert.equal(row.components[0].custom_id, PANEL_COMMAND_NAMES.OMIKUJI_DRAW);
   assert.equal(row.components[0].label, "おみくじを引く");

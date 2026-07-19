@@ -3,7 +3,7 @@ import { RowDataPacket } from "mysql2";
 
 import { PANEL_COMMAND_NAMES } from "../constant/command";
 import { CURRENCY_NAMES } from "../constant/currency";
-import { BOT_ID, ROLE_IDS, TEXT_CHANNEL_IDS } from "../constant/id";
+import { BOT_ID, TEXT_CHANNEL_IDS } from "../constant/id";
 import {
   OmikujiPrize,
   OMIKUJI_MESSAGES,
@@ -14,17 +14,6 @@ import { AccountService } from "./accountService";
 import { DbService } from "./dbService";
 
 type WalletRow = RowDataPacket & { wallet: number };
-
-export function canBypassOmikujiDailyLimit(member: unknown): boolean {
-  const roleBackedMember = member as
-    | { roles?: { cache?: { has: (roleId: string) => boolean } } }
-    | null
-    | undefined;
-  return Boolean(
-    roleBackedMember?.roles?.cache?.has(ROLE_IDS.GIJUTU_LEADER) ||
-      roleBackedMember?.roles?.cache?.has(ROLE_IDS.SABANUSI),
-  );
-}
 
 export function assertOmikujiDrawAllowed(isSubAccount: boolean): void {
   if (isSubAccount) {
@@ -127,7 +116,7 @@ export function getJapanDate(date = new Date()): string {
 
 export class OmikujiService {
   /**
-   * 通常メンバーは日本時間で一日一回、技術統括は回数制限なしで抽選する。
+   * サブアカウント以外は回数制限なく抽選できる。
    * 当選記録・残高・取引履歴は同一トランザクションで確定する。
   */
   static async draw(interaction: ButtonInteraction): Promise<void> {
@@ -137,7 +126,6 @@ export class OmikujiService {
 
     const prize = selectOmikujiPrize(Math.random());
     const drawDate = getJapanDate();
-    const isDailyLimitExempt = await this.isDailyLimitExempt(interaction);
     const connection = await DbService.getConnection();
 
     let afterWallet = 0;
@@ -152,18 +140,6 @@ export class OmikujiService {
       const user = userRows[0];
       if (!user) {
         throw new Error("おみくじの口座情報が見つかりません。");
-      }
-
-      if (!isDailyLimitExempt) {
-        const [drawRows] = await connection.execute<RowDataPacket[]>(
-          `SELECT id FROM omikuji_draws
-           WHERE user_id = ? AND draw_date = ?
-           LIMIT 1`,
-          [interaction.user.id, drawDate],
-        );
-        if (drawRows.length > 0) {
-          throw new Error("おみくじは日本時間で1日1回までです。次の0:00以降に引けます。");
-        }
       }
 
       const [botRows] = await connection.execute<WalletRow[]>(
@@ -220,25 +196,8 @@ export class OmikujiService {
     }
 
     await interaction.editReply({
-      content:
-        formatOmikujiDrawReply(prize, afterWallet, wasBalanceCapped) +
-        (isDailyLimitExempt
-          ? "\n\n技術統括・鯖主テスト中のため、本日は何度でも引けます。"
-          : ""),
+      content: formatOmikujiDrawReply(prize, afterWallet, wasBalanceCapped),
     });
-  }
-
-  private static async isDailyLimitExempt(
-    interaction: ButtonInteraction,
-  ): Promise<boolean> {
-    if (interaction.member instanceof GuildMember) {
-      return canBypassOmikujiDailyLimit(interaction.member);
-    }
-
-    const member = interaction.guild
-      ? await interaction.guild.members.fetch(interaction.user.id)
-      : undefined;
-    return canBypassOmikujiDailyLimit(member);
   }
 
   private static async sendSpecialResultLog(
