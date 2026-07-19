@@ -21,6 +21,12 @@ export function assertOmikujiDrawAllowed(isSubAccount: boolean): void {
   }
 }
 
+export function assertOmikujiDailyLimit(hasDrawnToday: boolean): void {
+  if (hasDrawnToday) {
+    throw new Error("おみくじは日本時間で1日1回までです。次の0:00以降に引けます。");
+  }
+}
+
 export function calculateOmikujiWalletAfter(
   currentWallet: number,
   amount: number,
@@ -116,7 +122,7 @@ export function getJapanDate(date = new Date()): string {
 
 export class OmikujiService {
   /**
-   * サブアカウント以外は回数制限なく抽選できる。
+   * サブアカウント以外は日本時間で一日一回抽選できる。
    * 当選記録・残高・取引履歴は同一トランザクションで確定する。
   */
   static async draw(interaction: ButtonInteraction): Promise<void> {
@@ -141,6 +147,14 @@ export class OmikujiService {
       if (!user) {
         throw new Error("おみくじの口座情報が見つかりません。");
       }
+
+      const [drawRows] = await connection.execute<RowDataPacket[]>(
+        `SELECT id FROM omikuji_draws
+         WHERE user_id = ? AND draw_date = ?
+         LIMIT 1`,
+        [interaction.user.id, drawDate],
+      );
+      assertOmikujiDailyLimit(drawRows.length > 0);
 
       const [botRows] = await connection.execute<WalletRow[]>(
         "SELECT wallet FROM accounts WHERE user_id = ?",

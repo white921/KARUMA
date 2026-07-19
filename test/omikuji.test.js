@@ -49,6 +49,15 @@ test("omikuji has no role-based daily-limit bypass", () => {
   assert.equal("canBypassOmikujiDailyLimit" in omikujiService, false);
 });
 
+test("every account is limited to one omikuji draw per Japan day", () => {
+  assert.equal(typeof omikujiService.assertOmikujiDailyLimit, "function");
+  assert.doesNotThrow(() => omikujiService.assertOmikujiDailyLimit(false));
+  assert.throws(
+    () => omikujiService.assertOmikujiDailyLimit(true),
+    /日本時間で1日1回まで/,
+  );
+});
+
 test("omikuji excuses an insufficient balance on a bad fortune", () => {
   const badFortune = OMIKUJI_PRIZES.find((prize) => prize.fortune === "凶");
   assert.ok(badFortune);
@@ -95,8 +104,8 @@ test("omikuji date uses Japan time", () => {
 
 test("omikuji panel uses the configured channel and draw button", () => {
   assert.equal(TEXT_CHANNEL_IDS.OMIKUJI_PANEL, "1526626039844049037");
-  assert.match(OMIKUJI_PANEL_MESSAGES.DESCRIPTION, /何度でも引ける/);
-  assert.doesNotMatch(OMIKUJI_PANEL_MESSAGES.DESCRIPTION, /1日1回/);
+  assert.match(OMIKUJI_PANEL_MESSAGES.DESCRIPTION, /1日1回まで引けます/);
+  assert.doesNotMatch(OMIKUJI_PANEL_MESSAGES.DESCRIPTION, /何度でも引ける/);
   const row = createOmikujiPanelActionRow().toJSON();
   assert.equal(row.components[0].custom_id, PANEL_COMMAND_NAMES.OMIKUJI_DRAW);
   assert.equal(row.components[0].label, "おみくじを引く");

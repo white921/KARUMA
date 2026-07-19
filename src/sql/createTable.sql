@@ -300,7 +300,7 @@ CREATE TABLE IF NOT EXISTS invite_point_transactions (
 )
 COMMENT='招待ポイント付与・消費履歴';
 
--- おみくじの抽選履歴。
+-- おみくじ。全アカウントの一日一回制限はアプリ側で判定する。
 CREATE TABLE IF NOT EXISTS omikuji_draws (
   id INTEGER NOT NULL AUTO_INCREMENT COMMENT 'おみくじ抽選ID',
   user_id BIGINT NOT NULL COMMENT '抽選したDiscordユーザーID',
