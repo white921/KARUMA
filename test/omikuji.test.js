@@ -84,7 +84,7 @@ test("special omikuji log includes the member display name and icon", () => {
     50_000,
   ).toJSON();
 
-  assert.equal(TEXT_CHANNEL_IDS.OMIKUJI_SPECIAL_LOG, "1527279894013153381");
+  assert.equal(TEXT_CHANNEL_IDS.OMIKUJI_SPECIAL_LOG, "1527553588778504222");
   assert.equal(embed.author.name, "表示名テスト");
   assert.equal(embed.author.icon_url, "https://cdn.example.test/avatar.png");
   assert.equal(embed.thumbnail.url, "https://cdn.example.test/avatar.png");
