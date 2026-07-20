@@ -21,5 +21,5 @@ export const EVALUATION_SHEET_MESSAGES = {
     "❌ 評価シート復元は評価フォーラム内のスレッドで実行してください。",
   ARCHIVE_NOT_FOUND: "❌ 復元できる過去の評価は見つかりませんでした。",
   TARGET_MEMBER_NOT_FOUND: "❌ 対象ユーザーは現在サーバーにいません。",
-  TEMPLATE: "自己紹介: {introductionLink}\n\n",
+  TEMPLATE: "自己紹介: {introductionLink}\nユーザーID: {userId}\n\n",
 };

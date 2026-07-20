@@ -24,3 +24,15 @@ test("評価シートは指定された2つのフォーラムに作成する", (
     "1520391398552113253",
   ]);
 });
+
+test("評価シート本文に自己紹介リンクと対象ユーザーIDを載せる", () => {
+  const content = EvaluationService.createEvaluationSheetContent(
+    { id: "123456789012345678" },
+    "https://discord.com/channels/1/2/3",
+  );
+
+  assert.equal(
+    content,
+    "自己紹介: https://discord.com/channels/1/2/3\nユーザーID: 123456789012345678\n\n",
+  );
+});

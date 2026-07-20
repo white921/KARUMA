@@ -158,10 +158,9 @@ export class EvaluationService {
     targetMember: GuildMember,
     introductionMessageUrl: string,
   ): string {
-    return EVALUATION_SHEET_MESSAGES.TEMPLATE.replace(
-      "{introductionLink}",
-      introductionMessageUrl,
-    );
+    return EVALUATION_SHEET_MESSAGES.TEMPLATE
+      .replace("{introductionLink}", introductionMessageUrl)
+      .replace("{userId}", targetMember.id);
   }
 
   static async createEvaluationSheets(
