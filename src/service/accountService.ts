@@ -1,5 +1,5 @@
 import { GuildMember, PartialGuildMember } from "discord.js";
-import { RowDataPacket } from "mysql2";
+import { ResultSetHeader, RowDataPacket } from "mysql2";
 
 import { DbService } from "./dbService";
 
@@ -59,19 +59,29 @@ export class AccountService {
    * @param member 脱退したメンバー
    */
   static async handleMemberLeft(member: GuildMember | PartialGuildMember) {
-    const leftCoreMemberRole =
-      Object.values(ROLE_IDS.CORE_MEMBER_ROLES).find((roleId) =>
-        roleId !== ROLE_IDS.CORE_MEMBER_ROLES.MENSETUMATI &&
-        roleId !== ROLE_IDS.CORE_MEMBER_ROLES.DEMODORI &&
-        member.roles.cache.has(roleId),
-      ) ?? null;
-
-    if (!leftCoreMemberRole) {
-      return;
-    }
-
     const connection = await DbService.getConnection();
     try {
+      // サブ垢が脱退した場合は紐づけだけ解除する。
+      // 口座本体は残し、通常メンバーの脱退履歴としても扱わない。
+      const [result] = await connection.execute<ResultSetHeader>(
+        "DELETE FROM sub_accounts WHERE sub_user_id = ?",
+        [member.id],
+      );
+      if (result.affectedRows > 0) {
+        return;
+      }
+
+      const leftCoreMemberRole =
+        Object.values(ROLE_IDS.CORE_MEMBER_ROLES).find((roleId) =>
+          roleId !== ROLE_IDS.CORE_MEMBER_ROLES.MENSETUMATI &&
+          roleId !== ROLE_IDS.CORE_MEMBER_ROLES.DEMODORI &&
+          member.roles.cache.has(roleId),
+        ) ?? null;
+
+      if (!leftCoreMemberRole) {
+        return;
+      }
+
       await connection.execute(
         `UPDATE accounts
          SET wallet = 0,
