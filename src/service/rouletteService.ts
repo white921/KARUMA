@@ -18,7 +18,6 @@ import { ResultSetHeader, RowDataPacket } from "mysql2";
 import { BOT_ID, ROLE_IDS } from "../constant/id";
 import {
   ROULETTE_ACTION_NAMES,
-  getRouletteEventKey,
   ROULETTE_MESSAGES,
   ROULETTE_PARTICIPATION_BONUS,
 } from "../constant/roulette";
@@ -46,6 +45,11 @@ type RouletteBetRow = RowDataPacket & {
   bet_kind: RouletteBetKind;
   selection: string;
   amount: number;
+};
+
+type RouletteBonusBatchRow = RowDataPacket & {
+  id: number;
+  last_round_id: number;
 };
 
 type AccountRow = RowDataPacket & { wallet: number };
@@ -105,25 +109,23 @@ export class RouletteService {
   }
 
   static async openRound(stage: RouletteStage): Promise<string> {
-    const eventKey = getRouletteEventKey();
     const connection = await DbService.getConnection();
     try {
       await connection.beginTransaction();
       const [activeRounds] = await connection.execute<RouletteRoundRow[]>(
         `SELECT id FROM roulette_rounds
-         WHERE event_key = ? AND status IN ('open', 'closed')
+         WHERE status IN ('open', 'closed')
          FOR UPDATE`,
-        [eventKey],
       );
       if (activeRounds.length > 0) {
         throw new Error("前のラウンドが未精算です。先に `/結果` で結果を確定してください。");
       }
       const [inserted] = await connection.execute<ResultSetHeader>(
-        `INSERT INTO roulette_rounds (event_key, stage, status)
-         VALUES (?, ?, 'open')`,
-        [eventKey, stage],
+        `INSERT INTO roulette_rounds (stage, status)
+         VALUES (?, 'open')`,
+        [stage],
       );
-      const roundNumber = await this.getRoundNumber(connection, eventKey, stage, inserted.insertId);
+      const roundNumber = await this.getRoundNumber(connection, stage, inserted.insertId);
       await connection.commit();
       return `🎲 第${stage}部・第${roundNumber}ラウンドのベット受付を開始しました。`;
     } catch (error) {
@@ -135,14 +137,12 @@ export class RouletteService {
   }
 
   static async closeRound(): Promise<string> {
-    const eventKey = getRouletteEventKey();
     const connection = await DbService.getConnection();
     try {
       const [result] = await connection.execute<ResultSetHeader>(
         `UPDATE roulette_rounds
          SET status = 'closed', closed_at = CURRENT_TIMESTAMP
-         WHERE event_key = ? AND status = 'open'`,
-        [eventKey],
+         WHERE status = 'open'`,
       );
       if (result.affectedRows === 0) throw new Error("現在、締め切れる受付中のラウンドはありません。");
       return "🔒 ベット受付を締め切りました。結果は `/結果` で確定してください。";
@@ -152,21 +152,19 @@ export class RouletteService {
   }
 
   static async getStatus(): Promise<string> {
-    const eventKey = getRouletteEventKey();
     const connection = await DbService.getConnection();
     try {
       const [rounds] = await connection.execute<RouletteRoundRow[]>(
         `SELECT id, stage, status FROM roulette_rounds
-         WHERE event_key = ? ORDER BY id DESC LIMIT 1`,
-        [eventKey],
+         ORDER BY id DESC LIMIT 1`,
       );
       const round = rounds[0];
-      if (!round) return "このイベントのルーレットラウンドはまだありません。";
+      if (!round) return "ルーレットラウンドはまだありません。";
       const [countRows] = await connection.execute<RowDataPacket[]>(
         "SELECT COUNT(*) AS count FROM roulette_bets WHERE round_id = ?",
         [round.id],
       );
-      const roundNumber = await this.getRoundNumber(connection, eventKey, round.stage, round.id);
+      const roundNumber = await this.getRoundNumber(connection, round.stage, round.id);
       const statusLabel = round.status === "open" ? "受付中" : round.status === "closed" ? "締切済み" : "精算済み";
       return `第${round.stage}部・第${roundNumber}ラウンド：${statusLabel}（ベット ${countRows[0].count} 件）`;
     } finally {
@@ -200,9 +198,9 @@ export class RouletteService {
     try {
       const [rounds] = await connection.execute<RouletteRoundRow[]>(
         `SELECT id FROM roulette_rounds
-         WHERE event_key = ? AND stage = ? AND status = 'open'
+         WHERE stage = ? AND status = 'open'
          ORDER BY id DESC LIMIT 1`,
-        [getRouletteEventKey(), stage],
+        [stage],
       );
       if (rounds.length === 0) {
         throw new Error(ROULETTE_MESSAGES.BETTING_NOT_OPEN_FOR_STAGE(stage));
@@ -296,7 +294,6 @@ export class RouletteService {
   }
 
   static async placeBet(interaction: ButtonInteraction): Promise<string> {
-    const eventKey = getRouletteEventKey();
     const { stage, kind, selection, amount } = parseConfirmId(interaction.customId);
     validateRouletteBet(stage, kind, selection, amount);
     const connection = await DbService.getConnection();
@@ -304,13 +301,12 @@ export class RouletteService {
       await connection.beginTransaction();
       const [rounds] = await connection.execute<RouletteRoundRow[]>(
         `SELECT id, stage, status FROM roulette_rounds
-         WHERE event_key = ? AND status = 'open'
+         WHERE status = 'open'
          ORDER BY id DESC LIMIT 1 FOR UPDATE`,
-        [eventKey],
       );
       const round = rounds[0];
       if (!round || round.stage !== stage) throw new Error(ROULETTE_MESSAGES.BETTING_CLOSED);
-      const roundNumber = await this.getRoundNumber(connection, eventKey, stage, round.id);
+      const roundNumber = await this.getRoundNumber(connection, stage, round.id);
 
       const [existing] = await connection.execute<RowDataPacket[]>(
         "SELECT id FROM roulette_bets WHERE round_id = ? AND user_id = ? FOR UPDATE",
@@ -352,20 +348,18 @@ export class RouletteService {
   }
 
   static async settleRound(result: number): Promise<RouletteSettlement> {
-    const eventKey = getRouletteEventKey();
     if (!Number.isInteger(result) || result < 0 || result > 36) throw new Error("結果は0〜36の整数で指定してください。");
     const connection = await DbService.getConnection();
     try {
       await connection.beginTransaction();
       const [rounds] = await connection.execute<RouletteRoundRow[]>(
         `SELECT id, stage, status FROM roulette_rounds
-         WHERE event_key = ? AND status IN ('open', 'closed')
+         WHERE status IN ('open', 'closed')
          ORDER BY id DESC LIMIT 1 FOR UPDATE`,
-        [eventKey],
       );
       const round = rounds[0];
       if (!round) throw new Error(ROULETTE_MESSAGES.NO_OPEN_ROUND);
-      const roundNumber = await this.getRoundNumber(connection, eventKey, round.stage, round.id);
+      const roundNumber = await this.getRoundNumber(connection, round.stage, round.id);
       const [bets] = await connection.execute<RouletteBetRow[]>(
         "SELECT id, user_id, bet_kind, selection, amount FROM roulette_bets WHERE round_id = ? FOR UPDATE",
         [round.id],
@@ -408,16 +402,31 @@ export class RouletteService {
   }
 
   static async grantParticipationBonus(): Promise<number> {
-    const eventKey = getRouletteEventKey();
     const connection = await DbService.getConnection();
     try {
       await connection.beginTransaction();
+      const [latestRounds] = await connection.execute<RowDataPacket[]>(
+        "SELECT id FROM roulette_rounds ORDER BY id DESC LIMIT 1 FOR UPDATE",
+      );
+      const latestRoundId = Number(latestRounds[0]?.id ?? 0);
+      if (latestRoundId === 0) {
+        await connection.commit();
+        return 0;
+      }
+      const [previousBatches] = await connection.execute<RouletteBonusBatchRow[]>(
+        "SELECT id, last_round_id FROM roulette_bonus_batches ORDER BY id DESC LIMIT 1 FOR UPDATE",
+      );
+      const previousLastRoundId = Number(previousBatches[0]?.last_round_id ?? 0);
       const [participants] = await connection.execute<RowDataPacket[]>(
         `SELECT DISTINCT b.user_id
          FROM roulette_bets b
          INNER JOIN roulette_rounds r ON r.id = b.round_id
-         WHERE r.event_key = ?`,
-        [eventKey],
+         WHERE r.id > ? AND r.id <= ?`,
+        [previousLastRoundId, latestRoundId],
+      );
+      const [batch] = await connection.execute<ResultSetHeader>(
+        "INSERT INTO roulette_bonus_batches (last_round_id) VALUES (?)",
+        [latestRoundId],
       );
       const [botRows] = await connection.execute<AccountRow[]>("SELECT wallet FROM accounts WHERE user_id = ? FOR UPDATE", [BOT_ID]);
       if (!botRows[0]) throw new Error("Bot口座が見つかりません。DB初期化を確認してください。");
@@ -426,8 +435,8 @@ export class RouletteService {
       for (const participant of participants) {
         const userId = String(participant.user_id);
         const [reward] = await connection.execute<ResultSetHeader>(
-          "INSERT IGNORE INTO roulette_participation_rewards (event_key, user_id, amount) VALUES (?, ?, ?)",
-          [eventKey, userId, ROULETTE_PARTICIPATION_BONUS],
+          "INSERT IGNORE INTO roulette_participation_rewards (bonus_batch_id, user_id, amount) VALUES (?, ?, ?)",
+          [batch.insertId, userId, ROULETTE_PARTICIPATION_BONUS],
         );
         if (reward.affectedRows === 0) continue;
         const [users] = await connection.execute<AccountRow[]>("SELECT wallet FROM accounts WHERE user_id = ? FOR UPDATE", [userId]);
@@ -479,14 +488,13 @@ export class RouletteService {
 
   private static async getRoundNumber(
     connection: Awaited<ReturnType<typeof DbService.getConnection>>,
-    eventKey: string,
     stage: RouletteStage,
     roundId: number,
   ): Promise<number> {
     const [rows] = await connection.execute<RowDataPacket[]>(
       `SELECT COUNT(*) AS count FROM roulette_rounds
-       WHERE event_key = ? AND stage = ? AND id <= ?`,
-      [eventKey, stage, roundId],
+       WHERE stage = ? AND id <= ?`,
+      [stage, roundId],
     );
     return Number(rows[0]?.count ?? 0);
   }

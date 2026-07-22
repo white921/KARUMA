@@ -55,8 +55,6 @@ npm run start
 - `MYSQL_SLOW_ACQUIRE_LOG_MS`
   - DB接続取得待ちがこのミリ秒以上になったら警告ログを出す
   - デフォルトは `1000`
-- `ROULETTE_EVENT_KEY`
-  - ルーレットイベントを識別する値。2026年7月17日のイベントでは `2026-07-17`
 - `ROULETTE_2ND_PANEL_CHANNEL_ID`
   - ヨーロピアンルーレット第2部パネルを置くTCのID
 - `ROULETTE_3RD_PANEL_CHANNEL_ID`

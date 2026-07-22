@@ -219,7 +219,6 @@ ON DUPLICATE KEY UPDATE
 -- ヨーロピアンルーレット：ラウンド管理
 CREATE TABLE IF NOT EXISTS roulette_rounds (
   id INTEGER NOT NULL AUTO_INCREMENT COMMENT 'ラウンドID',
-  event_key VARCHAR(64) NOT NULL COMMENT 'イベント識別子',
   stage TINYINT NOT NULL COMMENT '部（1〜3）',
   status ENUM('open', 'closed', 'settled') NOT NULL DEFAULT 'open' COMMENT '受付状態',
   result_number TINYINT DEFAULT NULL COMMENT '結果（0〜36）',
@@ -227,7 +226,7 @@ CREATE TABLE IF NOT EXISTS roulette_rounds (
   closed_at TIMESTAMP DEFAULT NULL,
   settled_at TIMESTAMP DEFAULT NULL,
   PRIMARY KEY (id),
-  KEY idx_roulette_rounds_event_status (event_key, status)
+  KEY idx_roulette_rounds_status (status)
 )
 COMMENT='ヨーロピアンルーレットのラウンド';
 
@@ -250,15 +249,27 @@ CREATE TABLE IF NOT EXISTS roulette_bets (
 )
 COMMENT='ヨーロピアンルーレットの確定ベット';
 
--- イベント後の参加ボーナスの二重配布を防ぐ。
+-- 参加ボーナスの配布区切り。前回配布後から今回配布までを自動で1イベントとして扱う。
+CREATE TABLE IF NOT EXISTS roulette_bonus_batches (
+  id INTEGER NOT NULL AUTO_INCREMENT COMMENT '配布バッチID',
+  last_round_id INTEGER NOT NULL COMMENT 'この配布に含めた最後のラウンドID',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_roulette_bonus_batch_last_round (last_round_id),
+  FOREIGN KEY (last_round_id) REFERENCES roulette_rounds(id) ON DELETE RESTRICT
+)
+COMMENT='ヨーロピアンルーレット参加ボーナスの配布区切り';
+
+-- 同じ配布バッチ内での参加ボーナス二重配布を防ぐ。
 CREATE TABLE IF NOT EXISTS roulette_participation_rewards (
   id INTEGER NOT NULL AUTO_INCREMENT COMMENT '配布ID',
-  event_key VARCHAR(64) NOT NULL COMMENT 'イベント識別子',
+  bonus_batch_id INTEGER NOT NULL COMMENT '配布バッチID',
   user_id BIGINT NOT NULL COMMENT '参加者のDiscordユーザーID',
   amount INTEGER NOT NULL COMMENT '配布額',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
   PRIMARY KEY (id),
-  UNIQUE KEY uq_roulette_event_reward (event_key, user_id),
+  UNIQUE KEY uq_roulette_bonus_batch_reward (bonus_batch_id, user_id),
+  FOREIGN KEY (bonus_batch_id) REFERENCES roulette_bonus_batches(id) ON DELETE CASCADE,
   FOREIGN KEY (user_id) REFERENCES accounts(user_id) ON DELETE CASCADE
 )
 COMMENT='ヨーロピアンルーレット参加ボーナス';

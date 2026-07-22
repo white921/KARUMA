@@ -1,6 +1,3 @@
-export function getRouletteEventKey(): string {
-  return process.env.ROULETTE_EVENT_KEY?.trim() || "2026-07-17";
-}
 export const ROULETTE_PARTICIPATION_BONUS = 30_000;
 
 export const ROULETTE_ACTION_NAMES = {
