@@ -7,6 +7,7 @@ import { showShopAmountModal } from "../util/modal";
 import { HotelFreeTicketService } from "../service/hotelFreeTicketService";
 import { VcService } from "../service/vcService";
 import { RouletteService } from "../service/rouletteService";
+import { CreatorEmblemPaymentService } from "../service/creatorEmblemPaymentService";
 import { RouletteBetKind, RouletteStage } from "../type/roulette";
 
 import { HOTEL_PURCHASE_WAY_TYPE } from "../constant/hotel";
@@ -58,6 +59,14 @@ export async function handleStringSelectMenu(
         throw new Error("無効なショップチケットです。");
       }
       await showShopAmountModal(interaction, ticketType);
+      return;
+    }
+    if (customId === CreatorEmblemPaymentService.PRODUCT_SELECT_ID) {
+      await CreatorEmblemPaymentService.showCreatorSelect(interaction);
+      return;
+    }
+    if (customId.startsWith(`${CreatorEmblemPaymentService.CREATOR_SELECT_PREFIX}:`)) {
+      await CreatorEmblemPaymentService.showConfirmation(interaction);
       return;
     }
     const commandId = customId.split("_")[0]; // NORMAL, SECRET, SECRETLONG, FREEDOM, FREEDOMLONG

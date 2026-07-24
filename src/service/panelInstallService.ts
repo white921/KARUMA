@@ -9,6 +9,7 @@ import { HotelVcPanelService } from "./hotelPanelService";
 import { PanelService } from "./panelService";
 import { RedeployPanelService } from "./redeployPanelService";
 import { ShopPanelService } from "./shopPanelService";
+import { CreatorEmblemPanelService } from "./creatorEmblemPanelService";
 import { RoulettePanelService } from "./roulettePanelService";
 import { OmikujiPanelService } from "./omikujiPanelService";
 
@@ -19,6 +20,7 @@ export const PANEL_INSTALL_TARGETS = {
   GAME: "game",
   CASINO: "casino",
   SHOP: "shop",
+  CREATOR_EMBLEM: "creator_emblem",
   OMIKUJI: "omikuji",
   DIARY: "diary",
   REDEPLOY: "redeploy",
@@ -37,6 +39,7 @@ const PANEL_INSTALL_TARGET_LABELS: Record<PanelInstallTarget, string> = {
   [PANEL_INSTALL_TARGETS.GAME]: "ゲームパネル",
   [PANEL_INSTALL_TARGETS.CASINO]: "カジノパネル",
   [PANEL_INSTALL_TARGETS.SHOP]: "ショップパネル",
+  [PANEL_INSTALL_TARGETS.CREATOR_EMBLEM]: "クリエイター送金パネル",
   [PANEL_INSTALL_TARGETS.OMIKUJI]: "おみくじパネル",
   [PANEL_INSTALL_TARGETS.DIARY]: "日記パネル",
   [PANEL_INSTALL_TARGETS.REDEPLOY]: "再起動パネル",
@@ -53,6 +56,7 @@ const PANEL_INSTALL_CHANNEL_MAP: Record<string, PanelInstallTarget> = {
   [TEXT_CHANNEL_IDS.GAME_PANEL]: PANEL_INSTALL_TARGETS.GAME,
   [TEXT_CHANNEL_IDS.CASINO_PANEL]: PANEL_INSTALL_TARGETS.CASINO,
   [TEXT_CHANNEL_IDS.SHOP_PANEL]: PANEL_INSTALL_TARGETS.SHOP,
+  [TEXT_CHANNEL_IDS.CREATOR_EMBLEM_PANEL]: PANEL_INSTALL_TARGETS.CREATOR_EMBLEM,
   [TEXT_CHANNEL_IDS.OMIKUJI_PANEL]: PANEL_INSTALL_TARGETS.OMIKUJI,
   [THREAD_IDS.DIARY_PANEL_THREAD]: PANEL_INSTALL_TARGETS.DIARY,
   [TEXT_CHANNEL_IDS.REDEPLOY_PANEL]: PANEL_INSTALL_TARGETS.REDEPLOY,
@@ -105,6 +109,9 @@ async function installTargetPanel(
       return;
     case PANEL_INSTALL_TARGETS.SHOP:
       await ShopPanelService.createShopPanel(client);
+      return;
+    case PANEL_INSTALL_TARGETS.CREATOR_EMBLEM:
+      await CreatorEmblemPanelService.createPanel(client);
       return;
     case PANEL_INSTALL_TARGETS.OMIKUJI:
       await OmikujiPanelService.createPanel(client);

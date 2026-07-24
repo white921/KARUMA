@@ -14,6 +14,7 @@ const { createHotelVcPanelActionRows } = require("../dist/service/hotelPanelServ
 const { HotelVcService } = require("../dist/service/hotelVcService.js");
 const { createRedeployPanelActionRow } = require("../dist/service/redeployPanelService.js");
 const { createShopPanelActionRow } = require("../dist/service/shopPanelService.js");
+const { createCreatorEmblemPanelActionRow } = require("../dist/service/creatorEmblemPanelService.js");
 const { VcPanelService } = require("../dist/service/vcPanelService.js");
 const {
   GAME_PANEL_MESSAGES,
@@ -61,6 +62,16 @@ test("shop panel buttons do not use icons", () => {
   for (const button of buttons) {
     assert.equal(button.emoji, undefined);
   }
+});
+
+test("creator emblem panel has payment and balance buttons", () => {
+  const buttons = createCreatorEmblemPanelActionRow().toJSON().components;
+  const buttonIds = buttons.map((button) => button.custom_id);
+
+  assert.deepEqual(buttonIds, [
+    PANEL_COMMAND_NAMES.CREATOR_EMBLEM_PAY,
+    PANEL_COMMAND_NAMES.VIEW,
+  ]);
 });
 
 test("hotel and shop panels include their ticket confirmation buttons", () => {

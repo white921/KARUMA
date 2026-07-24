@@ -2,6 +2,7 @@ import {
   ChatInputCommandInteraction,
   MessageFlags,
   ModalSubmitInteraction,
+  ButtonInteraction,
 } from "discord.js";
 
 import { Account } from "../type/account";
@@ -28,7 +29,7 @@ export class SendService {
    * @param replyMethod 返信方法
    */
   static async executeSend(
-    interaction: ModalSubmitInteraction | ChatInputCommandInteraction,
+    interaction: ModalSubmitInteraction | ChatInputCommandInteraction | ButtonInteraction,
     fromUserId: string,
     toUserId: string,
     amount: number,
@@ -85,6 +86,7 @@ export class SendService {
           CURRENCY_NAMES,
           comment,
         ),
+        components: [],
       });
     }
 

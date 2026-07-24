@@ -162,7 +162,10 @@ client.on("interactionCreate", async (interaction) => {
         interaction.customId !== PANEL_COMMAND_NAMES.REDEPLOY
       ) {
         try {
-          if (interaction.customId.startsWith("history_page_")) {
+          if (
+            interaction.customId.startsWith("history_page_") ||
+            interaction.customId.startsWith("creatorEmblemConfirm:")
+          ) {
             // ページ送りは、現在表示中の取引履歴メッセージを更新する。
             await interaction.deferUpdate();
             BotHealthMonitor.recordAckSuccess(
@@ -175,7 +178,10 @@ client.on("interactionCreate", async (interaction) => {
             );
           }
         } catch (error) {
-          const acknowledgement = interaction.customId.startsWith("history_page_")
+          const acknowledgement = (
+            interaction.customId.startsWith("history_page_") ||
+            interaction.customId.startsWith("creatorEmblemConfirm:")
+          )
             ? "deferUpdate"
             : "deferReply";
           BotHealthMonitor.recordAckFailure(

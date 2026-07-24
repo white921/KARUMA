@@ -24,6 +24,13 @@ test("resolves shop panel channel to the shop panel target", () => {
   assert.equal(target, PANEL_INSTALL_TARGETS.SHOP);
 });
 
+test("resolves creator emblem panel channel to the creator emblem panel target", () => {
+  assert.equal(TEXT_CHANNEL_IDS.CREATOR_EMBLEM_PANEL, "1521732594255790171");
+
+  const target = resolvePanelInstallTarget(TEXT_CHANNEL_IDS.CREATOR_EMBLEM_PANEL);
+  assert.equal(target, PANEL_INSTALL_TARGETS.CREATOR_EMBLEM);
+});
+
 test("resolves omikuji panel channel to the omikuji panel target", () => {
   assert.equal(TEXT_CHANNEL_IDS.OMIKUJI_PANEL, "1526626039844049037");
 

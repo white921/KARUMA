@@ -12,6 +12,7 @@ import { formatNumber } from "../util/number";
 export function resolveActionLogThreadId(commandName: string): string | null {
   switch (commandName) {
     case PANEL_COMMAND_NAMES.SEND:
+    case PANEL_COMMAND_NAMES.CREATOR_EMBLEM_PAY:
       return THREAD_IDS.SEND_LOG_THREAD;
     case PANEL_COMMAND_NAMES.SHOP_SEND:
       return THREAD_IDS.SHOP_LOG_THREAD;
@@ -108,11 +109,12 @@ export class ActionService {
       let channel, thread, channelId, threadId;
       switch (commandName) {
         case PANEL_COMMAND_NAMES.SEND:
+        case PANEL_COMMAND_NAMES.CREATOR_EMBLEM_PAY:
           threadId = resolveActionLogThreadId(commandName);
           thread = await interaction.client.channels.fetch(threadId);
           if (thread && thread.isThread() && thread.isTextBased()) {
             await (thread as ThreadChannel).send(
-              `**送金**\n<@${fromUserId}>から<@${toUserId}>に${formatNumber(amount)}${CURRENCY_NAMES}送金されました！${
+              `**${commandName === PANEL_COMMAND_NAMES.CREATOR_EMBLEM_PAY ? "クリエイター送金" : "送金"}**\n<@${fromUserId}>から<@${toUserId}>に${formatNumber(amount)}${CURRENCY_NAMES}送金されました！${
                 comment ? `\n備考: ${comment}` : ""
               }`,
             );

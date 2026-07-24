@@ -22,6 +22,7 @@ import { MarketGachaService } from "../service/marketGachaService";
 import { HotelFreeTicketService } from "../service/hotelFreeTicketService";
 import { TicketViewService } from "../service/ticketViewService";
 import { OmikujiService } from "../service/omikujiService";
+import { CreatorEmblemPaymentService } from "../service/creatorEmblemPaymentService";
 
 import {
   ADMIN_PANEL_MESSAGES,
@@ -79,6 +80,9 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
         break;
       case PANEL_COMMAND_NAMES.SHOP_SEND:
         await showShopTicketSelectMenu(interaction);
+        break;
+      case PANEL_COMMAND_NAMES.CREATOR_EMBLEM_PAY:
+        await CreatorEmblemPaymentService.showProductSelect(interaction);
         break;
       case PANEL_COMMAND_NAMES.SHOP_TICKET_VIEW:
         await TicketViewService.viewShopTickets(interaction);
@@ -306,6 +310,10 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
         await showConfirmButton(interaction, customId);
         break;
       default:
+        if (CreatorEmblemPaymentService.isConfirmCustomId(customId)) {
+          await CreatorEmblemPaymentService.pay(interaction);
+          break;
+        }
         // ページネーションボタンの処理
         if (customId.startsWith("history_page_")) {
           const page = parseInt(customId.split("_")[2]);

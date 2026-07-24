@@ -86,6 +86,19 @@ export const SHOP_PANEL_MESSAGES = {
   ERROR: "ショップパネルチャンネルが見つからないか、無効な型です。",
 };
 
+export const CREATOR_EMBLEM_PANEL_MESSAGES = {
+  TITLE: "クリエイター送金パネル",
+  DESCRIPTION:
+    "紋章の制作依頼に伴う送金はこちらから行ってください。\n支払い前に商品とクリエイターを選択し、内容を確認してください。\n\n**【料金】**\n・個人紋章：教団員 100,000krm／使徒 60,000krm\n・デカ紋章：使徒 150,000krm\n\n※個人紋章・デカ紋章とも、クリエイターへ直接送金されます。",
+  PAY: "支払い",
+  VIEW: "残高確認",
+  ERROR: "クリエイター送金パネルチャンネルが見つからないか、無効な型です。",
+  MEMBER_ONLY: "教団員または使徒のみ利用できます。",
+  APOSTLE_ONLY: "デカ紋章は使徒のみ利用できます。",
+  NO_CREATOR: "現在、選択できる紋章士・紋章士統括がいません。",
+  INVALID_CREATOR: "選択したユーザーは紋章士または紋章士統括ではありません。",
+};
+
 export const OMIKUJI_PANEL_MESSAGES = {
   TITLE: "今日の運勢おみくじ",
   DESCRIPTION:

@@ -113,6 +113,9 @@ export class HistoryService {
             action.from_user_id
           }> から\n+${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.to_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
       [PANEL_COMMAND_NAMES.SHOP_SEND]: `<@${BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
+      [PANEL_COMMAND_NAMES.CREATOR_EMBLEM_PAY]: isFromUser
+        ? `<@${action.to_user_id}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`
+        : `<@${action.from_user_id}> から\n+${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.to_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
       [PANEL_COMMAND_NAMES.MARKET_GACHA_DRAW]: `<@${BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
       [PANEL_COMMAND_NAMES.OMIKUJI_DRAW]: `<@${BOT_ID}> から\n${
         action.amount > 0 ? "+" : "-"
