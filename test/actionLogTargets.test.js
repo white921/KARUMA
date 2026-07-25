@@ -37,6 +37,13 @@ test("server boost reward logs use the salary log thread", () => {
   );
 });
 
+test("creator emblem payments use the dedicated creator log thread", () => {
+  assert.equal(
+    resolveActionLogThreadId(PANEL_COMMAND_NAMES.CREATOR_EMBLEM_PAY),
+    "1521732752712405002",
+  );
+});
+
 test("salary action log messages are sent to the salary log thread", async () => {
   const sentMessages = [];
   const fetchedThreadIds = [];

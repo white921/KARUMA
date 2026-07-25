@@ -158,6 +158,7 @@ export const TEST_FORUM_IDS = {
 // スレッドID（送金ログ用など）
 export const THREAD_IDS = {
   SEND_LOG_THREAD: "1521752794716180541", // 通貨ログ > 送金ログ スレッドID
+  CREATOR_EMBLEM_LOG_THREAD: "1521732752712405002", // クリエイター送金ログスレッドID
   MINT_LOG_THREAD: "1521752901448630453", // 通貨ログ > 増減ログ スレッドID
   BURN_LOG_THREAD: "1521752901448630453", // 通貨ログ > 増減ログ スレッドID
   ADMIN_PANEL_THREAD: "1521949472865779916", // 管理者銀行パネルスレッドID

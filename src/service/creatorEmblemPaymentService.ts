@@ -16,7 +16,7 @@ import { CREATOR_EMBLEM_PANEL_MESSAGES } from "../constant/panel";
 import { COLOR } from "../constant/color";
 import { SendService } from "./sendService";
 
-type EmblemProduct = "personal" | "large";
+export type EmblemProduct = "personal" | "large";
 
 const PRODUCTS: Record<EmblemProduct, { label: string; apostlePrice: number; memberPrice?: number }> = {
   personal: { label: "個人紋章", apostlePrice: 60_000, memberPrice: 100_000 },
@@ -32,8 +32,10 @@ export class CreatorEmblemPaymentService {
     return customId.startsWith(`${this.CONFIRM_PREFIX}:`);
   }
 
-  private static hasApostleRole(member: GuildMember): boolean {
-    return member.roles.cache.has(ROLE_IDS.CORE_MEMBER_ROLES.HONMEN);
+  private static hasApostlePricing(member: GuildMember): boolean {
+    return member.roles.cache.has(ROLE_IDS.CORE_MEMBER_ROLES.HONMEN) ||
+      member.roles.cache.has(ROLE_IDS.KANRISYA) ||
+      member.roles.cache.has(ROLE_IDS.SABANUSI);
   }
 
   private static hasMemberRole(member: GuildMember): boolean {
@@ -41,7 +43,7 @@ export class CreatorEmblemPaymentService {
   }
 
   private static assertCanUse(member: GuildMember): void {
-    if (!this.hasApostleRole(member) && !this.hasMemberRole(member)) {
+    if (!this.hasApostlePricing(member) && !this.hasMemberRole(member)) {
       throw new Error(CREATOR_EMBLEM_PANEL_MESSAGES.MEMBER_ONLY);
     }
   }
@@ -52,14 +54,14 @@ export class CreatorEmblemPaymentService {
 
   private static assertProductEligibility(member: GuildMember, product: EmblemProduct): void {
     this.assertCanUse(member);
-    if (product === "large" && !this.hasApostleRole(member)) {
+    if (product === "large" && !this.hasApostlePricing(member)) {
       throw new Error(CREATOR_EMBLEM_PANEL_MESSAGES.APOSTLE_ONLY);
     }
   }
 
-  private static getPrice(member: GuildMember, product: EmblemProduct): number {
+  static getPriceForMember(member: GuildMember, product: EmblemProduct): number {
     this.assertProductEligibility(member, product);
-    return this.hasApostleRole(member)
+    return this.hasApostlePricing(member)
       ? PRODUCTS[product].apostlePrice
       : PRODUCTS[product].memberPrice!;
   }
@@ -80,12 +82,12 @@ export class CreatorEmblemPaymentService {
         {
           label: "個人紋章",
           value: "personal",
-          description: "教団員 100,000krm / 使徒 60,000krm",
+          description: "教団員 100,000 / 使徒・司教・鯖主 60,000krm",
         },
         {
           label: "デカ紋章",
           value: "large",
-          description: "使徒 150,000krm",
+          description: "使徒・司教・鯖主 150,000krm",
         },
       );
     const embed = new EmbedBuilder()
@@ -147,7 +149,7 @@ export class CreatorEmblemPaymentService {
 
     const payer = await interaction.guild!.members.fetch(interaction.user.id);
     const creator = await interaction.guild!.members.fetch(creatorId);
-    const price = this.getPrice(payer, productValue);
+    const price = this.getPriceForMember(payer, productValue);
     if (!this.isCreator(creator)) {
       throw new Error(CREATOR_EMBLEM_PANEL_MESSAGES.INVALID_CREATOR);
     }
@@ -184,7 +186,7 @@ export class CreatorEmblemPaymentService {
 
     const payer = await interaction.guild!.members.fetch(interaction.user.id);
     const creator = await interaction.guild!.members.fetch(creatorId);
-    const price = this.getPrice(payer, productValue);
+    const price = this.getPriceForMember(payer, productValue);
     if (!this.isCreator(creator)) {
       throw new Error(CREATOR_EMBLEM_PANEL_MESSAGES.INVALID_CREATOR);
     }

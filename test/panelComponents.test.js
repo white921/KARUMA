@@ -15,6 +15,7 @@ const { HotelVcService } = require("../dist/service/hotelVcService.js");
 const { createRedeployPanelActionRow } = require("../dist/service/redeployPanelService.js");
 const { createShopPanelActionRow } = require("../dist/service/shopPanelService.js");
 const { createCreatorEmblemPanelActionRow } = require("../dist/service/creatorEmblemPanelService.js");
+const { CreatorEmblemPaymentService } = require("../dist/service/creatorEmblemPaymentService.js");
 const { VcPanelService } = require("../dist/service/vcPanelService.js");
 const {
   GAME_PANEL_MESSAGES,
@@ -72,6 +73,32 @@ test("creator emblem panel has payment and balance buttons", () => {
     PANEL_COMMAND_NAMES.CREATOR_EMBLEM_PAY,
     PANEL_COMMAND_NAMES.VIEW,
   ]);
+});
+
+test("creator emblem pricing treats apostle, bishop, and server owner equally", () => {
+  const apostlePriceRoles = [
+    ROLE_IDS.CORE_MEMBER_ROLES.HONMEN,
+    ROLE_IDS.KANRISYA,
+    ROLE_IDS.SABANUSI,
+  ];
+
+  for (const roleId of apostlePriceRoles) {
+    const member = memberWithRoles([roleId]);
+    assert.equal(CreatorEmblemPaymentService.getPriceForMember(member, "personal"), 60000);
+    assert.equal(CreatorEmblemPaymentService.getPriceForMember(member, "large"), 150000);
+  }
+
+  const congregationMember = memberWithRoles([
+    ROLE_IDS.CORE_MEMBER_ROLES.JUNHONMEN,
+  ]);
+  assert.equal(
+    CreatorEmblemPaymentService.getPriceForMember(congregationMember, "personal"),
+    100000,
+  );
+  assert.throws(
+    () => CreatorEmblemPaymentService.getPriceForMember(congregationMember, "large"),
+    /デカ紋章は使徒・司教・鯖主のみ利用できます。/,
+  );
 });
 
 test("hotel and shop panels include their ticket confirmation buttons", () => {

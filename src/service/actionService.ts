@@ -12,8 +12,9 @@ import { formatNumber } from "../util/number";
 export function resolveActionLogThreadId(commandName: string): string | null {
   switch (commandName) {
     case PANEL_COMMAND_NAMES.SEND:
-    case PANEL_COMMAND_NAMES.CREATOR_EMBLEM_PAY:
       return THREAD_IDS.SEND_LOG_THREAD;
+    case PANEL_COMMAND_NAMES.CREATOR_EMBLEM_PAY:
+      return THREAD_IDS.CREATOR_EMBLEM_LOG_THREAD;
     case PANEL_COMMAND_NAMES.SHOP_SEND:
       return THREAD_IDS.SHOP_LOG_THREAD;
     case COMMAND_NAMES.PAY_SALARY:
