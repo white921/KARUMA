@@ -75,11 +75,12 @@ test("creator emblem panel has payment and balance buttons", () => {
   ]);
 });
 
-test("creator emblem pricing treats apostle, bishop, and server owner equally", () => {
+test("creator emblem pricing treats apostle, bishop, server owner, and technical leader equally", () => {
   const apostlePriceRoles = [
     ROLE_IDS.CORE_MEMBER_ROLES.HONMEN,
     ROLE_IDS.KANRISYA,
     ROLE_IDS.SABANUSI,
+    ROLE_IDS.GIJUTU_LEADER,
   ];
 
   for (const roleId of apostlePriceRoles) {
@@ -97,7 +98,7 @@ test("creator emblem pricing treats apostle, bishop, and server owner equally", 
   );
   assert.throws(
     () => CreatorEmblemPaymentService.getPriceForMember(congregationMember, "large"),
-    /デカ紋章は使徒・司教・鯖主のみ利用できます。/,
+    /デカ紋章は使徒・司教・鯖主・技術リーダーのみ利用できます。/,
   );
 });
 

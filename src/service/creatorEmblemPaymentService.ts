@@ -35,7 +35,8 @@ export class CreatorEmblemPaymentService {
   private static hasApostlePricing(member: GuildMember): boolean {
     return member.roles.cache.has(ROLE_IDS.CORE_MEMBER_ROLES.HONMEN) ||
       member.roles.cache.has(ROLE_IDS.KANRISYA) ||
-      member.roles.cache.has(ROLE_IDS.SABANUSI);
+      member.roles.cache.has(ROLE_IDS.SABANUSI) ||
+      member.roles.cache.has(ROLE_IDS.GIJUTU_LEADER);
   }
 
   private static hasMemberRole(member: GuildMember): boolean {
@@ -82,12 +83,13 @@ export class CreatorEmblemPaymentService {
         {
           label: "個人紋章",
           value: "personal",
-          description: "教団員 100,000 / 使徒・司教・鯖主 60,000krm",
+          description:
+            "教団員 100,000 / 使徒・司教・鯖主・技術リーダー 60,000krm",
         },
         {
           label: "デカ紋章",
           value: "large",
-          description: "使徒・司教・鯖主 150,000krm",
+          description: "使徒・司教・鯖主・技術リーダー 150,000krm",
         },
       );
     const embed = new EmbedBuilder()
