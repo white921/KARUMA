@@ -83,13 +83,12 @@ export class CreatorEmblemPaymentService {
         {
           label: "個人紋章",
           value: "personal",
-          description:
-            "教団員 100,000 / 使徒・司教・鯖主・技術リーダー 60,000krm",
+          description: "教団員 100,000krm / 使徒 60,000krm",
         },
         {
           label: "デカ紋章",
           value: "large",
-          description: "使徒・司教・鯖主・技術リーダー 150,000krm",
+          description: "使徒 150,000krm",
         },
       );
     const embed = new EmbedBuilder()

@@ -21,6 +21,7 @@ const {
   GAME_PANEL_MESSAGES,
   HOTEL_VC_PANEL_MESSAGES,
   PANEL_MESSAGES,
+  CREATOR_EMBLEM_PANEL_MESSAGES,
 } = require("../dist/constant/panel.js");
 
 function memberWithRoles(roleIds) {
@@ -98,8 +99,16 @@ test("creator emblem pricing treats apostle, bishop, server owner, and technical
   );
   assert.throws(
     () => CreatorEmblemPaymentService.getPriceForMember(congregationMember, "large"),
-    /デカ紋章は使徒・司教・鯖主・技術リーダーのみ利用できます。/,
+    /デカ紋章は使徒のみ利用できます。/,
   );
+});
+
+test("creator emblem panel only displays congregation and apostle role names", () => {
+  const description = CREATOR_EMBLEM_PANEL_MESSAGES.DESCRIPTION;
+
+  assert.match(description, /教団員 100,000krm／使徒 60,000krm/);
+  assert.match(description, /デカ紋章：使徒 150,000krm/);
+  assert.doesNotMatch(description, /司教|鯖主|技術リーダー/);
 });
 
 test("hotel and shop panels include their ticket confirmation buttons", () => {
