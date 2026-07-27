@@ -1,17 +1,13 @@
-import { PoolConnection, RowDataPacket } from "mysql2/promise";
+import { PoolConnection } from "mysql2/promise";
 
 import {
   HOTEL_FREE_TICKET_TYPE,
   HOTEL_MESSAGES,
   HotelFreeTicketType,
 } from "../constant/hotel";
+import { ITEM_KEY, ItemKey } from "../constant/item";
 import { PANEL_COMMAND_NAMES } from "../constant/command";
-import { DbService } from "./dbService";
-
-type TicketRow = RowDataPacket & {
-  ticket_type: HotelFreeTicketType;
-  quantity: number;
-};
+import { ItemService } from "./itemService";
 
 export class HotelFreeTicketService {
   static getTicketType(commandId: string): HotelFreeTicketType | undefined {
@@ -24,19 +20,16 @@ export class HotelFreeTicketService {
     return undefined;
   }
 
+  static getItemKey(ticketType: HotelFreeTicketType): ItemKey {
+    return ticketType === HOTEL_FREE_TICKET_TYPE.SECRET
+      ? ITEM_KEY.HOTEL_SECRET_FREE
+      : ITEM_KEY.HOTEL_FREEDOM_FREE;
+  }
+
   static async hasTicket(userId: string, commandId: string): Promise<boolean> {
     const ticketType = this.getTicketType(commandId);
     if (!ticketType) return false;
-    const connection = await DbService.getConnection();
-    try {
-      const [rows] = await connection.execute<TicketRow[]>(
-        "SELECT quantity FROM hotel_free_tickets WHERE user_id = ? AND ticket_type = ?",
-        [userId, ticketType],
-      );
-      return Number(rows[0]?.quantity ?? 0) > 0;
-    } finally {
-      connection.release();
-    }
+    return ItemService.hasItem(userId, this.getItemKey(ticketType));
   }
 
   static async getTicketQuantities(
@@ -46,23 +39,16 @@ export class HotelFreeTicketService {
       [HOTEL_FREE_TICKET_TYPE.SECRET]: 0,
       [HOTEL_FREE_TICKET_TYPE.FREEDOM]: 0,
     };
-    const connection = await DbService.getConnection();
-    try {
-      const [rows] = await connection.execute<TicketRow[]>(
-        `SELECT ticket_type, quantity
-         FROM hotel_free_tickets
-         WHERE user_id = ? AND quantity > 0`,
-        [userId],
-      );
-      for (const row of rows) {
-        if (row.ticket_type in quantities) {
-          quantities[row.ticket_type] = Number(row.quantity);
-        }
-      }
-      return quantities;
-    } finally {
-      connection.release();
-    }
+    const itemKeys = [
+      this.getItemKey(HOTEL_FREE_TICKET_TYPE.SECRET),
+      this.getItemKey(HOTEL_FREE_TICKET_TYPE.FREEDOM),
+    ] as const;
+    const quantitiesByItem = await ItemService.getQuantities(userId, itemKeys);
+    quantities[HOTEL_FREE_TICKET_TYPE.SECRET] =
+      quantitiesByItem.get(itemKeys[0]) ?? 0;
+    quantities[HOTEL_FREE_TICKET_TYPE.FREEDOM] =
+      quantitiesByItem.get(itemKeys[1]) ?? 0;
+    return quantities;
   }
 
   /** 市場ガチャのトランザクション中で無料券を付与する。 */
@@ -72,11 +58,11 @@ export class HotelFreeTicketService {
     ticketType: HotelFreeTicketType,
     quantity: number,
   ): Promise<void> {
-    await connection.execute(
-      `INSERT INTO hotel_free_tickets (user_id, ticket_type, quantity)
-       VALUES (?, ?, ?)
-       ON DUPLICATE KEY UPDATE quantity = quantity + VALUES(quantity)`,
-      [userId, ticketType, quantity],
+    await ItemService.grant(
+      connection,
+      userId,
+      this.getItemKey(ticketType),
+      quantity,
     );
   }
 
@@ -85,27 +71,12 @@ export class HotelFreeTicketService {
     const ticketType = this.getTicketType(commandId);
     if (!ticketType) throw new Error(HOTEL_MESSAGES.HAS_NOT_TICKET);
 
-    const connection = await DbService.getConnection();
-    try {
-      await connection.beginTransaction();
-      const [rows] = await connection.execute<TicketRow[]>(
-        `SELECT quantity FROM hotel_free_tickets
-         WHERE user_id = ? AND ticket_type = ? FOR UPDATE`,
-        [userId, ticketType],
-      );
-      if (Number(rows[0]?.quantity ?? 0) < 1) {
-        throw new Error(HOTEL_MESSAGES.HAS_NOT_TICKET);
-      }
-      await connection.execute(
-        "UPDATE hotel_free_tickets SET quantity = quantity - 1 WHERE user_id = ? AND ticket_type = ?",
-        [userId, ticketType],
-      );
-      await connection.commit();
-    } catch (error) {
-      await connection.rollback();
-      throw error;
-    } finally {
-      connection.release();
+    const consumed = await ItemService.consumeOne(
+      userId,
+      this.getItemKey(ticketType),
+    );
+    if (!consumed) {
+      throw new Error(HOTEL_MESSAGES.HAS_NOT_TICKET);
     }
   }
 }

@@ -1,17 +1,13 @@
-import { PoolConnection, RowDataPacket } from "mysql2/promise";
+import { PoolConnection } from "mysql2/promise";
 
 import {
   GAME_FREE_TICKET_TYPE,
   GameFreeTicketType,
 } from "../constant/gameTicket";
+import { ITEM_KEY, ItemKey } from "../constant/item";
 import { PANEL_COMMAND_NAMES } from "../constant/command";
 import { GAME_MESSAGES } from "../constant/game";
-import { DbService } from "./dbService";
-
-type TicketRow = RowDataPacket & {
-  ticket_type: GameFreeTicketType;
-  quantity: number;
-};
+import { ItemService } from "./itemService";
 
 export class GameFreeTicketService {
   static getTicketType(commandId: string): GameFreeTicketType | undefined {
@@ -21,20 +17,18 @@ export class GameFreeTicketService {
     return undefined;
   }
 
+  static getItemKey(ticketType: GameFreeTicketType): ItemKey {
+    if (ticketType === GAME_FREE_TICKET_TYPE.SHORT) {
+      return ITEM_KEY.GAME_SHORT_FREE;
+    }
+    throw new Error(GAME_MESSAGES.HAS_NOT_TICKET);
+  }
+
   static async hasTicket(userId: string, commandId: string): Promise<boolean> {
     const ticketType = this.getTicketType(commandId);
     if (!ticketType) return false;
 
-    const connection = await DbService.getConnection();
-    try {
-      const [rows] = await connection.execute<TicketRow[]>(
-        "SELECT quantity FROM game_free_tickets WHERE user_id = ? AND ticket_type = ?",
-        [userId, ticketType],
-      );
-      return Number(rows[0]?.quantity ?? 0) > 0;
-    } finally {
-      connection.release();
-    }
+    return ItemService.hasItem(userId, this.getItemKey(ticketType));
   }
 
   static async getTicketQuantities(
@@ -43,23 +37,10 @@ export class GameFreeTicketService {
     const quantities: Record<GameFreeTicketType, number> = {
       [GAME_FREE_TICKET_TYPE.SHORT]: 0,
     };
-    const connection = await DbService.getConnection();
-    try {
-      const [rows] = await connection.execute<TicketRow[]>(
-        `SELECT ticket_type, quantity
-         FROM game_free_tickets
-         WHERE user_id = ? AND quantity > 0`,
-        [userId],
-      );
-      for (const row of rows) {
-        if (row.ticket_type in quantities) {
-          quantities[row.ticket_type] = Number(row.quantity);
-        }
-      }
-      return quantities;
-    } finally {
-      connection.release();
-    }
+    const itemKey = this.getItemKey(GAME_FREE_TICKET_TYPE.SHORT);
+    quantities[GAME_FREE_TICKET_TYPE.SHORT] =
+      (await ItemService.getQuantities(userId, [itemKey])).get(itemKey) ?? 0;
+    return quantities;
   }
 
   /** 付与処理を行うトランザクション内で使用する。 */
@@ -69,11 +50,11 @@ export class GameFreeTicketService {
     ticketType: GameFreeTicketType,
     quantity: number,
   ): Promise<void> {
-    await connection.execute(
-      `INSERT INTO game_free_tickets (user_id, ticket_type, quantity)
-       VALUES (?, ?, ?)
-       ON DUPLICATE KEY UPDATE quantity = quantity + VALUES(quantity)`,
-      [userId, ticketType, quantity],
+    await ItemService.grant(
+      connection,
+      userId,
+      this.getItemKey(ticketType),
+      quantity,
     );
   }
 
@@ -82,27 +63,12 @@ export class GameFreeTicketService {
     const ticketType = this.getTicketType(commandId);
     if (!ticketType) throw new Error(GAME_MESSAGES.HAS_NOT_TICKET);
 
-    const connection = await DbService.getConnection();
-    try {
-      await connection.beginTransaction();
-      const [rows] = await connection.execute<TicketRow[]>(
-        `SELECT quantity FROM game_free_tickets
-         WHERE user_id = ? AND ticket_type = ? FOR UPDATE`,
-        [userId, ticketType],
-      );
-      if (Number(rows[0]?.quantity ?? 0) < 1) {
-        throw new Error(GAME_MESSAGES.HAS_NOT_TICKET);
-      }
-      await connection.execute(
-        "UPDATE game_free_tickets SET quantity = quantity - 1 WHERE user_id = ? AND ticket_type = ?",
-        [userId, ticketType],
-      );
-      await connection.commit();
-    } catch (error) {
-      await connection.rollback();
-      throw error;
-    } finally {
-      connection.release();
+    const consumed = await ItemService.consumeOne(
+      userId,
+      this.getItemKey(ticketType),
+    );
+    if (!consumed) {
+      throw new Error(GAME_MESSAGES.HAS_NOT_TICKET);
     }
   }
 }
