@@ -77,6 +77,7 @@ export const PANEL_COMMAND_NAMES = {
   GAME_LONG: "gameLong",
   GAME_SHORT_EXTEND: "gameShortExtend",
   GAME_PASS: "gamePass",
+  GAME_TICKET_VIEW: "gameTicketView",
   MINECRAFT_PASS: "gameMinecraftPass",
   REDEPLOY: "redeploy",
   // ADMIN_CHANGE_NAME: "adminChangeName",

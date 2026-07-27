@@ -14,4 +14,5 @@ export const GAME_MESSAGES = {
   INVALID_ROLE: "無効なロールです。",
   ALREADY_HAS_ROLE: "既にロールが付与されています。",
   INVALID_EXPIRE_AT: "有効期限が無効です。",
+  HAS_NOT_TICKET: "遊戯チケットがありません。",
 };

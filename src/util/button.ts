@@ -217,10 +217,17 @@ export async function showConfirmButton(
       case PANEL_COMMAND_NAMES.GAME_LONG:
       case PANEL_COMMAND_NAMES.GAME_PASS: {
         const comment = await GameService.getGameComment(commandId);
-        embed.setTitle(`🎮 ${comment}`);
-        embed.setDescription(
-          `**${price}**${CURRENCY_NAMES}を消費して**${comment}**を購入しますか？`,
+        if (selectedHotelPurchaseWay === "チケット") {
+          embed.setTitle(`🎫 ${comment}`);
+          embed.setDescription(
+            `**遊戯チケット**を1枚消費して**${comment}**を利用しますか？`,
           );
+        } else {
+          embed.setTitle(`🎮 ${comment}`);
+          embed.setDescription(
+            `**${price}**${CURRENCY_NAMES}を消費して**${comment}**を購入しますか？`,
+          );
+        }
         embed.setColor(COLOR.GREEN);
         break;
       }
@@ -263,7 +270,7 @@ export async function showConfirmButton(
     const createButton = new ButtonBuilder()
       .setCustomId(
         isGameCommand
-          ? `${commandId}_game_confirm`
+          ? `${commandId}_game_confirm_${selectedHotelPurchaseWay}`
           : isDiaryCommand
             ? `${commandId}_diary_confirm`
           : `${commandId}_hotel_create_${selectedHotelPurchaseWay}_${selectedUserId}`,

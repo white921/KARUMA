@@ -32,6 +32,10 @@ export function createGamePanelActionRows() {
 
   const row2 = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
+      .setCustomId(PANEL_COMMAND_NAMES.GAME_TICKET_VIEW)
+      .setLabel(GAME_PANEL_MESSAGES.TICKET_VIEW)
+      .setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder()
       .setCustomId(PANEL_COMMAND_NAMES.VIEW)
       .setLabel(PANEL_MESSAGES.VIEW)
       .setStyle(ButtonStyle.Secondary),

@@ -3,8 +3,10 @@ import { ButtonInteraction } from "discord.js";
 import {
   HOTEL_FREE_TICKET_TYPE,
 } from "../constant/hotel";
+import { GAME_FREE_TICKET_TYPE } from "../constant/gameTicket";
 import { SHOP_TICKETS } from "../constant/shopTicket";
 import { HotelFreeTicketService } from "./hotelFreeTicketService";
+import { GameFreeTicketService } from "./gameFreeTicketService";
 import { ShopTicketService } from "./shopTicketService";
 
 export class TicketViewService {
@@ -30,6 +32,14 @@ export class TicketViewService {
     ].join("\n");
   }
 
+  static async createGameTicketMessage(userId: string): Promise<string> {
+    const quantities = await GameFreeTicketService.getTicketQuantities(userId);
+    return [
+      "🎫 **遊戯チケット**",
+      `6時間プラン: ${quantities[GAME_FREE_TICKET_TYPE.SHORT]}枚`,
+    ].join("\n");
+  }
+
   static async viewHotelTickets(interaction: ButtonInteraction): Promise<void> {
     await interaction.editReply({
       content: await this.createHotelTicketMessage(interaction.user.id),
@@ -39,6 +49,12 @@ export class TicketViewService {
   static async viewShopTickets(interaction: ButtonInteraction): Promise<void> {
     await interaction.editReply({
       content: await this.createShopTicketMessage(interaction.user.id),
+    });
+  }
+
+  static async viewGameTickets(interaction: ButtonInteraction): Promise<void> {
+    await interaction.editReply({
+      content: await this.createGameTicketMessage(interaction.user.id),
     });
   }
 }

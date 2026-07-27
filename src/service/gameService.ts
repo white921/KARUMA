@@ -29,6 +29,7 @@ import { PANEL_COMMAND_NAMES } from "../constant/command";
 import { ROLE_IDS, THREAD_IDS } from "../constant/id";
 import { COLOR } from "../constant/color";
 import { BOT_ID } from "../constant/id";
+import { GameFreeTicketService } from "./gameFreeTicketService";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -95,6 +96,7 @@ export class GameService {
     interaction: ButtonInteraction,
     commandName: string,
     isExtend: boolean,
+    useTicket = false,
   ) {
     try {
       const userId = interaction.user.id;
@@ -113,8 +115,12 @@ export class GameService {
 
       await this.validateHasRole(member, roleId, false);
 
-      // ゲームパスを持っている場合以外は支払い処理
-      if (!isFree) {
+      // ゲームパス・ゲームスタッフによる無料利用では券を消費しない。
+      // それ以外では、確認時に選ばれた遊戯チケットを料金より優先する。
+      const isTicketPayment = useTicket && !isFree;
+      if (isTicketPayment) {
+        await GameFreeTicketService.consume(userId, commandName);
+      } else if (!isFree) {
         await this.validateWallet(userAccount, price);
         await this.payGamePrice(userAccount, price);
         await ActionService.executeActionLog(
@@ -165,19 +171,23 @@ export class GameService {
         commandName,
         comment,
         jstExpireDateTime,
-        isFree,
+        isFree || isTicketPayment,
       );
 
       // メッセージ送信
       if (interaction.deferred) {
         await interaction.editReply({
-          content: `${comment}を購入しました。\n${
+          content: `${comment}を${
+            isTicketPayment ? "遊戯チケットで利用しました" : "購入しました"
+          }。\n${
             jstExpireDateTime ? `有効期限は${jstExpireDateTime}までです。` : ""
           }`,
         });
       } else {
         await interaction.reply({
-          content: `${comment}を購入しました。\n${
+          content: `${comment}を${
+            isTicketPayment ? "遊戯チケットで利用しました" : "購入しました"
+          }。\n${
             jstExpireDateTime ? `有効期限は${jstExpireDateTime}までです。` : ""
           }`,
           ephemeral: true,

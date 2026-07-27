@@ -20,6 +20,7 @@ import { RedeployService } from "../service/redeployService";
 import { RouletteService } from "../service/rouletteService";
 import { MarketGachaService } from "../service/marketGachaService";
 import { HotelFreeTicketService } from "../service/hotelFreeTicketService";
+import { GameFreeTicketService } from "../service/gameFreeTicketService";
 import { TicketViewService } from "../service/ticketViewService";
 import { OmikujiService } from "../service/omikujiService";
 import { CreatorEmblemPaymentService } from "../service/creatorEmblemPaymentService";
@@ -235,6 +236,9 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
       case PANEL_COMMAND_NAMES.HOTEL_TICKET_VIEW:
         await TicketViewService.viewHotelTickets(interaction);
         break;
+      case PANEL_COMMAND_NAMES.GAME_TICKET_VIEW:
+        await TicketViewService.viewGameTickets(interaction);
+        break;
       case PANEL_COMMAND_NAMES.HOTEL_VC_SECRET:
         await showSelectUserMenu(
           interaction,
@@ -303,7 +307,13 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
         if (await GameService.isFree(interaction.member as GuildMember)) {
           await GameService.buyGameRole(interaction, customId, false);
         } else {
-          await showConfirmButton(interaction, customId);
+          await showConfirmButton(
+            interaction,
+            customId,
+            (await GameFreeTicketService.hasTicket(interaction.user.id, customId))
+              ? "チケット"
+              : "Royal",
+          );
         }
         break;
       case PANEL_COMMAND_NAMES.GAME_PASS:
@@ -350,16 +360,22 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
           );
         } else if (customId.includes("_game_confirm")) {
           // ゲーム購入確定ボタンの処理
-          // customId形式: {commandId}_game_confirm
-          // 例: gameShort_game_confirm, gameShortExtend_game_confirm
+          // customId形式: {commandId}_game_confirm_{paymentWay}
+          // 例: gameShort_game_confirm_チケット
           const parts = customId.split("_");
           const commandId = parts[0];
           const isExtend = commandId.endsWith("Extend"); // 延長購入かどうか
+          const useTicket = parts[3] === "チケット";
 
           switch (commandId) {
             case PANEL_COMMAND_NAMES.GAME_SHORT:
             case PANEL_COMMAND_NAMES.GAME_LONG:
-              await GameService.buyGameRole(interaction, commandId, isExtend);
+              await GameService.buyGameRole(
+                interaction,
+                commandId,
+                isExtend,
+                useTicket,
+              );
               break;
             case PANEL_COMMAND_NAMES.GAME_PASS:
               await GameService.buyGamePass(interaction, commandId);
