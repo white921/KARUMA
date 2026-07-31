@@ -134,18 +134,14 @@ test("shop panel starts the gacha flow from one button", () => {
   assert.ok(!shopButtonIds.includes(PANEL_COMMAND_NAMES.INVITE_POINT_GACHA_DRAW));
 });
 
-test("shop panel links ticket-based gacha prizes to general inquiry", () => {
+test("shop panel links the market gacha product list", () => {
   assert.match(
     require("../dist/constant/panel.js").SHOP_PANEL_MESSAGES.DESCRIPTION,
-    /\[総合お問い合わせ\]\(https:\/\/discord\.com\/channels\/1520329128883126392\/1520368587255189545\)/,
+    /\[市場ガチャ\]\(https:\/\/discord\.com\/channels\/1520329128883126392\/1526991003192655924\)/,
   );
-  assert.match(
+  assert.doesNotMatch(
     require("../dist/constant/panel.js").SHOP_PANEL_MESSAGES.DESCRIPTION,
     /教団市場チケット/,
-  );
-  assert.match(
-    require("../dist/constant/panel.js").SHOP_PANEL_MESSAGES.DESCRIPTION,
-    /従業員に割引後の支払額を確認してから、その金額をこのパネルで送金してください/,
   );
 });
 
