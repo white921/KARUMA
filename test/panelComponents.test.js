@@ -145,7 +145,7 @@ test("shop panel links ticket-based gacha prizes to general inquiry", () => {
   );
   assert.match(
     require("../dist/constant/panel.js").SHOP_PANEL_MESSAGES.DESCRIPTION,
-    /割引券を使用する旨を従業員にお伝えください/,
+    /従業員に割引後の支払額を確認してから、その金額をこのパネルで送金してください/,
   );
 });
 

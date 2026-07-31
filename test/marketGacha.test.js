@@ -31,11 +31,36 @@ test("market gacha prize probabilities total 100 percent", () => {
   assert.equal(total, 100);
 });
 
+test("market gacha uses the configured prize probabilities", () => {
+  assert.deepEqual(
+    Object.fromEntries(
+      MARKET_GACHA_PRIZES.map((prize) => [prize.key, prize.probability]),
+    ),
+    {
+      secret_free_1: 5,
+      secret_free_3: 3,
+      freedom_free_1: 3,
+      cult_chat_free: 9.5,
+      custom_role_week: 0.5,
+      discount_5: 8,
+      discount_10: 3,
+      superchat: 20,
+      song_cover: 20,
+      remote_control: 3,
+      game_free_1: 15,
+      game_free_3: 5,
+      heretic: 5,
+    },
+  );
+});
+
 test("market gacha selects prizes at probability boundaries", () => {
   assert.equal(selectMarketGachaPrize(0).key, "secret_free_1");
-  assert.equal(selectMarketGachaPrize(0.099999).key, "secret_free_1");
-  assert.equal(selectMarketGachaPrize(0.1).key, "secret_free_3");
-  assert.equal(selectMarketGachaPrize(0.999999).key, "remote_control");
+  assert.equal(selectMarketGachaPrize(0.049999).key, "secret_free_1");
+  assert.equal(selectMarketGachaPrize(0.05).key, "secret_free_3");
+  assert.equal(selectMarketGachaPrize(0.109999).key, "freedom_free_1");
+  assert.equal(selectMarketGachaPrize(0.11).key, "cult_chat_free");
+  assert.equal(selectMarketGachaPrize(0.999999).key, "heretic");
 });
 
 test("market gacha rejects invalid random values", () => {
@@ -96,17 +121,31 @@ test("audio prizes select their files from the matching database category", () =
   assert.equal(songCover.audioCategory, "song_cover");
 });
 
-test("ticket-based prizes guide users to the general inquiry market ticket", () => {
+test("remote control and heretic prizes guide users to the general inquiry market ticket", () => {
   const { MarketGachaService } = require("../dist/service/marketGachaService.js");
-  const prize = MARKET_GACHA_PRIZES.find((item) => item.key === "remote_control");
-  const instructions = MarketGachaService.getTicketInstructions(prize);
+  for (const key of ["remote_control", "heretic"]) {
+    const prize = MARKET_GACHA_PRIZES.find((item) => item.key === key);
+    const instructions = MarketGachaService.getTicketInstructions(prize);
 
-  assert.match(instructions, /総合お問い合わせ/);
-  assert.match(instructions, /教団市場チケット/);
-  assert.match(instructions, /スクショしてチケット内に送信/);
+    assert.match(instructions, /総合お問い合わせ/);
+    assert.match(instructions, /教団市場チケット/);
+    assert.match(instructions, /教祖さんをメンション/);
+    assert.match(instructions, /スクショしてチケット内に送信/);
+  }
+});
+
+test("game ticket prizes explain the same priority behavior as hotel tickets", () => {
+  const { MarketGachaService } = require("../dist/service/marketGachaService.js");
+  const gameTicket = MARKET_GACHA_PRIZES.find((item) => item.key === "game_free_1");
+  const gameTicketThree = MARKET_GACHA_PRIZES.find(
+    (item) => item.key === "game_free_3",
+  );
+
+  assert.equal(gameTicket.label, "遊戯チケット 1枚");
+  assert.equal(gameTicketThree.label, "遊戯チケット 3枚");
   assert.match(
-    instructions,
-    /https:\/\/discord\.com\/channels\/1520329128883126392\/1520368587255189545/,
+    MarketGachaService.getTicketInstructions(gameTicket),
+    /次回ゲームの6時間プランを使用時に、優先的にチケットが消費/,
   );
 });
 
@@ -133,7 +172,9 @@ test("shop discount prize directs users to the market ticket guidance", () => {
   const instructions = MarketGachaService.getTicketInstructions(discountTicket);
 
   assert.match(instructions, /教団市場チケットを切り/);
-  assert.match(instructions, /割引券を使用する旨を従業員にお伝えください/);
+  assert.match(instructions, /割引後の支払額を確認/);
+  assert.match(instructions, /ショップパネルからその金額を送金/);
+  assert.match(instructions, /100万krm以上の商品には利用できません/);
 });
 
 test("audio prize result confirms DM delivery and uses the audio type", () => {

@@ -21,9 +21,11 @@ import { BOT_ID, ROLE_IDS, THREAD_IDS } from "../constant/id";
 import { CURRENCY_NAMES } from "../constant/currency";
 import { DbService } from "./dbService";
 import { HotelFreeTicketService } from "./hotelFreeTicketService";
+import { GameFreeTicketService } from "./gameFreeTicketService";
 import { ShopTicketService } from "./shopTicketService";
 import { InvitePointService } from "./invitePointService";
 import { HOTEL_FREE_TICKET_TYPE, HotelFreeTicketType } from "../constant/hotel";
+import { GAME_FREE_TICKET_TYPE, GameFreeTicketType } from "../constant/gameTicket";
 import { SHOP_TICKET_TYPE, ShopTicketType } from "../constant/shopTicket";
 import { INVITE_POINT_GACHA_COST } from "../constant/invitePoint";
 
@@ -162,6 +164,19 @@ export class MarketGachaService {
     }
   }
 
+  private static getGameTicketGrant(prize: MarketGachaPrize):
+    | { ticketType: GameFreeTicketType; quantity: number }
+    | undefined {
+    switch (prize.key) {
+      case "game_free_1":
+        return { ticketType: GAME_FREE_TICKET_TYPE.SHORT, quantity: 1 };
+      case "game_free_3":
+        return { ticketType: GAME_FREE_TICKET_TYPE.SHORT, quantity: 3 };
+      default:
+        return undefined;
+    }
+  }
+
   private static getTicketInstructions(
     prize: MarketGachaPrize,
     audioAsset?: MarketGachaAudioAsset,
@@ -179,8 +194,16 @@ export class MarketGachaService {
       return "次回フリーダムを使用時に、優先的にチケットが消費されるようになります。";
     }
 
+    if (this.getGameTicketGrant(prize)) {
+      return "次回ゲームの6時間プランを使用時に、優先的にチケットが消費されるようになります。";
+    }
+
     if (this.getShopTicketGrant(prize)) {
-      return "[総合お問い合わせ](https://discord.com/channels/1520329128883126392/1520368587255189545)にて教団市場チケットを切り、割引券を使用する旨を従業員にお伝えください。";
+      return "[総合お問い合わせ](https://discord.com/channels/1520329128883126392/1520368587255189545)にて教団市場チケットを切り、割引券を使用したい旨と商品を従業員にお伝えください。割引後の支払額を確認したら、ショップパネルからその金額を送金してください。100万krm以上の商品には利用できません。";
+    }
+
+    if (prize.key === "remote_control" || prize.key === "heretic") {
+      return "[総合お問い合わせ](https://discord.com/channels/1520329128883126392/1520368587255189545)にて教団市場チケットを切り、教祖さんをメンションのうえ、当選メッセージをスクショしてチケット内に送信してください。";
     }
 
     return "[総合お問い合わせ](https://discord.com/channels/1520329128883126392/1520368587255189545)にて教団市場チケットを切り、当選メッセージをスクショしてチケット内に送信してください。";
@@ -356,6 +379,15 @@ export class MarketGachaService {
           connection,
           interaction.user.id,
           shopTicketGrant,
+        );
+      }
+      const gameTicketGrant = this.getGameTicketGrant(prize);
+      if (gameTicketGrant) {
+        await GameFreeTicketService.grant(
+          connection,
+          interaction.user.id,
+          gameTicketGrant.ticketType,
+          gameTicketGrant.quantity,
         );
       }
       if (paymentSource === "currency") {

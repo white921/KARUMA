@@ -11,7 +11,10 @@ export type MarketGachaPrizeKey =
   | "discount_10"
   | "superchat"
   | "song_cover"
-  | "remote_control";
+  | "remote_control"
+  | "game_free_1"
+  | "game_free_3"
+  | "heretic";
 
 export type MarketGachaAudioCategory = "superchat" | "song_cover";
 
@@ -25,34 +28,37 @@ export type MarketGachaPrize = {
 
 /** 確率の単位は %。合計が100になることをテストで保証する。 */
 export const MARKET_GACHA_PRIZES: readonly MarketGachaPrize[] = [
-  { key: "secret_free_1", label: "シークレット無料チケット 1枚", probability: 10 },
-  { key: "secret_free_3", label: "シークレット無料チケット 3枚", probability: 6 },
+  { key: "secret_free_1", label: "シークレット無料チケット 1枚", probability: 5 },
+  { key: "secret_free_3", label: "シークレット無料チケット 3枚", probability: 3 },
   { key: "freedom_free_1", label: "フリーダム無料チケット 1枚", probability: 3 },
-  { key: "cult_chat_free", label: "教祖雑談無料", probability: 10 },
-  { key: "custom_role_week", label: "カスタムロール 一週間", probability: 1 },
+  { key: "cult_chat_free", label: "教祖雑談無料", probability: 9.5 },
+  { key: "custom_role_week", label: "カスタムロール 一週間", probability: 0.5 },
   {
     key: "discount_5",
     label: "ショップ割引 5%OFF（100万krm以上の商品は利用不可）",
-    probability: 10,
+    probability: 8,
   },
   {
     key: "discount_10",
     label: "ショップ割引 10%OFF（100万krm以上の商品は利用不可）",
-    probability: 5,
+    probability: 3,
   },
   {
     key: "superchat",
     label: "準メン以上 サプボ",
-    probability: 25,
+    probability: 20,
     audioCategory: "superchat",
   },
   {
     key: "song_cover",
     label: "準メン以上 歌みた",
-    probability: 25,
+    probability: 20,
     audioCategory: "song_cover",
   },
-  { key: "remote_control", label: "教祖遠隔", probability: 5 },
+  { key: "remote_control", label: "教祖遠隔", probability: 3 },
+  { key: "game_free_1", label: "遊戯チケット 1枚", probability: 15 },
+  { key: "game_free_3", label: "遊戯チケット 3枚", probability: 5 },
+  { key: "heretic", label: "異端", probability: 5 },
 ];
 
 export function selectMarketGachaPrize(randomValue: number): MarketGachaPrize {
