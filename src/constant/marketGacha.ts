@@ -58,7 +58,7 @@ export const MARKET_GACHA_PRIZES: readonly MarketGachaPrize[] = [
   { key: "remote_control", label: "教祖遠隔", probability: 3 },
   { key: "game_free_1", label: "遊戯チケット 1枚", probability: 15 },
   { key: "game_free_3", label: "遊戯チケット 3枚", probability: 5 },
-  { key: "heretic", label: "異端", probability: 5 },
+  { key: "heretic", label: "異端通行券3日分", probability: 5 },
 ];
 
 export function selectMarketGachaPrize(randomValue: number): MarketGachaPrize {

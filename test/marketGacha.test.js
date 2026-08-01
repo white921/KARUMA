@@ -54,6 +54,12 @@ test("market gacha uses the configured prize probabilities", () => {
   );
 });
 
+test("heretic prize label specifies its three-day duration", () => {
+  const heretic = MARKET_GACHA_PRIZES.find((prize) => prize.key === "heretic");
+
+  assert.equal(heretic.label, "異端通行券3日分");
+});
+
 test("market gacha selects prizes at probability boundaries", () => {
   assert.equal(selectMarketGachaPrize(0).key, "secret_free_1");
   assert.equal(selectMarketGachaPrize(0.049999).key, "secret_free_1");
