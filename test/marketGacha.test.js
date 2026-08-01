@@ -127,17 +127,26 @@ test("audio prizes select their files from the matching database category", () =
   assert.equal(songCover.audioCategory, "song_cover");
 });
 
-test("remote control and heretic prizes guide users to the general inquiry market ticket", () => {
+test("remote control prize guides users to mention the founder in the general inquiry ticket", () => {
   const { MarketGachaService } = require("../dist/service/marketGachaService.js");
-  for (const key of ["remote_control", "heretic"]) {
-    const prize = MARKET_GACHA_PRIZES.find((item) => item.key === key);
-    const instructions = MarketGachaService.getTicketInstructions(prize);
+  const prize = MARKET_GACHA_PRIZES.find((item) => item.key === "remote_control");
+  const instructions = MarketGachaService.getTicketInstructions(prize);
 
-    assert.match(instructions, /総合お問い合わせ/);
-    assert.match(instructions, /教団市場チケット/);
-    assert.match(instructions, /教祖さんをメンション/);
-    assert.match(instructions, /スクショしてチケット内に送信/);
-  }
+  assert.match(instructions, /総合お問い合わせ/);
+  assert.match(instructions, /教団市場チケット/);
+  assert.match(instructions, /教祖さんをメンション/);
+  assert.match(instructions, /スクショしてチケット内に送信/);
+});
+
+test("heretic prize does not ask users to mention the founder", () => {
+  const { MarketGachaService } = require("../dist/service/marketGachaService.js");
+  const prize = MARKET_GACHA_PRIZES.find((item) => item.key === "heretic");
+  const instructions = MarketGachaService.getTicketInstructions(prize);
+
+  assert.match(instructions, /総合お問い合わせ/);
+  assert.match(instructions, /教団市場チケット/);
+  assert.doesNotMatch(instructions, /教祖さんをメンション/);
+  assert.match(instructions, /スクショしてチケット内に送信/);
 });
 
 test("game ticket prizes explain the same priority behavior as hotel tickets", () => {
