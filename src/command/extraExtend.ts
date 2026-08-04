@@ -18,6 +18,8 @@ const ALLOWED_ROLE_IDS = [
   ROLE_IDS.GIJUTU_LEADER,
 ];
 
+let bulkEvaluationExtensionInProgress = false;
+
 export const data = new SlashCommandBuilder()
   .setName(COMMAND_NAMES.EXTRA_EXTEND)
   .setDescription("評価シートの期間を延長します")
@@ -55,13 +57,32 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     throw new Error(EVALUATION_SHEET_MESSAGES.EXTEND_NO_PERMISSION);
   }
 
-  const { extendedCount, skipped, failed } =
-    await EvaluationService.extendAllEvaluationSheets(
+  const isBulkExtension = !targetMember;
+  if (isBulkExtension && bulkEvaluationExtensionInProgress) {
+    throw new Error(
+      "評価期間延長（全員対象）は現在実行中です。完了してから再実行してください。",
+    );
+  }
+
+  if (isBulkExtension) {
+    bulkEvaluationExtensionInProgress = true;
+  }
+
+  let result;
+  try {
+    result = await EvaluationService.extendAllEvaluationSheets(
       interaction.client,
       days,
       operator.id,
       { targetMember, reason },
     );
+  } finally {
+    if (isBulkExtension) {
+      bulkEvaluationExtensionInProgress = false;
+    }
+  }
+
+  const { extendedCount, skipped, failed } = result;
 
   const scope = targetMember ? `<@${targetMember.id}> の` : "";
   const summary =

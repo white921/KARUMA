@@ -69,6 +69,27 @@ test("restarts when an acknowledged interaction handler does not finish", () => 
   assert.equal(result.reason, "interaction_handler_timeout");
 });
 
+test("allows an intentional long-running handler without relaxing other handlers", () => {
+  let state = createInitialBotHealthState();
+  state = recordInteractionReceived(state, 1_000, "command:評価期間延長", {
+    handlerTimeoutMs: 15 * 60 * 1_000,
+  });
+  state = recordAckSuccess(state, 1_100, "command:評価期間延長:deferReply");
+
+  assert.deepEqual(
+    shouldRestartFromHealthState(state, 46_100, baseThresholds),
+    { shouldRestart: false },
+  );
+
+  state = recordInteractionReceived(state, 50_000, "command:view");
+  state = recordAckSuccess(state, 50_100, "command:view:deferReply");
+
+  const result = shouldRestartFromHealthState(state, 96_100, baseThresholds);
+
+  assert.equal(result.shouldRestart, true);
+  assert.equal(result.reason, "interaction_handler_timeout");
+});
+
 test("restarts when the gateway stays disconnected for too long", () => {
   let state = createInitialBotHealthState();
   state = recordGatewayReady(state, 1_000);

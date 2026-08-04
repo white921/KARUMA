@@ -12,6 +12,11 @@ export type InFlightInteraction = {
   context: string;
   receivedAt: number;
   acknowledgedAt: number | null;
+  handlerTimeoutMs?: number;
+};
+
+export type InteractionHealthOptions = {
+  handlerTimeoutMs?: number;
 };
 
 export type BotHealthState = {
@@ -166,6 +171,7 @@ export function recordInteractionReceived(
   state: BotHealthState,
   now: number,
   context = "unknown",
+  options: InteractionHealthOptions = {},
 ): BotHealthState {
   const pendingInteractions = [
     ...state.pendingInteractions,
@@ -180,6 +186,7 @@ export function recordInteractionReceived(
       context,
       receivedAt: now,
       acknowledgedAt: null,
+      handlerTimeoutMs: options.handlerTimeoutMs,
     },
   ];
 
@@ -194,6 +201,19 @@ export function recordInteractionReceived(
     inFlightInteractionCount: inFlightInteractions.length,
     inFlightInteractions,
   };
+}
+
+function hasTimedOutAcknowledgedInteraction(
+  state: BotHealthState,
+  now: number,
+  defaultHandlerTimeoutMs: number,
+): boolean {
+  return state.inFlightInteractions.some(
+    (inFlight) =>
+      inFlight.acknowledgedAt !== null &&
+      now - inFlight.acknowledgedAt >=
+        (inFlight.handlerTimeoutMs ?? defaultHandlerTimeoutMs),
+  );
 }
 
 export function recordAckSuccess(
@@ -377,8 +397,11 @@ export function shouldRestartFromHealthState(
   }
 
   if (
-    state.oldestAcknowledgedInteractionAt !== null &&
-    now - state.oldestAcknowledgedInteractionAt >= thresholds.handlerTimeoutMs
+    hasTimedOutAcknowledgedInteraction(
+      state,
+      now,
+      thresholds.handlerTimeoutMs,
+    )
   ) {
     return {
       shouldRestart: true,
@@ -442,8 +465,16 @@ export class BotHealthMonitor {
   private static restartRequested = false;
   private static lastWatchdogTickAt: number | null = null;
 
-  static recordInteractionReceived(context: string) {
-    this.state = recordInteractionReceived(this.state, Date.now(), context);
+  static recordInteractionReceived(
+    context: string,
+    options: InteractionHealthOptions = {},
+  ) {
+    this.state = recordInteractionReceived(
+      this.state,
+      Date.now(),
+      context,
+      options,
+    );
     console.log(`[BotHealthMonitor] interaction received: ${context}`);
   }
 

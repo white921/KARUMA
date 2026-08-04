@@ -100,6 +100,10 @@ const DEFAULT_PUBLIC_COMMAND = [
   COMMAND_NAMES.CHECK_NAME,
 ];
 
+// 全員対象の評価期間延長は、2つのフォーラムの全アクティブスレッドを
+// 順番に更新するため、通常の操作より長くかかる。
+const BULK_EVALUATION_EXTENSION_HANDLER_TIMEOUT_MS = 15 * 60 * 1000;
+
 client.on("interactionCreate", async (interaction) => {
   const interactionContext = interaction.isChatInputCommand()
     ? `command:${interaction.commandName}:${interaction.id}`
@@ -117,7 +121,16 @@ client.on("interactionCreate", async (interaction) => {
     return;
   }
 
-  BotHealthMonitor.recordInteractionReceived(interactionContext);
+  const isBulkEvaluationExtension =
+    interaction.isChatInputCommand() &&
+    interaction.commandName === COMMAND_NAMES.EXTRA_EXTEND &&
+    !interaction.options.getUser("user");
+  BotHealthMonitor.recordInteractionReceived(
+    interactionContext,
+    isBulkEvaluationExtension
+      ? { handlerTimeoutMs: BULK_EVALUATION_EXTENSION_HANDLER_TIMEOUT_MS }
+      : {},
+  );
 
   try {
   if (interaction.isChatInputCommand()) {
