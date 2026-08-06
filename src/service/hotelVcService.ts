@@ -545,6 +545,11 @@ export class HotelVcService {
               deny: [PermissionsBitField.Flags.ViewChannel],
             },
             {
+              id: ROLE_IDS.CORE_MEMBER_ROLES.JUNMEN,
+              type: OverwriteType.Role,
+              deny: [PermissionsBitField.Flags.ViewChannel],
+            },
+            {
               id: ROLE_IDS.CORE_MEMBER_ROLES.KARIMEN,
               type: OverwriteType.Role,
               deny: [PermissionsBitField.Flags.ViewChannel],

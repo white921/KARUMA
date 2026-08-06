@@ -1,10 +1,12 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
+const { PermissionsBitField } = require("discord.js");
 
 const { ROLE_IDS } = require("../dist/constant/id.js");
 const { CURRENCY_NAMES } = require("../dist/constant/currency.js");
-const { HOTEL_MESSAGES } = require("../dist/constant/hotel.js");
+const { HOTEL_MESSAGES, HOTEL_TYPE_NAMES } = require("../dist/constant/hotel.js");
 const { PANEL_COMMAND_NAMES } = require("../dist/constant/command.js");
+const { AccountService } = require("../dist/service/accountService.js");
 const { createBankPanelActionRow } = require("../dist/service/panelService.js");
 const { createAdminPanelActionRow } = require("../dist/service/adminPanelService.js");
 const { createCasinoPanelActionRow } = require("../dist/service/casinoPanel.js");
@@ -231,3 +233,48 @@ test("normal hotel is free for every eligible role", async () => {
   }
   assert.equal(await HotelVcService.isNormalHotelBonusMember(memberWithRoles([])), false);
 });
+
+test("freedom hotels initially hide the channel from believers", async () => {
+  const originalGetSubUserId = AccountService.getSubUserIdByMainUserId;
+  const createdChannelOptions = [];
+
+  AccountService.getSubUserIdByMainUserId = async () => null;
+
+  try {
+    const guild = {
+      channels: {
+        fetch: async () => ({ permissionOverwrites: { cache: new Map() } }),
+        create: async (options) => {
+          createdChannelOptions.push(options);
+          return { id: `freedom-${createdChannelOptions.length}`, send: async () => {} };
+        },
+      },
+      members: { fetch: async (id) => ({ id, displayName: "作成者" }) },
+    };
+    const interaction = {
+      guild,
+      member: { id: "creator", displayName: "作成者" },
+      user: { id: "creator" },
+      channel: { parentId: "hotel-category" },
+      deferred: false,
+      reply: async () => {},
+    };
+
+    for (const hotelTypeName of [
+      HOTEL_TYPE_NAMES.FREEDOM,
+      HOTEL_TYPE_NAMES.FREEDOMLONG,
+    ]) {
+      await HotelVcService.createHotelVc(interaction, hotelTypeName, false);
+    }
+  } finally {
+    AccountService.getSubUserIdByMainUserId = originalGetSubUserId;
+  }
+
+  assert.equal(createdChannelOptions.length, 2);
+  for (const options of createdChannelOptions) {
+    const believerOverwrite = options.permissionOverwrites.find(
+      (overwrite) => overwrite.id === ROLE_IDS.CORE_MEMBER_ROLES.JUNMEN,
+    );
+
+    assert.deepEqual(believerOverwrite.deny, [PermissionsBitField.Flags.ViewChannel]);
+  }
