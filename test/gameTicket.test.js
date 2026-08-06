@@ -24,6 +24,8 @@ test("game panel provides ticket balance confirmation and explains priority", ()
     .map((button) => button.custom_id);
 
   assert.ok(buttonIds.includes(PANEL_COMMAND_NAMES.GAME_TICKET_VIEW));
+  assert.equal(GAME_PANEL_MESSAGES.TICKET_VIEW, "チケット確認");
+  assert.match(GAME_PANEL_MESSAGES.DESCRIPTION, /所持している全種類のチケット/);
   assert.match(GAME_PANEL_MESSAGES.DESCRIPTION, /遊戯チケットを所持している場合/);
   assert.match(GAME_PANEL_MESSAGES.DESCRIPTION, /料金より優先して1枚消費/);
 });

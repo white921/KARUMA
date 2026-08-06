@@ -86,7 +86,7 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
         await CreatorEmblemPaymentService.showProductSelect(interaction);
         break;
       case PANEL_COMMAND_NAMES.SHOP_TICKET_VIEW:
-        await TicketViewService.viewShopTickets(interaction);
+        await TicketViewService.viewTickets(interaction);
         break;
       case PANEL_COMMAND_NAMES.MARKET_GACHA_DRAW:
         await MarketGachaService.showPaymentSelection(interaction);
@@ -234,10 +234,8 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
         );
         break;
       case PANEL_COMMAND_NAMES.HOTEL_TICKET_VIEW:
-        await TicketViewService.viewHotelTickets(interaction);
-        break;
       case PANEL_COMMAND_NAMES.GAME_TICKET_VIEW:
-        await TicketViewService.viewGameTickets(interaction);
+        await TicketViewService.viewTickets(interaction);
         break;
       case PANEL_COMMAND_NAMES.HOTEL_VC_SECRET:
         await showSelectUserMenu(
