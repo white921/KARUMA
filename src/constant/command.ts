@@ -28,6 +28,7 @@ export const COMMAND_NAMES = {
   CHECK_NAME: "0名前チェック",
   PAY_SALARY: "pay_salary",
   SERVER_BOOST: "server_boost",
+  VC_REWARD: "vc_reward",
   DEBIT: "debit",
   INVITE_EXTEND: "invite_extend",
   SHOW_EVALUATION: "show_evaluation",

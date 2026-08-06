@@ -2,6 +2,29 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 
 const { HistoryService } = require("../dist/service/historyService.js");
+const { COMMAND_NAMES } = require("../dist/constant/command.js");
+
+test("shows VC rewards as a credit in transaction history", () => {
+  const history = HistoryService.createHistoryString(
+    {
+      id: 1,
+      command_name: COMMAND_NAMES.VC_REWARD,
+      amount: 10,
+      from_user_id: "1521705594912772227",
+      to_user_id: "123456789012345678",
+      from_after_wallet: 0,
+      to_after_wallet: 110,
+      comment: "VC報酬: システム管理所（テスト） 10分",
+      created_at: new Date("2026-08-06T00:00:00.000Z"),
+    },
+    "123456789012345678",
+  );
+
+  assert.match(history, /VC滞在報酬/);
+  assert.match(history, /\+10krm/);
+  assert.match(history, /残高: 110krm/);
+  assert.match(history, /備考: VC報酬: システム管理所（テスト） 10分/);
+});
 
 test("splits long history into fields within Discord's field limit", () => {
   const entries = Array.from(

@@ -124,6 +124,7 @@ export class HistoryService {
       [PANEL_COMMAND_NAMES.ADMIN_MINT]: `<@${BOT_ID}> から\n+${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.to_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
       [PANEL_COMMAND_NAMES.ADMIN_BURN]: `<@${BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
       [COMMAND_NAMES.PAY_SALARY]: `<@${BOT_ID}> から\n+${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.to_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
+      [COMMAND_NAMES.VC_REWARD]: `<@${BOT_ID}> から\n+${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.to_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
       [COMMAND_NAMES.CHANGE_NAME]: `<@${BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
       [PANEL_COMMAND_NAMES.HOTEL_VC_NORMAL]: `<@${BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
       [PANEL_COMMAND_NAMES.HOTEL_VC_SECRET]: `<@${BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
