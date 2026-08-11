@@ -85,7 +85,7 @@ export const SHOP_PANEL_MESSAGES = {
   DESCRIPTION:
     `市場の支払いはこちらのパネルから行ってください。\n支払い前に使用するチケットを選択し、商品名と割引適用後の支払い金額を入力してください。\n\n**【市場ガチャ】**\n1回5,000${CURRENCY_NAMES}または招待ポイント1pt／合計で1日5回まで。\n商品案内は[市場について](https://discord.com/channels/1534636292153807039/1534644038248960231)にてご確認いただけます。`,
   VIEW: "残高確認",
-  SHOP_SEND: `${CURRENCY_NAMES}支払い`,
+  SHOP_SEND: "商品購入",
   TICKET_VIEW: "チケット確認",
   MARKET_GACHA_DRAW: "市場ガチャを引く",
   INVITE_POINT_GACHA_DRAW: "招待ポイントでガチャ (1pt)",

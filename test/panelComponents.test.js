@@ -70,6 +70,14 @@ test("shop panel buttons do not use icons", () => {
   }
 });
 
+test("shop purchase button uses the product purchase label", () => {
+  const purchaseButton = createShopPanelActionRow()
+    .toJSON()
+    .components.find((button) => button.custom_id === PANEL_COMMAND_NAMES.SHOP_SEND);
+
+  assert.equal(purchaseButton.label, "商品購入");
+});
+
 test("diary panel provides the LEVELIA VIP diary flow for 5000 LIA", () => {
   const buttonIds = createDiaryPanelActionRow()
     .toJSON()
