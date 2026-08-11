@@ -25,6 +25,7 @@ const {
   PANEL_MESSAGES,
   CREATOR_EMBLEM_PANEL_MESSAGES,
   DIARY_PANEL_MESSAGES,
+  DARK_SHOP_PANEL_MESSAGES,
 } = require("../dist/constant/panel.js");
 
 function memberWithRoles(roleIds) {
@@ -162,6 +163,15 @@ test("shop panel links the market gacha product list", () => {
     require("../dist/constant/panel.js").SHOP_PANEL_MESSAGES.DESCRIPTION,
     /教団市場チケット/,
   );
+});
+
+test("dark market panel links the LEVELIA dark market product list", () => {
+  assert.equal(DARK_SHOP_PANEL_MESSAGES.TITLE, "闇市場パネル");
+  assert.match(
+    DARK_SHOP_PANEL_MESSAGES.DESCRIPTION,
+    /https:\/\/discord\.com\/channels\/1534636292153807039\/1534638452086276209/,
+  );
+  assert.match(DARK_SHOP_PANEL_MESSAGES.DESCRIPTION, /匿名送信機能は準備中/);
 });
 
 test("non-bank panel buttons do not use icons", async () => {

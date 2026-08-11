@@ -92,6 +92,13 @@ export const SHOP_PANEL_MESSAGES = {
   ERROR: "市場パネルチャンネルが見つからないか、無効な型です。",
 };
 
+export const DARK_SHOP_PANEL_MESSAGES = {
+  TITLE: "闇市場パネル",
+  DESCRIPTION:
+    `闇市場商品の支払いはこちらのパネルから行ってください。\n商品案内は[闇市場](https://discord.com/channels/1534636292153807039/1534638452086276209)にてご確認いただけます。\n\n闇手紙・悪魔の囁きの匿名送信機能は準備中です。購入後の対応は運営へお問い合わせください。`,
+  ERROR: "闇市場パネルチャンネルが見つからないか、無効な型です。",
+};
+
 export const CREATOR_EMBLEM_PANEL_MESSAGES = {
   TITLE: "夢印工房パネル",
   DESCRIPTION:

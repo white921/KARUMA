@@ -24,6 +24,14 @@ test("resolves shop panel channel to the shop panel target", () => {
   assert.equal(target, PANEL_INSTALL_TARGETS.SHOP);
 });
 
+test("resolves dark market panel channel to the dark market panel target", () => {
+  assert.equal(TEXT_CHANNEL_IDS.DARK_SHOP_PANEL, "1534638089258143894");
+  assert.equal(
+    resolvePanelInstallTarget(TEXT_CHANNEL_IDS.DARK_SHOP_PANEL),
+    PANEL_INSTALL_TARGETS.DARK_SHOP,
+  );
+});
+
 test("resolves creator emblem panel channel to the creator emblem panel target", () => {
   assert.equal(TEXT_CHANNEL_IDS.CREATOR_EMBLEM_PANEL, "1534650688594771998");
 

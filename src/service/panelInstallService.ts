@@ -20,6 +20,7 @@ export const PANEL_INSTALL_TARGETS = {
   GAME: "game",
   CASINO: "casino",
   SHOP: "shop",
+  DARK_SHOP: "dark_shop",
   CREATOR_EMBLEM: "creator_emblem",
   OMIKUJI: "omikuji",
   DIARY: "diary",
@@ -39,6 +40,7 @@ const PANEL_INSTALL_TARGET_LABELS: Record<PanelInstallTarget, string> = {
   [PANEL_INSTALL_TARGETS.GAME]: "遊戯パネル",
   [PANEL_INSTALL_TARGETS.CASINO]: "賭博パネル",
   [PANEL_INSTALL_TARGETS.SHOP]: "市場パネル",
+  [PANEL_INSTALL_TARGETS.DARK_SHOP]: "闇市場パネル",
   [PANEL_INSTALL_TARGETS.CREATOR_EMBLEM]: "夢印工房パネル",
   [PANEL_INSTALL_TARGETS.OMIKUJI]: "おみくじパネル",
   [PANEL_INSTALL_TARGETS.DIARY]: "日記パネル",
@@ -57,6 +59,7 @@ const PANEL_INSTALL_CHANNEL_MAP = new Map<string, PanelInstallTarget>(
     [TEXT_CHANNEL_IDS.GAME_PANEL, PANEL_INSTALL_TARGETS.GAME],
     [TEXT_CHANNEL_IDS.CASINO_PANEL, PANEL_INSTALL_TARGETS.CASINO],
     [TEXT_CHANNEL_IDS.SHOP_PANEL, PANEL_INSTALL_TARGETS.SHOP],
+    [TEXT_CHANNEL_IDS.DARK_SHOP_PANEL, PANEL_INSTALL_TARGETS.DARK_SHOP],
     [TEXT_CHANNEL_IDS.CREATOR_EMBLEM_PANEL, PANEL_INSTALL_TARGETS.CREATOR_EMBLEM],
     [TEXT_CHANNEL_IDS.OMIKUJI_PANEL, PANEL_INSTALL_TARGETS.OMIKUJI],
     [THREAD_IDS.DIARY_PANEL_THREAD, PANEL_INSTALL_TARGETS.DIARY],
@@ -111,6 +114,9 @@ async function installTargetPanel(
       return;
     case PANEL_INSTALL_TARGETS.SHOP:
       await ShopPanelService.createShopPanel(client);
+      return;
+    case PANEL_INSTALL_TARGETS.DARK_SHOP:
+      await ShopPanelService.createDarkShopPanel(client);
       return;
     case PANEL_INSTALL_TARGETS.CREATOR_EMBLEM:
       await CreatorEmblemPanelService.createPanel(client);

@@ -10,7 +10,10 @@ import {
 import { deletePanelMessage } from "../util/channelMessage";
 
 import { TEXT_CHANNEL_IDS } from "../constant/id";
-import { SHOP_PANEL_MESSAGES } from "../constant/panel";
+import {
+  DARK_SHOP_PANEL_MESSAGES,
+  SHOP_PANEL_MESSAGES,
+} from "../constant/panel";
 import { PANEL_COMMAND_NAMES } from "../constant/command";
 import { COLOR } from "../constant/color";
 
@@ -43,18 +46,44 @@ export class ShopPanelService {
    * @param client クライアント
    */
   static async createShopPanel(client: Client) {
+    await this.createPanelInChannel(
+      client,
+      TEXT_CHANNEL_IDS.SHOP_PANEL,
+      SHOP_PANEL_MESSAGES.TITLE,
+      SHOP_PANEL_MESSAGES.DESCRIPTION,
+      SHOP_PANEL_MESSAGES.ERROR,
+    );
+  }
+
+  static async createDarkShopPanel(client: Client) {
+    await this.createPanelInChannel(
+      client,
+      TEXT_CHANNEL_IDS.DARK_SHOP_PANEL,
+      DARK_SHOP_PANEL_MESSAGES.TITLE,
+      DARK_SHOP_PANEL_MESSAGES.DESCRIPTION,
+      DARK_SHOP_PANEL_MESSAGES.ERROR,
+    );
+  }
+
+  private static async createPanelInChannel(
+    client: Client,
+    channelId: string,
+    title: string,
+    description: string,
+    errorMessage: string,
+  ) {
     try {
-      const channel = await client.channels.fetch(TEXT_CHANNEL_IDS.SHOP_PANEL);
+      const channel = await client.channels.fetch(channelId);
 
       if (!channel || channel.type !== ChannelType.GuildText) {
-        console.error(SHOP_PANEL_MESSAGES.ERROR);
+        console.error(errorMessage);
         return;
       }
 
       // パネルメッセージを作成
       const embed = new EmbedBuilder()
-        .setTitle(SHOP_PANEL_MESSAGES.TITLE)
-        .setDescription(SHOP_PANEL_MESSAGES.DESCRIPTION)
+        .setTitle(title)
+        .setDescription(description)
         .setColor(COLOR.LIGFT_PINK)
         .setThumbnail(
           "https://cdn.discordapp.com/attachments/1434890727569231983/1440528890480033833/ChatGPT_Image_20251119_11_27_20.png?ex=691fce13&is=691e7c93&hm=2a4fbb9c5783417860da7f86487c6c4365b0caabdcfcea3b47b954441cec5553&",
@@ -63,7 +92,7 @@ export class ShopPanelService {
       // コマンドボタンを作成
       const row1 = createShopPanelActionRow();
 
-      await deletePanelMessage(channel, client, SHOP_PANEL_MESSAGES.TITLE);
+      await deletePanelMessage(channel, client, title);
 
       // 新しいパネルメッセージを送信
       await channel.send({
