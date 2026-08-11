@@ -245,11 +245,12 @@ test("unified hotel panel description has no unintended leading spaces", () => {
   assert.deepEqual(linesWithLeadingSpaces, []);
 });
 
-test("hotel panel lists noble or above and manager as free", () => {
+test("hotel panel summarizes the free tier as noble or above", () => {
   const description = HOTEL_VC_PANEL_MESSAGES.DESCRIPTION;
 
   assert.equal(typeof description, "string");
-  assert.match(description, /貴族以上・支配人：無料/);
+  assert.match(description, /貴族以上：無料/);
+  assert.doesNotMatch(description, /貴族以上・支配人/);
   assert.doesNotMatch(description, /貴族・皇帝・英傑・侍従/);
   assert.doesNotMatch(description, /刻印/);
 });
