@@ -89,7 +89,7 @@ test("interviewer shift notifications target the configured channel at 00:30 Jap
   assert.match(scheduleSource, /await InterviewShiftService\.sendDailyShiftMessage\(client\)/);
 });
 
-test("daily attendance report is disabled until LEVELIA notification roles are confirmed", () => {
+test("daily attendance report is disabled while keeping LEVELIA guide roles configured", () => {
   const scheduleSource = fs.readFileSync(
     path.join(__dirname, "../src/handler/scheduleHandler.ts"),
     "utf8",
@@ -101,7 +101,9 @@ test("daily attendance report is disabled until LEVELIA notification roles are c
 
   assert.doesNotMatch(scheduleSource, /cron\.schedule\(\s*"0 21 \* \* \*"/);
   assert.doesNotMatch(scheduleSource, /DailyMessageService/);
-  assert.doesNotMatch(dailySource, /<@&\d+>/);
+  assert.match(dailySource, /ROLE_IDS\.MENSETU_LEADER/);
+  assert.match(dailySource, /ROLE_IDS\.MENSTUKAN/);
+  assert.match(dailySource, /ROLE_IDS\.MENSTU_BUIGINNER/);
 });
 
 test("diary moderation and inactivity cleanup are enabled", () => {
