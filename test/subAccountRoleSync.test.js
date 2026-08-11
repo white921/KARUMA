@@ -14,6 +14,13 @@ test("LEVELIAでは寝落ち△とエロイプ△を廃止する", () => {
   assert.equal("R18SANKAKU" in ROLE_IDS.BASIC_ROLE_IDS, false);
 });
 
+test("罪人ロールをLEVELIAの基本ロールとして設定する", () => {
+  assert.equal(
+    ROLE_IDS.CORE_MEMBER_ROLES.SINNIN,
+    "1534645004457476288",
+  );
+});
+
 function createMember(roleDefinitions) {
   const roles = new Map(
     roleDefinitions.map(({ id, managed = false }) => [id, { id, managed }]),
