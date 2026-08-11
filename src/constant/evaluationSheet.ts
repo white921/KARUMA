@@ -1,7 +1,7 @@
 export const EVALUATION_SHEET_MESSAGES = {
   NO_TARGET_USERS:
-    "❌ このVC内に評価シート作成対象の「見学者」ユーザーがいません。",
-  NO_KARIMEN_ROLE: "❌ 対象ユーザーが「見学者」ロールを持っていません。",
+    "❌ このVC内に評価シート作成対象の「旅人」ユーザーがいません。",
+  NO_KARIMEN_ROLE: "❌ 対象ユーザーが「旅人」ロールを持っていません。",
   INTRODUCTION_NOT_FOUND: "❌ 自己紹介メッセージが見つかりませんでした。",
   INVALID_GENDER_ROLE: "❌ 性別ロールの状態が不正です。",
   NOT_IN_VOICE_CHANNEL: "❌ VCに参加している状態で実行してください。",
@@ -9,10 +9,10 @@ export const EVALUATION_SHEET_MESSAGES = {
   CREATE_EVALUATION_SHEET_ERROR: "❌ 評価シート作成に失敗しました。",
   ERROR_HEADER: "❌ エラー",
   EXTEND_NO_PERMISSION:
-    "❌ このコマンドは評価統括 / 執行官 / 創造主 / 技術統括 / 技術者 のみ実行できます。",
+    "❌ このコマンドは判定官統括 / 英傑 / 皇帝 / システム管理のみ実行できます。",
   EXTEND_NO_TARGET: "ℹ️ 延長対象の評価シートが見つかりませんでした。",
   ARCHIVE_NO_PERMISSION:
-    "❌ このコマンドは技術統括 / 鯖主 / 評価員統括 / 管理者のみ実行できます。",
+    "❌ このコマンドはシステム管理 / 皇帝 / 判定官統括 / 英傑のみ実行できます。",
   INVALID_USER_ID: "❌ DiscordユーザーIDを正しく入力してください。",
   ACTIVE_SHEET_ALREADY_EXISTS:
     "❌ このユーザーには保存・削除前の評価シートがすでにあります。",

@@ -29,8 +29,8 @@ test("ticket confirmation lists every owned ticket type", async () => {
 
     assert.match(message, /VIPホテル（12時間）: 1枚/);
     assert.match(message, /フリーダム（12時間）: 2枚/);
-    assert.match(message, /ショップ割引 5%OFF: 3枚/);
-    assert.match(message, /ショップ割引 10%OFF: 0枚/);
+    assert.match(message, /市場割引 5%OFF: 3枚/);
+    assert.match(message, /市場割引 10%OFF: 0枚/);
     assert.match(message, /6時間プラン: 4枚/);
   } finally {
     HotelFreeTicketService.getTicketQuantities = originalHotel;

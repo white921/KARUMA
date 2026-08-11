@@ -29,7 +29,7 @@ export class TicketViewService {
       `VIPホテル（12時間）: ${hotelQuantities[HOTEL_FREE_TICKET_TYPE.SECRET]}枚`,
       `フリーダム（12時間）: ${hotelQuantities[HOTEL_FREE_TICKET_TYPE.FREEDOM]}枚`,
       "",
-      "**ショップ割引券**",
+      "**市場割引券**",
       ...SHOP_TICKETS.map(
         (ticket) => `${ticket.label}: ${shopQuantities.get(ticket.type) ?? 0}枚`,
       ),
@@ -54,7 +54,7 @@ export class TicketViewService {
       ownedTickets.map((ticket) => [ticket.type, ticket.quantity]),
     );
     return [
-      "🎫 **ショップ割引券**",
+      "🎫 **市場割引券**",
       ...SHOP_TICKETS.map(
         (ticket) => `${ticket.label}: ${quantities.get(ticket.type) ?? 0}枚`,
       ),

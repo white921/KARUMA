@@ -83,12 +83,12 @@ export class CreatorEmblemPaymentService {
         {
           label: "個人紋章",
           value: "personal",
-          description: "教団員 100,000krm / 使徒 60,000krm",
+          description: `賢者 100,000${CURRENCY_NAMES} / 貴族 60,000${CURRENCY_NAMES}`,
         },
         {
           label: "デカ紋章",
           value: "large",
-          description: "使徒 150,000krm",
+          description: `貴族 150,000${CURRENCY_NAMES}`,
         },
       );
     const embed = new EmbedBuilder()
@@ -120,19 +120,19 @@ export class CreatorEmblemPaymentService {
 
     const select = new StringSelectMenuBuilder()
       .setCustomId(`${this.CREATOR_SELECT_PREFIX}:${product}`)
-      .setPlaceholder("クリエイターを選択してください")
+      .setPlaceholder("夢印屋さんを選択してください")
       .addOptions(
         creators.first(25).map((member) => ({
           label: member.displayName.slice(0, 100),
           value: member.id,
           description: member.roles.cache.has(ROLE_IDS.EMBLEM_CREATOR_LEADER)
-            ? "紋章士統括"
-            : "紋章士",
+            ? "夢印屋さん店長"
+            : "夢印屋さん",
         })),
       );
     const embed = new EmbedBuilder()
-      .setTitle("クリエイターを選択")
-      .setDescription("紋章士または紋章士統括のみが表示されています。")
+      .setTitle("夢印屋さんを選択")
+      .setDescription("夢印屋さんまたは夢印屋さん店長のみが表示されています。")
       .setColor(COLOR.GREEN);
 
     await interaction.update({
@@ -160,7 +160,7 @@ export class CreatorEmblemPaymentService {
       .setTitle("支払い内容の確認")
       .setDescription(
         `商品: **${product.label}**\n` +
-        `クリエイター: <@${creator.id}>\n` +
+        `夢印屋さん: <@${creator.id}>\n` +
         `支払い金額: **${price.toLocaleString()}${CURRENCY_NAMES}**\n\n` +
         "この内容で送金しますか？",
       )
@@ -197,7 +197,7 @@ export class CreatorEmblemPaymentService {
       interaction.user.id,
       creator.id,
       price,
-      `クリエイター送金: ${PRODUCTS[productValue].label}`,
+      `夢印工房送金: ${PRODUCTS[productValue].label}`,
       PANEL_COMMAND_NAMES.CREATOR_EMBLEM_PAY,
       "editReply",
     );

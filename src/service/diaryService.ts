@@ -288,11 +288,8 @@ export class DiaryService {
   }
 
   static async isFree(member: GuildMember): Promise<boolean> {
-    return (
-      hasRole(member, ROLE_IDS.CORE_MEMBER_ROLES.HONMEN) ||
-      hasRole(member, ROLE_IDS.SABANUSI) ||
-      hasRole(member, ROLE_IDS.KANRISYA)
-    );
+    void member;
+    return false;
   }
 
   private static async createNewDiary(

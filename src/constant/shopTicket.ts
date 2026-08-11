@@ -17,12 +17,12 @@ export type ShopTicket = {
 export const SHOP_TICKETS: readonly ShopTicket[] = [
   {
     type: SHOP_TICKET_TYPE.DISCOUNT_5,
-    label: "ショップ割引 5%OFF",
+    label: "市場割引 5%OFF",
     discountRate: 5,
   },
   {
     type: SHOP_TICKET_TYPE.DISCOUNT_10,
-    label: "ショップ割引 10%OFF",
+    label: "市場割引 10%OFF",
     discountRate: 10,
   },
 ];
@@ -36,7 +36,7 @@ export function isShopTicketType(value: string): value is ShopTicketType {
 export function getShopTicket(type: ShopTicketType): ShopTicket {
   const ticket = SHOP_TICKETS.find((candidate) => candidate.type === type);
   if (!ticket) {
-    throw new Error("無効なショップチケットです。");
+    throw new Error("無効な市場チケットです。");
   }
   return ticket;
 }

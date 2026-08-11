@@ -56,7 +56,7 @@ export async function handleStringSelectMenu(
     if (customId === "shop_ticket_select") {
       const ticketType = interaction.values[0];
       if (ticketType !== SHOP_TICKET_NONE && !isShopTicketType(ticketType)) {
-        throw new Error("無効なショップチケットです。");
+        throw new Error("無効な市場チケットです。");
       }
       await showShopAmountModal(interaction, ticketType);
       return;

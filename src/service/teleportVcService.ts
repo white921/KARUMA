@@ -27,7 +27,7 @@ export const TELEPORT_VC_CONFIGS: readonly TeleportVcConfig[] = [
     triggerVcId: VC_IDS.CASINO_TELEPORT,
     categoryId: CATEGORY_IDS.CASINO,
   },
-];
+].filter((config) => Boolean(config.triggerVcId));
 
 export function resolveTeleportVcConfig(
   channelId: string,

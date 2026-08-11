@@ -25,17 +25,17 @@ export const ITEM_DEFINITIONS: readonly {
   },
   {
     key: ITEM_KEY.SHOP_DISCOUNT_5,
-    name: "ショップ割引券 5%OFF",
-    description: "100万krm未満のショップ支払いに使える5%割引券",
+    name: "市場割引券 5%OFF",
+    description: "100万LIA未満の市場支払いに使える5%割引券",
   },
   {
     key: ITEM_KEY.SHOP_DISCOUNT_10,
-    name: "ショップ割引券 10%OFF",
-    description: "100万krm未満のショップ支払いに使える10%割引券",
+    name: "市場割引券 10%OFF",
+    description: "100万LIA未満の市場支払いに使える10%割引券",
   },
   {
     key: ITEM_KEY.GAME_SHORT_FREE,
     name: "遊戯チケット",
-    description: "ゲームの6時間プランを無料で利用できる券",
+    description: "遊戯の6時間プランを無料で利用できる券",
   },
 ];

@@ -61,15 +61,15 @@ test("every account is limited to one omikuji draw per Japan day", () => {
 test("omikuji excuses an insufficient balance on a bad fortune", () => {
   const badFortune = OMIKUJI_PRIZES.find((prize) => prize.fortune === "凶");
   assert.ok(badFortune);
-  assert.match(formatOmikujiDrawReply(badFortune, 0, true), /教祖のお告げ/);
-  assert.match(formatOmikujiDrawReply(badFortune, 0, true), /0krm/);
+  assert.match(formatOmikujiDrawReply(badFortune, 0, true), /皇帝のお告げ/);
+  assert.match(formatOmikujiDrawReply(badFortune, 0, true), /0LIA/);
   assert.match(formatOmikujiDrawReply(badFortune, 0, true), /許してあげよう/);
 });
 
 test("every omikuji result is delivered as the founder's guidance", () => {
   for (const prize of OMIKUJI_PRIZES) {
     const reply = formatOmikujiDrawReply(prize, 10_000, false);
-    assert.match(reply, /教祖のお告げ/);
+    assert.match(reply, /皇帝のお告げ/);
     assert.match(reply, new RegExp(prize.fortune));
   }
 });
@@ -84,7 +84,7 @@ test("special omikuji log includes the member display name and icon", () => {
     50_000,
   ).toJSON();
 
-  assert.equal(TEXT_CHANNEL_IDS.OMIKUJI_SPECIAL_LOG, "1527553588778504222");
+  assert.equal(TEXT_CHANNEL_IDS.OMIKUJI_SPECIAL_LOG, "1536708790735339531");
   assert.equal(embed.author.name, "表示名テスト");
   assert.equal(embed.author.icon_url, "https://cdn.example.test/avatar.png");
   assert.equal(embed.thumbnail.url, "https://cdn.example.test/avatar.png");
@@ -103,7 +103,7 @@ test("omikuji date uses Japan time", () => {
 });
 
 test("omikuji panel uses the configured channel and draw button", () => {
-  assert.equal(TEXT_CHANNEL_IDS.OMIKUJI_PANEL, "1526626039844049037");
+  assert.equal(TEXT_CHANNEL_IDS.OMIKUJI_PANEL, "1534637681181724682");
   assert.match(OMIKUJI_PANEL_MESSAGES.DESCRIPTION, /1日1回まで引けます/);
   assert.doesNotMatch(OMIKUJI_PANEL_MESSAGES.DESCRIPTION, /何度でも引ける/);
   const row = createOmikujiPanelActionRow().toJSON();

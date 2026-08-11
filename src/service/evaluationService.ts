@@ -82,6 +82,7 @@ export class EvaluationService {
     return [
       FORUM_IDS.AETHER_001,
       FORUM_IDS.AETHER_002,
+      FORUM_IDS.AETHER_003,
     ];
   }
 

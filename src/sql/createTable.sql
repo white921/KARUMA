@@ -102,9 +102,9 @@ COMMENT='ユーザーのアイテム所持情報';
 INSERT INTO items (item_key, name, description) VALUES
   ('HOTEL_SECRET_FREE', 'VIPホテル無料券', 'VIPホテル（12時間）を無料で利用できる券'),
   ('HOTEL_FREEDOM_FREE', 'フリーダム無料券', 'フリーダム（12時間）を無料で利用できる券'),
-  ('SHOP_DISCOUNT_5', 'ショップ割引券 5%OFF', '100万krm未満のショップ支払いに使える5%割引券'),
-  ('SHOP_DISCOUNT_10', 'ショップ割引券 10%OFF', '100万krm未満のショップ支払いに使える10%割引券'),
-  ('GAME_SHORT_FREE', '遊戯チケット', 'ゲームの6時間プランを無料で利用できる券')
+  ('SHOP_DISCOUNT_5', '市場割引券 5%OFF', '100万LIA未満の市場支払いに使える5%割引券'),
+  ('SHOP_DISCOUNT_10', '市場割引券 10%OFF', '100万LIA未満の市場支払いに使える10%割引券'),
+  ('GAME_SHORT_FREE', '遊戯チケット', '遊戯の6時間プランを無料で利用できる券')
 ON DUPLICATE KEY UPDATE
   name = VALUES(name),
   description = VALUES(description);
@@ -204,7 +204,7 @@ COMMENT='削除前に保存した評価シートのHTMLログ';
 -- Bot口座
 -- 各種購入・付与・減額ログが参照するため、初期状態で用意する
 INSERT INTO accounts (user_id, user_name, wallet)
-VALUES (1521705594912772227, 'KARUMA Bot', 0)
+VALUES (1521705594912772227, 'LEVELIA Bot', 0)
 ON DUPLICATE KEY UPDATE
   user_name = VALUES(user_name);
 

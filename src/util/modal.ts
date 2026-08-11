@@ -76,7 +76,7 @@ export async function showShopAmountModal(
 ) {
   const modal = new ModalBuilder()
     .setCustomId(`${PANEL_COMMAND_NAMES.SHOP_SEND}_${ticketType}`)
-    .setTitle("ショップ支払い");
+    .setTitle("市場支払い");
 
   const amountInput = new TextInputBuilder()
     .setCustomId("amount")

@@ -9,9 +9,10 @@ const {
   COMMAND_NAMES,
   PANEL_COMMAND_NAMES,
 } = require("../dist/constant/command.js");
+const { THREAD_IDS } = require("../dist/constant/id.js");
 
 test("admin mint and burn logs use the shared grant and revoke log thread", () => {
-  const grantAndRevokeLogThreadId = "1521752901448630453";
+  const grantAndRevokeLogThreadId = THREAD_IDS.MINT_LOG_THREAD;
 
   assert.equal(
     resolveActionLogThreadId(PANEL_COMMAND_NAMES.ADMIN_MINT),
@@ -26,21 +27,21 @@ test("admin mint and burn logs use the shared grant and revoke log thread", () =
 test("salary logs use the salary log thread", () => {
   assert.equal(
     resolveActionLogThreadId(COMMAND_NAMES.PAY_SALARY),
-    "1521752853742358579",
+    THREAD_IDS.SHOP_SALARY_LOG_THREAD,
   );
 });
 
 test("server boost reward logs use the salary log thread", () => {
   assert.equal(
     resolveActionLogThreadId(COMMAND_NAMES.SERVER_BOOST),
-    "1521752853742358579",
+    THREAD_IDS.SHOP_SALARY_LOG_THREAD,
   );
 });
 
 test("creator emblem payments use the dedicated creator log thread", () => {
   assert.equal(
     resolveActionLogThreadId(PANEL_COMMAND_NAMES.CREATOR_EMBLEM_PAY),
-    "1521732752712405002",
+    THREAD_IDS.CREATOR_EMBLEM_LOG_THREAD,
   );
 });
 
@@ -74,7 +75,7 @@ test("salary action log messages are sent to the salary log thread", async () =>
     "2026/7 銀行スタッフの給与振込",
   );
 
-  assert.deepEqual(fetchedThreadIds, ["1521752853742358579"]);
+  assert.deepEqual(fetchedThreadIds, [THREAD_IDS.SHOP_SALARY_LOG_THREAD]);
   assert.equal(sentMessages.length, 1);
   assert.match(sentMessages[0], /^\*\*給与支払い\*\*/);
   assert.match(sentMessages[0], /<@1521705594912772227>から<@123456789012345678>に5,000/);
@@ -109,7 +110,7 @@ test("server boost reward messages identify the reward", async () => {
 test("change name logs use the change name log thread", () => {
   assert.equal(
     resolveActionLogThreadId(COMMAND_NAMES.CHANGE_NAME),
-    "1521920979490836480",
+    THREAD_IDS.CHANGE_NAME_LOG_THREAD,
   );
 });
 
@@ -143,7 +144,7 @@ test("change name action log messages are sent to the change name log thread", a
     JSON.stringify({ oldName: "旧名", newName: "新名" }),
   );
 
-  assert.deepEqual(fetchedThreadIds, ["1521920979490836480"]);
+  assert.deepEqual(fetchedThreadIds, [THREAD_IDS.CHANGE_NAME_LOG_THREAD]);
   assert.equal(sentMessages.length, 1);
   assert.match(sentMessages[0], /^\*\*表示名変更\*\*/);
   assert.match(sentMessages[0], /実行者: <@987654321098765432>/);

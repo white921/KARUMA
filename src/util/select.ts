@@ -166,7 +166,7 @@ export async function showShopTicketSelectMenu(interaction: ButtonInteraction) {
             {
               label: `${ticket.label}（所持: ${quantity}枚）`,
               value: ticket.type,
-              description: "100万krm未満の商品に使用可能",
+              description: "100万LIA未満の商品に使用可能",
             },
           ]
         : [];
@@ -184,7 +184,7 @@ export async function showShopTicketSelectMenu(interaction: ButtonInteraction) {
   const embed = new EmbedBuilder()
     .setTitle("🎫 使用するチケットを選択")
     .setDescription(
-      "チケットを使わない場合は「チケットを消費しない」を選択してください。\n割引券は100万krm未満の商品にのみ使えます。",
+      "チケットを使わない場合は「チケットを消費しない」を選択してください。\n割引券は100万LIA未満の商品にのみ使えます。",
     )
     .setColor(COLOR.GREEN);
 

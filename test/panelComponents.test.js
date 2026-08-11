@@ -24,6 +24,7 @@ const {
   HOTEL_VC_PANEL_MESSAGES,
   PANEL_MESSAGES,
   CREATOR_EMBLEM_PANEL_MESSAGES,
+  DIARY_PANEL_MESSAGES,
 } = require("../dist/constant/panel.js");
 
 function memberWithRoles(roleIds) {
@@ -36,8 +37,8 @@ function memberWithRoles(roleIds) {
   };
 }
 
-test("bank panel title uses the cult bank label", () => {
-  assert.equal(PANEL_MESSAGES.TITLE, "教団銀行窓口");
+test("bank panel title uses the LEVELIA bank label", () => {
+  assert.equal(PANEL_MESSAGES.TITLE, "LEVELIA銀行窓口");
 });
 
 test("bank panel send button uses a Unicode emoji instead of a custom emoji id", () => {
@@ -68,6 +69,22 @@ test("shop panel buttons do not use icons", () => {
   }
 });
 
+test("diary panel provides the LEVELIA VIP diary flow for 5000 LIA", () => {
+  const buttonIds = createDiaryPanelActionRow()
+    .toJSON()
+    .components
+    .map((button) => button.custom_id);
+
+  assert.deepEqual(buttonIds, [
+    PANEL_COMMAND_NAMES.DIARY_PUBLIC,
+    PANEL_COMMAND_NAMES.VIEW,
+  ]);
+  assert.match(DIARY_PANEL_MESSAGES.DESCRIPTION, /全員一律5,000LIA/);
+  assert.match(DIARY_PANEL_MESSAGES.DESCRIPTION, /VIP機能/);
+  assert.match(DIARY_PANEL_MESSAGES.DESCRIPTION, /3日間/);
+  assert.match(DIARY_PANEL_MESSAGES.DESCRIPTION, /再開時に5,000LIA/);
+});
+
 test("creator emblem panel has payment and balance buttons", () => {
   const buttons = createCreatorEmblemPanelActionRow().toJSON().components;
   const buttonIds = buttons.map((button) => button.custom_id);
@@ -78,7 +95,7 @@ test("creator emblem panel has payment and balance buttons", () => {
   ]);
 });
 
-test("creator emblem pricing treats apostle, bishop, server owner, and technical leader equally", () => {
+test("creator emblem pricing treats noble and management roles equally", () => {
   const apostlePriceRoles = [
     ROLE_IDS.CORE_MEMBER_ROLES.HONMEN,
     ROLE_IDS.KANRISYA,
@@ -101,16 +118,16 @@ test("creator emblem pricing treats apostle, bishop, server owner, and technical
   );
   assert.throws(
     () => CreatorEmblemPaymentService.getPriceForMember(congregationMember, "large"),
-    /デカ紋章は使徒のみ利用できます。/,
+    /デカ紋章は貴族のみ利用できます。/,
   );
 });
 
-test("creator emblem panel only displays congregation and apostle role names", () => {
+test("creator emblem panel only displays sage and noble role names", () => {
   const description = CREATOR_EMBLEM_PANEL_MESSAGES.DESCRIPTION;
 
-  assert.match(description, /教団員 100,000krm／使徒 60,000krm/);
-  assert.match(description, /デカ紋章：使徒 150,000krm/);
-  assert.doesNotMatch(description, /司教|鯖主|技術リーダー/);
+  assert.match(description, /賢者 100,000LIA／貴族 60,000LIA/);
+  assert.match(description, /デカ紋章：貴族 150,000LIA/);
+  assert.doesNotMatch(description, /英傑|皇帝|システム管理/);
 });
 
 test("hotel and shop panels include their ticket confirmation buttons", () => {
@@ -139,7 +156,7 @@ test("shop panel starts the gacha flow from one button", () => {
 test("shop panel links the market gacha product list", () => {
   assert.match(
     require("../dist/constant/panel.js").SHOP_PANEL_MESSAGES.DESCRIPTION,
-    /\[市場ガチャ\]\(https:\/\/discord\.com\/channels\/1520329128883126392\/1526991003192655924\)/,
+    /\[市場について\]\(https:\/\/discord\.com\/channels\/1534636292153807039\/1534644038248960231\)/,
   );
   assert.doesNotMatch(
     require("../dist/constant/panel.js").SHOP_PANEL_MESSAGES.DESCRIPTION,
@@ -162,11 +179,11 @@ test("hotel panel buttons do not use icons", () => {
   assertButtonsHaveNoIcons(createHotelVcPanelActionRows());
 });
 
-test("game panel copy uses game instead of gikyou", () => {
-  assert.equal(GAME_PANEL_MESSAGES.TITLE, "ゲームパネル");
+test("game panel copy uses LEVELIA's play category name", () => {
+  assert.equal(GAME_PANEL_MESSAGES.TITLE, "遊戯パネル");
   assert.equal(GAME_PANEL_MESSAGES.GAME_PASS, "ゲームパス");
-  assert.match(GAME_PANEL_MESSAGES.DESCRIPTION, /ゲームパネルです。/);
-  assert.match(GAME_PANEL_MESSAGES.DESCRIPTION, /【ゲーム案内】/);
+  assert.match(GAME_PANEL_MESSAGES.DESCRIPTION, /遊戯パネルです。/);
+  assert.match(GAME_PANEL_MESSAGES.DESCRIPTION, /【遊戯案内】/);
   assert.match(GAME_PANEL_MESSAGES.DESCRIPTION, /ゲームパス/);
   assert.doesNotMatch(GAME_PANEL_MESSAGES.DESCRIPTION, /戯境/);
 });
@@ -194,18 +211,20 @@ test("hotel panel lists every role eligible for a free normal hotel", () => {
   const description = HOTEL_VC_PANEL_MESSAGES.DESCRIPTION;
 
   assert.equal(typeof description, "string");
-  assert.match(description, /使徒・教団員・教祖・司教・裏方ロール所持者/);
+  assert.match(description, /貴族・皇帝・英傑・侍従：無料/);
   assert.doesNotMatch(description, /刻印/);
 });
 
 test("hotel panel duration labels match hour-based expiration", () => {
   const description = HOTEL_VC_PANEL_MESSAGES.DESCRIPTION;
 
-  assert.match(description, /10000krm\/12時間/);
-  assert.match(description, /30000krm\/12時間/);
-  assert.match(description, /50000krm\/24時間/);
-  assert.match(description, /50000krm\/12時間/);
-  assert.match(description, /90000krm\/24時間/);
+  assert.match(description, /旅人・騎士：10000LIA\/12時間/);
+  assert.match(description, /賢者：5000LIA\/12時間/);
+  assert.doesNotMatch(description, /\\n/);
+  assert.match(description, /30000LIA\/12時間/);
+  assert.match(description, /50000LIA\/24時間/);
+  assert.match(description, /50000LIA\/12時間/);
+  assert.match(description, /90000LIA\/24時間/);
   assert.doesNotMatch(description, /1分|2分/);
 });
 
@@ -219,10 +238,9 @@ test("hotel ticket confirmation notice explains ticket priority", () => {
 test("normal hotel is free for every eligible role", async () => {
   const eligibleRoleIds = [
     ROLE_IDS.CORE_MEMBER_ROLES.HONMEN,
-    ROLE_IDS.CORE_MEMBER_ROLES.JUNHONMEN,
     ROLE_IDS.SABANUSI,
     ROLE_IDS.KANRISYA,
-    "1520399373995872316", // 裏方
+    ROLE_IDS.URAKATA,
   ];
 
   for (const roleId of eligibleRoleIds) {
@@ -232,6 +250,23 @@ test("normal hotel is free for every eligible role", async () => {
     );
   }
   assert.equal(await HotelVcService.isNormalHotelBonusMember(memberWithRoles([])), false);
+});
+
+test("normal hotel costs 5000 LIA for sages and 10000 LIA otherwise", async () => {
+  assert.equal(
+    await HotelVcService.getHotelVcPrice(
+      PANEL_COMMAND_NAMES.HOTEL_VC_NORMAL,
+      memberWithRoles([ROLE_IDS.CORE_MEMBER_ROLES.JUNHONMEN]),
+    ),
+    5000,
+  );
+  assert.equal(
+    await HotelVcService.getHotelVcPrice(
+      PANEL_COMMAND_NAMES.HOTEL_VC_NORMAL,
+      memberWithRoles([]),
+    ),
+    10000,
+  );
 });
 
 test("freedom hotels initially hide the channel from believers", async () => {
@@ -278,3 +313,4 @@ test("freedom hotels initially hide the channel from believers", async () => {
 
     assert.deepEqual(believerOverwrite.deny, [PermissionsBitField.Flags.ViewChannel]);
   }
+});

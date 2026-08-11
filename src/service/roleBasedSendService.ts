@@ -11,7 +11,7 @@ import { AccountService } from "./accountService";
 import { ActionService } from "./actionService";
 import { DbService } from "./dbService";
 
-import { hasRole } from "../util/role";
+import { formatRoleNameForOutput, hasRole } from "../util/role";
 
 import { COMMAND_NAMES } from "../constant/command";
 import { BOT_ID, ROLE_IDS } from "../constant/id";
@@ -193,7 +193,7 @@ export class RoleBasedSendService {
     };
 
     return (
-      `✅ ロール <@&${targetRole.id}> への一括付与が完了しました。\n` +
+      `✅ ロール **${formatRoleNameForOutput(targetRole.name)}** への一括付与が完了しました。\n` +
       `1人あたりの付与額: ${formatNumber(amount)}${CURRENCY_NAMES}\n` +
       `付与成功人数: ${sendTargets.length}\n` +
       `合計付与額: ${formatNumber(totalAmount)}${CURRENCY_NAMES}\n` +

@@ -7,21 +7,22 @@ const {
   EVALUATION_SHEET_MESSAGES,
 } = require("../dist/constant/evaluationSheet.js");
 
-test("基本評価期間は10日", () => {
-  assert.equal(BASE_EVALUATION_DAYS, 10);
+test("基本評価期間は14日", () => {
+  assert.equal(BASE_EVALUATION_DAYS, 14);
 });
 
-test("評価シートの対象ロール名は見学者", () => {
-  assert.match(EVALUATION_SHEET_MESSAGES.NO_TARGET_USERS, /見学者/);
-  assert.match(EVALUATION_SHEET_MESSAGES.NO_KARIMEN_ROLE, /見学者/);
+test("評価シートの対象ロール名は旅人", () => {
+  assert.match(EVALUATION_SHEET_MESSAGES.NO_TARGET_USERS, /旅人/);
+  assert.match(EVALUATION_SHEET_MESSAGES.NO_KARIMEN_ROLE, /旅人/);
   assert.doesNotMatch(EVALUATION_SHEET_MESSAGES.NO_TARGET_USERS, /未契約/);
   assert.doesNotMatch(EVALUATION_SHEET_MESSAGES.NO_KARIMEN_ROLE, /未契約/);
 });
 
-test("評価シートは指定された2つのフォーラムに作成する", () => {
+test("評価シートは指定された3つのフォーラムに作成する", () => {
   assert.deepEqual(EvaluationService.getEvaluationForumIds(), [
-    "1520391206662570125",
-    "1520391398552113253",
+    "1534655774184444076",
+    "1534655844421992578",
+    "1534655898549747894",
   ]);
 });
 

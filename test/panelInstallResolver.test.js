@@ -13,7 +13,7 @@ test("resolves bank panel channel to the bank panel target", () => {
 });
 
 test("resolves admin bank panel thread to the admin bank panel target", () => {
-  assert.equal(THREAD_IDS.ADMIN_PANEL_THREAD, "1521949472865779916");
+  assert.equal(THREAD_IDS.ADMIN_PANEL_THREAD, "1536708811899932704");
 
   const target = resolvePanelInstallTarget(THREAD_IDS.ADMIN_PANEL_THREAD);
   assert.equal(target, PANEL_INSTALL_TARGETS.ADMIN_BANK);
@@ -25,45 +25,39 @@ test("resolves shop panel channel to the shop panel target", () => {
 });
 
 test("resolves creator emblem panel channel to the creator emblem panel target", () => {
-  assert.equal(TEXT_CHANNEL_IDS.CREATOR_EMBLEM_PANEL, "1521732594255790171");
+  assert.equal(TEXT_CHANNEL_IDS.CREATOR_EMBLEM_PANEL, "1534650688594771998");
 
   const target = resolvePanelInstallTarget(TEXT_CHANNEL_IDS.CREATOR_EMBLEM_PANEL);
   assert.equal(target, PANEL_INSTALL_TARGETS.CREATOR_EMBLEM);
 });
 
 test("resolves omikuji panel channel to the omikuji panel target", () => {
-  assert.equal(TEXT_CHANNEL_IDS.OMIKUJI_PANEL, "1526626039844049037");
+  assert.equal(TEXT_CHANNEL_IDS.OMIKUJI_PANEL, "1534637681181724682");
 
   const target = resolvePanelInstallTarget(TEXT_CHANNEL_IDS.OMIKUJI_PANEL);
   assert.equal(target, PANEL_INSTALL_TARGETS.OMIKUJI);
 });
 
-test("resolves game panel channel to the game panel target", () => {
-  assert.equal(TEXT_CHANNEL_IDS.GAME_PANEL, "1524750761110540348");
-
-  const target = resolvePanelInstallTarget(TEXT_CHANNEL_IDS.GAME_PANEL);
-  assert.equal(target, PANEL_INSTALL_TARGETS.GAME);
+test("game panel stays disabled until its target is confirmed", () => {
+  assert.equal(TEXT_CHANNEL_IDS.GAME_PANEL, "");
+  assert.equal(resolvePanelInstallTarget(TEXT_CHANNEL_IDS.GAME_PANEL), null);
 });
 
-test("resolves casino panel channel to the casino panel target", () => {
-  assert.equal(TEXT_CHANNEL_IDS.CASINO_PANEL, "1524750874830831708");
-
-  const target = resolvePanelInstallTarget(TEXT_CHANNEL_IDS.CASINO_PANEL);
-  assert.equal(target, PANEL_INSTALL_TARGETS.CASINO);
+test("casino panel stays disabled until its target is confirmed", () => {
+  assert.equal(TEXT_CHANNEL_IDS.CASINO_PANEL, "");
+  assert.equal(resolvePanelInstallTarget(TEXT_CHANNEL_IDS.CASINO_PANEL), null);
 });
 
-test("resolves the first roulette panel channel to its stage-specific target", () => {
-  assert.equal(TEXT_CHANNEL_IDS.ROULETTE_1ST_PANEL, "1525487297125155047");
-
-  const target = resolvePanelInstallTarget(TEXT_CHANNEL_IDS.ROULETTE_1ST_PANEL);
-  assert.equal(target, PANEL_INSTALL_TARGETS.ROULETTE_1ST);
+test("roulette panel stays disabled until its target is confirmed", () => {
+  assert.equal(TEXT_CHANNEL_IDS.ROULETTE_1ST_PANEL, "");
+  assert.equal(resolvePanelInstallTarget(TEXT_CHANNEL_IDS.ROULETTE_1ST_PANEL), null);
 });
 
 test("resolves unified hotel panel channel to the hotel panel target", () => {
-  assert.equal(TEXT_CHANNEL_IDS.NORMAL_HOTEL_VC_PANEL, "1524065230475362454");
-  assert.equal(TEXT_CHANNEL_IDS.SPECIAL_HOTEL_VC_PANEL, "1524065230475362454");
+  assert.equal(TEXT_CHANNEL_IDS.NORMAL_HOTEL_VC_PANEL, "1534649600760086658");
+  assert.equal(TEXT_CHANNEL_IDS.SPECIAL_HOTEL_VC_PANEL, "1534649600760086658");
 
-  const target = resolvePanelInstallTarget("1524065230475362454");
+  const target = resolvePanelInstallTarget("1534649600760086658");
   assert.equal(target, PANEL_INSTALL_TARGETS.HOTEL);
 });
 

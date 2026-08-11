@@ -7,6 +7,7 @@ import { AdminOpenAccountService } from "../service/adminOpenAccountService";
 
 import { COMMAND_NAMES } from "../constant/command";
 import { ADMIN_OPEN_ACCOUNT_MESSAGES } from "../constant/adminOpenAccount";
+import { formatRoleNameForOutput } from "../util/role";
 
 function formatMemberList(memberIds: string[]): string {
   if (memberIds.length === 0) {
@@ -66,7 +67,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
   await interaction.editReply({
     content:
-      `✅ ロール <@&${targetRole.id}> の口座開設処理が完了しました。\n` +
+      `✅ ロール **${formatRoleNameForOutput(targetRole.name)}** の口座開設処理が完了しました。\n` +
       `開設した人数: ${openedMembers.length}\n` +
       `スキップした人数: ${skippedMembers.length}\n` +
       `開設済み: ${formatMemberList(openedMemberIds)}\n` +

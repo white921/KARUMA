@@ -57,7 +57,7 @@ test("market gacha uses the configured prize probabilities", () => {
 test("heretic prize label specifies its three-day duration", () => {
   const heretic = MARKET_GACHA_PRIZES.find((prize) => prize.key === "heretic");
 
-  assert.equal(heretic.label, "異端通行券3日分");
+  assert.equal(heretic.label, "闇市場通行券3日分");
 });
 
 test("market gacha selects prizes at probability boundaries", () => {
@@ -95,7 +95,7 @@ test("technical director and server owner bypass the market gacha daily limit", 
   );
 });
 
-test("market gacha payment selector offers krm and invite points", () => {
+test("market gacha payment selector offers LIA and invite points", () => {
   const buttonIds = createMarketGachaPaymentSelectionRow()
     .toJSON()
     .components
@@ -133,8 +133,8 @@ test("remote control prize guides users to mention the founder in the general in
   const instructions = MarketGachaService.getTicketInstructions(prize);
 
   assert.match(instructions, /総合お問い合わせ/);
-  assert.match(instructions, /教団市場チケット/);
-  assert.match(instructions, /教祖さんをメンション/);
+  assert.match(instructions, /市場チケット/);
+  assert.match(instructions, /皇帝をメンション/);
   assert.match(instructions, /スクショしてチケット内に送信/);
 });
 
@@ -144,8 +144,8 @@ test("heretic prize does not ask users to mention the founder", () => {
   const instructions = MarketGachaService.getTicketInstructions(prize);
 
   assert.match(instructions, /総合お問い合わせ/);
-  assert.match(instructions, /教団市場チケット/);
-  assert.doesNotMatch(instructions, /教祖さんをメンション/);
+  assert.match(instructions, /市場チケット/);
+  assert.doesNotMatch(instructions, /皇帝をメンション/);
   assert.match(instructions, /スクショしてチケット内に送信/);
 });
 
@@ -160,7 +160,7 @@ test("game ticket prizes explain the same priority behavior as hotel tickets", (
   assert.equal(gameTicketThree.label, "遊戯チケット 3枚");
   assert.match(
     MarketGachaService.getTicketInstructions(gameTicket),
-    /次回ゲームの6時間プランを使用時に、優先的にチケットが消費/,
+    /次回遊戯の6時間プランを使用時に、優先的にチケットが消費/,
   );
 });
 
@@ -186,10 +186,10 @@ test("shop discount prize directs users to the market ticket guidance", () => {
   const discountTicket = MARKET_GACHA_PRIZES.find((item) => item.key === "discount_5");
   const instructions = MarketGachaService.getTicketInstructions(discountTicket);
 
-  assert.match(instructions, /教団市場チケットを切り/);
+  assert.match(instructions, /市場チケットを切り/);
   assert.match(instructions, /割引後の支払額を確認/);
-  assert.match(instructions, /ショップパネルからその金額を送金/);
-  assert.match(instructions, /100万krm以上の商品には利用できません/);
+  assert.match(instructions, /市場パネルからその金額を送金/);
+  assert.match(instructions, /100万LIA以上の商品には利用できません/);
 });
 
 test("audio prize result confirms DM delivery and uses the audio type", () => {
@@ -209,8 +209,8 @@ test("market gacha log records the drawer, prize, and payment", () => {
   const prize = MARKET_GACHA_PRIZES.find((item) => item.key === "remote_control");
   const log = formatMarketGachaDrawLog("123", prize, "invite_point");
 
-  assert.equal(THREAD_IDS.MARKET_GACHA_LOG_THREAD, "1527185274399096972");
+  assert.equal(THREAD_IDS.MARKET_GACHA_LOG_THREAD, "1536708822725427301");
   assert.match(log, /<@123>/);
-  assert.match(log, /教祖遠隔/);
+  assert.match(log, /皇帝遠隔/);
   assert.match(log, /招待ポイント1pt/);
 });

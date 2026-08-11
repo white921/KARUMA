@@ -8,6 +8,13 @@ const {
   SALARY_PAYMENTS,
   SALARY_ROLE_IDS,
 } = require("../dist/constant/salary.js");
+const { formatRoleNameForOutput } = require("../dist/util/role.js");
+
+test("role names omit parenthetical management labels in bot output", () => {
+  assert.equal(formatRoleNameForOutput("市場支配人(ショップ)"), "市場支配人");
+  assert.equal(formatRoleNameForOutput("英傑（運営メンバー）"), "英傑");
+  assert.equal(formatRoleNameForOutput("侍従"), "侍従");
+});
 
 test("monthly salary config includes all requested roles", () => {
   assert.deepEqual(SALARY_ROLE_IDS, {

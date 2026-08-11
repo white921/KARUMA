@@ -83,7 +83,7 @@ test("interviewer shift notifications target the configured channel at 00:30 Jap
     "utf8",
   );
 
-  assert.equal(TEXT_CHANNEL_IDS.MENSTU_SHIFT, "1527175478102851685");
+  assert.equal(TEXT_CHANNEL_IDS.MENSTU_SHIFT, "1536368899183091722");
   assert.match(scheduleSource, /cron\.schedule\(\s*"30 0 \* \* \*"/);
   assert.match(scheduleSource, /timezone:\s*"Asia\/Tokyo"/);
   assert.match(scheduleSource, /await InterviewShiftService\.sendDailyShiftMessage\(client\)/);
@@ -107,15 +107,15 @@ test("diary moderation and inactivity cleanup are enabled", () => {
   assert.match(scheduleSource, /timezone:\s*"Asia\/Tokyo"/);
 });
 
-test("bot account id is configured for KARUMA", () => {
-  const karumaBotId = "1521705594912772227";
+test("bot account id is configured for LEVELIA", () => {
+  const leveliaBotId = "1521705594912772227";
   const createTableSql = fs.readFileSync(
     path.join(__dirname, "../src/sql/createTable.sql"),
     "utf8",
   );
 
-  assert.equal(BOT_ID, karumaBotId);
-  assert.match(createTableSql, new RegExp(`VALUES \\(${karumaBotId}, 'KARUMA Bot', 0\\)`));
+  assert.equal(BOT_ID, leveliaBotId);
+  assert.match(createTableSql, new RegExp(`VALUES \\(${leveliaBotId}, 'LEVELIA Bot', 0\\)`));
 });
 
 test("command registration script invokes and awaits registration when run directly", () => {

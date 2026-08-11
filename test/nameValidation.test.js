@@ -4,8 +4,9 @@ const assert = require("node:assert/strict");
 const { AccountService } = require("../dist/service/accountService.js");
 const { CheckNameService } = require("../dist/service/checkNameService.js");
 
-test("名前には文字と数字だけを使用できる", () => {
+test("名前には文字・数字と許可された記号だけを使用できる", () => {
   assert.doesNotThrow(() => AccountService.validateNameFormat("山田太郎123"));
+  assert.doesNotThrow(() => AccountService.validateNameFormat("山田！？、ー"));
   assert.throws(() => AccountService.validateNameFormat("山田 太郎"));
   assert.throws(() => AccountService.validateNameFormat("山田-太郎"));
   assert.throws(() => AccountService.validateNameFormat("山田😀"));

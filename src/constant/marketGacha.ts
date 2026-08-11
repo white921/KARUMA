@@ -31,34 +31,34 @@ export const MARKET_GACHA_PRIZES: readonly MarketGachaPrize[] = [
   { key: "secret_free_1", label: "シークレット無料チケット 1枚", probability: 5 },
   { key: "secret_free_3", label: "シークレット無料チケット 3枚", probability: 3 },
   { key: "freedom_free_1", label: "フリーダム無料チケット 1枚", probability: 3 },
-  { key: "cult_chat_free", label: "教祖雑談無料", probability: 9.5 },
+  { key: "cult_chat_free", label: "皇帝雑談無料", probability: 9.5 },
   { key: "custom_role_week", label: "カスタムロール 一週間", probability: 0.5 },
   {
     key: "discount_5",
-    label: "ショップ割引 5%OFF（100万krm以上の商品は利用不可）",
+    label: "市場割引 5%OFF（100万LIA以上の商品は利用不可）",
     probability: 8,
   },
   {
     key: "discount_10",
-    label: "ショップ割引 10%OFF（100万krm以上の商品は利用不可）",
+    label: "市場割引 10%OFF（100万LIA以上の商品は利用不可）",
     probability: 3,
   },
   {
     key: "superchat",
-    label: "準メン以上 サプボ",
+    label: "騎士以上 サプボ",
     probability: 20,
     audioCategory: "superchat",
   },
   {
     key: "song_cover",
-    label: "準メン以上 歌みた",
+    label: "騎士以上 歌みた",
     probability: 20,
     audioCategory: "song_cover",
   },
-  { key: "remote_control", label: "教祖遠隔", probability: 3 },
+  { key: "remote_control", label: "皇帝遠隔", probability: 3 },
   { key: "game_free_1", label: "遊戯チケット 1枚", probability: 15 },
   { key: "game_free_3", label: "遊戯チケット 3枚", probability: 5 },
-  { key: "heretic", label: "異端通行券3日分", probability: 5 },
+  { key: "heretic", label: "闇市場通行券3日分", probability: 5 },
 ];
 
 export function selectMarketGachaPrize(randomValue: number): MarketGachaPrize {

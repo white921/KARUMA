@@ -17,17 +17,9 @@ import { COLOR } from "../constant/color";
 export function createDiaryPanelActionRow() {
   return new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
-      .setCustomId(PANEL_COMMAND_NAMES.DIARY_PRIVATE)
-      .setLabel(DIARY_PANEL_MESSAGES.PRIVATE)
-      .setStyle(ButtonStyle.Primary),
-    new ButtonBuilder()
       .setCustomId(PANEL_COMMAND_NAMES.DIARY_PUBLIC)
       .setLabel(DIARY_PANEL_MESSAGES.PUBLIC)
       .setStyle(ButtonStyle.Success),
-    new ButtonBuilder()
-      .setCustomId(PANEL_COMMAND_NAMES.DIARY_UPDATE)
-      .setLabel(DIARY_PANEL_MESSAGES.UPDATE)
-      .setStyle(ButtonStyle.Secondary),
     new ButtonBuilder()
       .setCustomId(PANEL_COMMAND_NAMES.VIEW)
       .setLabel(PANEL_MESSAGES.VIEW)

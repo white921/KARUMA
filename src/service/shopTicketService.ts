@@ -61,7 +61,7 @@ export class ShopTicketService {
       this.getItemKey(ticketType),
     );
     if (!consumed) {
-      throw new Error("選択したショップチケットを所持していません。");
+      throw new Error("選択した市場チケットを所持していません。");
     }
   }
 }

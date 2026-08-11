@@ -3,7 +3,7 @@ import { RowDataPacket } from "mysql2";
 
 import { Account } from "../type/account";
 
-import { hasRole } from "../util/role";
+import { formatRoleNameForOutput, hasRole } from "../util/role";
 import { getUserIdsByRoleId } from "../util/role";
 
 import { DbService } from "./dbService";
@@ -84,7 +84,7 @@ export class RankingService {
     });
 
     const title = roleName
-      ? `🏆 **${roleName}内 残高ランキングTOP10** 🏆`
+      ? `🏆 **${formatRoleNameForOutput(roleName)}内 残高ランキングTOP10** 🏆`
       : `🏆 **残高ランキングTOP10** 🏆`;
 
     const embed = new EmbedBuilder().setTitle(title).addFields({

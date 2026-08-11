@@ -154,7 +154,9 @@ export class HotelVcService {
   ): Promise<number> {
     switch (commandId) {
       case HOTEL_TYPE.NORMAL:
-        return HOTEL_PRICE.NORMAL;
+        return (await hasRole(member, ROLE_IDS.CORE_MEMBER_ROLES.JUNHONMEN))
+          ? HOTEL_PRICE.NORMAL / 2
+          : HOTEL_PRICE.NORMAL;
       // (await hasRole(member, ROLE_IDS.YOIYAMI_NO_AKASHI)) ||
       //   (await hasRole(member, ROLE_IDS.YUMEHAKO_TOHKATSU)) ||
       //   (await hasRole(member, ROLE_IDS.YUMEHAKO_TOHKATSU_HOSA)) ||
@@ -217,7 +219,6 @@ export class HotelVcService {
   static async isNormalHotelBonusMember(member: GuildMember): Promise<boolean> {
     return (
       (await hasRole(member, ROLE_IDS.CORE_MEMBER_ROLES.HONMEN)) ||
-      (await hasRole(member, ROLE_IDS.CORE_MEMBER_ROLES.JUNHONMEN)) ||
       (await hasRole(member, ROLE_IDS.KANRISYA)) ||
       (await hasRole(member, ROLE_IDS.SABANUSI)) ||
       (await hasRole(member, ROLE_IDS.URAKATA))
@@ -465,6 +466,11 @@ export class HotelVcService {
             },
             {
               id: ROLE_IDS.CORE_MEMBER_ROLES.JUNHONMEN,
+              type: OverwriteType.Role,
+              deny: [PermissionsBitField.Flags.ViewChannel],
+            },
+            {
+              id: ROLE_IDS.CORE_MEMBER_ROLES.JUNMEN,
               type: OverwriteType.Role,
               deny: [PermissionsBitField.Flags.ViewChannel],
             },

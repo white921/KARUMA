@@ -21,8 +21,8 @@ test("shows VC rewards as a credit in transaction history", () => {
   );
 
   assert.match(history, /VC滞在報酬/);
-  assert.match(history, /\+10krm/);
-  assert.match(history, /残高: 110krm/);
+  assert.match(history, /\+10LIA/);
+  assert.match(history, /残高: 110LIA/);
   assert.match(history, /備考: VC報酬: システム管理所（テスト） 10分/);
 });
 

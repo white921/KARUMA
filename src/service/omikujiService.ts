@@ -42,12 +42,12 @@ export function formatOmikujiDrawReply(
   if (prize.amount < 0) {
     if (wasBalanceCapped) {
       return (
-        `📜 **教祖のお告げ：${prize.fortune}**\n` +
+        `📜 **皇帝のお告げ：${prize.fortune}**\n` +
         `本来は**${Math.abs(prize.amount).toLocaleString()}${CURRENCY_NAMES}**の減額だが、残高が足りないなら仕方ない。今回は残高**0${CURRENCY_NAMES}**で許してあげよう。これから善行を積むのだよ。`
       );
     }
     return (
-      `📜 **教祖のお告げ：${prize.fortune}**\n` +
+      `📜 **皇帝のお告げ：${prize.fortune}**\n` +
       `今日は己を見つめ直す日だ。**${Math.abs(prize.amount).toLocaleString()}${CURRENCY_NAMES}** を納め、次はよりよい行いを心がけなさい。\n` +
       `現在の残高：${afterWallet.toLocaleString()}${CURRENCY_NAMES}`
     );
@@ -63,7 +63,7 @@ export function formatOmikujiDrawReply(
   const message = messages[prize.fortune];
 
   return (
-    `📜 **教祖のお告げ：${prize.fortune}**\n` +
+    `📜 **皇帝のお告げ：${prize.fortune}**\n` +
     `${message}\n` +
     `**${prize.amount.toLocaleString()}${CURRENCY_NAMES}** を授けよう。\n` +
     `現在の残高：${afterWallet.toLocaleString()}${CURRENCY_NAMES}`

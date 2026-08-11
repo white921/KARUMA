@@ -172,7 +172,15 @@ export async function getRoleNameById(
   roleId: string
 ): Promise<string> {
   const role = await guild.roles.fetch(roleId);
-  return role ? role.name : "Unknown Role";
+  return role ? formatRoleNameForOutput(role.name) : "Unknown Role";
+}
+
+/** 利用者向け出力では、ロール名の丸括弧内にある管理用補足を表示しない。 */
+export function formatRoleNameForOutput(roleName: string): string {
+  return roleName
+    .replace(/\s*[（(][^()（）]*[)）]\s*/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 /**

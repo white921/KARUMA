@@ -96,7 +96,7 @@ export async function handleModalSubmit(interaction: ModalSubmitInteraction) {
           `${PANEL_COMMAND_NAMES.SHOP_SEND}_`.length,
         );
         if (ticketType !== SHOP_TICKET_NONE && !isShopTicketType(ticketType)) {
-          throw new Error("無効なショップチケットです。");
+          throw new Error("無効な市場チケットです。");
         }
         await ShopPaymentService.pay(
           interaction,

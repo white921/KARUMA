@@ -50,7 +50,7 @@ export class ShopPaymentService {
       ticketType !== SHOP_TICKET_NONE &&
       amount >= SHOP_TICKET_MAX_APPLICABLE_AMOUNT
     ) {
-      throw new Error("ショップ割引券は100万krm以上の商品には使用できません。");
+      throw new Error("市場割引券は100万LIA以上の商品には使用できません。");
     }
 
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
@@ -72,7 +72,7 @@ export class ShopPaymentService {
       const user = userRows[0];
       const bot = botRows[0];
       if (!user || !bot) {
-        throw new Error("ショップ支払い用の口座情報が見つかりません。");
+        throw new Error("市場支払い用の口座情報が見つかりません。");
       }
 
       if (ticketType !== SHOP_TICKET_NONE) {
@@ -121,7 +121,7 @@ export class ShopPaymentService {
 
     await interaction.editReply({
       content:
-        `✅ ショップへ ${amount.toLocaleString()}${CURRENCY_NAMES}支払いました！\n` +
+        `✅ 市場へ ${amount.toLocaleString()}${CURRENCY_NAMES}支払いました！\n` +
         `商品名: ${productName.trim()}\n` +
         (ticketType === SHOP_TICKET_NONE
           ? "使用チケット: 消費しない"
