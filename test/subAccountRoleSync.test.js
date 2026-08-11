@@ -9,6 +9,11 @@ const { ROLE_IDS } = require("../dist/constant/id.js");
 
 const GUILD_ID = "guild-id";
 
+test("LEVELIAでは寝落ち△とエロイプ△を廃止する", () => {
+  assert.equal("NEOTISANKAKU" in ROLE_IDS.BASIC_ROLE_IDS, false);
+  assert.equal("R18SANKAKU" in ROLE_IDS.BASIC_ROLE_IDS, false);
+});
+
 function createMember(roleDefinitions) {
   const roles = new Map(
     roleDefinitions.map(({ id, managed = false }) => [id, { id, managed }]),

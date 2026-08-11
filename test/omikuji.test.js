@@ -22,6 +22,19 @@ test("omikuji probabilities total 100 percent", () => {
   assert.equal(OMIKUJI_PRIZES.reduce((sum, prize) => sum + prize.probability, 0), 100);
 });
 
+test("LEVELIA keeps the KARUMA omikuji amounts", () => {
+  assert.deepEqual(
+    Object.fromEntries(OMIKUJI_PRIZES.map((prize) => [prize.fortune, prize.amount])),
+    {
+      小吉: 1_000,
+      中吉: 2_000,
+      大吉: 5_000,
+      凶: -3_000,
+      超大吉: 50_000,
+    },
+  );
+});
+
 test("omikuji selects fortunes at probability boundaries", () => {
   assert.equal(selectOmikujiPrize(0).fortune, "小吉");
   assert.equal(selectOmikujiPrize(0.344999).fortune, "小吉");
