@@ -17,7 +17,7 @@ export const data = new SlashCommandBuilder()
   );
 
 export async function execute(interaction: ChatInputCommandInteraction) {
-  // 現在Aetherでは評価DBを使っていないため停止中。
+  // LEVELIAでは評価DBを使っていないため停止中。
   // TODO: evaluations テーブル運用を再開したら旧ロジックを戻す
   await interaction.editReply({
     content: COMMAND_MESSAGES.CURRENTLY_DISABLED,

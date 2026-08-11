@@ -13,12 +13,12 @@ test("server boost is detected only when boosting starts", () => {
   assert.equal(isNewServerBoost(null, null), false);
 });
 
-test("the first two server boosts each reward 30000 krm", () => {
+test("the first two server boosts each reward 30000 LIA", () => {
   assert.equal(getServerBoostRewardAmount(1), 30000);
   assert.equal(getServerBoostRewardAmount(2), 30000);
 });
 
-test("the third and later server boosts each reward 5000 krm", () => {
+test("the third and later server boosts each reward 5000 LIA", () => {
   assert.equal(getServerBoostRewardAmount(3), 5000);
   assert.equal(getServerBoostRewardAmount(10), 5000);
 });

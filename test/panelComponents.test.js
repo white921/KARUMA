@@ -188,7 +188,7 @@ test("shop panel links the market gacha product list", () => {
   );
   assert.doesNotMatch(
     require("../dist/constant/panel.js").SHOP_PANEL_MESSAGES.DESCRIPTION,
-    /教団市場チケット/,
+    /旧市場チケット/,
   );
 });
 

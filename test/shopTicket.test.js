@@ -16,6 +16,6 @@ test("ショップ割引券は5%・10%の2種類を受け付ける", () => {
   assert.equal(getShopTicket(SHOP_TICKET_TYPE.DISCOUNT_10).discountRate, 10);
 });
 
-test("ショップ割引券の上限は100万krm未満", () => {
+test("ショップ割引券の上限は100万LIA未満", () => {
   assert.equal(SHOP_TICKET_MAX_APPLICABLE_AMOUNT, 1000000);
 });

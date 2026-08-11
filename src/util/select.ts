@@ -40,7 +40,7 @@ export async function showSelectUserMenu(
     const hotelPurchaseWay =
       selectedHotelPurchaseWay ??
       (interaction.isStringSelectMenu()
-        ? interaction.values[0] // (Royal, チケット)
+        ? interaction.values[0] // (LIA, チケット)
         : undefined);
     const customId = hotelPurchaseWay
       ? `${commandId}_user_select_${hotelPurchaseWay}`

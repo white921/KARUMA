@@ -136,7 +136,7 @@ export class RoleBasedSendService {
   static async sendToTargets(
     interaction: ChatInputCommandInteraction,
     fromUserId: string,
-    aetherBotWallet: number,
+    botWallet: number,
     sendTargets: TargetUser[],
     amount: number,
     comment: string,
@@ -160,7 +160,7 @@ export class RoleBasedSendService {
           amount,
           fromUserId,
           target.member.id,
-          aetherBotWallet,
+          botWallet,
           toAfterWallet,
           comment,
         );

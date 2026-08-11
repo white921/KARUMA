@@ -9,7 +9,6 @@ import { GameService } from "../service/gameService";
 import { SalesManagementService } from "../service/salesManagementService";
 import { InterviewShiftService } from "../service/interviewShiftService";
 import { DiaryService } from "../service/diaryService";
-import { DailyMessageService } from "../service/dailyMessageService";
 import { RedeployService } from "../service/redeployService";
 
 /**
@@ -73,17 +72,7 @@ export async function handleSchedule(client: Client) {
     { timezone: "Asia/Tokyo" },
   );
 
-  cron.schedule(
-    "0 21 * * *",
-    async () => {
-      try {
-        await DailyMessageService.sendDailyMessage(client);
-      } catch (err) {
-        console.error("schedule daily message job error:", err);
-      }
-    },
-    { timezone: "Asia/Tokyo" },
-  );
+  // 定時出席報告は、LEVELIAでの通知先ロールを確定するまで停止中。
 
   cron.schedule(
     "*/10 * * * *",

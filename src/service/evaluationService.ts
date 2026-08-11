@@ -80,9 +80,9 @@ export class EvaluationService {
 
   static getEvaluationForumIds() {
     return [
-      FORUM_IDS.AETHER_001,
-      FORUM_IDS.AETHER_002,
-      FORUM_IDS.AETHER_003,
+      FORUM_IDS.EVALUATION_001,
+      FORUM_IDS.EVALUATION_002,
+      FORUM_IDS.EVALUATION_003,
     ];
   }
 
@@ -359,7 +359,7 @@ export class EvaluationService {
   }
 
   /*
-   * 現在Aetherでは評価DBを使っていないため、旧評価管理機能は一旦停止。
+   * LEVELIAでは評価DBを使っていないため、旧評価管理機能は一旦停止。
    * 必要になったら以下を復活させる:
    * - evaluations テーブルのCRUD
    * - 招待/ボーナスによる評価期間延長

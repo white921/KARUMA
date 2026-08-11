@@ -1,4 +1,4 @@
--- 既存KARUMA DB向け: 評価シートの保存・削除・復元機能
+-- 既存LEVELIA DB向け: 評価シートの保存・削除・復元機能
 CREATE TABLE IF NOT EXISTS evaluation_sheet_sessions (
   id INTEGER NOT NULL AUTO_INCREMENT COMMENT '評価シートセッションID',
   user_id BIGINT NOT NULL COMMENT '評価対象のDiscordユーザーID',

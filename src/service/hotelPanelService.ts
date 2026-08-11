@@ -94,7 +94,7 @@ export class HotelVcPanelService {
 
   /**
    * 通常ホテルパネルを作成
-   * 聖書の館ボタン(通常ホテル)
+   * 公開ホテルボタン
    * 残高確認ボタン
    * @param client クライアント
    */

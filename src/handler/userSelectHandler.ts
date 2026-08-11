@@ -22,7 +22,7 @@ export async function handleUserSelectMenu(
   const customIdParts = customId.split("_");
   const commandId = customIdParts[0]; // NORMAL, SECRET, SECRETLONG, FREEDOM, FREEDOMLONG
   const selectedHotelPurchaseWay =
-    customIdParts.length > 3 ? customIdParts[3] : undefined; // (Royal, チケット) または undefined(無料ロールの場合)
+    customIdParts.length > 3 ? customIdParts[3] : undefined; // (LIA, チケット) または undefined(無料ロールの場合)
   const selectedUserId = interaction.values[0];
   switch (commandId) {
     case PANEL_COMMAND_NAMES.SEND:

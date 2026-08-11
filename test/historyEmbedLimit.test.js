@@ -29,7 +29,7 @@ test("shows VC rewards as a credit in transaction history", () => {
 test("splits long history into fields within Discord's field limit", () => {
   const entries = Array.from(
     { length: 10 },
-    (_, index) => `**07/17 21:${String(index).padStart(2, "0")} 【ルーレット】ベット**\n<@bot> へ\n-500KRM　残高: 10,000KRM\n備考: ${"あ".repeat(300)}`,
+    (_, index) => `**07/17 21:${String(index).padStart(2, "0")} 【ルーレット】ベット**\n<@bot> へ\n-500LIA　残高: 10,000LIA\n備考: ${"あ".repeat(300)}`,
   );
 
   const fields = HistoryService.createHistoryEmbedFields(entries);

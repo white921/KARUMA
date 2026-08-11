@@ -77,7 +77,7 @@ export async function handleStringSelectMenu(
         break;
       default:
         // ホテル購入方法選択の処理
-        const selectedHotelPurchaseWay = interaction.values[0]; // (Royal, チケット)
+        const selectedHotelPurchaseWay = interaction.values[0]; // (LIA, チケット)
         if (
           commandId === PANEL_COMMAND_NAMES.HOTEL_VC_SECRET ||
           commandId === PANEL_COMMAND_NAMES.HOTEL_VC_SECRETLONG

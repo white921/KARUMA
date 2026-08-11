@@ -26,7 +26,7 @@ export function createBankPanelActionRow() {
       .setCustomId(PANEL_COMMAND_NAMES.SEND)
       .setLabel(PANEL_MESSAGES.SEND)
       .setStyle(ButtonStyle.Success)
-      .setEmoji(EXTERNALE_MOJI_VIEWS.ROYAL_COIN),
+      .setEmoji(EXTERNALE_MOJI_VIEWS.CURRENCY_COIN),
     new ButtonBuilder()
       .setCustomId(PANEL_COMMAND_NAMES.HISTORY)
       .setLabel(PANEL_MESSAGES.HISTORY)

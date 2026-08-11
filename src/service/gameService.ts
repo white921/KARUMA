@@ -199,7 +199,7 @@ export class GameService {
   }
 
   /**
-   * 夢遊パス購入
+   * 遊戯パス購入
    * @param interaction インタラクション
    * @param commandName コマンド名 // GAME_PASS, MINECRAFT_PASS
    */

@@ -22,8 +22,8 @@ COMMENT='ユーザーのアイテム所持情報';
 INSERT INTO items (item_key, name, description) VALUES
   ('HOTEL_SECRET_FREE', 'VIPホテル無料券', 'VIPホテル（12時間）を無料で利用できる券'),
   ('HOTEL_FREEDOM_FREE', 'フリーダム無料券', 'フリーダム（12時間）を無料で利用できる券'),
-  ('SHOP_DISCOUNT_5', 'ショップ割引券 5%OFF', '100万krm未満のショップ支払いに使える5%割引券'),
-  ('SHOP_DISCOUNT_10', 'ショップ割引券 10%OFF', '100万krm未満のショップ支払いに使える10%割引券'),
+  ('SHOP_DISCOUNT_5', 'ショップ割引券 5%OFF', '100万LIA未満のショップ支払いに使える5%割引券'),
+  ('SHOP_DISCOUNT_10', 'ショップ割引券 10%OFF', '100万LIA未満のショップ支払いに使える10%割引券'),
   ('GAME_SHORT_FREE', '遊戯チケット', 'ゲームの6時間プランを無料で利用できる券')
 ON DUPLICATE KEY UPDATE
   name = VALUES(name),

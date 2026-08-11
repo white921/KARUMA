@@ -22,7 +22,7 @@ test("omikuji probabilities total 100 percent", () => {
   assert.equal(OMIKUJI_PRIZES.reduce((sum, prize) => sum + prize.probability, 0), 100);
 });
 
-test("LEVELIA keeps the KARUMA omikuji amounts", () => {
+test("LEVELIA keeps the configured omikuji amounts", () => {
   assert.deepEqual(
     Object.fromEntries(OMIKUJI_PRIZES.map((prize) => [prize.fortune, prize.amount])),
     {

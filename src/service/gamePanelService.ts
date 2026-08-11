@@ -46,10 +46,10 @@ export function createGamePanelActionRows() {
 
 export class GamePanelService {
   /**
-   * 夢遊パネルを作成
+   * 遊戯パネルを作成
    * 6時間プランボタン
    * 12時間プランボタン
-   * 夢遊パスボタン
+   * 遊戯パスボタン
    * 残高確認ボタン
    * @param client クライアント
    */

@@ -233,7 +233,7 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
           );
           break;
         }
-        // 現在はRoyal支払いのみ。将来的にチケットを戻す場合は showStringSelectMenu を再利用する
+        // 現在は通貨支払いのみ。将来的にチケットを戻す場合は showStringSelectMenu を再利用する
         await showConfirmButton(
           interaction,
           PANEL_COMMAND_NAMES.HOTEL_VC_NORMAL,
@@ -258,7 +258,7 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
         );
         break;
       case PANEL_COMMAND_NAMES.HOTEL_VC_SECRETLONG:
-        // 現在はRoyal支払いのみ。将来的にチケットを戻す場合は showStringSelectMenu を再利用する
+        // 現在は通貨支払いのみ。将来的にチケットを戻す場合は showStringSelectMenu を再利用する
         await showSelectUserMenu(
           interaction,
           HOTEL_MESSAGES.SELECT_USER,
@@ -279,7 +279,7 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
         );
         break;
       case PANEL_COMMAND_NAMES.HOTEL_VC_FREEDOMLONG:
-        // 現在はRoyal支払いのみ。将来的にチケットを戻す場合は showStringSelectMenu を再利用する
+        // 現在は通貨支払いのみ。将来的にチケットを戻す場合は showStringSelectMenu を再利用する
         await showConfirmButton(
           interaction,
           PANEL_COMMAND_NAMES.HOTEL_VC_FREEDOMLONG,
@@ -317,7 +317,7 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
             customId,
             (await GameFreeTicketService.hasTicket(interaction.user.id, customId))
               ? "チケット"
-              : "Royal",
+              : HOTEL_PURCHASE_WAY_TYPE.MONEY,
           );
         }
         break;
@@ -351,10 +351,10 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
         } else if (customId.includes("_hotel_create_")) {
           // 作成ボタンの処理
           // customId形式: {commandId}_hotel_create_{purchaseWay}_{userId}
-          // 例: NORMAL_hotel_create_Royal_1234567890
+          // 例: NORMAL_hotel_create_LIA_1234567890
           const parts = customId.split("_");
           const commandId = parts[0]; // NORMAL, SECRET, SECRETLONG, FREEDOM, FREEDOMLONG
-          const selectedHotelPurchaseWay = parts[3]; // (Royal, チケット)
+          const selectedHotelPurchaseWay = parts[3]; // (LIA, チケット)
           const selectedUserId = parts[4]; // 選択されたユーザーID (user_not_selected or ユーザーID)
           await HotelVcService.executeHotelVc(
             interaction,

@@ -89,6 +89,21 @@ test("interviewer shift notifications target the configured channel at 00:30 Jap
   assert.match(scheduleSource, /await InterviewShiftService\.sendDailyShiftMessage\(client\)/);
 });
 
+test("daily attendance report is disabled until LEVELIA notification roles are confirmed", () => {
+  const scheduleSource = fs.readFileSync(
+    path.join(__dirname, "../src/handler/scheduleHandler.ts"),
+    "utf8",
+  );
+  const dailySource = fs.readFileSync(
+    path.join(__dirname, "../src/constant/daily.ts"),
+    "utf8",
+  );
+
+  assert.doesNotMatch(scheduleSource, /cron\.schedule\(\s*"0 21 \* \* \*"/);
+  assert.doesNotMatch(scheduleSource, /DailyMessageService/);
+  assert.doesNotMatch(dailySource, /<@&\d+>/);
+});
+
 test("diary moderation and inactivity cleanup are enabled", () => {
   const indexSource = fs.readFileSync(
     path.join(__dirname, "../src/index.ts"),

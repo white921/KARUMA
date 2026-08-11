@@ -28,7 +28,7 @@ import { DIARY_MESSAGES, DIARY_PRICE, DIARY_TYPE } from "../constant/diary";
  * 確認ボタンを表示（Embed + ボタン）
  * @param interaction インタラクション
  * @param commandId コマンドID (NORMAL, SECRET, SECRETLONG, FREEDOM, FREEDOMLONG, GAME_SHORT, GAME_LONG, GAME_SHORT_EXTEND, GAME_PASS, MINECRAFT_PASS)
- * @param selectedHotelPurchaseWay ホテル購入方法 (Royal, チケット)
+ * @param selectedHotelPurchaseWay ホテル購入方法 (LIA, チケット)
  */
 export async function showConfirmButton(
   interaction:

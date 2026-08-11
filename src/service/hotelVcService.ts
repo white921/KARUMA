@@ -229,7 +229,7 @@ export class HotelVcService {
   /**
    * ホテルVCを作成
    * @param interaction ボタンインタラクション
-   * @param hotelVcTypeName ホテルVCタイプ名 ("夢灯", "夢秘境", "宙夢")
+   * @param hotelVcTypeName ホテルVCタイプ名
    * @param isBonus 特典(ロール)を利用して作成したかどうか
    * @param selectedUserId? 選択されたユーザーID（シークレットホテル用）
    */
@@ -653,12 +653,12 @@ export class HotelVcService {
   }
 
   /**
-   * ホテルVCを作成する際のRoyal消費処理
+   * ホテルVCを作成する際の通貨消費処理
    * @param interaction ボタンインタラクション
    * @param commandId コマンドID (hotelVcNormal, hotelVcSecret, hotelVcSecretLong, hotelVcFreedom, hotelVcFreedomLong)
    * @param purchaseWay 支払方法（MONEY | TICKET）
    */
-  static async hotelVcPaymentByRoyal(
+  static async hotelVcPaymentByCurrency(
     interaction: ButtonInteraction | UserSelectMenuInteraction,
     commandId: string,
     hotelVcTypeName: string,
@@ -760,7 +760,7 @@ export class HotelVcService {
    * ホテルVCを作成する
    * @param interaction ボタンインタラクション
    * @param commandId コマンドID (NORMAL, SECRET, SECRETLONG, FREEDOM, FREEDOMLONG)
-   * @param selectedHotelPurchaseWay ホテル購入方法（Royal, チケット）
+   * @param selectedHotelPurchaseWay ホテル購入方法（LIA, チケット）
    * @param isBonus 特典(ロール)を利用して作成したかどうか
    * @param selectedUserId 選択されたユーザーID（シークレットホテル用）
    */
@@ -779,7 +779,7 @@ export class HotelVcService {
       if (isTicket) {
         await HotelFreeTicketService.consume(interaction.user.id, commandId);
       } else {
-        await this.hotelVcPaymentByRoyal(
+        await this.hotelVcPaymentByCurrency(
           interaction,
           commandId,
           hotelVcTypeName,
