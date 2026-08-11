@@ -39,7 +39,7 @@ export const ADMIN_PANEL_MESSAGES = {
 const NORMAL_HOTEL_PRICE_GUIDANCE = [
   `旅人・騎士：${HOTEL_PRICE.NORMAL}${CURRENCY_NAMES}/12時間`,
   `賢者：${HOTEL_PRICE.NORMAL / 2}${CURRENCY_NAMES}/12時間`,
-  "貴族以上：無料",
+  "貴族以上・支配人：無料",
 ].join("\n");
 export const HOTEL_VC_PANEL_MESSAGES = {
   TITLE: "ホテルVCパネル",
