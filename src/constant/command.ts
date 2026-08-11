@@ -45,6 +45,7 @@ export const PANEL_COMMAND_NAMES = {
   VIEW: "view",
   SEND: "send",
   SHOP_SEND: "shopSend",
+  DARK_SHOP_SEND: "darkShopSend",
   CREATOR_EMBLEM_PAY: "creatorEmblemPay",
   SHOP_TICKET_VIEW: "shopTicketView",
   MARKET_GACHA_DRAW: "marketGachaDraw",

@@ -38,6 +38,19 @@ export function createShopPanelActionRow() {
   );
 }
 
+export function createDarkShopPanelActionRow() {
+  return new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder()
+      .setCustomId(PANEL_COMMAND_NAMES.DARK_SHOP_SEND)
+      .setLabel(SHOP_PANEL_MESSAGES.SHOP_SEND)
+      .setStyle(ButtonStyle.Success),
+    new ButtonBuilder()
+      .setCustomId(PANEL_COMMAND_NAMES.VIEW)
+      .setLabel(SHOP_PANEL_MESSAGES.VIEW)
+      .setStyle(ButtonStyle.Primary),
+  );
+}
+
 export class ShopPanelService {
   /**
    * ショップパネルを作成
@@ -52,6 +65,7 @@ export class ShopPanelService {
       SHOP_PANEL_MESSAGES.TITLE,
       SHOP_PANEL_MESSAGES.DESCRIPTION,
       SHOP_PANEL_MESSAGES.ERROR,
+      createShopPanelActionRow(),
     );
   }
 
@@ -62,6 +76,7 @@ export class ShopPanelService {
       DARK_SHOP_PANEL_MESSAGES.TITLE,
       DARK_SHOP_PANEL_MESSAGES.DESCRIPTION,
       DARK_SHOP_PANEL_MESSAGES.ERROR,
+      createDarkShopPanelActionRow(),
     );
   }
 
@@ -71,6 +86,7 @@ export class ShopPanelService {
     title: string,
     description: string,
     errorMessage: string,
+    actionRow: ActionRowBuilder<ButtonBuilder>,
   ) {
     try {
       const channel = await client.channels.fetch(channelId);
@@ -89,15 +105,12 @@ export class ShopPanelService {
           "https://cdn.discordapp.com/attachments/1434890727569231983/1440528890480033833/ChatGPT_Image_20251119_11_27_20.png?ex=691fce13&is=691e7c93&hm=2a4fbb9c5783417860da7f86487c6c4365b0caabdcfcea3b47b954441cec5553&",
         );
 
-      // コマンドボタンを作成
-      const row1 = createShopPanelActionRow();
-
       await deletePanelMessage(channel, client, title);
 
       // 新しいパネルメッセージを送信
       await channel.send({
         embeds: [embed],
-        components: [row1],
+        components: [actionRow],
       });
     } catch (error) {
       throw error;

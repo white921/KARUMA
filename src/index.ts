@@ -168,6 +168,7 @@ client.on("interactionCreate", async (interaction) => {
       // モーダルを表示するボタンの場合はdeferReplyをスキップ
       if (
         interaction.customId !== PANEL_COMMAND_NAMES.SHOP_SEND &&
+        interaction.customId !== PANEL_COMMAND_NAMES.DARK_SHOP_SEND &&
         interaction.customId !== PANEL_COMMAND_NAMES.CHANGE_VC_NAME &&
         interaction.customId !== PANEL_COMMAND_NAMES.DIARY_PRIVATE &&
         interaction.customId !== PANEL_COMMAND_NAMES.DIARY_PUBLIC &&

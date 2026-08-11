@@ -76,7 +76,7 @@ export async function showShopAmountModal(
 ) {
   const modal = new ModalBuilder()
     .setCustomId(`${PANEL_COMMAND_NAMES.SHOP_SEND}_${ticketType}`)
-    .setTitle("市場支払い");
+    .setTitle("市場商品購入");
 
   const amountInput = new TextInputBuilder()
     .setCustomId("amount")
@@ -91,6 +91,37 @@ export async function showShopAmountModal(
     .setLabel("商品名")
     .setStyle(TextInputStyle.Paragraph)
     .setPlaceholder("購入する商品名を入力してください")
+    .setRequired(true)
+    .setMaxLength(200);
+
+  modal.addComponents(
+    new ActionRowBuilder<TextInputBuilder>().addComponents(amountInput),
+    new ActionRowBuilder<TextInputBuilder>().addComponents(commentInput),
+  );
+  await interaction.showModal(modal);
+}
+
+/** 闇市場用の商品購入モーダルを表示する。市場割引券は使用しない。 */
+export async function showDarkShopAmountModal(
+  interaction: ButtonInteraction,
+) {
+  const modal = new ModalBuilder()
+    .setCustomId(PANEL_COMMAND_NAMES.DARK_SHOP_SEND)
+    .setTitle("闇市場商品購入");
+
+  const amountInput = new TextInputBuilder()
+    .setCustomId("amount")
+    .setLabel("購入金額")
+    .setStyle(TextInputStyle.Short)
+    .setPlaceholder("購入金額を入力してください")
+    .setRequired(true)
+    .setMinLength(1)
+    .setMaxLength(10);
+  const commentInput = new TextInputBuilder()
+    .setCustomId("comment")
+    .setLabel("商品名")
+    .setStyle(TextInputStyle.Paragraph)
+    .setPlaceholder("購入する闇市場の商品名を入力してください")
     .setRequired(true)
     .setMaxLength(200);
 

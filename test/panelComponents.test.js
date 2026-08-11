@@ -15,7 +15,10 @@ const { createGamePanelActionRows } = require("../dist/service/gamePanelService.
 const { createHotelVcPanelActionRows } = require("../dist/service/hotelPanelService.js");
 const { HotelVcService } = require("../dist/service/hotelVcService.js");
 const { createRedeployPanelActionRow } = require("../dist/service/redeployPanelService.js");
-const { createShopPanelActionRow } = require("../dist/service/shopPanelService.js");
+const {
+  createDarkShopPanelActionRow,
+  createShopPanelActionRow,
+} = require("../dist/service/shopPanelService.js");
 const { createCreatorEmblemPanelActionRow } = require("../dist/service/creatorEmblemPanelService.js");
 const { CreatorEmblemPaymentService } = require("../dist/service/creatorEmblemPaymentService.js");
 const { VcPanelService } = require("../dist/service/vcPanelService.js");
@@ -76,6 +79,22 @@ test("shop purchase button uses the product purchase label", () => {
     .components.find((button) => button.custom_id === PANEL_COMMAND_NAMES.SHOP_SEND);
 
   assert.equal(purchaseButton.label, "商品購入");
+});
+
+test("market and dark market use distinct purchase actions", () => {
+  const marketButtonIds = createShopPanelActionRow()
+    .toJSON()
+    .components.map((button) => button.custom_id);
+  const darkMarketButtonIds = createDarkShopPanelActionRow()
+    .toJSON()
+    .components.map((button) => button.custom_id);
+
+  assert.ok(marketButtonIds.includes(PANEL_COMMAND_NAMES.SHOP_SEND));
+  assert.ok(!marketButtonIds.includes(PANEL_COMMAND_NAMES.DARK_SHOP_SEND));
+  assert.ok(darkMarketButtonIds.includes(PANEL_COMMAND_NAMES.DARK_SHOP_SEND));
+  assert.ok(!darkMarketButtonIds.includes(PANEL_COMMAND_NAMES.SHOP_SEND));
+  assert.ok(!darkMarketButtonIds.includes(PANEL_COMMAND_NAMES.MARKET_GACHA_DRAW));
+  assert.ok(!darkMarketButtonIds.includes(PANEL_COMMAND_NAMES.SHOP_TICKET_VIEW));
 });
 
 test("diary panel provides the LEVELIA VIP diary flow for 5000 LIA", () => {
@@ -180,6 +199,7 @@ test("dark market panel links the LEVELIA dark market product list", () => {
     /https:\/\/discord\.com\/channels\/1534636292153807039\/1534638452086276209/,
   );
   assert.match(DARK_SHOP_PANEL_MESSAGES.DESCRIPTION, /匿名送信機能は準備中/);
+  assert.match(DARK_SHOP_PANEL_MESSAGES.DESCRIPTION, /市場割引券は使用できません/);
 });
 
 test("non-bank panel buttons do not use icons", async () => {

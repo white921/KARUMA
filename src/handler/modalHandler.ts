@@ -106,6 +106,18 @@ export async function handleModalSubmit(interaction: ModalSubmitInteraction) {
         );
         break;
       }
+      case PANEL_COMMAND_NAMES.DARK_SHOP_SEND: {
+        const amount = Number(getModalFieldValue(interaction, "amount"));
+        const comment = getModalFieldValue(interaction, "comment");
+        await ShopPaymentService.pay(
+          interaction,
+          amount,
+          comment,
+          SHOP_TICKET_NONE,
+          PANEL_COMMAND_NAMES.DARK_SHOP_SEND,
+        );
+        break;
+      }
       default: {
         const parts = customId.split("_");
         const fromUserId = parts[1];

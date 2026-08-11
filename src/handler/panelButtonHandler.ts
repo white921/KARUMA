@@ -6,7 +6,11 @@ import {
   showShopTicketSelectMenu,
 } from "../util/select";
 import { showConfirmButton } from "../util/button";
-import { showStringModal, showAmountModal } from "../util/modal";
+import {
+  showAmountModal,
+  showDarkShopAmountModal,
+  showStringModal,
+} from "../util/modal";
 import { hasRole } from "../util/role";
 
 import { ViewService } from "../service/viewService";
@@ -81,6 +85,9 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
         break;
       case PANEL_COMMAND_NAMES.SHOP_SEND:
         await showShopTicketSelectMenu(interaction);
+        break;
+      case PANEL_COMMAND_NAMES.DARK_SHOP_SEND:
+        await showDarkShopAmountModal(interaction);
         break;
       case PANEL_COMMAND_NAMES.CREATOR_EMBLEM_PAY:
         await CreatorEmblemPaymentService.showProductSelect(interaction);

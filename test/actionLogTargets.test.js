@@ -45,6 +45,52 @@ test("creator emblem payments use the dedicated creator log thread", () => {
   );
 });
 
+test("market and dark market purchases use separate log threads", () => {
+  assert.equal(
+    resolveActionLogThreadId(PANEL_COMMAND_NAMES.SHOP_SEND),
+    THREAD_IDS.SHOP_LOG_THREAD,
+  );
+  assert.equal(
+    resolveActionLogThreadId(PANEL_COMMAND_NAMES.DARK_SHOP_SEND),
+    THREAD_IDS.DARK_SHOP_LOG_THREAD,
+  );
+  assert.notEqual(THREAD_IDS.SHOP_LOG_THREAD, THREAD_IDS.DARK_SHOP_LOG_THREAD);
+});
+
+test("dark market purchase logs identify the action and use its thread", async () => {
+  const sentMessages = [];
+  const fetchedThreadIds = [];
+  const thread = {
+    isThread: () => true,
+    isTextBased: () => true,
+    send: async (message) => sentMessages.push(message),
+  };
+  const context = {
+    client: {
+      channels: {
+        fetch: async (threadId) => {
+          fetchedThreadIds.push(threadId);
+          return thread;
+        },
+      },
+    },
+  };
+
+  await ActionService.createActionLogMessage(
+    context,
+    PANEL_COMMAND_NAMES.DARK_SHOP_SEND,
+    5000,
+    "123456789012345678",
+    "1521705594912772227",
+    "闇手紙",
+  );
+
+  assert.deepEqual(fetchedThreadIds, [THREAD_IDS.DARK_SHOP_LOG_THREAD]);
+  assert.equal(sentMessages.length, 1);
+  assert.match(sentMessages[0], /^\*\*闇市場商品購入\*\*/);
+  assert.match(sentMessages[0], /5,000LIAの商品を購入/);
+});
+
 test("salary action log messages are sent to the salary log thread", async () => {
   const sentMessages = [];
   const fetchedThreadIds = [];
