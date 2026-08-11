@@ -347,18 +347,12 @@ COMMENT='市場ガチャの音源配信履歴';
 INSERT INTO market_gacha_audio_assets
   (category, performer_name, object_key, file_name, public_url)
 VALUES
-  ('superchat', '教祖', 'superchat/kyoso/YouCut_20260628_114125860.mp4', 'YouCut_20260628_114125860.mp4', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/superchat/kyoso/YouCut_20260628_114125860.mp4'),
-  ('song_cover', '教祖', 'superchat/kyoso/YouCut_20260622_135046734.mp4', 'YouCut_20260622_135046734.mp4', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/superchat/kyoso/YouCut_20260622_135046734.mp4'),
-  ('superchat', '教祖', 'superchat/kyoso/YouCut_20260604_204843312.mp4', 'YouCut_20260604_204843312.mp4', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/superchat/kyoso/YouCut_20260604_204843312.mp4'),
-  ('song_cover', '教祖', 'song-cover/kyoso/YouCut_20260529_203035054.mp4', 'YouCut_20260529_203035054.mp4', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/song-cover/kyoso/YouCut_20260529_203035054.mp4'),
-  ('superchat', '聖金', 'superchat/seikin/trim_B20B1C9A-508E-44CC-A98F-F9979DEE8CC4.mp4', 'trim_B20B1C9A-508E-44CC-A98F-F9979DEE8CC4.mp4', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/superchat/seikin/trim_B20B1C9A-508E-44CC-A98F-F9979DEE8CC4.mp4'),
-  ('song_cover', '聖金', 'song-cover/seikin/My_Movie.mov', 'My_Movie.mov', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/song-cover/seikin/My_Movie.mov'),
-  ('song_cover', '眷属', 'song-cover/kenzoku/ScreenRecording_07-03-2026_02-49-16_1.mov', 'ScreenRecording_07-03-2026_02-49-16_1.mov', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/song-cover/kenzoku/ScreenRecording_07-03-2026_02-49-16_1.mov'),
-  ('superchat', '眷属', 'superchat/kenzoku/ScreenRecording_02-26-2026_21-40-47_1-1.mov', 'ScreenRecording_02-26-2026_21-40-47_1-1.mov', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/superchat/kenzoku/ScreenRecording_02-26-2026_21-40-47_1-1.mov'),
-  ('superchat', '慚愧', 'superchat/zanki/4271EDAB-88CF-4C6E-B32C-D6948422CA80-1.mov', '4271EDAB-88CF-4C6E-B32C-D6948422CA80-1.mov', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/superchat/zanki/4271EDAB-88CF-4C6E-B32C-D6948422CA80-1.mov'),
-  ('superchat', '慚愧', 'superchat/zanki/copy_C7A0EC8D-35D0-4E6F-BE82-40DB38458B6B.mov', 'copy_C7A0EC8D-35D0-4E6F-BE82-40DB38458B6B.mov', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/superchat/zanki/copy_C7A0EC8D-35D0-4E6F-BE82-40DB38458B6B.mov'),
-  ('superchat', '炎武零夢', 'superchat/enbu-reimu/copy_A60A1133-8C38-4E49-814A-B5C0CFC3AB70.mov', 'copy_A60A1133-8C38-4E49-814A-B5C0CFC3AB70.mov', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/superchat/enbu-reimu/copy_A60A1133-8C38-4E49-814A-B5C0CFC3AB70.mov'),
-  ('superchat', 'Mtc-S3RL', 'superchat/mtc-s3rl/copy_1AD999D0-9B09-4E30-802E-EC62138E04DE.mov', 'copy_1AD999D0-9B09-4E30-802E-EC62138E04DE.mov', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/superchat/mtc-s3rl/copy_1AD999D0-9B09-4E30-802E-EC62138E04DE.mov')
+  ('superchat', '強がり', 'superchat/seikin/trim_B20B1C9A-508E-44CC-A98F-F9979DEE8CC4.mp4', 'trim_B20B1C9A-508E-44CC-A98F-F9979DEE8CC4.mp4', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/superchat/seikin/trim_B20B1C9A-508E-44CC-A98F-F9979DEE8CC4.mp4'),
+  ('song_cover', '強がり', 'song-cover/seikin/My_Movie.mov', 'My_Movie.mov', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/song-cover/seikin/My_Movie.mov'),
+  ('song_cover', 'エロ感ワイド', 'song-cover/kenzoku/ScreenRecording_07-03-2026_02-49-16_1.mov', 'ScreenRecording_07-03-2026_02-49-16_1.mov', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/song-cover/kenzoku/ScreenRecording_07-03-2026_02-49-16_1.mov'),
+  ('superchat', 'エロ感ワイド', 'superchat/kenzoku/ScreenRecording_02-26-2026_21-40-47_1-1.mov', 'ScreenRecording_02-26-2026_21-40-47_1-1.mov', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/superchat/kenzoku/ScreenRecording_02-26-2026_21-40-47_1-1.mov'),
+  ('superchat', 'killer対象外', 'superchat/zanki/4271EDAB-88CF-4C6E-B32C-D6948422CA80-1.mov', '4271EDAB-88CF-4C6E-B32C-D6948422CA80-1.mov', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/superchat/zanki/4271EDAB-88CF-4C6E-B32C-D6948422CA80-1.mov'),
+  ('superchat', 'killer対象外', 'superchat/zanki/copy_C7A0EC8D-35D0-4E6F-BE82-40DB38458B6B.mov', 'copy_C7A0EC8D-35D0-4E6F-BE82-40DB38458B6B.mov', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/superchat/zanki/copy_C7A0EC8D-35D0-4E6F-BE82-40DB38458B6B.mov')
 ON DUPLICATE KEY UPDATE
   category = VALUES(category),
   performer_name = VALUES(performer_name),

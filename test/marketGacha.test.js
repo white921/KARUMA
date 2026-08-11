@@ -196,11 +196,11 @@ test("audio prize result confirms DM delivery and uses the audio type", () => {
   const { MarketGachaService } = require("../dist/service/marketGachaService.js");
   const superchat = MARKET_GACHA_PRIZES.find((item) => item.key === "superchat");
   const instructions = MarketGachaService.getTicketInstructions(superchat, {
-    performerName: "教祖",
+    performerName: "強がり",
     publicUrl: "https://example.com/file",
   });
 
-  assert.match(instructions, /教祖.*サプボです！/);
+  assert.match(instructions, /強がり.*サプボです！/);
   assert.match(instructions, /ファイルのURLをDMにて送信/);
   assert.match(instructions, /転載・転送・保存・画面録画等は禁止/);
 });
