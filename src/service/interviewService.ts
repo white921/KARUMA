@@ -80,5 +80,7 @@ export class InterviewService {
     if (hasAccount) {
       throw new Error(ACCOUNT_MESSAGES.ACCOUNT_EXISTS);
     }
+
+    await AccountService.validateName(targetMember.displayName);
   }
 }

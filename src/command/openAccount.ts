@@ -18,9 +18,8 @@ export const data = new SlashCommandBuilder()
 
 export async function execute(interaction: ChatInputCommandInteraction) {
   try {
-    await OpenAccountService.openAccountValidate(interaction);
-
     const member = interaction.member as GuildMember;
+    await OpenAccountService.openAccountValidate(member);
 
     await AccountService.createAccount(
       member.id,
