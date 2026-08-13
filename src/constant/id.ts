@@ -267,6 +267,7 @@ export const TEST_CHANNEL_ID = {
 export const VC_IDS = {
   GAME_TELEPORT: "", // 遊戯の運用確定待ち
   CASINO_TELEPORT: "", // 賭博の運用確定待ち
+  HAZAMA_TELEPORT: "1535707654075453661", // 辺境の狭間 > 狭間作成VC
 };
 
 // テスト用のVCID
