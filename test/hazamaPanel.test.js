@@ -13,6 +13,7 @@ test("hazama panel uses the configured payment channel and access role", () => {
   assert.equal(ROLE_IDS.HAZAMA_ACCESS, "1537455098945343651");
   assert.equal(HAZAMA_PRICE, 1000);
   assert.match(HAZAMA_PANEL_MESSAGES.DESCRIPTION, /1,000LIA／12時間/);
+  assert.doesNotMatch(HAZAMA_PANEL_MESSAGES.DESCRIPTION, /スマートフォン/);
 
   const button = createHazamaPanelActionRow().toJSON().components[0];
   assert.equal(button.custom_id, PANEL_COMMAND_NAMES.HAZAMA_ACCESS);
