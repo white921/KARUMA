@@ -81,6 +81,7 @@ export const PANEL_COMMAND_NAMES = {
   GAME_PASS: "gamePass",
   GAME_TICKET_VIEW: "gameTicketView",
   MINECRAFT_PASS: "gameMinecraftPass",
+  HAZAMA_ACCESS: "hazamaAccess",
   REDEPLOY: "redeploy",
   // ADMIN_CHANGE_NAME: "adminChangeName",
 };

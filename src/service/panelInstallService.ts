@@ -12,12 +12,14 @@ import { ShopPanelService } from "./shopPanelService";
 import { CreatorEmblemPanelService } from "./creatorEmblemPanelService";
 import { RoulettePanelService } from "./roulettePanelService";
 import { OmikujiPanelService } from "./omikujiPanelService";
+import { HazamaPanelService } from "./hazamaPanelService";
 
 export const PANEL_INSTALL_TARGETS = {
   BANK: "bank",
   ADMIN_BANK: "admin_bank",
   HOTEL: "hotel",
   GAME: "game",
+  HAZAMA: "hazama",
   CASINO: "casino",
   SHOP: "shop",
   DARK_SHOP: "dark_shop",
@@ -38,6 +40,7 @@ const PANEL_INSTALL_TARGET_LABELS: Record<PanelInstallTarget, string> = {
   [PANEL_INSTALL_TARGETS.ADMIN_BANK]: "管理者銀行パネル",
   [PANEL_INSTALL_TARGETS.HOTEL]: "ホテルVCパネル",
   [PANEL_INSTALL_TARGETS.GAME]: "遊戯パネル",
+  [PANEL_INSTALL_TARGETS.HAZAMA]: "辺境の狭間パネル",
   [PANEL_INSTALL_TARGETS.CASINO]: "賭博パネル",
   [PANEL_INSTALL_TARGETS.SHOP]: "市場パネル",
   [PANEL_INSTALL_TARGETS.DARK_SHOP]: "闇市場パネル",
@@ -57,6 +60,7 @@ const PANEL_INSTALL_CHANNEL_MAP = new Map<string, PanelInstallTarget>(
     [TEXT_CHANNEL_IDS.NORMAL_HOTEL_VC_PANEL, PANEL_INSTALL_TARGETS.HOTEL],
     [TEXT_CHANNEL_IDS.SPECIAL_HOTEL_VC_PANEL, PANEL_INSTALL_TARGETS.HOTEL],
     [TEXT_CHANNEL_IDS.GAME_PANEL, PANEL_INSTALL_TARGETS.GAME],
+    [TEXT_CHANNEL_IDS.HAZAMA_PANEL, PANEL_INSTALL_TARGETS.HAZAMA],
     [TEXT_CHANNEL_IDS.CASINO_PANEL, PANEL_INSTALL_TARGETS.CASINO],
     [TEXT_CHANNEL_IDS.SHOP_PANEL, PANEL_INSTALL_TARGETS.SHOP],
     [TEXT_CHANNEL_IDS.DARK_SHOP_PANEL, PANEL_INSTALL_TARGETS.DARK_SHOP],
@@ -108,6 +112,9 @@ async function installTargetPanel(
       return;
     case PANEL_INSTALL_TARGETS.GAME:
       await GamePanelService.createGamePanel(client);
+      return;
+    case PANEL_INSTALL_TARGETS.HAZAMA:
+      await HazamaPanelService.createPanel(client);
       return;
     case PANEL_INSTALL_TARGETS.CASINO:
       await CasinoPanelService.createCasinoPanel(client);

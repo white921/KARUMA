@@ -12,6 +12,7 @@ import {
 
 import { HotelVcService } from "../service/hotelVcService";
 import { GameService } from "../service/gameService";
+import { HazamaService } from "../service/hazamaService";
 
 import { PANEL_COMMAND_NAMES } from "../constant/command";
 import {
@@ -64,6 +65,8 @@ export async function showConfirmButton(
     // ホテルとゲームで料金を取得
     if (commandId.startsWith("game")) {
       price = await GameService.getGamePrice(commandId);
+    } else if (commandId === PANEL_COMMAND_NAMES.HAZAMA_ACCESS) {
+      price = await HazamaService.getPrice();
     } else if (
       commandId === PANEL_COMMAND_NAMES.DIARY_PRIVATE ||
       commandId === PANEL_COMMAND_NAMES.DIARY_PUBLIC ||
@@ -231,6 +234,13 @@ export async function showConfirmButton(
         embed.setColor(COLOR.GREEN);
         break;
       }
+      case PANEL_COMMAND_NAMES.HAZAMA_ACCESS:
+        embed.setTitle("🪪 辺境の狭間の滞在許可証");
+        embed.setDescription(
+          `**${price}**${CURRENCY_NAMES}を消費して**辺境の狭間の滞在許可証**を購入しますか？`,
+        );
+        embed.setColor(COLOR.PURPLE);
+        break;
       case PANEL_COMMAND_NAMES.DIARY_PRIVATE:
         embed.setTitle(`📔 ${DIARY_MESSAGES.PRIVATE_CREATE}`);
         embed.setDescription(
@@ -262,6 +272,7 @@ export async function showConfirmButton(
 
     // 確定ボタン
     const isGameCommand = commandId.startsWith("game");
+    const isHazamaCommand = commandId === PANEL_COMMAND_NAMES.HAZAMA_ACCESS;
     const isDiaryCommand =
       commandId === PANEL_COMMAND_NAMES.DIARY_PRIVATE ||
       commandId === PANEL_COMMAND_NAMES.DIARY_PUBLIC ||
@@ -271,6 +282,8 @@ export async function showConfirmButton(
       .setCustomId(
         isGameCommand
           ? `${commandId}_game_confirm_${selectedHotelPurchaseWay}`
+          : isHazamaCommand
+            ? `${commandId}_hazama_confirm`
           : isDiaryCommand
             ? `${commandId}_diary_confirm`
           : `${commandId}_hotel_create_${selectedHotelPurchaseWay}_${selectedUserId}`,

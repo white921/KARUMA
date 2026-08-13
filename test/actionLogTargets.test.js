@@ -9,7 +9,7 @@ const {
   COMMAND_NAMES,
   PANEL_COMMAND_NAMES,
 } = require("../dist/constant/command.js");
-const { THREAD_IDS } = require("../dist/constant/id.js");
+const { THREAD_IDS, TEXT_CHANNEL_IDS } = require("../dist/constant/id.js");
 
 test("admin mint and burn logs use the shared grant and revoke log thread", () => {
   const grantAndRevokeLogThreadId = THREAD_IDS.MINT_LOG_THREAD;
@@ -55,6 +55,39 @@ test("market and dark market purchases use separate log threads", () => {
     THREAD_IDS.DARK_SHOP_LOG_THREAD,
   );
   assert.notEqual(THREAD_IDS.SHOP_LOG_THREAD, THREAD_IDS.DARK_SHOP_LOG_THREAD);
+});
+
+test("hazama purchases are logged to the dedicated channel", async () => {
+  const sentMessages = [];
+  const fetchedChannelIds = [];
+  const channel = {
+    isTextBased: () => true,
+    send: async (message) => sentMessages.push(message),
+  };
+  const context = {
+    client: {
+      channels: {
+        fetch: async (channelId) => {
+          fetchedChannelIds.push(channelId);
+          return channel;
+        },
+      },
+    },
+  };
+
+  await ActionService.createActionLogMessage(
+    context,
+    PANEL_COMMAND_NAMES.HAZAMA_ACCESS,
+    1000,
+    "123456789012345678",
+    "1521705594912772227",
+    "辺境の狭間の滞在許可証を購入しました。",
+  );
+
+  assert.deepEqual(fetchedChannelIds, [TEXT_CHANNEL_IDS.HAZAMA_LOG]);
+  assert.equal(sentMessages.length, 1);
+  assert.match(sentMessages[0], /^\*\*辺境の狭間 滞在許可証購入\*\*/);
+  assert.match(sentMessages[0], /1,000LIA/);
 });
 
 test("dark market purchase logs identify the action and use its thread", async () => {

@@ -12,6 +12,7 @@ const { createAdminPanelActionRow } = require("../dist/service/adminPanelService
 const { createCasinoPanelActionRow } = require("../dist/service/casinoPanel.js");
 const { createDiaryPanelActionRow } = require("../dist/service/diaryPanelService.js");
 const { createGamePanelActionRows } = require("../dist/service/gamePanelService.js");
+const { createHazamaPanelActionRow } = require("../dist/service/hazamaPanelService.js");
 const { createHotelVcPanelActionRows } = require("../dist/service/hotelPanelService.js");
 const { HotelVcService } = require("../dist/service/hotelVcService.js");
 const { createRedeployPanelActionRow } = require("../dist/service/redeployPanelService.js");
@@ -207,6 +208,7 @@ test("non-bank panel buttons do not use icons", async () => {
   assertButtonsHaveNoIcons([createCasinoPanelActionRow()]);
   assertButtonsHaveNoIcons([createDiaryPanelActionRow()]);
   assertButtonsHaveNoIcons(createGamePanelActionRows());
+  assertButtonsHaveNoIcons([createHazamaPanelActionRow()]);
   assertButtonsHaveNoIcons([createRedeployPanelActionRow()]);
 
   const vcPanel = await VcPanelService.createVcPanel(true, true);

@@ -51,6 +51,14 @@ test("game panel stays disabled until its target is confirmed", () => {
   assert.equal(resolvePanelInstallTarget(TEXT_CHANNEL_IDS.GAME_PANEL), null);
 });
 
+test("resolves the hazama payment channel to the hazama panel target", () => {
+  assert.equal(TEXT_CHANNEL_IDS.HAZAMA_PANEL, "1536053027851739289");
+  assert.equal(
+    resolvePanelInstallTarget(TEXT_CHANNEL_IDS.HAZAMA_PANEL),
+    PANEL_INSTALL_TARGETS.HAZAMA,
+  );
+});
+
 test("casino panel stays disabled until its target is confirmed", () => {
   assert.equal(TEXT_CHANNEL_IDS.CASINO_PANEL, "");
   assert.equal(resolvePanelInstallTarget(TEXT_CHANNEL_IDS.CASINO_PANEL), null);

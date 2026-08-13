@@ -493,6 +493,7 @@ export class GameService {
         ROLE_IDS.GAME_SHORT,
         ROLE_IDS.GAME_LONG,
         ROLE_IDS.GAME_PASS,
+        ROLE_IDS.HAZAMA_ACCESS,
       ]) {
         const expiredRoleUserIds = await getExpiredRoleUserIds(roleId);
         if (expiredRoleUserIds.length === 0) {

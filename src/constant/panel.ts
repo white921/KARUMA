@@ -80,6 +80,13 @@ export const GAME_PANEL_MESSAGES = {
   TICKET_VIEW: "チケット確認",
 };
 
+export const HAZAMA_PANEL_MESSAGES = {
+  TITLE: "辺境の狭間 パネル",
+  DESCRIPTION: `辺境の狭間に入るための滞在許可証を購入できます。\nスマートフォンでの操作を推奨しています。\n\n**【滞在許可証】**\n1,000${CURRENCY_NAMES}／12時間\n購入後12時間まで、辺境の狭間をご利用できます。\n\n**・残高確認**：現在の${CURRENCY_NAMES}残高を確認できます。`,
+  ACCESS: "滞在許可証を購入",
+  ERROR: "辺境の狭間パネルチャンネルが見つからないか、無効な型です。",
+};
+
 export const SHOP_PANEL_MESSAGES = {
   TITLE: "市場パネル",
   DESCRIPTION:

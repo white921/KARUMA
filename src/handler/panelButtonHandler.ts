@@ -28,6 +28,7 @@ import { GameFreeTicketService } from "../service/gameFreeTicketService";
 import { TicketViewService } from "../service/ticketViewService";
 import { OmikujiService } from "../service/omikujiService";
 import { CreatorEmblemPaymentService } from "../service/creatorEmblemPaymentService";
+import { HazamaService } from "../service/hazamaService";
 
 import {
   ADMIN_PANEL_MESSAGES,
@@ -324,6 +325,13 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
       case PANEL_COMMAND_NAMES.GAME_PASS:
         await showConfirmButton(interaction, customId);
         break;
+      case PANEL_COMMAND_NAMES.HAZAMA_ACCESS:
+        if (await HazamaService.isFree(interaction.member as GuildMember)) {
+          await HazamaService.purchase(interaction);
+        } else {
+          await showConfirmButton(interaction, customId);
+        }
+        break;
       default:
         if (CreatorEmblemPaymentService.isConfirmCustomId(customId)) {
           await CreatorEmblemPaymentService.pay(interaction);
@@ -388,6 +396,9 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
             default:
               throw new Error(PANEL_MESSAGES.BUTTON_NOT_FOUND);
           }
+          break;
+        } else if (customId === `${PANEL_COMMAND_NAMES.HAZAMA_ACCESS}_hazama_confirm`) {
+          await HazamaService.purchase(interaction);
           break;
         } else if (customId.includes("_diary_confirm")) {
           const commandId = customId.replace("_diary_confirm", "");

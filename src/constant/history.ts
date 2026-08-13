@@ -29,6 +29,7 @@ export const HISTORY_TITLE_MAPPER = {
   [PANEL_COMMAND_NAMES.GAME_SHORT_EXTEND]: "【遊戯の間】6時間パック延長",
   [PANEL_COMMAND_NAMES.GAME_PASS]: "【遊戯の間】ゲームパス購入",
   [PANEL_COMMAND_NAMES.MINECRAFT_PASS]: "【遊戯の間】Minecraftパス購入",
+  [PANEL_COMMAND_NAMES.HAZAMA_ACCESS]: "【辺境の狭間】滞在許可証購入",
   [ROULETTE_ACTION_NAMES.BET]: "【ルーレット】ベット",
   [ROULETTE_ACTION_NAMES.PAYOUT]: "【ルーレット】配当",
   [ROULETTE_ACTION_NAMES.BONUS]: "【ルーレット】参加ボーナス",

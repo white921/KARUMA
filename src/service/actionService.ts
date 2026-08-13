@@ -253,6 +253,15 @@ export class ActionService {
             );
           }
           break;
+        case PANEL_COMMAND_NAMES.HAZAMA_ACCESS:
+          channelId = TEXT_CHANNEL_IDS.HAZAMA_LOG;
+          channel = await interaction.client.channels.fetch(channelId);
+          if (channel && channel.isTextBased()) {
+            await (channel as TextChannel).send(
+              `**辺境の狭間 滞在許可証購入**\n<@${fromUserId}>が${formatNumber(amount)}${CURRENCY_NAMES}で滞在許可証を購入しました。`,
+            );
+          }
+          break;
         case PANEL_COMMAND_NAMES.CASINO_GF:
           threadId = resolveActionLogThreadId(commandName);
           thread = await interaction.client.channels.fetch(threadId);
