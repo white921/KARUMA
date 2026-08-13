@@ -215,6 +215,18 @@ test("non-bank panel buttons do not use icons", async () => {
   assertButtonsHaveNoIcons(vcPanel.components);
 });
 
+test("teleport VC panel offers name and status changes", async () => {
+  const panel = await VcPanelService.createVcPanel(false, true, true);
+  const buttonIds = panel.components[0]
+    .toJSON()
+    .components.map((button) => button.custom_id);
+
+  assert.deepEqual(buttonIds, [
+    PANEL_COMMAND_NAMES.CHANGE_VC_NAME,
+    PANEL_COMMAND_NAMES.CHANGE_VC_STATUS,
+  ]);
+});
+
 test("hotel panel buttons do not use icons", () => {
   assertButtonsHaveNoIcons(createHotelVcPanelActionRows());
 });

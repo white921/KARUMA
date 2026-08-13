@@ -202,3 +202,26 @@ export async function showStringModal(
     throw error;
   }
 }
+
+export async function showVcStatusModal(
+  interaction: ButtonInteraction,
+  commandDescription: string,
+  commandId: string,
+) {
+  const modal = new ModalBuilder()
+    .setCustomId(commandId)
+    .setTitle(commandDescription);
+  const statusInput = new TextInputBuilder()
+    .setCustomId("new_status")
+    .setLabel("新しいVCステータス")
+    .setStyle(TextInputStyle.Paragraph)
+    .setPlaceholder("VCの現在の状況を入力してください")
+    .setRequired(true)
+    .setMinLength(1)
+    .setMaxLength(500);
+
+  modal.addComponents(
+    new ActionRowBuilder<TextInputBuilder>().addComponents(statusInput),
+  );
+  await interaction.showModal(modal);
+}

@@ -117,20 +117,30 @@ export class TeleportVcService {
         permissionOverwrites: permissionOverwrites,
       });
 
-      // VCパネルを送信
-      const inChatPanel = await VcPanelService.createVcPanel(false, true);
-      if (inChatPanel) {
-        await voiceChannel.send({
-          embeds: [inChatPanel.embeds[0]],
-          components: [inChatPanel.components[0]],
-        });
-      }
-
-      // メンバーを新しいVCに移動
-      await member.voice.setChannel(voiceChannel.id);
-
       // データベースに転送VC情報を記録
       await this.insertIntoVcs(voiceChannel.id, member.id);
+
+      // パネル送信を待たずに、作成者を新しいVCへ移動する。
+      try {
+        await member.voice.setChannel(voiceChannel.id);
+      } catch (error) {
+        await voiceChannel.delete().catch(() => undefined);
+        await updateVcStatus(voiceChannel.id, false).catch(() => undefined);
+        throw error;
+      }
+
+      // 移動後に、VC名・ステータスを変更できるインチャパネルを送信する。
+      try {
+        const inChatPanel = await VcPanelService.createVcPanel(false, true, true);
+        if (inChatPanel) {
+          await voiceChannel.send({
+            embeds: [inChatPanel.embeds[0]],
+            components: [inChatPanel.components[0]],
+          });
+        }
+      } catch (error) {
+        console.error("転送VCのインチャパネル送信エラー:", error);
+      }
     } catch (error: any) {
       throw error;
     }

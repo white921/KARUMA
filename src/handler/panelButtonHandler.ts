@@ -10,6 +10,7 @@ import {
   showAmountModal,
   showDarkShopAmountModal,
   showStringModal,
+  showVcStatusModal,
 } from "../util/modal";
 import { hasRole } from "../util/role";
 
@@ -211,6 +212,14 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
           interaction,
           VC_MESSAGES.CHANGE_VC_NAME,
           PANEL_COMMAND_NAMES.CHANGE_VC_NAME,
+        );
+        break;
+      case PANEL_COMMAND_NAMES.CHANGE_VC_STATUS:
+        await VcService.validateVcMember(interaction);
+        await showVcStatusModal(
+          interaction,
+          VC_MESSAGES.CHANGE_VC_STATUS,
+          PANEL_COMMAND_NAMES.CHANGE_VC_STATUS,
         );
         break;
       case PANEL_COMMAND_NAMES.HOTEL_VC_NORMAL:

@@ -3,6 +3,8 @@ import {
   VoiceChannel,
   ModalSubmitInteraction,
   ButtonInteraction,
+  ChannelType,
+  REST,
 } from "discord.js";
 
 import { DbService } from "./dbService";
@@ -120,6 +122,33 @@ export class VcService {
     } catch (error) {
       throw error;
     }
+  }
+
+  /** VCのステータスを変更する。 */
+  static async changeVcStatus(
+    interaction: ModalSubmitInteraction,
+    newStatus: string,
+  ) {
+    const status = newStatus.trim();
+    if (!status) {
+      throw new Error(VC_MESSAGES.NO_NEW_STATUS_INPUT);
+    }
+
+    const voiceChannel = interaction.channel;
+    if (!voiceChannel || voiceChannel.type !== ChannelType.GuildVoice) {
+      throw new Error(VC_MESSAGES.ERROR);
+    }
+
+    const rest = new REST({ version: "10" }).setToken(
+      process.env.DISCORD_TOKEN!,
+    );
+    await rest.put(`/channels/${voiceChannel.id}/voice-status`, {
+      body: { status },
+    });
+    await interaction.reply({
+      content: `VCステータスを「${status}」に変更しました。`,
+      ephemeral: true,
+    });
   }
 
   /**

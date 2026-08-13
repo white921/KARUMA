@@ -9,17 +9,19 @@ import { IN_CHAT_PANEL_MESSAGES } from "../constant/panel";
 import { COLOR } from "../constant/color";
 import { PANEL_COMMAND_NAMES } from "../constant/command";
 import { HOTEL_VC_PANEL_MESSAGES } from "../constant/panel";
+import { VC_MESSAGES } from "../constant/vc";
 
 export class VcPanelService {
   /**
    * VC操作パネルを作成
    * @param limit 人数変更ボタンを表示するかどうか
    * @param name 名前変更ボタンを表示するかどうか
+   * @param status ステータス変更ボタンを表示するかどうか
    * @returns パネルのEmbedとコンポーネント
    */
-  static async createVcPanel(limit: boolean, name: boolean) {
+  static async createVcPanel(limit: boolean, name: boolean, status = false) {
     try {
-      if (!limit && !name) {
+      if (!limit && !name && !status) {
         return;
       }
 
@@ -39,6 +41,15 @@ export class VcPanelService {
             .setCustomId(PANEL_COMMAND_NAMES.CHANGE_VC_NAME)
             .setLabel(HOTEL_VC_PANEL_MESSAGES.CHANGE_VC_NAME)
             .setStyle(ButtonStyle.Primary)
+        );
+      }
+
+      if (status) {
+        buttons.push(
+          new ButtonBuilder()
+            .setCustomId(PANEL_COMMAND_NAMES.CHANGE_VC_STATUS)
+            .setLabel(VC_MESSAGES.CHANGE_VC_STATUS)
+            .setStyle(ButtonStyle.Primary),
         );
       }
 

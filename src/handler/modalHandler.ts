@@ -51,6 +51,11 @@ export async function handleModalSubmit(interaction: ModalSubmitInteraction) {
         await VcService.changeVcName(interaction, newName);
         break;
       }
+      case PANEL_COMMAND_NAMES.CHANGE_VC_STATUS: {
+        const newStatus = getModalFieldValue(interaction, "new_status");
+        await VcService.changeVcStatus(interaction, newStatus);
+        break;
+      }
       case PANEL_COMMAND_NAMES.DIARY_PRIVATE:
       case PANEL_COMMAND_NAMES.DIARY_PUBLIC: {
         const title = getModalFieldValue(interaction, "title");
