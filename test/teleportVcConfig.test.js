@@ -22,7 +22,7 @@ test("casino teleport stays disabled until its trigger VC is confirmed", () => {
 });
 
 test("hazama teleport creates channels in the hazama category", () => {
-  assert.equal(VC_IDS.HAZAMA_TELEPORT, "1535707654075453661");
+  assert.equal(VC_IDS.HAZAMA_TELEPORT, "1537468023185743973");
   assert.equal(CATEGORY_IDS.HAZAMA, "1535330490976833627");
   assert.deepEqual(resolveTeleportVcConfig(VC_IDS.HAZAMA_TELEPORT), {
     triggerVcId: VC_IDS.HAZAMA_TELEPORT,
