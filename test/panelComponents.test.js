@@ -109,7 +109,7 @@ test("diary panel provides the LEVELIA VIP diary flow for 5000 LIA", () => {
     PANEL_COMMAND_NAMES.VIEW,
   ]);
   assert.match(DIARY_PANEL_MESSAGES.DESCRIPTION, /全員一律5,000LIA/);
-  assert.match(DIARY_PANEL_MESSAGES.DESCRIPTION, /VIP機能/);
+  assert.doesNotMatch(DIARY_PANEL_MESSAGES.DESCRIPTION, /VIP機能/);
   assert.match(DIARY_PANEL_MESSAGES.DESCRIPTION, /3日間/);
   assert.match(DIARY_PANEL_MESSAGES.DESCRIPTION, /再開時に5,000LIA/);
 });
