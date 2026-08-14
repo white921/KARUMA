@@ -117,7 +117,11 @@ test("omikuji date uses Japan time", () => {
 
 test("omikuji panel uses the configured channel and draw button", () => {
   assert.equal(TEXT_CHANNEL_IDS.OMIKUJI_PANEL, "1534637681181724682");
+  assert.match(OMIKUJI_PANEL_MESSAGES.DESCRIPTION, /おみくじ: 無料/);
   assert.match(OMIKUJI_PANEL_MESSAGES.DESCRIPTION, /1日1回まで引けます/);
+  assert.match(OMIKUJI_PANEL_MESSAGES.DESCRIPTION, /サブアカウントは利用できません/);
+  assert.match(OMIKUJI_PANEL_MESSAGES.DESCRIPTION, /残高がマイナスになることはありません/);
+  assert.match(OMIKUJI_PANEL_MESSAGES.DESCRIPTION, /超大吉：\+50,000 LIA/);
   assert.doesNotMatch(OMIKUJI_PANEL_MESSAGES.DESCRIPTION, /何度でも引ける/);
   const row = createOmikujiPanelActionRow().toJSON();
   assert.equal(row.components[0].custom_id, PANEL_COMMAND_NAMES.OMIKUJI_DRAW);

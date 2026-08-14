@@ -122,7 +122,7 @@ export const CREATOR_EMBLEM_PANEL_MESSAGES = {
 export const OMIKUJI_PANEL_MESSAGES = {
   TITLE: "今日の運勢おみくじ",
   DESCRIPTION:
-    `無料で引けるおみくじです。日本時間で1日1回まで引けます（サブアカウントは利用できません）。\n\n小吉：1,000${CURRENCY_NAMES}（34.5%）\n中吉：2,000${CURRENCY_NAMES}（59%）\n大吉：5,000${CURRENCY_NAMES}（5%）\n凶：-3,000${CURRENCY_NAMES}（1%）\n超大吉：50,000${CURRENCY_NAMES}（0.5%）`,
+    `おみくじ: 無料\n\n※日本時間で1日1回まで引けます。\n※サブアカウントは利用できません。\n※凶が出ても残高がマイナスになることはありません。\n\n小吉：+1,000 ${CURRENCY_NAMES}（34.5%）\n中吉：+2,000 ${CURRENCY_NAMES}（59%）\n大吉：+5,000 ${CURRENCY_NAMES}（5%）\n凶：-3,000 ${CURRENCY_NAMES}（1%）\n超大吉：+50,000 ${CURRENCY_NAMES}（0.5%）`,
   DRAW: "おみくじを引く",
   ERROR: "おみくじパネルチャンネルが見つからないか、無効な型です。",
 };
