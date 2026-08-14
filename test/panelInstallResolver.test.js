@@ -5,7 +5,11 @@ const {
   resolvePanelInstallTarget,
   PANEL_INSTALL_TARGETS,
 } = require("../dist/service/panelInstallService.js");
-const { TEXT_CHANNEL_IDS, THREAD_IDS } = require("../dist/constant/id.js");
+const {
+  FORUM_IDS,
+  TEXT_CHANNEL_IDS,
+  THREAD_IDS,
+} = require("../dist/constant/id.js");
 
 test("resolves bank panel channel to the bank panel target", () => {
   const target = resolvePanelInstallTarget(TEXT_CHANNEL_IDS.GINKOU_PANEL);
@@ -78,6 +82,9 @@ test("resolves unified hotel panel channel to the hotel panel target", () => {
 });
 
 test("resolves diary panel thread to the diary panel target", () => {
+  assert.equal(FORUM_IDS.DIARY, "1536784468143247411");
+  assert.equal(THREAD_IDS.DIARY_PANEL_THREAD, "1536785519038693437");
+
   const target = resolvePanelInstallTarget(THREAD_IDS.DIARY_PANEL_THREAD);
   assert.equal(target, PANEL_INSTALL_TARGETS.DIARY);
 });
