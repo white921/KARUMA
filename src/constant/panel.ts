@@ -17,7 +17,7 @@ export const PANEL_MESSAGES = {
 export const DIARY_PANEL_MESSAGES = {
   TITLE: "日記パネル",
   DESCRIPTION:
-    `日記は全員一律5,000${CURRENCY_NAMES}です。\n3日間投稿がない場合は自動でロックされ、再開時に5,000${CURRENCY_NAMES}かかります。\nスマートフォンでの操作を推奨しています。`,
+    `日記作成: 5,000 ${CURRENCY_NAMES}\n\n※3日間連続で投稿がない場合、自動で日記がクローズします。\nこちらのパネルでもう一度作成を行うと日記が再開されます。（要5,000${CURRENCY_NAMES}）`,
   PRIVATE: "通常日記",
   PUBLIC: "日記を作成",
   UPDATE: "アップグレード",

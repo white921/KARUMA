@@ -108,10 +108,11 @@ test("diary panel provides the LEVELIA VIP diary flow for 5000 LIA", () => {
     PANEL_COMMAND_NAMES.DIARY_PUBLIC,
     PANEL_COMMAND_NAMES.VIEW,
   ]);
-  assert.match(DIARY_PANEL_MESSAGES.DESCRIPTION, /全員一律5,000LIA/);
+  assert.match(DIARY_PANEL_MESSAGES.DESCRIPTION, /日記作成: 5,000 LIA/);
   assert.doesNotMatch(DIARY_PANEL_MESSAGES.DESCRIPTION, /VIP機能/);
-  assert.match(DIARY_PANEL_MESSAGES.DESCRIPTION, /3日間/);
-  assert.match(DIARY_PANEL_MESSAGES.DESCRIPTION, /再開時に5,000LIA/);
+  assert.doesNotMatch(DIARY_PANEL_MESSAGES.DESCRIPTION, /スマートフォン/);
+  assert.match(DIARY_PANEL_MESSAGES.DESCRIPTION, /3日間連続で投稿がない場合/);
+  assert.match(DIARY_PANEL_MESSAGES.DESCRIPTION, /こちらのパネルでもう一度作成を行うと日記が再開されます/);
 });
 
 test("creator emblem panel has payment and balance buttons", () => {
