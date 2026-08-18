@@ -36,6 +36,7 @@ import { AccountService } from "./service/accountService";
 import { VcService } from "./service/vcService";
 import { DiaryService } from "./service/diaryService";
 import { BotHealthMonitor } from "./service/botHealthMonitor";
+import { getEvaluationCommandHandlerTimeoutMs } from "./util/interactionHealth";
 
 import { COMMAND_NAMES, PANEL_COMMAND_NAMES } from "./constant/command";
 import {
@@ -100,10 +101,6 @@ const DEFAULT_PUBLIC_COMMAND = [
   COMMAND_NAMES.CHECK_NAME,
 ];
 
-// 全員対象の評価期間延長は、2つのフォーラムの全アクティブスレッドを
-// 順番に更新するため、通常の操作より長くかかる。
-const BULK_EVALUATION_EXTENSION_HANDLER_TIMEOUT_MS = 15 * 60 * 1000;
-
 client.on("interactionCreate", async (interaction) => {
   const interactionContext = interaction.isChatInputCommand()
     ? `command:${interaction.commandName}:${interaction.id}`
@@ -121,15 +118,15 @@ client.on("interactionCreate", async (interaction) => {
     return;
   }
 
-  const isBulkEvaluationExtension =
-    interaction.isChatInputCommand() &&
-    interaction.commandName === COMMAND_NAMES.EXTRA_EXTEND &&
-    !interaction.options.getUser("user");
+  const handlerTimeoutMs = interaction.isChatInputCommand()
+    ? getEvaluationCommandHandlerTimeoutMs(
+        interaction.commandName,
+        Boolean(interaction.options.getUser("user")),
+      )
+    : undefined;
   BotHealthMonitor.recordInteractionReceived(
     interactionContext,
-    isBulkEvaluationExtension
-      ? { handlerTimeoutMs: BULK_EVALUATION_EXTENSION_HANDLER_TIMEOUT_MS }
-      : {},
+    handlerTimeoutMs ? { handlerTimeoutMs } : {},
   );
 
   try {

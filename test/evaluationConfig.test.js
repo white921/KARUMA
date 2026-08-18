@@ -18,11 +18,12 @@ test("評価シートの対象ロール名は旅人", () => {
   assert.doesNotMatch(EVALUATION_SHEET_MESSAGES.NO_KARIMEN_ROLE, /未契約/);
 });
 
-test("評価シートは指定された3つのフォーラムに作成する", () => {
+test("評価シートは指定された4つのフォーラムに作成する", () => {
   assert.deepEqual(EvaluationService.getEvaluationForumIds(), [
     "1534655774184444076",
     "1534655844421992578",
     "1534655898549747894",
+    "1534641620626964503",
   ]);
 });
 

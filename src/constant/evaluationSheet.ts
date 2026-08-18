@@ -1,3 +1,12 @@
+import { FORUM_IDS } from "./id";
+
+export const EVALUATION_SHEET_FORUM_IDS = [
+  FORUM_IDS.EVALUATION_001,
+  FORUM_IDS.EVALUATION_002,
+  FORUM_IDS.EVALUATION_003,
+  FORUM_IDS.EVALUATION_004,
+] as const;
+
 export const EVALUATION_SHEET_MESSAGES = {
   NO_TARGET_USERS:
     "❌ このVC内に評価シート作成対象の「旅人」ユーザーがいません。",

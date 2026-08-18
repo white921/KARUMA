@@ -51,6 +51,31 @@ test("現在の評価スレッドはユーザーIDとフォーラムIDで一意�
   assert.match(migration, /ON DUPLICATE KEY UPDATE/);
 });
 
+test("評価シート保存対象は指定された4フォーラムと一致する", () => {
+  const threads = [
+    ["1534655774184444076", "1"],
+    ["1534655844421992578", "2"],
+    ["1534655898549747894", "3"],
+    ["1534641620626964503", "4"],
+  ].map(([forumId, threadId]) => ({ forumId, threadId }));
+
+  assert.doesNotThrow(() =>
+    EvaluationSheetArchiveService.validateActiveSheetThreads(threads),
+  );
+  assert.throws(
+    () => EvaluationSheetArchiveService.validateActiveSheetThreads(threads.slice(0, 3)),
+    /評価シート作成に失敗しました/,
+  );
+  assert.throws(
+    () =>
+      EvaluationSheetArchiveService.validateActiveSheetThreads([
+        ...threads.slice(0, 3),
+        { forumId: "unexpected", threadId: "4" },
+      ]),
+    /評価シート作成に失敗しました/,
+  );
+});
+
 test("HTML transcriptは本文をエスケープし、添付URLを記録する", () => {
   const message = {
     author: {

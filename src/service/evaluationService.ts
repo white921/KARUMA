@@ -13,10 +13,12 @@ import utc from "dayjs/plugin/utc";
 import {
   ROLE_IDS,
   TEXT_CHANNEL_IDS,
-  FORUM_IDS,
   CATEGORY_IDS,
 } from "../constant/id";
-import { EVALUATION_SHEET_MESSAGES } from "../constant/evaluationSheet";
+import {
+  EVALUATION_SHEET_FORUM_IDS,
+  EVALUATION_SHEET_MESSAGES,
+} from "../constant/evaluationSheet";
 import { BASE_EVALUATION_DAYS } from "../constant/evaluation";
 import { hasRole } from "../util/role";
 import { EvaluationSheetArchiveService } from "./evaluationSheetArchiveService";
@@ -79,11 +81,7 @@ export class EvaluationService {
   }
 
   static getEvaluationForumIds() {
-    return [
-      FORUM_IDS.EVALUATION_001,
-      FORUM_IDS.EVALUATION_002,
-      FORUM_IDS.EVALUATION_003,
-    ];
+    return [...EVALUATION_SHEET_FORUM_IDS];
   }
 
   static async getIntroductionChannelId(

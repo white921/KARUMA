@@ -8,7 +8,10 @@ import { ResultSetHeader, RowDataPacket } from "mysql2";
 
 import { DbService } from "./dbService";
 import { EvaluationSheetArchiveStorageService } from "./evaluationSheetArchiveStorageService";
-import { EVALUATION_SHEET_MESSAGES } from "../constant/evaluationSheet";
+import {
+  EVALUATION_SHEET_FORUM_IDS,
+  EVALUATION_SHEET_MESSAGES,
+} from "../constant/evaluationSheet";
 import {
   EvaluationSheetArchiveRecord,
   EvaluationSheetThreadRecord,
@@ -74,9 +77,7 @@ export class EvaluationSheetArchiveService {
     createdByUserId: string,
     threads: EvaluationSheetThreadRecord[],
   ): Promise<void> {
-    if (threads.length !== 2 || new Set(threads.map((thread) => thread.forumId)).size !== 2) {
-      throw new Error(EVALUATION_SHEET_MESSAGES.CREATE_EVALUATION_SHEET_ERROR);
-    }
+    this.validateActiveSheetThreads(threads);
 
     const connection = await DbService.getConnection();
     try {
@@ -124,6 +125,21 @@ export class EvaluationSheetArchiveService {
     }
   }
 
+  static validateActiveSheetThreads(
+    threads: EvaluationSheetThreadRecord[],
+  ): void {
+    const forumIds = threads.map((thread) => thread.forumId);
+    const expectedForumIds = new Set(EVALUATION_SHEET_FORUM_IDS);
+    const hasExpectedForums =
+      forumIds.length === EVALUATION_SHEET_FORUM_IDS.length &&
+      new Set(forumIds).size === EVALUATION_SHEET_FORUM_IDS.length &&
+      forumIds.every((forumId) => expectedForumIds.has(forumId));
+
+    if (!hasExpectedForums) {
+      throw new Error(EVALUATION_SHEET_MESSAGES.CREATE_EVALUATION_SHEET_ERROR);
+    }
+  }
+
   static async saveAndDelete(
     client: Client,
     userId: string,
@@ -136,7 +152,7 @@ export class EvaluationSheetArchiveService {
       throw new Error(EVALUATION_SHEET_MESSAGES.ACTIVE_SHEET_NOT_FOUND);
     }
     const threads = await this.getCurrentThreads(userId, session.id);
-    if (threads.length !== 2) {
+    if (threads.length !== EVALUATION_SHEET_FORUM_IDS.length) {
       throw new Error(EVALUATION_SHEET_MESSAGES.ACTIVE_SHEET_NOT_FOUND);
     }
 
