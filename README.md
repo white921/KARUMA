@@ -102,14 +102,14 @@ npm run start
 
 ## 評価シートの保存・削除・復元
 
-`/2評価シート` で作成した3つの評価スレッドは、対象DiscordユーザーIDとともにDBへ記録されます。既存DBにはデプロイ前に `src/sql/20260715_evaluation_sheet_archives.sql` と `src/sql/20260715_evaluation_sheet_current_threads.sql` をこの順で適用してください（新規DBでは `src/sql/createTable.sql` に含まれます）。評価シートの保存・削除を使う前に、Cloudflare R2の公開バケットと以下のR2環境変数も設定してください。
+`/2評価シート` で作成した4つの評価スレッドは、対象DiscordユーザーIDとともにDBへ記録されます。既存DBにはデプロイ前に `src/sql/20260715_evaluation_sheet_archives.sql` と `src/sql/20260715_evaluation_sheet_current_threads.sql` をこの順で適用してください（新規DBでは `src/sql/createTable.sql` に含まれます）。評価シートの保存・削除を使う前に、Cloudflare R2の公開バケットと以下のR2環境変数も設定してください。
 
 評価本文を保存するため、Discord Developer Portal の Bot 設定で **Message Content Intent** も有効にしてください。コード側でも同Intentを要求しています。有効化せずに起動するとDiscordが接続を拒否します。
 
 評価フォーラムではBotに「チャンネルを見る」「メッセージ履歴を読む」「スレッドの管理」「ファイルを添付」の権限も必要です。
 
-- `/評価シート保存削除 user_id:<DiscordユーザーID> reason:<任意>`: 3スレッドの内容をHTMLとしてMySQLへ保存してから削除する。対象者が脱退済みでも実行できる
-- `/評価シート復元 user:@ユーザー`: どのカテゴリでも実行できる。新しい評価スレッド3件を作成・DB登録し、それぞれに対応する直近の過去評価HTMLを添付する
+- `/評価シート保存削除 user_id:<DiscordユーザーID> reason:<任意>`: 4スレッドの内容をHTMLとしてMySQLへ保存してから削除する。対象者が脱退済みでも実行できる
+- `/評価シート復元 user:@ユーザー`: どのカテゴリでも実行できる。新しい評価スレッド4件を作成・DB登録し、それぞれに対応する直近の過去評価HTMLを添付する
 - 保存・削除・復元を実行できるのは、システム管理・皇帝・判定官統括・英傑のみ
 
 通常の `/2評価シート` で作成した場合も、過去評価があれば自動で添付されます。HTMLには投稿者のDiscordアイコン、サーバー表示名、ユーザー名、日時を記録します。
