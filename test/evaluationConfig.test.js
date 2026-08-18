@@ -41,14 +41,33 @@ test("評価シートは指定された4つのフォーラムに作成する", (
   ]);
 });
 
-test("評価シート本文に自己紹介リンクと対象ユーザーIDを載せる", () => {
+test("評価シート本文に自己紹介リンク、対象ユーザーID、終了日を載せる", () => {
   const content = EvaluationService.createEvaluationSheetContent(
     { id: "123456789012345678" },
     "https://discord.com/channels/1/2/3",
+    "09/01",
   );
 
   assert.equal(
     content,
-    "自己紹介: https://discord.com/channels/1/2/3\nユーザーID: 123456789012345678\n\n",
+    "自己紹介: https://discord.com/channels/1/2/3\nユーザーID: 123456789012345678\n終了日: 09/01\n\n",
   );
+});
+
+test("評価期間延長でスレッド本文の終了日も更新する", async () => {
+  let editedContent;
+  const updated = await EvaluationService.updateStarterMessageEndDate(
+    {
+      fetchStarterMessage: async () => ({
+        content: "評価シート\n終了日: 08/18\n",
+        edit: async ({ content }) => {
+          editedContent = content;
+        },
+      }),
+    },
+    "08/28",
+  );
+
+  assert.equal(updated, true);
+  assert.equal(editedContent, "評価シート\n終了日: 08/28\n");
 });

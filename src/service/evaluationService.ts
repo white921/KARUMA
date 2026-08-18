@@ -5,6 +5,7 @@ import {
   GuildMember,
   Message,
   TextChannel,
+  ThreadChannel,
 } from "discord.js";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
@@ -148,18 +149,25 @@ export class EvaluationService {
   }
 
   static createEvaluationPeriodText(): string {
-    const now = dayjs().tz("Asia/Tokyo");
-    const end = now.add(BASE_EVALUATION_DAYS, "day");
-    return `〜 ${end.format("MM/DD")}`;
+    return `〜 ${this.createEvaluationEndDateText()}`;
+  }
+
+  static createEvaluationEndDateText(): string {
+    return dayjs()
+      .tz("Asia/Tokyo")
+      .add(BASE_EVALUATION_DAYS, "day")
+      .format("MM/DD");
   }
 
   static createEvaluationSheetContent(
     targetMember: GuildMember,
     introductionMessageUrl: string,
+    endDateText = this.createEvaluationEndDateText(),
   ): string {
     return EVALUATION_SHEET_MESSAGES.TEMPLATE
       .replace("{introductionLink}", introductionMessageUrl)
-      .replace("{userId}", targetMember.id);
+      .replace("{userId}", targetMember.id)
+      .replace("{endDate}", endDateText);
   }
 
   static async createEvaluationSheets(
@@ -169,9 +177,11 @@ export class EvaluationService {
   ) {
     const forumIds = this.getEvaluationForumIds();
     const createdThreads: { forumId: string; threadId: string }[] = [];
+    const endDateText = this.createEvaluationEndDateText();
     const content = this.createEvaluationSheetContent(
       targetMember,
       introductionMessageUrl,
+      endDateText,
     );
 
     try {
@@ -184,7 +194,7 @@ export class EvaluationService {
         }
 
         const thread = await (forum as ForumChannel).threads.create({
-          name: targetMember.displayName + this.createEvaluationPeriodText(),
+          name: `${targetMember.displayName}〜 ${endDateText}`,
           message: {
             content,
           },
@@ -262,6 +272,27 @@ export class EvaluationService {
     return { base, endDate };
   }
 
+  static async updateStarterMessageEndDate(
+    thread: Pick<ThreadChannel, "fetchStarterMessage">,
+    endDateText: string,
+  ): Promise<boolean> {
+    const starterMessage = await thread.fetchStarterMessage();
+    if (!starterMessage) {
+      return false;
+    }
+
+    const updatedContent = starterMessage.content.replace(
+      /(^|\n)終了日:\s*\d{1,2}\/\d{1,2}(?=\s*(?:\n|$))/,
+      `$1終了日: ${endDateText}`,
+    );
+    if (updatedContent === starterMessage.content) {
+      return false;
+    }
+
+    await starterMessage.edit({ content: updatedContent });
+    return true;
+  }
+
   static async extendAllEvaluationSheets(
     client: import("discord.js").Client,
     days: number,
@@ -330,6 +361,10 @@ export class EvaluationService {
 
         try {
           await thread.setName(newTitle);
+          await this.updateStarterMessageEndDate(
+            thread,
+            newEnd.format("MM/DD"),
+          );
           const lines = [
             `📅 評価期間を ${days}日 延長しました: ${parsed.endDate.format(
               "MM/DD",
