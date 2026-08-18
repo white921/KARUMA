@@ -73,7 +73,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     result = await EvaluationService.extendAllEvaluationSheets(
       interaction.client,
       days,
-      operator.id,
+      operator.displayName,
       { targetMember, reason },
     );
   } finally {

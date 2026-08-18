@@ -71,3 +71,16 @@ test("評価期間延長でスレッド本文の終了日も更新する", async
   assert.equal(updated, true);
   assert.equal(editedContent, "評価シート\n終了日: 08/28\n");
 });
+
+test("評価期間延長ログは実行者の表示名を記載し、メンションしない", () => {
+  assert.equal(
+    EvaluationService.createEvaluationExtensionLog(
+      1,
+      "08/28",
+      "08/29",
+      "案内官テスト",
+      "デモ",
+    ),
+    "📅 評価期間を 1日 延長しました: 08/28 → 08/29\nby 案内官テスト\n理由: デモ",
+  );
+});

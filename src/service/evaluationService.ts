@@ -293,10 +293,27 @@ export class EvaluationService {
     return true;
   }
 
+  static createEvaluationExtensionLog(
+    days: number,
+    previousEndDate: string,
+    newEndDate: string,
+    operatorDisplayName: string,
+    reason?: string | null,
+  ): string {
+    const lines = [
+      `📅 評価期間を ${days}日 延長しました: ${previousEndDate} → ${newEndDate}`,
+      `by ${operatorDisplayName}`,
+    ];
+    if (reason) {
+      lines.push(`理由: ${reason}`);
+    }
+    return lines.join("\n");
+  }
+
   static async extendAllEvaluationSheets(
     client: import("discord.js").Client,
     days: number,
-    operatorId: string,
+    operatorDisplayName: string,
     options: { targetMember?: GuildMember | null; reason?: string | null } = {},
   ) {
     const { targetMember, reason } = options;
@@ -365,16 +382,15 @@ export class EvaluationService {
             thread,
             newEnd.format("MM/DD"),
           );
-          const lines = [
-            `📅 評価期間を ${days}日 延長しました: ${parsed.endDate.format(
-              "MM/DD",
-            )} → ${newEnd.format("MM/DD")}`,
-            `by <@${operatorId}>`,
-          ];
-          if (reason) {
-            lines.push(`理由: ${reason}`);
-          }
-          await thread.send(lines.join("\n"));
+          await thread.send(
+            this.createEvaluationExtensionLog(
+              days,
+              parsed.endDate.format("MM/DD"),
+              newEnd.format("MM/DD"),
+              operatorDisplayName,
+              reason,
+            ),
+          );
           extendedCount++;
         } catch (error: any) {
           failed.push({
