@@ -260,12 +260,12 @@ test("unified hotel panel description has no unintended leading spaces", () => {
   assert.deepEqual(linesWithLeadingSpaces, []);
 });
 
-test("hotel panel summarizes the free tier as noble or above", () => {
+test("hotel panel summarizes the free tier as knight or above", () => {
   const description = HOTEL_VC_PANEL_MESSAGES.DESCRIPTION;
 
   assert.equal(typeof description, "string");
-  assert.match(description, /貴族以上：無料/);
-  assert.doesNotMatch(description, /貴族以上・支配人/);
+  assert.match(description, /騎士以上：無料/);
+  assert.doesNotMatch(description, /貴族以上：無料/);
   assert.doesNotMatch(description, /貴族・皇帝・英傑・侍従/);
   assert.doesNotMatch(description, /刻印/);
 });
@@ -273,7 +273,7 @@ test("hotel panel summarizes the free tier as noble or above", () => {
 test("hotel panel duration labels match hour-based expiration", () => {
   const description = HOTEL_VC_PANEL_MESSAGES.DESCRIPTION;
 
-  assert.match(description, /旅人・騎士：10000LIA\/12時間/);
+  assert.match(description, /旅人：10000LIA\/12時間/);
   assert.match(description, /賢者：5000LIA\/12時間/);
   assert.doesNotMatch(description, /\\n/);
   assert.match(description, /30000LIA\/12時間/);
@@ -292,6 +292,7 @@ test("hotel ticket confirmation notice explains ticket priority", () => {
 
 test("normal hotel is free for every eligible role", async () => {
   const eligibleRoleIds = [
+    ROLE_IDS.CORE_MEMBER_ROLES.JUNMEN,
     ROLE_IDS.CORE_MEMBER_ROLES.HONMEN,
     ROLE_IDS.SABANUSI,
     ROLE_IDS.KANRISYA,
@@ -305,6 +306,12 @@ test("normal hotel is free for every eligible role", async () => {
       true,
     );
   }
+  assert.equal(
+    await HotelVcService.isNormalHotelBonusMember(
+      memberWithRoles([ROLE_IDS.CORE_MEMBER_ROLES.JUNHONMEN]),
+    ),
+    false,
+  );
   assert.equal(await HotelVcService.isNormalHotelBonusMember(memberWithRoles([])), false);
 });
 
