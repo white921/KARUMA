@@ -6,10 +6,12 @@ import {
 import {
   addRole,
   copyRoleFromMainToSub,
-  isTechnician,
   removeRolesExcept,
 } from "../util/role";
-import { LinkAccountService } from "../service/linkAccountService";
+import {
+  assertCanManageLinkAccount,
+  LinkAccountService,
+} from "../service/linkAccountService";
 
 import { ROLE_IDS } from "../constant/id";
 import { COMMAND_NAMES } from "../constant/command";
@@ -32,16 +34,16 @@ export const data = new SlashCommandBuilder()
 
 export async function execute(interaction: ChatInputCommandInteraction) {
   try {
+    const operator = await interaction.guild?.members.fetch(interaction.user.id);
+    assertCanManageLinkAccount(operator);
+
     const mainAccount = interaction.options.getUser("user") as User;
     const subAccount = interaction.options.getUser("sub_user") as User;
 
     const mainMember = await interaction.guild?.members.fetch(mainAccount.id);
     const subMember = await interaction.guild?.members.fetch(subAccount.id);
 
-    // 実行者が技術者でなければバリデーションを行う
-    if (!(await isTechnician(interaction.user))) {
-      await LinkAccountService.validateMainAccount(mainMember!);
-    }
+    await LinkAccountService.validateMainAccount(mainMember!);
 
     // サブ垢の既存ロールを整理し、本垢の同期対象ロールをコピー
     await removeRolesExcept(subMember!);

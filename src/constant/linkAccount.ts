@@ -1,5 +1,5 @@
 export const LINK_ACCOUNT_MESSAGES = {
-  NO_PERMISSION: "騎士以下のユーザーには使えません。",
+  NO_PERMISSION: "サブ垢登録を実行する権限がありません。",
   CHANGE_DISPLAY_NAME_FAILED: "表示名の変更に失敗しました。",
   DISPLAY_NAME_TOO_LONG: "表示名が長すぎます。10文字以内にしてください。",
   REGISTER_SUB_ACCOUNT_FAILED: "サブアカウントテーブルへの登録に失敗しました。",

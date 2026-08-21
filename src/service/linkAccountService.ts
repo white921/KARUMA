@@ -9,6 +9,35 @@ import { LINK_ACCOUNT_MESSAGES } from "../constant/linkAccount";
 import { MAX_DISPLAY_NAME_LENGTH } from "../constant/account";
 import { ROLE_IDS } from "../constant/id";
 
+const LINK_ACCOUNT_OPERATOR_ROLE_IDS = [
+  ROLE_IDS.SHOP_LEADER,
+  ROLE_IDS.SHOP_STAFF,
+  ROLE_IDS.KANRISYA,
+  ROLE_IDS.SABANUSI,
+  ROLE_IDS.GIJUTU_LEADER,
+] as const;
+
+type RoleBackedMember = {
+  roles?: {
+    cache?: {
+      has: (roleId: string) => boolean;
+    };
+  };
+};
+
+export function canManageLinkAccount(member: unknown): boolean {
+  const roleBackedMember = member as RoleBackedMember | null | undefined;
+  return LINK_ACCOUNT_OPERATOR_ROLE_IDS.some((roleId) =>
+    Boolean(roleBackedMember?.roles?.cache?.has(roleId)),
+  );
+}
+
+export function assertCanManageLinkAccount(member: unknown): void {
+  if (!canManageLinkAccount(member)) {
+    throw new Error(LINK_ACCOUNT_MESSAGES.NO_PERMISSION);
+  }
+}
+
 export class LinkAccountService {
   /**
    * 本アカウントで使徒ロールをもっていないユーザーと口座がないユーザーはサブ垢同期を行えない

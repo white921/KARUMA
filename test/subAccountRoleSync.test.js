@@ -5,6 +5,9 @@ const {
   copyRoleFromMainToSub,
   removeRolesExcept,
 } = require("../dist/util/role.js");
+const {
+  canManageLinkAccount,
+} = require("../dist/service/linkAccountService.js");
 const { ROLE_IDS } = require("../dist/constant/id.js");
 
 const GUILD_ID = "guild-id";
@@ -39,6 +42,37 @@ function createMember(roleDefinitions) {
     roleIds: () => [...roles.keys()],
   };
 }
+
+function memberWithRoles(roleIds) {
+  return {
+    roles: {
+      cache: {
+        has: (roleId) => roleIds.includes(roleId),
+      },
+    },
+  };
+}
+
+test("サブ垢登録は指定された市場運営・管理ロールに許可される", () => {
+  const allowedRoles = [
+    ROLE_IDS.SHOP_LEADER,
+    ROLE_IDS.SHOP_STAFF,
+    ROLE_IDS.KANRISYA,
+    ROLE_IDS.SABANUSI,
+    ROLE_IDS.GIJUTU_LEADER,
+  ];
+
+  for (const roleId of allowedRoles) {
+    assert.equal(canManageLinkAccount(memberWithRoles([roleId])), true);
+  }
+});
+
+test("サブ垢登録は無関係なロールに許可しない", () => {
+  assert.equal(
+    canManageLinkAccount(memberWithRoles([ROLE_IDS.GAME_STAFF])),
+    false,
+  );
+});
 
 test("サブ垢の基本ロールは整理時に保持する", async () => {
   const basicRoleId = ROLE_IDS.BASIC_ROLE_IDS.OSU;
