@@ -12,6 +12,7 @@ import {
 import { COLOR } from "../constant/color";
 import { AccountService } from "./accountService";
 import { DbService } from "./dbService";
+import { ACTION_TYPES } from "../constant/action";
 
 type WalletRow = RowDataPacket & { wallet: number };
 
@@ -183,7 +184,7 @@ export class OmikujiService {
          (command_name, amount, from_user_id, to_user_id, from_after_wallet, to_after_wallet, comment)
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [
-          PANEL_COMMAND_NAMES.OMIKUJI_DRAW,
+          ACTION_TYPES.OMIKUJI_DRAW,
           actualAmount,
           BOT_ID,
           interaction.user.id,

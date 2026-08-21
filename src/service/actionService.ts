@@ -8,6 +8,7 @@ import { COMMAND_NAMES, PANEL_COMMAND_NAMES } from "../constant/command";
 import { CURRENCY_NAMES } from "../constant/currency";
 import { CASINO_MESSAGES } from "../constant/casino";
 import { formatNumber } from "../util/number";
+import { toActionType } from "../constant/action";
 
 export function resolveActionLogThreadId(commandName: string): string | null {
   switch (commandName) {
@@ -69,6 +70,7 @@ export class ActionService {
     toAfterWallet: number,
     comment: string,
   ) {
+    const actionType = toActionType(commandName);
     const connection = await DbService.getConnection();
     try {
       await connection.execute(
@@ -76,7 +78,7 @@ export class ActionService {
          (command_name, amount, from_user_id, to_user_id, from_after_wallet, to_after_wallet, comment) 
          VALUES (?, ?, ?, ?, ?, ?, ?);`,
         [
-          commandName,
+          actionType,
           amount,
           fromUserId,
           toUserId,

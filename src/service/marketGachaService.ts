@@ -28,6 +28,7 @@ import { HOTEL_FREE_TICKET_TYPE, HotelFreeTicketType } from "../constant/hotel";
 import { GAME_FREE_TICKET_TYPE, GameFreeTicketType } from "../constant/gameTicket";
 import { SHOP_TICKET_TYPE, ShopTicketType } from "../constant/shopTicket";
 import { INVITE_POINT_GACHA_COST } from "../constant/invitePoint";
+import { ACTION_TYPES } from "../constant/action";
 
 type WalletRow = RowDataPacket & { wallet: number };
 type AudioAssetRow = RowDataPacket & {
@@ -400,7 +401,7 @@ export class MarketGachaService {
            (command_name, amount, from_user_id, to_user_id, from_after_wallet, to_after_wallet, comment)
            VALUES (?, ?, ?, ?, ?, ?, ?)`,
           [
-            PANEL_COMMAND_NAMES.MARKET_GACHA_DRAW,
+            ACTION_TYPES.MARKET_GACHA_DRAW,
             MARKET_GACHA_PRICE,
             interaction.user.id,
             BOT_ID,

@@ -9,6 +9,7 @@ import { DbService } from "./dbService";
 import { GameService } from "./gameService";
 
 import { SALES_DATA_COMMAND_NAMES } from "../constant/command";
+import { toActionType } from "../constant/action";
 import { CURRENCY_NAMES } from "../constant/currency";
 import { THREAD_IDS } from "../constant/id";
 
@@ -52,7 +53,9 @@ export class SalesManagementService {
   static async getSalesDataByType(): Promise<Map<string, salesData>> {
     const salesDataMap = new Map<string, salesData>();
     for (const commandName of Object.values(SALES_DATA_COMMAND_NAMES)) {
-      const actionsByType = await this.getSalesDataLastMonth(commandName);
+      const actionsByType = await this.getSalesDataLastMonth(
+        toActionType(commandName),
+      );
       const totalAmountOfThisType = actionsByType.reduce(
         (acc: number, action: Action) => acc + action.amount,
         0

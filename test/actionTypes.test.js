@@ -1,0 +1,55 @@
+const test = require("node:test");
+const assert = require("node:assert/strict");
+
+const { COMMAND_NAMES, PANEL_COMMAND_NAMES } = require("../dist/constant/command.js");
+const { ROULETTE_ACTION_NAMES } = require("../dist/constant/roulette.js");
+const { ACTION_TYPES, toActionType } = require("../dist/constant/action.js");
+
+test("every persisted action type uses lowercase snake case", () => {
+  for (const actionType of Object.values(ACTION_TYPES)) {
+    assert.match(actionType, /^[a-z]+(?:_[a-z]+)*$/);
+  }
+});
+
+test("all actions recorded by services resolve to a registered English action type", () => {
+  const recordedCommandNames = [
+    PANEL_COMMAND_NAMES.SEND,
+    PANEL_COMMAND_NAMES.SHOP_SEND,
+    PANEL_COMMAND_NAMES.DARK_SHOP_SEND,
+    PANEL_COMMAND_NAMES.CREATOR_EMBLEM_PAY,
+    PANEL_COMMAND_NAMES.SUPERCHAT_SEND,
+    PANEL_COMMAND_NAMES.MARKET_GACHA_DRAW,
+    PANEL_COMMAND_NAMES.OMIKUJI_DRAW,
+    PANEL_COMMAND_NAMES.ADMIN_MINT,
+    PANEL_COMMAND_NAMES.ADMIN_BURN,
+    PANEL_COMMAND_NAMES.HOTEL_VC_NORMAL,
+    PANEL_COMMAND_NAMES.HOTEL_VC_SECRET,
+    PANEL_COMMAND_NAMES.HOTEL_VC_SECRETLONG,
+    PANEL_COMMAND_NAMES.HOTEL_VC_FREEDOM,
+    PANEL_COMMAND_NAMES.HOTEL_VC_FREEDOMLONG,
+    PANEL_COMMAND_NAMES.DIARY_PRIVATE,
+    PANEL_COMMAND_NAMES.DIARY_PUBLIC,
+    PANEL_COMMAND_NAMES.DIARY_UPDATE,
+    PANEL_COMMAND_NAMES.CASINO_GF,
+    PANEL_COMMAND_NAMES.CASINO_MAJONG,
+    PANEL_COMMAND_NAMES.CASINO_OTHER,
+    PANEL_COMMAND_NAMES.GAME_SHORT,
+    PANEL_COMMAND_NAMES.GAME_LONG,
+    PANEL_COMMAND_NAMES.GAME_SHORT_EXTEND,
+    PANEL_COMMAND_NAMES.GAME_PASS,
+    PANEL_COMMAND_NAMES.MINECRAFT_PASS,
+    PANEL_COMMAND_NAMES.HAZAMA_ACCESS,
+    COMMAND_NAMES.ROLE_BASED_SEND,
+    COMMAND_NAMES.PAY_SALARY,
+    COMMAND_NAMES.SERVER_BOOST,
+    COMMAND_NAMES.VC_REWARD,
+    COMMAND_NAMES.CHANGE_NAME,
+    ROULETTE_ACTION_NAMES.BET,
+    ROULETTE_ACTION_NAMES.PAYOUT,
+    ROULETTE_ACTION_NAMES.BONUS,
+  ];
+
+  for (const commandName of recordedCommandNames) {
+    assert.ok(Object.values(ACTION_TYPES).includes(toActionType(commandName)));
+  }
+});

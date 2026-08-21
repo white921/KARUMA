@@ -13,6 +13,7 @@ import { PANEL_COMMAND_NAMES } from "../constant/command";
 import { ActionService } from "./actionService";
 import { DbService } from "./dbService";
 import { ShopTicketService } from "./shopTicketService";
+import { toActionType } from "../constant/action";
 
 type WalletRow = RowDataPacket & { wallet: number };
 type ShopPaymentCommandName =
@@ -112,7 +113,7 @@ export class ShopPaymentService {
          (command_name, amount, from_user_id, to_user_id, from_after_wallet, to_after_wallet, comment)
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [
-          commandName,
+          toActionType(commandName),
           amount,
           interaction.user.id,
           BOT_ID,

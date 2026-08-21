@@ -16,6 +16,7 @@ import { CURRENCY_NAMES } from "../constant/currency";
 import { PANEL_COMMAND_NAMES } from "../constant/command";
 import { ACCOUNT_MESSAGES } from "../constant/account";
 import { BOT_ID } from "../constant/id";
+import { ACTION_TYPES } from "../constant/action";
 
 export class SendService {
   /**
@@ -231,7 +232,7 @@ export class SendService {
            AND to_user_id = ?
            AND created_at >= DATE_FORMAT(CONVERT_TZ(NOW(), '+00:00', '+09:00'), '%Y-%m-01 00:00:00')
            AND created_at < DATE_ADD(DATE_FORMAT(CONVERT_TZ(NOW(), '+00:00', '+09:00'), '%Y-%m-01 00:00:00'), INTERVAL 1 MONTH);`,
-        [PANEL_COMMAND_NAMES.SEND, fromUserId, toUserId],
+        [ACTION_TYPES.TRANSFER, fromUserId, toUserId],
       );
       return Number(rows[0]?.total ?? 0);
     } finally {

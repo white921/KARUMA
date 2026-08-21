@@ -21,6 +21,7 @@ import {
   ROULETTE_MESSAGES,
   ROULETTE_PARTICIPATION_BONUS,
 } from "../constant/roulette";
+import { toActionType } from "../constant/action";
 import { CURRENCY_NAMES } from "../constant/currency";
 import { DbService } from "./dbService";
 import {
@@ -482,7 +483,7 @@ export class RouletteService {
       `INSERT INTO actions
        (command_name, amount, from_user_id, to_user_id, from_after_wallet, to_after_wallet, comment)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [commandName, amount, fromUserId, toUserId, fromAfterWallet, toAfterWallet, comment],
+      [toActionType(commandName), amount, fromUserId, toUserId, fromAfterWallet, toAfterWallet, comment],
     );
   }
 

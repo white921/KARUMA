@@ -10,6 +10,7 @@ import { COMMAND_NAMES } from "../constant/command";
 import { BOT_ID } from "../constant/id";
 import { ActionService } from "./actionService";
 import { DbService } from "./dbService";
+import { ACTION_TYPES } from "../constant/action";
 
 type BoostAccountRow = RowDataPacket & {
   user_id: string;
@@ -121,7 +122,7 @@ export class ServerBoostService {
          (command_name, amount, from_user_id, to_user_id, from_after_wallet, to_after_wallet, comment)
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [
-          COMMAND_NAMES.SERVER_BOOST,
+          ACTION_TYPES.SERVER_BOOST_REWARD,
           amount,
           BOT_ID,
           userId,

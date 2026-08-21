@@ -1,7 +1,8 @@
 import { COMMAND_NAMES, PANEL_COMMAND_NAMES } from "./command";
 import { ROULETTE_ACTION_NAMES } from "./roulette";
+import { toActionType } from "./action";
 
-export const HISTORY_TITLE_MAPPER = {
+const HISTORY_TITLE_BY_COMMAND_NAME = {
   [PANEL_COMMAND_NAMES.SEND]: "送金",
   [PANEL_COMMAND_NAMES.SHOP_SEND]: "市場商品購入",
   [PANEL_COMMAND_NAMES.DARK_SHOP_SEND]: "闇市場商品購入",
@@ -35,3 +36,10 @@ export const HISTORY_TITLE_MAPPER = {
   [ROULETTE_ACTION_NAMES.PAYOUT]: "【ルーレット】配当",
   [ROULETTE_ACTION_NAMES.BONUS]: "【ルーレット】参加ボーナス",
 };
+
+export const HISTORY_TITLE_MAPPER: Record<string, string> = Object.fromEntries(
+  Object.entries(HISTORY_TITLE_BY_COMMAND_NAME).map(([commandName, title]) => [
+    toActionType(commandName),
+    title,
+  ]),
+);

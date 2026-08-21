@@ -25,6 +25,7 @@ import { CURRENCY_NAMES } from "../constant/currency";
 import { BOT_ID } from "../constant/id";
 import { EXTERNALE_MOJI_VIEWS } from "../constant/emoji";
 import { ROULETTE_ACTION_NAMES } from "../constant/roulette";
+import { toActionType } from "../constant/action";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -179,7 +180,12 @@ export class HistoryService {
       [ROULETTE_ACTION_NAMES.BONUS]: `<@${BOT_ID}> から\n+${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.to_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
     };
 
-    return historyObject;
+    return Object.fromEntries(
+      Object.entries(historyObject).map(([commandName, value]) => [
+        toActionType(commandName),
+        value,
+      ]),
+    ) as Record<string, string>;
   }
 
   /** 1件の取引履歴を表示用文字列に変換する。 */
