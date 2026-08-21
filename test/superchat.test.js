@@ -77,8 +77,8 @@ test("superchat embed contains sender identity, body thumbnail, amount, and comm
   assert.equal(embed.author.name, "送金者");
   assert.equal(embed.thumbnail.url, "https://example.invalid/avatar.png");
   assert.equal(embed.title, undefined);
-  assert.equal(embed.description, "楽しい配信をありがとう");
-  assert.ok(embed.fields.some((field) => field.value === "12,345LIA"));
+  assert.equal(embed.description, "送金額: **12,345LIA**\n配信者: <@222>");
+  assert.deepEqual(embed.fields, [{ name: "コメント", value: "楽しい配信をありがとう" }]);
   assert.ok(!embed.fields.some((field) => field.name === "ステージ"));
 });
 

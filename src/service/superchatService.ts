@@ -169,11 +169,11 @@ export class SuperchatService {
       .setAuthor({
         name: sender.displayName,
       })
-      .setDescription(comment || "コメントなし")
-      .addFields(
-        { name: "送金額", value: `${amount.toLocaleString()}${CURRENCY_NAMES}`, inline: true },
-        { name: "配信者", value: `<@${streamerId}>`, inline: true },
+      .setDescription(
+        `送金額: **${amount.toLocaleString()}${CURRENCY_NAMES}**\n` +
+        `配信者: <@${streamerId}>`,
       )
+      .addFields({ name: "コメント", value: comment || "コメントなし" })
       .setThumbnail(sender.displayAvatarURL({ extension: "png" }))
       .setColor(getSuperchatEmbedColor(amount))
       .setTimestamp();
