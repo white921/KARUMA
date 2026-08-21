@@ -59,7 +59,7 @@ test("superchat panel has send and balance buttons without emoji icons", () => {
   assert.ok(buttons.every((button) => !button.emoji));
 });
 
-test("superchat embed contains sender identity, amount, and comment", () => {
+test("superchat embed contains sender identity, body thumbnail, amount, and comment", () => {
   const sender = {
     id: "111",
     displayName: "送金者",
@@ -70,11 +70,11 @@ test("superchat embed contains sender identity, amount, and comment", () => {
     12345,
     "楽しい配信をありがとう",
     "222",
-    "singer",
   ).toJSON();
 
   assert.equal(embed.author.name, "送金者");
-  assert.equal(embed.author.icon_url, "https://example.invalid/avatar.png");
+  assert.equal(embed.thumbnail.url, "https://example.invalid/avatar.png");
   assert.equal(embed.description, "楽しい配信をありがとう");
   assert.ok(embed.fields.some((field) => field.value === "12,345LIA"));
+  assert.ok(!embed.fields.some((field) => field.name === "ステージ"));
 });

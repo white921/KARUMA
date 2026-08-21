@@ -57,10 +57,6 @@ function getStageChannelId(stage: SuperchatStage): string {
     : TEXT_CHANNEL_IDS.VOICE_CROWN_STAGE;
 }
 
-function getStageLabel(stage: SuperchatStage): string {
-  return stage === "singer" ? "歌冠ステージ" : "声冠ステージ";
-}
-
 export class SuperchatService {
   static async showStreamerSelect(interaction: ButtonInteraction): Promise<void> {
     if (!interaction.guild) {
@@ -161,20 +157,18 @@ export class SuperchatService {
     amount: number,
     comment: string,
     streamerId: string,
-    stage: SuperchatStage,
   ): EmbedBuilder {
     return new EmbedBuilder()
       .setTitle("スパチャ")
       .setAuthor({
         name: sender.displayName,
-        iconURL: sender.displayAvatarURL({ extension: "png" }),
       })
       .setDescription(comment || "コメントなし")
       .addFields(
         { name: "送金額", value: `${amount.toLocaleString()}${CURRENCY_NAMES}`, inline: true },
         { name: "配信者", value: `<@${streamerId}>`, inline: true },
-        { name: "ステージ", value: getStageLabel(stage), inline: true },
       )
+      .setThumbnail(sender.displayAvatarURL({ extension: "png" }))
       .setColor(COLOR.LIGFT_PINK)
       .setTimestamp();
   }
@@ -242,7 +236,7 @@ export class SuperchatService {
       comment,
     );
 
-    const embed = this.createEmbed(sender, amount, comment, streamerId, stageValue);
+    const embed = this.createEmbed(sender, amount, comment, streamerId);
     await (stageChannel as TextChannel).send({ embeds: [embed] });
     await (thread as ThreadChannel).send({ embeds: [embed] });
 
