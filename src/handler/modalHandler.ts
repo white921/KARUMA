@@ -15,6 +15,7 @@ import {
   isShopTicketType,
   SHOP_TICKET_NONE,
 } from "../constant/shopTicket";
+import { SuperchatService } from "../service/superchatService";
 /**
  * モーダルフィールドの値を取得
  * @param interaction モーダルサブミットインタラクション
@@ -40,6 +41,12 @@ export async function handleModalSubmit(interaction: ModalSubmitInteraction) {
   const commandId = customId.includes("_") ? customId.split("_")[0] : customId;
 
   try {
+    if (customId.startsWith(`${PANEL_COMMAND_NAMES.SUPERCHAT_SEND}:`)) {
+      const amount = Number(getModalFieldValue(interaction, "amount"));
+      const comment = getModalFieldValue(interaction, "comment");
+      await SuperchatService.send(interaction, amount, comment);
+      return;
+    }
     if (customId.startsWith("rouletteBetModal_")) {
       await RouletteService.showBetConfirmation(interaction);
       return;

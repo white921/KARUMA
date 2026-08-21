@@ -30,6 +30,7 @@ import { TicketViewService } from "../service/ticketViewService";
 import { OmikujiService } from "../service/omikujiService";
 import { CreatorEmblemPaymentService } from "../service/creatorEmblemPaymentService";
 import { HazamaService } from "../service/hazamaService";
+import { SuperchatService } from "../service/superchatService";
 
 import {
   ADMIN_PANEL_MESSAGES,
@@ -93,6 +94,9 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
         break;
       case PANEL_COMMAND_NAMES.CREATOR_EMBLEM_PAY:
         await CreatorEmblemPaymentService.showProductSelect(interaction);
+        break;
+      case PANEL_COMMAND_NAMES.SUPERCHAT_SEND:
+        await SuperchatService.showStreamerSelect(interaction);
         break;
       case PANEL_COMMAND_NAMES.SHOP_TICKET_VIEW:
         await TicketViewService.viewTickets(interaction);

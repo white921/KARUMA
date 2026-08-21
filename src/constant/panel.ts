@@ -14,6 +14,17 @@ export const PANEL_MESSAGES = {
   BUTTON_NOT_FOUND: "押下されたボタンは登録されていません",
 };
 
+export const SUPERCHAT_PANEL_MESSAGES = {
+  TITLE: "スパチャパネル",
+  DESCRIPTION: `配信者へ${CURRENCY_NAMES}でスパチャを送れます。\n送付先とステージを選び、金額・コメントを入力してください。`,
+  SEND: "スパチャを送る",
+  VIEW: "残高確認",
+  ERROR: "スパチャパネルチャンネルが見つからないか、無効な型です。",
+  NO_STREAMER: "現在、スパチャの送付先として登録されている配信者がいません。",
+  INVALID_STREAMER: "選択した配信者はスパチャの送付先として登録されていません。",
+  INVALID_STAGE: "選択したステージが不正です。",
+};
+
 export const DIARY_PANEL_MESSAGES = {
   TITLE: "日記パネル",
   DESCRIPTION:

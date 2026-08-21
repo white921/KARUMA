@@ -43,6 +43,14 @@ test("resolves creator emblem panel channel to the creator emblem panel target",
   assert.equal(target, PANEL_INSTALL_TARGETS.CREATOR_EMBLEM);
 });
 
+test("resolves superchat panel channel to the superchat panel target", () => {
+  assert.equal(TEXT_CHANNEL_IDS.SUPERCHAT_PANEL, "1540357998239551508");
+  assert.equal(
+    resolvePanelInstallTarget(TEXT_CHANNEL_IDS.SUPERCHAT_PANEL),
+    PANEL_INSTALL_TARGETS.SUPERCHAT,
+  );
+});
+
 test("resolves omikuji panel channel to the omikuji panel target", () => {
   assert.equal(TEXT_CHANNEL_IDS.OMIKUJI_PANEL, "1534637681181724682");
 

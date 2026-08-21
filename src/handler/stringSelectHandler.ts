@@ -8,6 +8,7 @@ import { HotelFreeTicketService } from "../service/hotelFreeTicketService";
 import { VcService } from "../service/vcService";
 import { RouletteService } from "../service/rouletteService";
 import { CreatorEmblemPaymentService } from "../service/creatorEmblemPaymentService";
+import { SuperchatService } from "../service/superchatService";
 import { RouletteBetKind, RouletteStage } from "../type/roulette";
 
 import { HOTEL_PURCHASE_WAY_TYPE } from "../constant/hotel";
@@ -28,6 +29,14 @@ export async function handleStringSelectMenu(
 ) {
   try {
     const customId = interaction.customId;
+    if (customId === PANEL_COMMAND_NAMES.SUPERCHAT_STREAMER_SELECT) {
+      await SuperchatService.showStageSelect(interaction);
+      return;
+    }
+    if (customId.startsWith(`${PANEL_COMMAND_NAMES.SUPERCHAT_STAGE_SELECT}:`)) {
+      await SuperchatService.showAmountModal(interaction);
+      return;
+    }
     if (customId.startsWith("rouletteBetSelect_")) {
       const stage = Number(customId.split("_")[1]);
       if (stage !== 1 && stage !== 2 && stage !== 3) {
