@@ -11,8 +11,10 @@ const {
 const {
   canReceiveSuperchat,
   hasSuperchatThread,
+  getSuperchatEmbedColor,
   SuperchatService,
 } = require("../dist/service/superchatService.js");
+const { COLOR } = require("../dist/constant/color.js");
 const {
   createSuperchatPanelActionRow,
 } = require("../dist/service/superchatPanelService.js");
@@ -74,7 +76,17 @@ test("superchat embed contains sender identity, body thumbnail, amount, and comm
 
   assert.equal(embed.author.name, "送金者");
   assert.equal(embed.thumbnail.url, "https://example.invalid/avatar.png");
+  assert.equal(embed.title, undefined);
   assert.equal(embed.description, "楽しい配信をありがとう");
   assert.ok(embed.fields.some((field) => field.value === "12,345LIA"));
   assert.ok(!embed.fields.some((field) => field.name === "ステージ"));
+});
+
+test("superchat embed color changes at the configured amount thresholds", () => {
+  assert.equal(getSuperchatEmbedColor(1999), COLOR.YELLOW);
+  assert.equal(getSuperchatEmbedColor(2000), COLOR.ORANGE);
+  assert.equal(getSuperchatEmbedColor(4999), COLOR.ORANGE);
+  assert.equal(getSuperchatEmbedColor(5000), COLOR.PINK);
+  assert.equal(getSuperchatEmbedColor(9999), COLOR.PINK);
+  assert.equal(getSuperchatEmbedColor(10000), COLOR.RED);
 });

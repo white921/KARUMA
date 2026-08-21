@@ -57,6 +57,13 @@ function getStageChannelId(stage: SuperchatStage): string {
     : TEXT_CHANNEL_IDS.VOICE_CROWN_STAGE;
 }
 
+export function getSuperchatEmbedColor(amount: number): number {
+  if (amount <= 1_999) return COLOR.YELLOW;
+  if (amount <= 4_999) return COLOR.ORANGE;
+  if (amount <= 9_999) return COLOR.PINK;
+  return COLOR.RED;
+}
+
 export class SuperchatService {
   static async showStreamerSelect(interaction: ButtonInteraction): Promise<void> {
     if (!interaction.guild) {
@@ -159,7 +166,6 @@ export class SuperchatService {
     streamerId: string,
   ): EmbedBuilder {
     return new EmbedBuilder()
-      .setTitle("スパチャ")
       .setAuthor({
         name: sender.displayName,
       })
@@ -169,7 +175,7 @@ export class SuperchatService {
         { name: "配信者", value: `<@${streamerId}>`, inline: true },
       )
       .setThumbnail(sender.displayAvatarURL({ extension: "png" }))
-      .setColor(COLOR.LIGFT_PINK)
+      .setColor(getSuperchatEmbedColor(amount))
       .setTimestamp();
   }
 
