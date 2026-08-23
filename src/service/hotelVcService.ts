@@ -222,7 +222,6 @@ export class HotelVcService {
       (await hasRole(member, ROLE_IDS.CORE_MEMBER_ROLES.HONMEN)) ||
       (await hasRole(member, ROLE_IDS.KANRISYA)) ||
       (await hasRole(member, ROLE_IDS.SABANUSI)) ||
-      (await hasRole(member, ROLE_IDS.URAKATA)) ||
       (await hasRole(member, ROLE_IDS.HOTEL_LEADER))
     );
   }

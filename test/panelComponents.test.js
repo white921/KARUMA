@@ -115,7 +115,7 @@ test("diary panel provides the LEVELIA VIP diary flow for 5000 LIA", () => {
   assert.match(DIARY_PANEL_MESSAGES.DESCRIPTION, /こちらのパネルでもう一度作成を行うと日記が再開されます/);
 });
 
-test("creator emblem panel has payment and balance buttons", () => {
+test("creator emblem panel disables payment while accepting orders is stopped", () => {
   const buttons = createCreatorEmblemPanelActionRow().toJSON().components;
   const buttonIds = buttons.map((button) => button.custom_id);
 
@@ -123,6 +123,7 @@ test("creator emblem panel has payment and balance buttons", () => {
     PANEL_COMMAND_NAMES.CREATOR_EMBLEM_PAY,
     PANEL_COMMAND_NAMES.VIEW,
   ]);
+  assert.equal(buttons[0].disabled, true);
 });
 
 test("creator emblem pricing treats noble and management roles equally", () => {
@@ -152,12 +153,11 @@ test("creator emblem pricing treats noble and management roles equally", () => {
   );
 });
 
-test("creator emblem panel only displays sage and noble role names", () => {
+test("creator emblem panel explains that accepting orders is stopped", () => {
   const description = CREATOR_EMBLEM_PANEL_MESSAGES.DESCRIPTION;
 
-  assert.match(description, /賢者 100,000LIA／貴族 60,000LIA/);
-  assert.match(description, /デカ紋章：貴族 150,000LIA/);
-  assert.doesNotMatch(description, /英傑|皇帝|システム管理/);
+  assert.match(description, /夢印工房の受付は停止中/);
+  assert.doesNotMatch(description, /送金|料金/);
 });
 
 test("hotel and shop panels include their ticket confirmation buttons", () => {
@@ -296,7 +296,6 @@ test("normal hotel is free for every eligible role", async () => {
     ROLE_IDS.CORE_MEMBER_ROLES.HONMEN,
     ROLE_IDS.SABANUSI,
     ROLE_IDS.KANRISYA,
-    ROLE_IDS.URAKATA,
     ROLE_IDS.HOTEL_LEADER,
   ];
 
@@ -309,6 +308,12 @@ test("normal hotel is free for every eligible role", async () => {
   assert.equal(
     await HotelVcService.isNormalHotelBonusMember(
       memberWithRoles([ROLE_IDS.CORE_MEMBER_ROLES.JUNHONMEN]),
+    ),
+    false,
+  );
+  assert.equal(
+    await HotelVcService.isNormalHotelBonusMember(
+      memberWithRoles([ROLE_IDS.EVALUATION_SUPPORT]),
     ),
     false,
   );

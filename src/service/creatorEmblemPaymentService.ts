@@ -14,6 +14,7 @@ import { CURRENCY_NAMES } from "../constant/currency";
 import { ROLE_IDS } from "../constant/id";
 import { CREATOR_EMBLEM_PANEL_MESSAGES } from "../constant/panel";
 import { COLOR } from "../constant/color";
+import { CREATOR_EMBLEM_ENABLED } from "../constant/creatorEmblem";
 import { SendService } from "./sendService";
 
 export type EmblemProduct = "personal" | "large";
@@ -30,6 +31,12 @@ export class CreatorEmblemPaymentService {
 
   static isConfirmCustomId(customId: string): boolean {
     return customId.startsWith(`${this.CONFIRM_PREFIX}:`);
+  }
+
+  private static assertEnabled(): void {
+    if (!CREATOR_EMBLEM_ENABLED) {
+      throw new Error(CREATOR_EMBLEM_PANEL_MESSAGES.DISABLED);
+    }
   }
 
   private static hasApostlePricing(member: GuildMember): boolean {
@@ -73,6 +80,7 @@ export class CreatorEmblemPaymentService {
   }
 
   static async showProductSelect(interaction: ButtonInteraction): Promise<void> {
+    this.assertEnabled();
     const member = interaction.member as GuildMember;
     this.assertCanUse(member);
 
@@ -103,6 +111,7 @@ export class CreatorEmblemPaymentService {
   }
 
   static async showCreatorSelect(interaction: StringSelectMenuInteraction): Promise<void> {
+    this.assertEnabled();
     const product = interaction.values[0];
     if (!this.isProduct(product)) {
       throw new Error("無効な紋章商品です。");
@@ -142,6 +151,7 @@ export class CreatorEmblemPaymentService {
   }
 
   static async showConfirmation(interaction: StringSelectMenuInteraction): Promise<void> {
+    this.assertEnabled();
     const [, productValue] = interaction.customId.split(":");
     const creatorId = interaction.values[0];
     if (!this.isProduct(productValue)) {
@@ -180,6 +190,7 @@ export class CreatorEmblemPaymentService {
   }
 
   static async pay(interaction: ButtonInteraction): Promise<void> {
+    this.assertEnabled();
     const [, productValue, creatorId] = interaction.customId.split(":");
     if (!this.isProduct(productValue) || !creatorId) {
       throw new Error("無効な支払い内容です。最初からやり直してください。");

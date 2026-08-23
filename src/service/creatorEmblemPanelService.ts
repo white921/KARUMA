@@ -11,6 +11,7 @@ import { TEXT_CHANNEL_IDS } from "../constant/id";
 import { CREATOR_EMBLEM_PANEL_MESSAGES } from "../constant/panel";
 import { PANEL_COMMAND_NAMES } from "../constant/command";
 import { COLOR } from "../constant/color";
+import { CREATOR_EMBLEM_ENABLED } from "../constant/creatorEmblem";
 import { deletePanelMessage } from "../util/channelMessage";
 
 export function createCreatorEmblemPanelActionRow() {
@@ -18,7 +19,8 @@ export function createCreatorEmblemPanelActionRow() {
     new ButtonBuilder()
       .setCustomId(PANEL_COMMAND_NAMES.CREATOR_EMBLEM_PAY)
       .setLabel(CREATOR_EMBLEM_PANEL_MESSAGES.PAY)
-      .setStyle(ButtonStyle.Success),
+      .setStyle(ButtonStyle.Secondary)
+      .setDisabled(!CREATOR_EMBLEM_ENABLED),
     new ButtonBuilder()
       .setCustomId(PANEL_COMMAND_NAMES.VIEW)
       .setLabel(CREATOR_EMBLEM_PANEL_MESSAGES.VIEW)

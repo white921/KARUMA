@@ -120,9 +120,10 @@ export const DARK_SHOP_PANEL_MESSAGES = {
 export const CREATOR_EMBLEM_PANEL_MESSAGES = {
   TITLE: "夢印工房パネル",
   DESCRIPTION:
-    `紋章の制作依頼に伴う送金はこちらから行ってください。\n支払い前に商品と夢印屋さんを選択し、内容を確認してください。\n\n**【料金】**\n・個人紋章：賢者 100,000${CURRENCY_NAMES}／貴族 60,000${CURRENCY_NAMES}\n・デカ紋章：貴族 150,000${CURRENCY_NAMES}\n\n※個人紋章・デカ紋章とも、夢印屋さんへ直接送金されます。`,
-  PAY: "支払い",
+    `現在、夢印工房の受付は停止中です。\n再開時期は運営から案内します。`,
+  PAY: "受付停止中",
   VIEW: "残高確認",
+  DISABLED: "夢印工房の受付は現在停止中です。",
   ERROR: "夢印工房パネルチャンネルが見つからないか、無効な型です。",
   MEMBER_ONLY: "賢者または貴族のみ利用できます。",
   APOSTLE_ONLY: "デカ紋章は貴族のみ利用できます。",
