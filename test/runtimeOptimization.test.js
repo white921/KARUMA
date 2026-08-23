@@ -9,7 +9,7 @@ const {
   normalizePollingIntervalMs,
   normalizePositiveInteger,
 } = require("../dist/util/runtimeConfig.js");
-const { BOT_ID, TEXT_CHANNEL_IDS } = require("../dist/constant/id.js");
+const { BOT_ID, ROLE_IDS, TEXT_CHANNEL_IDS } = require("../dist/constant/id.js");
 const {
   resolveMysqlConnectionLimit,
   resolveMysqlSlowAcquireLogMs,
@@ -70,23 +70,27 @@ test("daily shift payloads use one shared introduction and separate shift option
   const [introduction, ...options] = payloads;
 
   assert.equal(payloads.length, 5);
-  assert.match(introduction, /^<@&\d+><@&\d+>/);
+  assert.match(
+    introduction,
+    new RegExp(
+      `^<@&${ROLE_IDS.MENSETU_LEADER}><@&${ROLE_IDS.MENSTUKAN}><@&${ROLE_IDS.MENSTU_BUIGINNER}>`,
+    ),
+  );
   assert.match(introduction, /7月3日\(木\)/);
   assert.match(introduction, /本日の面接のシフトを提出してください/);
   assert.match(introduction, /リアクション/);
   assert.deepEqual(options, ["21時", "22時", "23時", "欠席"]);
 });
 
-test("interviewer shift notifications target the configured channel at 00:30 Japan time", () => {
+test("interviewer shift notifications are disabled", () => {
   const scheduleSource = fs.readFileSync(
     path.join(__dirname, "../src/handler/scheduleHandler.ts"),
     "utf8",
   );
 
   assert.equal(TEXT_CHANNEL_IDS.MENSTU_SHIFT, "1536368899183091722");
-  assert.match(scheduleSource, /cron\.schedule\(\s*"30 0 \* \* \*"/);
-  assert.match(scheduleSource, /timezone:\s*"Asia\/Tokyo"/);
-  assert.match(scheduleSource, /await InterviewShiftService\.sendDailyShiftMessage\(client\)/);
+  assert.doesNotMatch(scheduleSource, /cron\.schedule\(\s*"30 0 \* \* \*"/);
+  assert.doesNotMatch(scheduleSource, /InterviewShiftService/);
 });
 
 test("daily attendance report is disabled while keeping LEVELIA guide roles configured", () => {

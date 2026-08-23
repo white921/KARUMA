@@ -13,7 +13,7 @@ const SHIFT_OPTIONS = ["21時", "22時", "23時", "欠席"];
 
 export function buildDailyShiftMessagePayloads(dateLabel: string): string[] {
   const introduction = [
-    `<@&${ROLE_IDS.MENSETU_LEADER}><@&${ROLE_IDS.MENSTUKAN}>`,
+    `<@&${ROLE_IDS.MENSETU_LEADER}><@&${ROLE_IDS.MENSTUKAN}><@&${ROLE_IDS.MENSTU_BUIGINNER}>`,
     `${dateLabel}`,
     "本日の面接のシフトを提出してください",
     "該当する場合は、以下の各メッセージにリアクションをつけてください。",

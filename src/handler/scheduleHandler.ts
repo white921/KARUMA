@@ -7,7 +7,6 @@ import { SalaryService } from "../service/salaryService";
 // import { MonthlyDebitService } from "../service/monthlyDebitService";
 import { GameService } from "../service/gameService";
 import { SalesManagementService } from "../service/salesManagementService";
-import { InterviewShiftService } from "../service/interviewShiftService";
 import { DiaryService } from "../service/diaryService";
 import { RedeployService } from "../service/redeployService";
 
@@ -59,18 +58,7 @@ export async function handleSchedule(client: Client) {
   //   { timezone: "Asia/Tokyo" }
   // );
 
-  cron.schedule(
-    "30 0 * * *",
-    async () => {
-      // 毎日0:30に実行される処理
-      try {
-        await InterviewShiftService.sendDailyShiftMessage(client);
-      } catch (err) {
-        console.error("schedule interview shift job error:", err);
-      }
-    },
-    { timezone: "Asia/Tokyo" },
-  );
+  // 案内官シフトの定期提出通知は停止中。
 
   // 定時出席報告は、LEVELIAでの通知先ロールを確定するまで停止中。
 
