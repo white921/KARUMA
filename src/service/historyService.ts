@@ -22,6 +22,7 @@ import { ACCOUNT_MESSAGES } from "../constant/account";
 import { HISTORY_TITLE_MAPPER } from "../constant/history";
 import { PANEL_COMMAND_NAMES, COMMAND_NAMES } from "../constant/command";
 import { CURRENCY_NAMES } from "../constant/currency";
+import { ACTION_TYPES } from "../constant/action";
 import { BOT_ID } from "../constant/id";
 import { EXTERNALE_MOJI_VIEWS } from "../constant/emoji";
 import { ROULETTE_ACTION_NAMES } from "../constant/roulette";
@@ -136,6 +137,7 @@ export class HistoryService {
       [PANEL_COMMAND_NAMES.HOTEL_VC_SECRETLONG]: `<@${BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
       [PANEL_COMMAND_NAMES.HOTEL_VC_FREEDOM]: `<@${BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
       [PANEL_COMMAND_NAMES.HOTEL_VC_FREEDOMLONG]: `<@${BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
+      [ACTION_TYPES.SOLITARY_CELL]: `<@${BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
       [PANEL_COMMAND_NAMES.DIARY_PRIVATE]: `<@${BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
       [PANEL_COMMAND_NAMES.DIARY_PUBLIC]: `<@${BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
       [PANEL_COMMAND_NAMES.DIARY_UPDATE]: `<@${BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,

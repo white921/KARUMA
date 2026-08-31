@@ -31,6 +31,7 @@ import { OmikujiService } from "../service/omikujiService";
 import { CreatorEmblemPaymentService } from "../service/creatorEmblemPaymentService";
 import { HazamaService } from "../service/hazamaService";
 import { SuperchatService } from "../service/superchatService";
+import { SolitaryCellService } from "../service/solitaryCellService";
 
 import {
   ADMIN_PANEL_MESSAGES,
@@ -299,6 +300,15 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
           PANEL_COMMAND_NAMES.HOTEL_VC_FREEDOMLONG,
           HOTEL_PURCHASE_WAY_TYPE.MONEY,
         );
+        break;
+      case PANEL_COMMAND_NAMES.SOLITARY_CELL_CREATE:
+        await SolitaryCellService.showConfirmation(interaction);
+        break;
+      case PANEL_COMMAND_NAMES.SOLITARY_CELL_CONFIRM:
+        await SolitaryCellService.create(interaction);
+        break;
+      case PANEL_COMMAND_NAMES.SOLITARY_CELL_CANCEL:
+        await SolitaryCellService.cancel(interaction);
         break;
       case PANEL_COMMAND_NAMES.CASINO_GF:
         await showSelectUserMenu(
