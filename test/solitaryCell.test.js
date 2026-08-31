@@ -60,6 +60,11 @@ test("solitary-cell panel and action history use dedicated identifiers", () => {
   assert.equal(buttons[0].emoji, undefined);
   assert.equal(buttons[1].custom_id, PANEL_COMMAND_NAMES.VIEW);
   assert.equal(buttons[1].emoji, undefined);
+  const { SOLITARY_CELL_MESSAGES } = require("../dist/constant/solitaryCell.js");
+  assert.match(SOLITARY_CELL_MESSAGES.DESCRIPTION, /召役罪：10,000LIA/);
+  assert.match(SOLITARY_CELL_MESSAGES.DESCRIPTION, /従軍罪：20,000LIA/);
+  assert.match(SOLITARY_CELL_MESSAGES.DESCRIPTION, /徴兵罪：30,000LIA/);
+  assert.doesNotMatch(SOLITARY_CELL_MESSAGES.DESCRIPTION, /（下級|中級|上級）/);
   assert.equal(
     resolvePanelInstallTarget(TEXT_CHANNEL_IDS.SOLITARY_CELL_PANEL),
     PANEL_INSTALL_TARGETS.SOLITARY_CELL,
