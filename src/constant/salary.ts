@@ -75,3 +75,6 @@ export const SALARY_ROLE_IDS: Record<string, string> = {
 
 export const TEST_SALARY_PAYMENTS: Record<string, number> = {};
 export const TEST_SALARY_ROLE_IDS: Record<string, string> = {};
+
+// 臨時に給与振込を停止する日付（JST）。翌月以降の定期振込には影響しない。
+export const SKIPPED_MONTHLY_SALARY_PAYMENT_DATES = ["2026-09-01"] as const;

@@ -11,10 +11,28 @@ import { BOT_ID } from "../constant/id";
 import {
   SALARY_PAYMENTS,
   SALARY_ROLE_IDS,
+  SKIPPED_MONTHLY_SALARY_PAYMENT_DATES,
 } from "../constant/salary";
 import { COMMAND_NAMES } from "../constant/command";
 
 export class SalaryService {
+  /** 指定日（JST）が臨時の給与振込停止日に当たらないか判定する。 */
+  static shouldPayMonthlySalaries(at = new Date()): boolean {
+    const dateParts = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Tokyo",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).formatToParts(at);
+    const getPart = (type: Intl.DateTimeFormatPartTypes) =>
+      dateParts.find((part) => part.type === type)?.value;
+    const date = `${getPart("year")}-${getPart("month")}-${getPart("day")}`;
+
+    return !SKIPPED_MONTHLY_SALARY_PAYMENT_DATES.includes(
+      date as (typeof SKIPPED_MONTHLY_SALARY_PAYMENT_DATES)[number],
+    );
+  }
+
   /**
    * 月の給与振込
    * @param guild ギルド

@@ -7,8 +7,10 @@ const { ROLE_IDS } = require("../dist/constant/id.js");
 const {
   SALARY_PAYMENTS,
   SALARY_ROLE_IDS,
+  SKIPPED_MONTHLY_SALARY_PAYMENT_DATES,
 } = require("../dist/constant/salary.js");
 const { formatRoleNameForOutput } = require("../dist/util/role.js");
+const { SalaryService } = require("../dist/service/salaryService.js");
 
 test("role names omit parenthetical management labels in bot output", () => {
   assert.equal(formatRoleNameForOutput("市場支配人(ショップ)"), "市場支配人");
@@ -88,6 +90,18 @@ test("monthly salary job runs at 00:00 Japan time on the first day", () => {
 
   assert.match(scheduleSource, /cron\.schedule\(\s*"0 0 1 \* \*"/);
   assert.match(scheduleSource, /SalaryService\.payMonthlySalaries\(guild!\)/);
+});
+
+test("9月1日の給与振込だけをJSTで停止し、翌月は再開する", () => {
+  assert.deepEqual(SKIPPED_MONTHLY_SALARY_PAYMENT_DATES, ["2026-09-01"]);
+  assert.equal(
+    SalaryService.shouldPayMonthlySalaries(new Date("2026-08-31T15:00:00.000Z")),
+    false,
+  );
+  assert.equal(
+    SalaryService.shouldPayMonthlySalaries(new Date("2026-09-30T15:00:00.000Z")),
+    true,
+  );
 });
 
 test("monthly game sales job runs at 00:30 Japan time on the first day", () => {

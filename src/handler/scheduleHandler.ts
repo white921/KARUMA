@@ -31,6 +31,10 @@ export async function handleSchedule(client: Client) {
     "0 0 1 * *",
     () => {
       // 毎月1日0:00に実行される処理
+      if (!SalaryService.shouldPayMonthlySalaries()) {
+        console.info("monthly salary payment skipped for today");
+        return;
+      }
       SalaryService.payMonthlySalaries(guild!);
     },
     { timezone: "Asia/Tokyo" },
