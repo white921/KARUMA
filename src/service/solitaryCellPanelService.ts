@@ -19,6 +19,10 @@ export function createSolitaryCellPanelActionRow() {
       .setCustomId(PANEL_COMMAND_NAMES.SOLITARY_CELL_CREATE)
       .setLabel(SOLITARY_CELL_MESSAGES.CREATE)
       .setStyle(ButtonStyle.Danger),
+    new ButtonBuilder()
+      .setCustomId(PANEL_COMMAND_NAMES.VIEW)
+      .setLabel("残高確認")
+      .setStyle(ButtonStyle.Secondary),
   );
 }
 

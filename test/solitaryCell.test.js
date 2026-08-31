@@ -55,9 +55,11 @@ test("higher detention tier wins if a member temporarily has multiple tiers", ()
 });
 
 test("solitary-cell panel and action history use dedicated identifiers", () => {
-  const button = createSolitaryCellPanelActionRow().toJSON().components[0];
-  assert.equal(button.custom_id, PANEL_COMMAND_NAMES.SOLITARY_CELL_CREATE);
-  assert.equal(button.emoji, undefined);
+  const buttons = createSolitaryCellPanelActionRow().toJSON().components;
+  assert.equal(buttons[0].custom_id, PANEL_COMMAND_NAMES.SOLITARY_CELL_CREATE);
+  assert.equal(buttons[0].emoji, undefined);
+  assert.equal(buttons[1].custom_id, PANEL_COMMAND_NAMES.VIEW);
+  assert.equal(buttons[1].emoji, undefined);
   assert.equal(
     resolvePanelInstallTarget(TEXT_CHANNEL_IDS.SOLITARY_CELL_PANEL),
     PANEL_INSTALL_TARGETS.SOLITARY_CELL,
