@@ -154,7 +154,7 @@ export class HotelVcService {
   ): Promise<number> {
     switch (commandId) {
       case HOTEL_TYPE.NORMAL:
-        return (await hasRole(member, ROLE_IDS.CORE_MEMBER_ROLES.JUNHONMEN))
+        return (await hasRole(member, ROLE_IDS.CORE_MEMBER_ROLES.JUNJUNHONMEN))
           ? HOTEL_PRICE.NORMAL / 2
           : HOTEL_PRICE.NORMAL;
       // (await hasRole(member, ROLE_IDS.YOIYAMI_NO_AKASHI)) ||
@@ -218,11 +218,10 @@ export class HotelVcService {
 
   static async isNormalHotelBonusMember(member: GuildMember): Promise<boolean> {
     return (
-      (await hasRole(member, ROLE_IDS.CORE_MEMBER_ROLES.JUNMEN)) ||
+      (await hasRole(member, ROLE_IDS.CORE_MEMBER_ROLES.JUNHONMEN)) ||
       (await hasRole(member, ROLE_IDS.CORE_MEMBER_ROLES.HONMEN)) ||
       (await hasRole(member, ROLE_IDS.KANRISYA)) ||
-      (await hasRole(member, ROLE_IDS.SABANUSI)) ||
-      (await hasRole(member, ROLE_IDS.HOTEL_LEADER))
+      (await hasRole(member, ROLE_IDS.SABANUSI))
     );
   }
 
@@ -466,12 +465,12 @@ export class HotelVcService {
               deny: [PermissionsBitField.Flags.ViewChannel],
             },
             {
-              id: ROLE_IDS.CORE_MEMBER_ROLES.JUNHONMEN,
+              id: ROLE_IDS.CORE_MEMBER_ROLES.JUNJUNHONMEN,
               type: OverwriteType.Role,
               deny: [PermissionsBitField.Flags.ViewChannel],
             },
             {
-              id: ROLE_IDS.CORE_MEMBER_ROLES.JUNMEN,
+              id: ROLE_IDS.CORE_MEMBER_ROLES.JUNHONMEN,
               type: OverwriteType.Role,
               deny: [PermissionsBitField.Flags.ViewChannel],
             },
@@ -547,12 +546,12 @@ export class HotelVcService {
               deny: [PermissionsBitField.Flags.ViewChannel],
             },
             {
-              id: ROLE_IDS.CORE_MEMBER_ROLES.JUNHONMEN,
+              id: ROLE_IDS.CORE_MEMBER_ROLES.JUNJUNHONMEN,
               type: OverwriteType.Role,
               deny: [PermissionsBitField.Flags.ViewChannel],
             },
             {
-              id: ROLE_IDS.CORE_MEMBER_ROLES.JUNMEN,
+              id: ROLE_IDS.CORE_MEMBER_ROLES.JUNHONMEN,
               type: OverwriteType.Role,
               deny: [PermissionsBitField.Flags.ViewChannel],
             },

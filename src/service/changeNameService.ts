@@ -95,7 +95,7 @@ export class ChangeNameService {
 
       // 準メン以上でない
       if (
-        !(await hasRole(member, ROLE_IDS.CORE_MEMBER_ROLES.JUNHONMEN)) &&
+        !(await hasRole(member, ROLE_IDS.CORE_MEMBER_ROLES.JUNJUNHONMEN)) &&
         !(await hasRole(member, ROLE_IDS.CORE_MEMBER_ROLES.HONMEN))
       ) {
         throw new Error(CHANGE_NAME_MESSAGES.REQUIRED_ROLE_NOT_FOUND);

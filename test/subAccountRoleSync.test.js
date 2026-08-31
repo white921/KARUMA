@@ -19,7 +19,7 @@ test("LEVELIAでは寝落ち△とエロイプ△を廃止する", () => {
 
 test("罪人ロールをLEVELIAの基本ロールとして設定する", () => {
   assert.equal(
-    ROLE_IDS.CORE_MEMBER_ROLES.SINNIN,
+    ROLE_IDS.CORE_MEMBER_ROLES.HYOKAOTI,
     "1534645004457476288",
   );
 });

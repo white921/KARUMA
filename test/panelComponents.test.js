@@ -141,7 +141,7 @@ test("creator emblem pricing treats noble and management roles equally", () => {
   }
 
   const congregationMember = memberWithRoles([
-    ROLE_IDS.CORE_MEMBER_ROLES.JUNHONMEN,
+    ROLE_IDS.CORE_MEMBER_ROLES.JUNJUNHONMEN,
   ]);
   assert.equal(
     CreatorEmblemPaymentService.getPriceForMember(congregationMember, "personal"),
@@ -292,11 +292,10 @@ test("hotel ticket confirmation notice explains ticket priority", () => {
 
 test("normal hotel is free for every eligible role", async () => {
   const eligibleRoleIds = [
-    ROLE_IDS.CORE_MEMBER_ROLES.JUNMEN,
+    ROLE_IDS.CORE_MEMBER_ROLES.JUNHONMEN,
     ROLE_IDS.CORE_MEMBER_ROLES.HONMEN,
     ROLE_IDS.SABANUSI,
     ROLE_IDS.KANRISYA,
-    ROLE_IDS.HOTEL_LEADER,
   ];
 
   for (const roleId of eligibleRoleIds) {
@@ -307,7 +306,7 @@ test("normal hotel is free for every eligible role", async () => {
   }
   assert.equal(
     await HotelVcService.isNormalHotelBonusMember(
-      memberWithRoles([ROLE_IDS.CORE_MEMBER_ROLES.JUNHONMEN]),
+      memberWithRoles([ROLE_IDS.CORE_MEMBER_ROLES.JUNJUNHONMEN]),
     ),
     false,
   );
@@ -324,7 +323,7 @@ test("normal hotel costs 5000 LIA for sages and 10000 LIA otherwise", async () =
   assert.equal(
     await HotelVcService.getHotelVcPrice(
       PANEL_COMMAND_NAMES.HOTEL_VC_NORMAL,
-      memberWithRoles([ROLE_IDS.CORE_MEMBER_ROLES.JUNHONMEN]),
+      memberWithRoles([ROLE_IDS.CORE_MEMBER_ROLES.JUNJUNHONMEN]),
     ),
     5000,
   );
@@ -376,7 +375,7 @@ test("freedom hotels initially hide the channel from believers", async () => {
   assert.equal(createdChannelOptions.length, 2);
   for (const options of createdChannelOptions) {
     const believerOverwrite = options.permissionOverwrites.find(
-      (overwrite) => overwrite.id === ROLE_IDS.CORE_MEMBER_ROLES.JUNMEN,
+      (overwrite) => overwrite.id === ROLE_IDS.CORE_MEMBER_ROLES.JUNHONMEN,
     );
 
     assert.deepEqual(believerOverwrite.deny, [PermissionsBitField.Flags.ViewChannel]);

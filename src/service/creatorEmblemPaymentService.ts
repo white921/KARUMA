@@ -47,7 +47,7 @@ export class CreatorEmblemPaymentService {
   }
 
   private static hasMemberRole(member: GuildMember): boolean {
-    return member.roles.cache.has(ROLE_IDS.CORE_MEMBER_ROLES.JUNHONMEN);
+    return member.roles.cache.has(ROLE_IDS.CORE_MEMBER_ROLES.JUNJUNHONMEN);
   }
 
   private static assertCanUse(member: GuildMember): void {
@@ -75,8 +75,8 @@ export class CreatorEmblemPaymentService {
   }
 
   private static isCreator(member: GuildMember): boolean {
-    return member.roles.cache.has(ROLE_IDS.EMBLEM_CREATOR) ||
-      member.roles.cache.has(ROLE_IDS.EMBLEM_CREATOR_LEADER);
+    return member.roles.cache.has(ROLE_IDS.SHOKUNIN_STAFF) ||
+      member.roles.cache.has(ROLE_IDS.SHOKUNIN_LEADER);
   }
 
   static async showProductSelect(interaction: ButtonInteraction): Promise<void> {
@@ -134,7 +134,7 @@ export class CreatorEmblemPaymentService {
         creators.first(25).map((member) => ({
           label: member.displayName.slice(0, 100),
           value: member.id,
-          description: member.roles.cache.has(ROLE_IDS.EMBLEM_CREATOR_LEADER)
+          description: member.roles.cache.has(ROLE_IDS.SHOKUNIN_LEADER)
             ? "夢印屋さん店長"
             : "夢印屋さん",
         })),
