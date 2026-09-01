@@ -58,9 +58,12 @@ test("resolves omikuji panel channel to the omikuji panel target", () => {
   assert.equal(target, PANEL_INSTALL_TARGETS.OMIKUJI);
 });
 
-test("game panel stays disabled until its target is confirmed", () => {
-  assert.equal(TEXT_CHANNEL_IDS.GAME_PANEL, "");
-  assert.equal(resolvePanelInstallTarget(TEXT_CHANNEL_IDS.GAME_PANEL), null);
+test("resolves the configured game panel channel", () => {
+  assert.equal(TEXT_CHANNEL_IDS.GAME_PANEL, "1544021544525758574");
+  assert.equal(
+    resolvePanelInstallTarget(TEXT_CHANNEL_IDS.GAME_PANEL),
+    PANEL_INSTALL_TARGETS.GAME,
+  );
 });
 
 test("resolves the hazama payment channel to the hazama panel target", () => {

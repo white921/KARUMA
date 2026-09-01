@@ -11,14 +11,14 @@ import { ItemService } from "./itemService";
 
 export class GameFreeTicketService {
   static getTicketType(commandId: string): GameFreeTicketType | undefined {
-    if (commandId === PANEL_COMMAND_NAMES.GAME_SHORT) {
-      return GAME_FREE_TICKET_TYPE.SHORT;
+    if (commandId === PANEL_COMMAND_NAMES.GAME_VC_CREATE) {
+      return GAME_FREE_TICKET_TYPE.VC_CREATE;
     }
     return undefined;
   }
 
   static getItemKey(ticketType: GameFreeTicketType): ItemKey {
-    if (ticketType === GAME_FREE_TICKET_TYPE.SHORT) {
+    if (ticketType === GAME_FREE_TICKET_TYPE.VC_CREATE) {
       return ITEM_KEY.GAME_SHORT_FREE;
     }
     throw new Error(GAME_MESSAGES.HAS_NOT_TICKET);
@@ -35,10 +35,10 @@ export class GameFreeTicketService {
     userId: string,
   ): Promise<Record<GameFreeTicketType, number>> {
     const quantities: Record<GameFreeTicketType, number> = {
-      [GAME_FREE_TICKET_TYPE.SHORT]: 0,
+      [GAME_FREE_TICKET_TYPE.VC_CREATE]: 0,
     };
-    const itemKey = this.getItemKey(GAME_FREE_TICKET_TYPE.SHORT);
-    quantities[GAME_FREE_TICKET_TYPE.SHORT] =
+    const itemKey = this.getItemKey(GAME_FREE_TICKET_TYPE.VC_CREATE);
+    quantities[GAME_FREE_TICKET_TYPE.VC_CREATE] =
       (await ItemService.getQuantities(userId, [itemKey])).get(itemKey) ?? 0;
     return quantities;
   }
@@ -58,7 +58,7 @@ export class GameFreeTicketService {
     );
   }
 
-  /** 確定時に6時間プラン用の券を1枚消費する。 */
+  /** 確定時に遊戯VC作成券を1枚消費する。 */
   static async consume(userId: string, commandId: string): Promise<void> {
     const ticketType = this.getTicketType(commandId);
     if (!ticketType) throw new Error(GAME_MESSAGES.HAS_NOT_TICKET);

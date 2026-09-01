@@ -17,16 +17,16 @@ import { COLOR } from "../constant/color";
 export function createGamePanelActionRows() {
   const row1 = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
-      .setCustomId(PANEL_COMMAND_NAMES.GAME_SHORT)
-      .setLabel(GAME_PANEL_MESSAGES.SHORT)
+      .setCustomId(PANEL_COMMAND_NAMES.GAME_VC_CREATE)
+      .setLabel(GAME_PANEL_MESSAGES.CREATE_VC)
       .setStyle(ButtonStyle.Primary),
     new ButtonBuilder()
-      .setCustomId(PANEL_COMMAND_NAMES.GAME_LONG)
-      .setLabel(GAME_PANEL_MESSAGES.LONG)
-      .setStyle(ButtonStyle.Primary),
+      .setCustomId(PANEL_COMMAND_NAMES.GAME_PASS_TWO_WEEKS)
+      .setLabel(GAME_PANEL_MESSAGES.PASS_TWO_WEEKS)
+      .setStyle(ButtonStyle.Success),
     new ButtonBuilder()
-      .setCustomId(PANEL_COMMAND_NAMES.GAME_PASS)
-      .setLabel(GAME_PANEL_MESSAGES.GAME_PASS)
+      .setCustomId(PANEL_COMMAND_NAMES.GAME_PASS_ONE_MONTH)
+      .setLabel(GAME_PANEL_MESSAGES.PASS_ONE_MONTH)
       .setStyle(ButtonStyle.Success),
   );
 
@@ -47,9 +47,8 @@ export function createGamePanelActionRows() {
 export class GamePanelService {
   /**
    * 遊戯パネルを作成
-   * 6時間プランボタン
-   * 12時間プランボタン
-   * 遊戯パスボタン
+   * 遊戯VC作成ボタン
+   * 2種類のゲームパス購入ボタン
    * 残高確認ボタン
    * @param client クライアント
    */

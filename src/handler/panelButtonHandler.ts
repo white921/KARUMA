@@ -20,6 +20,7 @@ import { HotelVcService } from "../service/hotelVcService";
 import { AccountService } from "../service/accountService";
 import { VcService } from "../service/vcService";
 import { GameService } from "../service/gameService";
+import { GameVcService } from "../service/gameVcService";
 import { DiaryService } from "../service/diaryService";
 import { RedeployService } from "../service/redeployService";
 import { RouletteService } from "../service/rouletteService";
@@ -347,6 +348,21 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
         break;
       case PANEL_COMMAND_NAMES.GAME_PASS:
         await showConfirmButton(interaction, customId);
+        break;
+      case PANEL_COMMAND_NAMES.GAME_VC_CREATE:
+        await GameVcService.showCreateConfirmation(interaction);
+        break;
+      case PANEL_COMMAND_NAMES.GAME_VC_CREATE_TICKET:
+        await GameVcService.createVc(interaction, "ticket");
+        break;
+      case PANEL_COMMAND_NAMES.GAME_VC_CREATE_MONEY:
+        await GameVcService.createVc(interaction, "money");
+        break;
+      case PANEL_COMMAND_NAMES.GAME_PASS_TWO_WEEKS:
+        await GameVcService.purchasePass(interaction, "twoWeeks");
+        break;
+      case PANEL_COMMAND_NAMES.GAME_PASS_ONE_MONTH:
+        await GameVcService.purchasePass(interaction, "oneMonth");
         break;
       case PANEL_COMMAND_NAMES.HAZAMA_ACCESS:
         if (await HazamaService.isFree(interaction.member as GuildMember)) {

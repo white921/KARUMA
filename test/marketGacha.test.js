@@ -160,7 +160,7 @@ test("game ticket prizes explain the same priority behavior as hotel tickets", (
   assert.equal(gameTicketThree.label, "遊戯チケット 3枚");
   assert.match(
     MarketGachaService.getTicketInstructions(gameTicket),
-    /次回遊戯の6時間プランを使用時に、優先的にチケットが消費/,
+    /遊戯VCを作成するときにチケットを1枚消費して無料で作成/,
   );
 });
 

@@ -36,6 +36,6 @@ export const ITEM_DEFINITIONS: readonly {
   {
     key: ITEM_KEY.GAME_SHORT_FREE,
     name: "遊戯チケット",
-    description: "遊戯の6時間プランを無料で利用できる券",
+    description: "遊戯VCを1部屋（12時間）無料で作成できる券",
   },
 ];

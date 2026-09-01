@@ -170,9 +170,9 @@ export class MarketGachaService {
     | undefined {
     switch (prize.key) {
       case "game_free_1":
-        return { ticketType: GAME_FREE_TICKET_TYPE.SHORT, quantity: 1 };
+        return { ticketType: GAME_FREE_TICKET_TYPE.VC_CREATE, quantity: 1 };
       case "game_free_3":
-        return { ticketType: GAME_FREE_TICKET_TYPE.SHORT, quantity: 3 };
+        return { ticketType: GAME_FREE_TICKET_TYPE.VC_CREATE, quantity: 3 };
       default:
         return undefined;
     }
@@ -196,7 +196,7 @@ export class MarketGachaService {
     }
 
     if (this.getGameTicketGrant(prize)) {
-      return "次回遊戯の6時間プランを使用時に、優先的にチケットが消費されるようになります。";
+      return "次回、遊戯VCを作成するときにチケットを1枚消費して無料で作成できます。";
     }
 
     if (this.getShopTicketGrant(prize)) {

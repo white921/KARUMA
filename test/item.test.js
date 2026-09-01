@@ -40,7 +40,7 @@ test("each ticket service maps to its registered item", () => {
     ITEM_KEY.SHOP_DISCOUNT_10,
   );
   assert.equal(
-    GameFreeTicketService.getItemKey(GAME_FREE_TICKET_TYPE.SHORT),
+    GameFreeTicketService.getItemKey(GAME_FREE_TICKET_TYPE.VC_CREATE),
     ITEM_KEY.GAME_SHORT_FREE,
   );
 });

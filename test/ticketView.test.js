@@ -21,7 +21,7 @@ test("ticket confirmation lists every owned ticket type", async () => {
     { type: SHOP_TICKET_TYPE.DISCOUNT_5, quantity: 3 },
   ];
   GameFreeTicketService.getTicketQuantities = async () => ({
-    [GAME_FREE_TICKET_TYPE.SHORT]: 4,
+    [GAME_FREE_TICKET_TYPE.VC_CREATE]: 4,
   });
 
   try {
@@ -31,7 +31,7 @@ test("ticket confirmation lists every owned ticket type", async () => {
     assert.match(message, /フリーダム（12時間）: 2枚/);
     assert.match(message, /市場割引 5%OFF: 3枚/);
     assert.match(message, /市場割引 10%OFF: 0枚/);
-    assert.match(message, /6時間プラン: 4枚/);
+    assert.match(message, /VC作成（12時間）: 4枚/);
   } finally {
     HotelFreeTicketService.getTicketQuantities = originalHotel;
     ShopTicketService.getOwnedTickets = originalShop;

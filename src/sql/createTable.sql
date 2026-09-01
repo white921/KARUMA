@@ -104,7 +104,7 @@ INSERT INTO items (item_key, name, description) VALUES
   ('HOTEL_FREEDOM_FREE', 'フリーダム無料券', 'フリーダム（12時間）を無料で利用できる券'),
   ('SHOP_DISCOUNT_5', '市場割引券 5%OFF', '100万LIA未満の市場支払いに使える5%割引券'),
   ('SHOP_DISCOUNT_10', '市場割引券 10%OFF', '100万LIA未満の市場支払いに使える10%割引券'),
-  ('GAME_SHORT_FREE', '遊戯チケット', '遊戯の6時間プランを無料で利用できる券')
+  ('GAME_SHORT_FREE', '遊戯チケット', '遊戯VCを1部屋（12時間）無料で作成できる券')
 ON DUPLICATE KEY UPDATE
   name = VALUES(name),
   description = VALUES(description);

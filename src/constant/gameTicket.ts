@@ -1,5 +1,5 @@
 export const GAME_FREE_TICKET_TYPE = {
-  SHORT: "SHORT",
+  VC_CREATE: "VC_CREATE",
 } as const;
 
 export type GameFreeTicketType =

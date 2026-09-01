@@ -176,7 +176,8 @@ client.on("interactionCreate", async (interaction) => {
         try {
           if (
             interaction.customId.startsWith("history_page_") ||
-            interaction.customId.startsWith("creatorEmblemConfirm:")
+            interaction.customId.startsWith("creatorEmblemConfirm:") ||
+            interaction.customId.startsWith("gameVcCreate")
           ) {
             // ページ送りは、現在表示中の取引履歴メッセージを更新する。
             await interaction.deferUpdate();
@@ -193,6 +194,7 @@ client.on("interactionCreate", async (interaction) => {
           const acknowledgement = (
             interaction.customId.startsWith("history_page_") ||
             interaction.customId.startsWith("creatorEmblemConfirm:")
+              || interaction.customId.startsWith("gameVcCreate")
           )
             ? "deferUpdate"
             : "deferReply";
