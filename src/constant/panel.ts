@@ -10,7 +10,7 @@ export const PANEL_MESSAGES = {
   SEND: `${CURRENCY_NAMES}送金`,
   SHOP_SEND: `${CURRENCY_NAMES}支払い`,
   ERROR: `${CURRENCY_NAMES}銀行窓口チャンネルが見つからないか、無効な型です。`,
-  DESCRIPTION: `ボタンを押して各操作を行ってください。\nスマートフォンでの操作を推奨しています。\n銀行への送金は<@${BOT_ID}>宛てに行ってください。`,
+  DESCRIPTION: `ボタンを押して各操作を行ってください。\n銀行への送金は<@${BOT_ID}>宛てに行ってください。`,
   BUTTON_NOT_FOUND: "押下されたボタンは登録されていません",
 };
 
@@ -54,9 +54,9 @@ const NORMAL_HOTEL_PRICE_GUIDANCE = [
 ].join("\n");
 export const HOTEL_VC_PANEL_MESSAGES = {
   TITLE: "ホテルVCパネル",
-  DESCRIPTION: `ボタンを押してホテルを選択してください。\nスマートフォンでの操作を推奨しています。\n\n**【ホテル案内】**\n**・ ${HOTEL_TYPE_NAMES.NORMAL}**\n${NORMAL_HOTEL_PRICE_GUIDANCE}\n通常ツーショットVC\n\n**・ ${HOTEL_TYPE_NAMES.SECRET}**\n${HOTEL_PRICE.SECRET}${CURRENCY_NAMES}/12時間\n管理者以外に見えないツーショットVC\n\n**・ ${HOTEL_TYPE_NAMES.SECRETLONG}**\n${HOTEL_PRICE.SECRETLONG}${CURRENCY_NAMES}/24時間\n管理者以外に見えないツーショットVC\n\n**・ ${HOTEL_TYPE_NAMES.FREEDOM}**\n${HOTEL_PRICE.FREEDOM}${CURRENCY_NAMES}/12時間\n大人数で自由に利用できるVC\n\n**・ ${HOTEL_TYPE_NAMES.FREEDOMLONG}**\n${HOTEL_PRICE.FREEDOMLONG}${CURRENCY_NAMES}/24時間\n大人数で自由に利用できるVC`,
-  NORMAL_DESCRIPTION: `\nボタンを押してホテルを選択してください。\nスマートフォンでの操作を推奨しています。\n\n**【ホテル案内】**\n**・ ${HOTEL_TYPE_NAMES.NORMAL}**\n${NORMAL_HOTEL_PRICE_GUIDANCE}\n通常ツーショットVC\n\n`,
-  SPECIAL_DISCRIPTION: `\nボタンを押してホテルを選択してください。\nスマートフォンでの操作を推奨しています。\n\n**【ホテル案内】**\n**・ ${HOTEL_TYPE_NAMES.SECRET}**\n${HOTEL_PRICE.SECRET}${CURRENCY_NAMES}/12時間\n管理者以外に見えないツーショットVC\n\n**・ ${HOTEL_TYPE_NAMES.SECRETLONG}**\n${HOTEL_PRICE.SECRETLONG}${CURRENCY_NAMES}/24時間\n管理者以外に見えないツーショットVC\n\n**・ ${HOTEL_TYPE_NAMES.FREEDOM}**\n${HOTEL_PRICE.FREEDOM}${CURRENCY_NAMES}/12時間\n大人数で自由に利用できるVC\n\n**・ ${HOTEL_TYPE_NAMES.FREEDOMLONG}**\n${HOTEL_PRICE.FREEDOMLONG}${CURRENCY_NAMES}/24時間\n大人数で自由に利用できるVC`,
+  DESCRIPTION: `ボタンを押してホテルを選択してください。\n\n**【ホテル案内】**\n**・ ${HOTEL_TYPE_NAMES.NORMAL}**\n${NORMAL_HOTEL_PRICE_GUIDANCE}\n通常ツーショットVC\n\n**・ ${HOTEL_TYPE_NAMES.SECRET}**\n${HOTEL_PRICE.SECRET}${CURRENCY_NAMES}/12時間\n管理者以外に見えないツーショットVC\n\n**・ ${HOTEL_TYPE_NAMES.SECRETLONG}**\n${HOTEL_PRICE.SECRETLONG}${CURRENCY_NAMES}/24時間\n管理者以外に見えないツーショットVC\n\n**・ ${HOTEL_TYPE_NAMES.FREEDOM}**\n${HOTEL_PRICE.FREEDOM}${CURRENCY_NAMES}/12時間\n大人数で自由に利用できるVC\n\n**・ ${HOTEL_TYPE_NAMES.FREEDOMLONG}**\n${HOTEL_PRICE.FREEDOMLONG}${CURRENCY_NAMES}/24時間\n大人数で自由に利用できるVC`,
+  NORMAL_DESCRIPTION: `\nボタンを押してホテルを選択してください。\n\n**【ホテル案内】**\n**・ ${HOTEL_TYPE_NAMES.NORMAL}**\n${NORMAL_HOTEL_PRICE_GUIDANCE}\n通常ツーショットVC\n\n`,
+  SPECIAL_DISCRIPTION: `\nボタンを押してホテルを選択してください。\n\n**【ホテル案内】**\n**・ ${HOTEL_TYPE_NAMES.SECRET}**\n${HOTEL_PRICE.SECRET}${CURRENCY_NAMES}/12時間\n管理者以外に見えないツーショットVC\n\n**・ ${HOTEL_TYPE_NAMES.SECRETLONG}**\n${HOTEL_PRICE.SECRETLONG}${CURRENCY_NAMES}/24時間\n管理者以外に見えないツーショットVC\n\n**・ ${HOTEL_TYPE_NAMES.FREEDOM}**\n${HOTEL_PRICE.FREEDOM}${CURRENCY_NAMES}/12時間\n大人数で自由に利用できるVC\n\n**・ ${HOTEL_TYPE_NAMES.FREEDOMLONG}**\n${HOTEL_PRICE.FREEDOMLONG}${CURRENCY_NAMES}/24時間\n大人数で自由に利用できるVC`,
   ERROR: "ホテルVCパネルチャンネルが見つからないか、無効な型です。",
   CANCEL: "❌ キャンセルしました。",
   NORMAL: HOTEL_TYPE_NAMES.NORMAL,
@@ -75,7 +75,7 @@ export const IN_CHAT_PANEL_MESSAGES = {
 export const CASINO_PANEL_MESSAGES = {
   TITLE: "賭博パネル",
   DESCRIPTION:
-    "賭博パネルです。\nボタンを押して対象の賭博を選択してください。\nスマートフォンでの操作を推奨しています。",
+    "賭博パネルです。\nボタンを押して対象の賭博を選択してください。",
   ERROR: "賭博パネルチャンネルが見つからないか、無効な型です。",
   GF: "GF",
   MAJONG: "麻雀",
@@ -84,7 +84,7 @@ export const CASINO_PANEL_MESSAGES = {
 
 export const GAME_PANEL_MESSAGES = {
   TITLE: "遊戯パネル",
-  DESCRIPTION: `遊戯パネルです。\nボタンを押して利用したい時間を選択してください。\nまた、ボタンを押して購入したいパスを選択してください。\nスマートフォンでの操作を推奨しています。\n\n**【遊戯案内】**\n**・6時間プラン**：${GAME_PRICE.SHORT}${CURRENCY_NAMES}\n購入後6時間までご利用できます。遊戯チケットを所持している場合は、料金より優先して1枚消費します。\n\n**・12時間プラン**：${GAME_PRICE.LONG}${CURRENCY_NAMES}\n購入後12時間までご利用できます。\n\n**・ゲームパス**：${GAME_PRICE.PASS}${CURRENCY_NAMES}\nゲームパスを購入できます。\n有効期限：購入した月の月末まで。\n購入後は6時間・12時間プランを押して転送VC、または作成されているVCへ移動してください。\n※ゲームパスを購入する前に時間プランを押すと、通常通り引き落としが発生します。\nゲームパスを購入し、そのままVCを利用する場合は、**ゲームパス → プラン選択**の順で操作してください。\n\n**・チケット確認**：所持している全種類のチケットと枚数を確認できます。\n\n**・残高確認**：現在の${CURRENCY_NAMES}残高を確認できます。`,
+  DESCRIPTION: `遊戯パネルです。\nボタンを押して利用したい時間を選択してください。\nまた、ボタンを押して購入したいパスを選択してください。\n\n**【遊戯案内】**\n**・6時間プラン**：${GAME_PRICE.SHORT}${CURRENCY_NAMES}\n購入後6時間までご利用できます。遊戯チケットを所持している場合は、料金より優先して1枚消費します。\n\n**・12時間プラン**：${GAME_PRICE.LONG}${CURRENCY_NAMES}\n購入後12時間までご利用できます。\n\n**・ゲームパス**：${GAME_PRICE.PASS}${CURRENCY_NAMES}\nゲームパスを購入できます。\n有効期限：購入した月の月末まで。\n購入後は6時間・12時間プランを押して転送VC、または作成されているVCへ移動してください。\n※ゲームパスを購入する前に時間プランを押すと、通常通り引き落としが発生します。\nゲームパスを購入し、そのままVCを利用する場合は、**ゲームパス → プラン選択**の順で操作してください。\n\n**・チケット確認**：所持している全種類のチケットと枚数を確認できます。\n\n**・残高確認**：現在の${CURRENCY_NAMES}残高を確認できます。`,
   SHORT: "6時間プラン",
   LONG: "12時間プラン",
   GAME_PASS: "ゲームパス",

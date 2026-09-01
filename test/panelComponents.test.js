@@ -27,6 +27,7 @@ const {
   GAME_PANEL_MESSAGES,
   HOTEL_VC_PANEL_MESSAGES,
   PANEL_MESSAGES,
+  CASINO_PANEL_MESSAGES,
   CREATOR_EMBLEM_PANEL_MESSAGES,
   DIARY_PANEL_MESSAGES,
   DARK_SHOP_PANEL_MESSAGES,
@@ -44,6 +45,19 @@ function memberWithRoles(roleIds) {
 
 test("bank panel title uses the LEVELIA bank label", () => {
   assert.equal(PANEL_MESSAGES.TITLE, "LEVELIA銀行窓口");
+});
+
+test("panel descriptions do not recommend smartphone operation", () => {
+  for (const description of [
+    PANEL_MESSAGES.DESCRIPTION,
+    HOTEL_VC_PANEL_MESSAGES.DESCRIPTION,
+    HOTEL_VC_PANEL_MESSAGES.NORMAL_DESCRIPTION,
+    HOTEL_VC_PANEL_MESSAGES.SPECIAL_DISCRIPTION,
+    CASINO_PANEL_MESSAGES.DESCRIPTION,
+    GAME_PANEL_MESSAGES.DESCRIPTION,
+  ]) {
+    assert.doesNotMatch(description, /スマートフォンでの操作を推奨しています。/);
+  }
 });
 
 test("bank panel send button uses a Unicode emoji instead of a custom emoji id", () => {
