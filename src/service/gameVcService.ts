@@ -132,7 +132,10 @@ export function getGameVcTier(member: GuildMember): GameVcTier {
 }
 
 export function canPurchaseGamePass(member: GuildMember): boolean {
-  return TRAVELER_OR_ABOVE_ROLE_IDS.some((roleId) => member.roles.cache.has(roleId));
+  return (
+    TRAVELER_OR_ABOVE_ROLE_IDS.some((roleId) => member.roles.cache.has(roleId)) ||
+    member.roles.cache.has(ROLE_IDS.HOTEL_LEADER)
+  );
 }
 
 export function calculateGamePassExpireAt(

@@ -30,5 +30,5 @@ export const GAME_MESSAGES = {
   INVALID_EXPIRE_AT: "有効期限が無効です。",
   HAS_NOT_TICKET: "遊戯チケットがありません。",
   NO_ELIGIBLE_ROLE: "遊戯VCを作成できるロールではありません。",
-  PASS_PURCHASE_REQUIRES_TRAVELER: "ゲームパスは旅人以上のみ購入できます。",
+  PASS_PURCHASE_REQUIRES_TRAVELER: "ゲームパスを購入できるロールではありません。",
 };
