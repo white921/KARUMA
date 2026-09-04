@@ -174,6 +174,7 @@ export class HistoryService {
       [PANEL_COMMAND_NAMES.GAME_PASS]: `<@${
         action.from_user_id
       }> から\n+${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
+      [PANEL_COMMAND_NAMES.GAME_CRIMINAL_ACCESS_PURCHASE]: `<@${BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
       [PANEL_COMMAND_NAMES.MINECRAFT_PASS]: `<@${
         action.from_user_id
       }> から\n+${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,

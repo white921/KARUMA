@@ -12,6 +12,8 @@ test("遊戯VCのボタンは本人限定応答を開始する", () => {
   assert.equal(shouldDeferButtonUpdate("gameVcCreate"), false);
   assert.equal(shouldDeferButtonUpdate("gameVcCreateTicket"), false);
   assert.equal(shouldDeferButtonUpdate("gameVcCreateMoney"), false);
+  assert.equal(shouldDeferButtonUpdate("gameCriminalAccessPurchase"), false);
+  assert.equal(shouldDeferButtonUpdate("gameCriminalAccessConfirm"), false);
   assert.equal(shouldDeferButtonUpdate("history_page_2"), true);
 });
 

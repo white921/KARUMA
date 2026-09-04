@@ -21,7 +21,13 @@ import { PANEL_COMMAND_NAMES } from "../constant/command";
 import { CURRENCY_NAMES } from "../constant/currency";
 import { GAME_MESSAGES, GAME_VC } from "../constant/game";
 import { GAME_FREE_TICKET_TYPE } from "../constant/gameTicket";
-import { BOT_ID, CATEGORY_IDS, ROLE_IDS, THREAD_IDS } from "../constant/id";
+import {
+  BOT_ID,
+  CATEGORY_IDS,
+  ROLE_IDS,
+  TEXT_CHANNEL_IDS,
+  THREAD_IDS,
+} from "../constant/id";
 import { formatNumber } from "../util/number";
 import { addRole } from "../util/role";
 import { GameFreeTicketService } from "./gameFreeTicketService";
@@ -100,6 +106,11 @@ export function createGameVcPermissionOverwrites(
       deny: [PermissionsBitField.Flags.Connect],
     },
     {
+      id: ROLE_IDS.GAME_CRIMINAL_ACCESS,
+      type: OverwriteType.Role,
+      allow: GAME_VC_CONNECT_PERMISSIONS,
+    },
+    {
       id: creatorUserId,
       type: OverwriteType.Member,
       allow: GAME_VC_CONNECT_PERMISSIONS,
@@ -148,6 +159,12 @@ export function calculateGamePassExpireAt(
     : jstNow.add(1, "month").tz("UTC");
 }
 
+export function calculateGameCriminalAccessExpireAt(
+  now = dayjs(),
+): Dayjs {
+  return now.add(GAME_VC.CRIMINAL_ACCESS_DURATION_HOURS, "hour");
+}
+
 export function buildGameVcCreateConfirmationDescription(
   tier: GameVcTier,
   isFree: boolean,
@@ -177,6 +194,7 @@ function getPassPlanDetail(plan: GamePassPlan) {
 export class GameVcService {
   static async showCreateConfirmation(interaction: ButtonInteraction): Promise<void> {
     const member = interaction.member as GuildMember;
+    this.assertCreatePanelAccess(interaction, member);
     const tier = getGameVcTier(member);
     const isFree =
       tier.price === 0 || member.roles.cache.has(ROLE_IDS.GAME_PASS);
@@ -237,6 +255,7 @@ export class GameVcService {
     if (!guild) throw new Error("この操作はサーバー内でのみ実行できます。");
 
     const member = interaction.member as GuildMember;
+    this.assertCreatePanelAccess(interaction, member);
     const tier = getGameVcTier(member);
     const payment = await this.resolvePayment(
       member,
@@ -305,6 +324,7 @@ export class GameVcService {
     plan: GamePassPlan,
   ): Promise<void> {
     const member = interaction.member as GuildMember;
+    this.assertRegularPanel(interaction, member);
     if (!canPurchaseGamePass(member)) {
       throw new Error(GAME_MESSAGES.PASS_PURCHASE_REQUIRES_TRAVELER);
     }
@@ -336,6 +356,113 @@ export class GameVcService {
     await interaction.editReply({
       content: `✅ ${detail.label}を購入しました。\n有効期限：${expiryText}`,
     });
+  }
+
+  static async showCriminalAccessConfirmation(
+    interaction: ButtonInteraction,
+  ): Promise<void> {
+    const member = interaction.member as GuildMember;
+    this.assertCriminalPanel(interaction, member);
+    if (member.roles.cache.has(ROLE_IDS.GAME_CRIMINAL_ACCESS)) {
+      throw new Error(GAME_MESSAGES.CRIMINAL_ACCESS_ALREADY_ACTIVE);
+    }
+
+    await interaction.editReply({
+      embeds: [
+        new EmbedBuilder()
+          .setTitle("遊戯VC接続権限を購入しますか？")
+          .setDescription(
+            `利用時間：${GAME_VC.CRIMINAL_ACCESS_DURATION_HOURS}時間\n` +
+              `料金：**${formatNumber(GAME_VC.CRIMINAL_ACCESS_PRICE)}${CURRENCY_NAMES}**`,
+          )
+          .setColor(COLOR.YELLOW),
+      ],
+      components: [
+        new ActionRowBuilder<ButtonBuilder>().addComponents(
+          new ButtonBuilder()
+            .setCustomId(PANEL_COMMAND_NAMES.GAME_CRIMINAL_ACCESS_CONFIRM)
+            .setLabel("購入を確定")
+            .setStyle(ButtonStyle.Success),
+          new ButtonBuilder()
+            .setCustomId("cancel")
+            .setLabel("キャンセル")
+            .setStyle(ButtonStyle.Secondary),
+        ),
+      ],
+    });
+  }
+
+  static async purchaseCriminalAccess(
+    interaction: ButtonInteraction,
+  ): Promise<void> {
+    const member = interaction.member as GuildMember;
+    this.assertCriminalPanel(interaction, member);
+    if (member.roles.cache.has(ROLE_IDS.GAME_CRIMINAL_ACCESS)) {
+      throw new Error(GAME_MESSAGES.CRIMINAL_ACCESS_ALREADY_ACTIVE);
+    }
+
+    await interaction.editReply({
+      content: "遊戯VC接続権限を購入しています…",
+      embeds: [],
+      components: [],
+    });
+    const result = await this.recordCriminalAccessPurchase(interaction.user.id);
+
+    try {
+      await addRole(member, ROLE_IDS.GAME_CRIMINAL_ACCESS);
+    } catch (error) {
+      await this.rollbackCriminalAccessPurchase(interaction.user.id, result);
+      throw error;
+    }
+
+    const expiryText = result.expireAt.toLocaleString("ja-JP", {
+      timeZone: "Asia/Tokyo",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    await interaction.editReply({
+      content:
+        `✅ 遊戯VC接続権限を購入しました。\n` +
+        `有効期限：${expiryText}`,
+    });
+  }
+
+  private static assertCreatePanelAccess(
+    interaction: ButtonInteraction,
+    member: GuildMember,
+  ): void {
+    if (member.roles.cache.has(ROLE_IDS.CORE_MEMBER_ROLES.HYOKAOTI)) {
+      this.assertCriminalPanel(interaction, member);
+      return;
+    }
+    this.assertRegularPanel(interaction, member);
+  }
+
+  private static assertRegularPanel(
+    interaction: ButtonInteraction,
+    member: GuildMember,
+  ): void {
+    if (member.roles.cache.has(ROLE_IDS.CORE_MEMBER_ROLES.HYOKAOTI)) {
+      throw new Error(GAME_MESSAGES.CRIMINAL_PANEL_ONLY);
+    }
+    if (interaction.channelId !== TEXT_CHANNEL_IDS.GAME_PANEL) {
+      throw new Error("遊戯パネルで操作してください。");
+    }
+  }
+
+  private static assertCriminalPanel(
+    interaction: ButtonInteraction,
+    member: GuildMember,
+  ): void {
+    if (!member.roles.cache.has(ROLE_IDS.CORE_MEMBER_ROLES.HYOKAOTI)) {
+      throw new Error(GAME_MESSAGES.CRIMINAL_ROLE_REQUIRED);
+    }
+    if (interaction.channelId !== TEXT_CHANNEL_IDS.GAME_CRIMINAL_PANEL) {
+      throw new Error(GAME_MESSAGES.CRIMINAL_PANEL_ONLY);
+    }
   }
 
   private static async resolvePayment(
@@ -516,6 +643,121 @@ export class GameVcService {
     } catch (error) {
       await connection.rollback();
       console.error("ゲームパス付与失敗後のロールバックに失敗しました:", error);
+    } finally {
+      connection.release();
+    }
+  }
+
+  private static async recordCriminalAccessPurchase(userId: string) {
+    const connection = await DbService.getConnection();
+    try {
+      await connection.beginTransaction();
+      const [accountRows] = await connection.execute<WalletRow[]>(
+        "SELECT wallet FROM accounts WHERE user_id = ? FOR UPDATE",
+        [userId],
+      );
+      const account = accountRows[0];
+      if (!account) throw new Error("口座が見つかりません。");
+      if (account.wallet < GAME_VC.CRIMINAL_ACCESS_PRICE) {
+        throw new Error(GAME_MESSAGES.NOT_ENOUGH_BALANCE);
+      }
+
+      const [roleRows] = await connection.execute<PassRow[]>(
+        "SELECT expire_at, is_deleted FROM role_management_logs WHERE user_id = ? AND role_id = ? FOR UPDATE",
+        [userId, ROLE_IDS.GAME_CRIMINAL_ACCESS],
+      );
+      const previousRole = roleRows[0];
+      if (
+        previousRole &&
+        !previousRole.is_deleted &&
+        previousRole.expire_at &&
+        dayjs(previousRole.expire_at).isAfter(dayjs())
+      ) {
+        throw new Error(GAME_MESSAGES.CRIMINAL_ACCESS_ALREADY_ACTIVE);
+      }
+
+      const expireAt = calculateGameCriminalAccessExpireAt().toDate();
+      const afterWallet = account.wallet - GAME_VC.CRIMINAL_ACCESS_PRICE;
+      await connection.execute(
+        "UPDATE accounts SET wallet = ? WHERE user_id = ?",
+        [afterWallet, userId],
+      );
+      await connection.execute(
+        `INSERT INTO role_management_logs (user_id, role_id, is_deleted, expire_at)
+         VALUES (?, ?, FALSE, ?)
+         ON DUPLICATE KEY UPDATE is_deleted = FALSE, expire_at = VALUES(expire_at), updated_at = CURRENT_TIMESTAMP`,
+        [userId, ROLE_IDS.GAME_CRIMINAL_ACCESS, expireAt],
+      );
+      const [botRows] = await connection.execute<WalletRow[]>(
+        "SELECT wallet FROM accounts WHERE user_id = ?",
+        [BOT_ID],
+      );
+      const [actionResult] = await connection.execute<ResultSetHeader>(
+        `INSERT INTO actions
+         (command_name, amount, from_user_id, to_user_id, from_after_wallet, to_after_wallet, comment)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [
+          toActionType(PANEL_COMMAND_NAMES.GAME_CRIMINAL_ACCESS_PURCHASE),
+          GAME_VC.CRIMINAL_ACCESS_PRICE,
+          userId,
+          BOT_ID,
+          afterWallet,
+          botRows[0]?.wallet ?? 0,
+          `遊戯VC接続権限を${GAME_VC.CRIMINAL_ACCESS_DURATION_HOURS}時間購入しました。`,
+        ],
+      );
+      await connection.commit();
+      return {
+        afterWallet,
+        expireAt,
+        previousRole,
+        previousWallet: account.wallet,
+        actionId: actionResult.insertId,
+      };
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
+  }
+
+  private static async rollbackCriminalAccessPurchase(
+    userId: string,
+    result: {
+      previousWallet: number;
+      previousRole: PassRow | undefined;
+      actionId: number;
+    },
+  ): Promise<void> {
+    const connection = await DbService.getConnection();
+    try {
+      await connection.beginTransaction();
+      await connection.execute(
+        "UPDATE accounts SET wallet = ? WHERE user_id = ?",
+        [result.previousWallet, userId],
+      );
+      await connection.execute("DELETE FROM actions WHERE id = ?", [result.actionId]);
+      if (result.previousRole) {
+        await connection.execute(
+          "UPDATE role_management_logs SET is_deleted = ?, expire_at = ? WHERE user_id = ? AND role_id = ?",
+          [
+            result.previousRole.is_deleted,
+            result.previousRole.expire_at,
+            userId,
+            ROLE_IDS.GAME_CRIMINAL_ACCESS,
+          ],
+        );
+      } else {
+        await connection.execute(
+          "DELETE FROM role_management_logs WHERE user_id = ? AND role_id = ?",
+          [userId, ROLE_IDS.GAME_CRIMINAL_ACCESS],
+        );
+      }
+      await connection.commit();
+    } catch (error) {
+      await connection.rollback();
+      console.error("罪人用遊戯VC接続権限付与失敗後のロールバックに失敗しました:", error);
     } finally {
       connection.release();
     }

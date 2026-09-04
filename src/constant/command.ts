@@ -89,6 +89,8 @@ export const PANEL_COMMAND_NAMES = {
   GAME_VC_CREATE: "gameVcCreate",
   GAME_VC_CREATE_TICKET: "gameVcCreateTicket",
   GAME_VC_CREATE_MONEY: "gameVcCreateMoney",
+  GAME_CRIMINAL_ACCESS_PURCHASE: "gameCriminalAccessPurchase",
+  GAME_CRIMINAL_ACCESS_CONFIRM: "gameCriminalAccessConfirm",
   GAME_PASS_TWO_WEEKS: "gamePassTwoWeeks",
   GAME_PASS_ONE_MONTH: "gamePassOneMonth",
   GAME_TICKET_VIEW: "gameTicketView",

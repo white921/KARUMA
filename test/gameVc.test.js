@@ -3,12 +3,25 @@ const assert = require("node:assert/strict");
 const dayjs = require("dayjs");
 const { PermissionsBitField } = require("discord.js");
 
-const { ROLE_IDS } = require("../dist/constant/id.js");
+const { ROLE_IDS, TEXT_CHANNEL_IDS } = require("../dist/constant/id.js");
+const { PANEL_COMMAND_NAMES } = require("../dist/constant/command.js");
 const { GAME_VC } = require("../dist/constant/game.js");
+const {
+  GAME_CRIMINAL_PANEL_MESSAGES,
+  GAME_PANEL_MESSAGES,
+} = require("../dist/constant/panel.js");
+const {
+  createGameCriminalPanelActionRows,
+} = require("../dist/service/gamePanelService.js");
+const {
+  PANEL_INSTALL_TARGETS,
+  resolvePanelInstallTarget,
+} = require("../dist/service/panelInstallService.js");
 const {
   getGameVcTier,
   canPurchaseGamePass,
   calculateGamePassExpireAt,
+  calculateGameCriminalAccessExpireAt,
   buildGameVcCreateConfirmationDescription,
   createGameVcPermissionOverwrites,
 } = require("../dist/service/gameVcService.js");
@@ -56,6 +69,31 @@ test("game VC and its ticket use a 24-hour duration", () => {
   assert.equal(GAME_VC.DURATION_HOURS, 24);
 });
 
+test("criminal game panel provides VC creation, access purchase, and balance view", () => {
+  assert.equal(TEXT_CHANNEL_IDS.GAME_CRIMINAL_PANEL, "1545379810593873990");
+  assert.match(GAME_CRIMINAL_PANEL_MESSAGES.DESCRIPTION, /10,000LIA/);
+  assert.match(GAME_CRIMINAL_PANEL_MESSAGES.DESCRIPTION, /5,000LIA/);
+  assert.match(GAME_CRIMINAL_PANEL_MESSAGES.DESCRIPTION, /24時間/);
+  assert.doesNotMatch(GAME_PANEL_MESSAGES.DESCRIPTION, /罪人/);
+  assert.equal(
+    resolvePanelInstallTarget(TEXT_CHANNEL_IDS.GAME_CRIMINAL_PANEL),
+    PANEL_INSTALL_TARGETS.GAME_CRIMINAL,
+  );
+
+  const [row1, row2] = createGameCriminalPanelActionRows();
+  assert.deepEqual(
+    row1.toJSON().components.map((component) => component.custom_id),
+    [
+      PANEL_COMMAND_NAMES.GAME_VC_CREATE,
+      PANEL_COMMAND_NAMES.GAME_CRIMINAL_ACCESS_PURCHASE,
+    ],
+  );
+  assert.deepEqual(
+    row2.toJSON().components.map((component) => component.custom_id),
+    [PANEL_COMMAND_NAMES.VIEW],
+  );
+});
+
 test("game VC confirmation omits the creator's role", () => {
   const description = buildGameVcCreateConfirmationDescription(
     { label: "支配人", price: GAME_VC.PRICES.TRAVELER_OR_ABOVE },
@@ -79,10 +117,19 @@ test("game pass periods are two weeks and one calendar month", () => {
   );
 });
 
+test("criminal access lasts for 24 hours", () => {
+  const now = dayjs("2026-09-01T12:00:00+09:00");
+  assert.equal(
+    calculateGameCriminalAccessExpireAt(now).toISOString(),
+    "2026-09-02T03:00:00.000Z",
+  );
+});
+
 test("vacant and criminal roles can use VC chat but cannot connect by role", () => {
   const overwrites = createGameVcPermissionOverwrites("guild-id", "creator-id");
   const vacant = overwrites.find((overwrite) => overwrite.id === ROLE_IDS.CORE_MEMBER_ROLES.JUNMEN);
   const criminal = overwrites.find((overwrite) => overwrite.id === ROLE_IDS.CORE_MEMBER_ROLES.HYOKAOTI);
+  const criminalAccess = overwrites.find((overwrite) => overwrite.id === ROLE_IDS.GAME_CRIMINAL_ACCESS);
   const creator = overwrites.find((overwrite) => overwrite.id === "creator-id");
   const requiredChatPermissions = [
     PermissionsBitField.Flags.SendMessages,
@@ -99,5 +146,6 @@ test("vacant and criminal roles can use VC chat but cannot connect by role", () 
   }
   assert.ok(vacant.deny.includes(PermissionsBitField.Flags.Connect));
   assert.ok(criminal.deny.includes(PermissionsBitField.Flags.Connect));
+  assert.ok(criminalAccess.allow.includes(PermissionsBitField.Flags.Connect));
   assert.ok(creator.allow.includes(PermissionsBitField.Flags.Connect));
 });

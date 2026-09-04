@@ -358,6 +358,12 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
       case PANEL_COMMAND_NAMES.GAME_VC_CREATE_MONEY:
         await GameVcService.createVc(interaction, "money");
         break;
+      case PANEL_COMMAND_NAMES.GAME_CRIMINAL_ACCESS_PURCHASE:
+        await GameVcService.showCriminalAccessConfirmation(interaction);
+        break;
+      case PANEL_COMMAND_NAMES.GAME_CRIMINAL_ACCESS_CONFIRM:
+        await GameVcService.purchaseCriminalAccess(interaction);
+        break;
       case PANEL_COMMAND_NAMES.GAME_PASS_TWO_WEEKS:
         await GameVcService.purchasePass(interaction, "twoWeeks");
         break;
