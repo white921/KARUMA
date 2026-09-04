@@ -74,23 +74,29 @@ test("サブ垢登録は無関係なロールに許可しない", () => {
   );
 });
 
-test("サブ垢の基本ロールは整理時に保持する", async () => {
-  const basicRoleId = ROLE_IDS.BASIC_ROLE_IDS.OSU;
+test("サブ垢の基本・年齢ロールは整理時に保持する", async () => {
+  const preservedRoleIds = [
+    ROLE_IDS.BASIC_ROLE_IDS.OSU,
+    ROLE_IDS.BASIC_ROLE_IDS.SEIJIN,
+    ROLE_IDS.BASIC_ROLE_IDS.MISEINEN,
+  ];
   const member = createMember([
     { id: GUILD_ID },
-    { id: basicRoleId },
+    ...preservedRoleIds.map((id) => ({ id })),
     { id: "legacy-role" },
   ]);
 
   await removeRolesExcept(member);
 
-  assert.deepEqual(member.roleIds().sort(), [GUILD_ID, basicRoleId].sort());
+  assert.deepEqual(member.roleIds().sort(), [GUILD_ID, ...preservedRoleIds].sort());
 });
 
 test("本垢の同期対象ロールのみサブ垢へコピーする", async () => {
   const mainMember = createMember([
     { id: GUILD_ID },
     { id: ROLE_IDS.BASIC_ROLE_IDS.OSU },
+    { id: ROLE_IDS.BASIC_ROLE_IDS.SEIJIN },
+    { id: ROLE_IDS.BASIC_ROLE_IDS.MISEINEN },
     { id: "member-role" },
     { id: ROLE_IDS.KANRISYA },
     { id: ROLE_IDS.GAME_PASS },
