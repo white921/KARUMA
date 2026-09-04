@@ -2,19 +2,22 @@ export const MARKET_GACHA_PRICE = 5_000;
 export const MARKET_GACHA_DAILY_LIMIT = 5;
 
 export type MarketGachaPrizeKey =
+  | "superchat"
+  | "song_cover"
+  | "idol_collab"
+  | "superchat_nomination"
+  | "game_free_1"
+  | "game_free_3"
   | "secret_free_1"
   | "secret_free_3"
   | "freedom_free_1"
-  | "cult_chat_free"
-  | "custom_role_week"
   | "discount_5"
   | "discount_10"
-  | "superchat"
-  | "song_cover"
-  | "remote_control"
-  | "game_free_1"
-  | "game_free_3"
-  | "heretic";
+  | "detention_pass_3_days"
+  | "custom_role_week"
+  | "one_more_chance"
+  | "day_off"
+  | "event_proposal";
 
 export type MarketGachaAudioCategory = "superchat" | "song_cover";
 
@@ -28,37 +31,40 @@ export type MarketGachaPrize = {
 
 /** 確率の単位は %。合計が100になることをテストで保証する。 */
 export const MARKET_GACHA_PRIZES: readonly MarketGachaPrize[] = [
-  { key: "secret_free_1", label: "シークレット無料チケット 1枚", probability: 5 },
-  { key: "secret_free_3", label: "シークレット無料チケット 3枚", probability: 3 },
-  { key: "freedom_free_1", label: "フリーダム無料チケット 1枚", probability: 3 },
-  { key: "cult_chat_free", label: "皇帝雑談無料", probability: 9.5 },
-  { key: "custom_role_week", label: "カスタムロール 一週間", probability: 0.5 },
-  {
-    key: "discount_5",
-    label: "市場割引 5%OFF（100万LIA以上の商品は利用不可）",
-    probability: 8,
-  },
-  {
-    key: "discount_10",
-    label: "市場割引 10%OFF（100万LIA以上の商品は利用不可）",
-    probability: 3,
-  },
   {
     key: "superchat",
-    label: "騎士以上 サプボ",
-    probability: 20,
+    label: "サプボ",
+    probability: 18,
     audioCategory: "superchat",
   },
   {
     key: "song_cover",
-    label: "騎士以上 歌みた",
-    probability: 20,
+    label: "歌みた",
+    probability: 18,
     audioCategory: "song_cover",
   },
-  { key: "remote_control", label: "皇帝遠隔", probability: 3 },
-  { key: "game_free_1", label: "遊戯チケット 1枚", probability: 15 },
-  { key: "game_free_3", label: "遊戯チケット 3枚", probability: 5 },
-  { key: "heretic", label: "闇市場通行券3日分", probability: 5 },
+  { key: "idol_collab", label: "アイドルコラボ", probability: 3 },
+  { key: "superchat_nomination", label: "サプボ指名", probability: 5 },
+  { key: "game_free_1", label: "遊戯チケット 1枚", probability: 12.5 },
+  { key: "game_free_3", label: "遊戯チケット 3枚", probability: 6.5 },
+  { key: "secret_free_1", label: "シークレット無料チケット 1枚", probability: 6.5 },
+  { key: "secret_free_3", label: "シークレット無料チケット 3枚", probability: 3 },
+  { key: "freedom_free_1", label: "フリーダム無料チケット 1枚", probability: 3 },
+  {
+    key: "discount_5",
+    label: "市場割引 5%OFF（100万LIA以上の商品は利用不可）",
+    probability: 5,
+  },
+  {
+    key: "discount_10",
+    label: "市場割引 10%OFF（100万LIA以上の商品は利用不可）",
+    probability: 2,
+  },
+  { key: "detention_pass_3_days", label: "収容所通行券（3日）", probability: 7 },
+  { key: "custom_role_week", label: "カスタムロール（1週間）", probability: 0.5 },
+  { key: "one_more_chance", label: "ワンモアチャンス", probability: 5 },
+  { key: "day_off", label: "1日休み", probability: 2 },
+  { key: "event_proposal", label: "イベント提案券", probability: 3 },
 ];
 
 export function selectMarketGachaPrize(randomValue: number): MarketGachaPrize {

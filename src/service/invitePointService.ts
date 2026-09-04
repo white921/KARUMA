@@ -128,4 +128,33 @@ export class InvitePointService {
     );
     return afterPoints;
   }
+
+  /** 呼び出し側のトランザクション内で、ワンモアチャンスの招待ポイントを1pt付与する。 */
+  static async grantForGachaReward(
+    connection: PoolConnection,
+    userId: string,
+  ): Promise<number> {
+    await connection.execute(
+      `INSERT INTO invite_point_balances (user_id, points)
+       VALUES (?, 0)
+       ON DUPLICATE KEY UPDATE points = points`,
+      [userId],
+    );
+    const [balances] = await connection.execute<InvitePointBalanceRow[]>(
+      "SELECT points FROM invite_point_balances WHERE user_id = ? FOR UPDATE",
+      [userId],
+    );
+    const afterPoints = Number(balances[0].points) + INVITE_POINT_GACHA_COST;
+    await connection.execute(
+      "UPDATE invite_point_balances SET points = ? WHERE user_id = ?",
+      [afterPoints, userId],
+    );
+    await connection.execute(
+      `INSERT INTO invite_point_transactions
+       (user_id, transaction_type, amount, balance_after)
+       VALUES (?, 'gacha_reward', ?, ?)`,
+      [userId, INVITE_POINT_GACHA_COST, afterPoints],
+    );
+    return afterPoints;
+  }
 }

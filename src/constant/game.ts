@@ -6,7 +6,7 @@ export const GAME_PRICE = {
 
 export const GAME_VC = {
   TYPE: "GAME",
-  DURATION_HOURS: 12,
+  DURATION_HOURS: 24,
   PRICES: {
     TRAVELER_OR_ABOVE: 5000,
     VACANT: 6000,

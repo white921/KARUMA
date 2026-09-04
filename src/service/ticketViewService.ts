@@ -35,7 +35,7 @@ export class TicketViewService {
       ),
       "",
       "**遊戯チケット**",
-      `VC作成（12時間）: ${gameQuantities[GAME_FREE_TICKET_TYPE.VC_CREATE]}枚`,
+      `VC作成（24時間）: ${gameQuantities[GAME_FREE_TICKET_TYPE.VC_CREATE]}枚`,
     ].join("\n");
   }
 
@@ -65,7 +65,7 @@ export class TicketViewService {
     const quantities = await GameFreeTicketService.getTicketQuantities(userId);
     return [
       "🎫 **遊戯チケット**",
-      `VC作成（12時間）: ${quantities[GAME_FREE_TICKET_TYPE.VC_CREATE]}枚`,
+      `VC作成（24時間）: ${quantities[GAME_FREE_TICKET_TYPE.VC_CREATE]}枚`,
     ].join("\n");
   }
 

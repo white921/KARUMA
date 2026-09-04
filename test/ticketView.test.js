@@ -31,7 +31,7 @@ test("ticket confirmation lists every owned ticket type", async () => {
     assert.match(message, /フリーダム（12時間）: 2枚/);
     assert.match(message, /市場割引 5%OFF: 3枚/);
     assert.match(message, /市場割引 10%OFF: 0枚/);
-    assert.match(message, /VC作成（12時間）: 4枚/);
+    assert.match(message, /VC作成（24時間）: 4枚/);
   } finally {
     HotelFreeTicketService.getTicketQuantities = originalHotel;
     ShopTicketService.getOwnedTickets = originalShop;

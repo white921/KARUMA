@@ -104,7 +104,7 @@ INSERT INTO items (item_key, name, description) VALUES
   ('HOTEL_FREEDOM_FREE', 'フリーダム無料券', 'フリーダム（12時間）を無料で利用できる券'),
   ('SHOP_DISCOUNT_5', '市場割引券 5%OFF', '100万LIA未満の市場支払いに使える5%割引券'),
   ('SHOP_DISCOUNT_10', '市場割引券 10%OFF', '100万LIA未満の市場支払いに使える10%割引券'),
-  ('GAME_SHORT_FREE', '遊戯チケット', '遊戯VCを1部屋（12時間）無料で作成できる券')
+  ('GAME_SHORT_FREE', '遊戯チケット', '遊戯VCを1部屋（24時間）無料で作成できる券')
 ON DUPLICATE KEY UPDATE
   name = VALUES(name),
   description = VALUES(description);
@@ -280,6 +280,15 @@ CREATE TABLE IF NOT EXISTS market_gacha_draws (
 )
 COMMENT='市場ガチャ抽選履歴';
 
+CREATE TABLE IF NOT EXISTS market_gacha_daily_locks (
+  user_id BIGINT NOT NULL COMMENT '1日休みを引いたDiscordユーザーID',
+  lock_date DATE NOT NULL COMMENT '日本時間の対象日',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'ロック日時',
+  PRIMARY KEY (user_id, lock_date),
+  FOREIGN KEY (user_id) REFERENCES accounts(user_id) ON DELETE CASCADE
+)
+COMMENT='市場ガチャの1日休みロック';
+
 CREATE TABLE IF NOT EXISTS invite_point_balances (
   user_id BIGINT NOT NULL COMMENT 'DiscordユーザーID',
   points INTEGER NOT NULL DEFAULT 0 COMMENT '現在の招待ポイント',
@@ -293,7 +302,7 @@ CREATE TABLE IF NOT EXISTS invite_point_transactions (
   id INTEGER NOT NULL AUTO_INCREMENT COMMENT '招待ポイント取引ID',
   user_id BIGINT NOT NULL COMMENT '対象DiscordユーザーID',
   operator_user_id BIGINT DEFAULT NULL COMMENT '付与実行者。ガチャ消費時はNULL',
-  transaction_type VARCHAR(32) NOT NULL COMMENT 'grant または gacha_draw',
+  transaction_type VARCHAR(32) NOT NULL COMMENT 'grant、gacha_draw、gacha_reward',
   amount INTEGER NOT NULL COMMENT '増減ポイント。消費は負数',
   balance_after INTEGER NOT NULL COMMENT '取引後残高',
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -321,6 +330,7 @@ CREATE TABLE IF NOT EXISTS market_gacha_audio_assets (
   id INTEGER NOT NULL AUTO_INCREMENT COMMENT '音源ID',
   category VARCHAR(32) NOT NULL COMMENT 'superchat または song_cover',
   performer_name VARCHAR(128) NOT NULL COMMENT '演者名',
+  performer_user_id BIGINT DEFAULT NULL COMMENT '演者のDiscordユーザーID',
   object_key VARCHAR(512) NOT NULL COMMENT 'R2オブジェクトキー',
   file_name VARCHAR(255) NOT NULL COMMENT '元ファイル名',
   public_url VARCHAR(1024) NOT NULL COMMENT 'R2公開URL',
@@ -345,17 +355,26 @@ CREATE TABLE IF NOT EXISTS market_gacha_audio_deliveries (
 COMMENT='市場ガチャの音源配信履歴';
 
 INSERT INTO market_gacha_audio_assets
-  (category, performer_name, object_key, file_name, public_url)
+  (category, performer_name, performer_user_id, object_key, file_name, public_url)
 VALUES
-  ('superchat', '強がり', 'superchat/seikin/trim_B20B1C9A-508E-44CC-A98F-F9979DEE8CC4.mp4', 'trim_B20B1C9A-508E-44CC-A98F-F9979DEE8CC4.mp4', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/superchat/seikin/trim_B20B1C9A-508E-44CC-A98F-F9979DEE8CC4.mp4'),
-  ('song_cover', '強がり', 'song-cover/seikin/My_Movie.mov', 'My_Movie.mov', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/song-cover/seikin/My_Movie.mov'),
-  ('song_cover', 'エロ感ワイド', 'song-cover/kenzoku/ScreenRecording_07-03-2026_02-49-16_1.mov', 'ScreenRecording_07-03-2026_02-49-16_1.mov', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/song-cover/kenzoku/ScreenRecording_07-03-2026_02-49-16_1.mov'),
-  ('superchat', 'エロ感ワイド', 'superchat/kenzoku/ScreenRecording_02-26-2026_21-40-47_1-1.mov', 'ScreenRecording_02-26-2026_21-40-47_1-1.mov', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/superchat/kenzoku/ScreenRecording_02-26-2026_21-40-47_1-1.mov'),
-  ('superchat', 'killer対象外', 'superchat/zanki/4271EDAB-88CF-4C6E-B32C-D6948422CA80-1.mov', '4271EDAB-88CF-4C6E-B32C-D6948422CA80-1.mov', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/superchat/zanki/4271EDAB-88CF-4C6E-B32C-D6948422CA80-1.mov'),
-  ('superchat', 'killer対象外', 'superchat/zanki/copy_C7A0EC8D-35D0-4E6F-BE82-40DB38458B6B.mov', 'copy_C7A0EC8D-35D0-4E6F-BE82-40DB38458B6B.mov', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/superchat/zanki/copy_C7A0EC8D-35D0-4E6F-BE82-40DB38458B6B.mov')
+  ('superchat', '強がり', 1223107953444257812, 'superchat/seikin/trim_B20B1C9A-508E-44CC-A98F-F9979DEE8CC4.mp4', 'trim_B20B1C9A-508E-44CC-A98F-F9979DEE8CC4.mp4', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/superchat/seikin/trim_B20B1C9A-508E-44CC-A98F-F9979DEE8CC4.mp4'),
+  ('song_cover', '強がり', 1223107953444257812, 'song-cover/seikin/My_Movie.mov', 'My_Movie.mov', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/song-cover/seikin/My_Movie.mov'),
+  ('song_cover', 'エロ感ワイド', 1536218537696165949, 'song-cover/kenzoku/ScreenRecording_07-03-2026_02-49-16_1.mov', 'ScreenRecording_07-03-2026_02-49-16_1.mov', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/song-cover/kenzoku/ScreenRecording_07-03-2026_02-49-16_1.mov'),
+  ('superchat', 'エロ感ワイド', 1536218537696165949, 'superchat/kenzoku/ScreenRecording_02-26-2026_21-40-47_1-1.mov', 'ScreenRecording_02-26-2026_21-40-47_1-1.mov', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/superchat/kenzoku/ScreenRecording_02-26-2026_21-40-47_1-1.mov'),
+  ('superchat', 'killer対象外', 1508895495873888452, 'superchat/zanki/4271EDAB-88CF-4C6E-B32C-D6948422CA80-1.mov', '4271EDAB-88CF-4C6E-B32C-D6948422CA80-1.mov', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/superchat/zanki/4271EDAB-88CF-4C6E-B32C-D6948422CA80-1.mov'),
+  ('superchat', 'killer対象外', 1508895495873888452, 'superchat/zanki/copy_C7A0EC8D-35D0-4E6F-BE82-40DB38458B6B.mov', 'copy_C7A0EC8D-35D0-4E6F-BE82-40DB38458B6B.mov', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/superchat/zanki/copy_C7A0EC8D-35D0-4E6F-BE82-40DB38458B6B.mov'),
+  ('song_cover', 'secret', 1074608247463493715, 'song-cover/secret/2c3bb35d17d4eb67c0338ca3e173bd89.mp4', '2c3bb35d17d4eb67c0338ca3e173bd89.mp4', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/song-cover/secret/2c3bb35d17d4eb67c0338ca3e173bd89.mp4'),
+  ('song_cover', 'フェルミ研究所', 1091698540088139788, 'song-cover/fermi-research-institute/ScreenRecording_08-12-2026_19-52-22_1.mov', 'ScreenRecording_08-12-2026_19-52-22_1.mov', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/song-cover/fermi-research-institute/ScreenRecording_08-12-2026_19-52-22_1.mov'),
+  ('superchat', '君の愛BOY', 1179423319250964492, 'superchat/kimi-no-ai-boy/copy_176E00E6-F1E6-49DC-B08C-30336EF1A99A-1.mov', 'copy_176E00E6-F1E6-49DC-B08C-30336EF1A99A-1.mov', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/superchat/kimi-no-ai-boy/copy_176E00E6-F1E6-49DC-B08C-30336EF1A99A-1.mov'),
+  ('superchat', '100円娯楽', 1131832710097293342, 'superchat/100-yen-goraku/2B9298D8-C1F7-46B7-8712-F2E6CFCD9291.mov', '2B9298D8-C1F7-46B7-8712-F2E6CFCD9291.mov', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/superchat/100-yen-goraku/2B9298D8-C1F7-46B7-8712-F2E6CFCD9291.mov'),
+  ('superchat', '夏', 1363509186461176121, 'superchat/natsu/copy_9511E1BF-C787-456A-8AD5-C99A4CBD888F.mov', 'copy_9511E1BF-C787-456A-8AD5-C99A4CBD888F.mov', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/superchat/natsu/copy_9511E1BF-C787-456A-8AD5-C99A4CBD888F.mov'),
+  ('superchat', '夏', 1363509186461176121, 'superchat/natsu/copy_BB847ACA-73BB-4CAE-A733-6BA1459ADDF3.mov', 'copy_BB847ACA-73BB-4CAE-A733-6BA1459ADDF3.mov', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/superchat/natsu/copy_BB847ACA-73BB-4CAE-A733-6BA1459ADDF3.mov'),
+  ('song_cover', '強がり', 1223107953444257812, 'song-cover/seikin/copy_E1CE7C12-66B3-40D5-8DE0-EE6B4A1B5FB3.mov', 'copy_E1CE7C12-66B3-40D5-8DE0-EE6B4A1B5FB3.mov', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/song-cover/seikin/copy_E1CE7C12-66B3-40D5-8DE0-EE6B4A1B5FB3.mov'),
+  ('superchat', '強がり', 1223107953444257812, 'superchat/seikin/ScreenRecording_11-28-2025_23-14-12_1.mov', 'ScreenRecording_11-28-2025 23-14-12_1.mov', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/superchat/seikin/ScreenRecording_11-28-2025_23-14-12_1.mov')
 ON DUPLICATE KEY UPDATE
   category = VALUES(category),
   performer_name = VALUES(performer_name),
+  performer_user_id = VALUES(performer_user_id),
   file_name = VALUES(file_name),
   public_url = VALUES(public_url);
 

@@ -17,7 +17,7 @@ import {
   selectMarketGachaPrize,
 } from "../constant/marketGacha";
 import { PANEL_COMMAND_NAMES } from "../constant/command";
-import { BOT_ID, ROLE_IDS, THREAD_IDS } from "../constant/id";
+import { BOT_ID, ROLE_IDS, TEXT_CHANNEL_IDS, THREAD_IDS } from "../constant/id";
 import { CURRENCY_NAMES } from "../constant/currency";
 import { DbService } from "./dbService";
 import { HotelFreeTicketService } from "./hotelFreeTicketService";
@@ -30,17 +30,24 @@ import { SHOP_TICKET_TYPE, ShopTicketType } from "../constant/shopTicket";
 import { INVITE_POINT_GACHA_COST } from "../constant/invitePoint";
 import { ACTION_TYPES } from "../constant/action";
 
+const GENERAL_INQUIRY_CHANNEL_MENTION = `<#${TEXT_CHANNEL_IDS.GENERAL_INQUIRY}>`;
+const MARKET_TICKET_GUIDANCE = `${GENERAL_INQUIRY_CHANNEL_MENTION}にて市場チケットを切り、当選メッセージをスクショしてチケット内に送信してください。`;
+
 type WalletRow = RowDataPacket & { wallet: number };
 type AudioAssetRow = RowDataPacket & {
   id: number;
   performer_name: string;
+  performer_user_id: string | null;
   file_name: string;
   public_url: string;
 };
 
+type DailyLockRow = RowDataPacket & { user_id: string };
+
 type MarketGachaAudioAsset = {
   id: number;
   performerName: string;
+  performerUserId?: string;
   fileName: string;
   publicUrl: string;
 };
@@ -184,7 +191,7 @@ export class MarketGachaService {
   ): string {
     if (audioAsset) {
       const audioPrizeName = prize.audioCategory === "superchat" ? "サプボ" : "歌みた";
-      return `**${audioAsset.performerName}** の${audioPrizeName}です！\nファイルのURLをDMにて送信したのでご確認ください。\n${AUDIO_PRIZE_PROHIBITION_NOTICE}`;
+      return `${this.getPerformerMention(audioAsset)}の${audioPrizeName}です！\nファイルのURLをDMにて送信したのでご確認ください。\n${AUDIO_PRIZE_PROHIBITION_NOTICE}`;
     }
 
     const hotelTicketGrant = this.getHotelTicketGrant(prize);
@@ -196,22 +203,42 @@ export class MarketGachaService {
     }
 
     if (this.getGameTicketGrant(prize)) {
-      return "次回、遊戯VCを作成するときにチケットを1枚消費して無料で作成できます。";
+      return "次回遊戯24hを使用時に、優先的にチケットが消費されるようになります。";
     }
 
     if (this.getShopTicketGrant(prize)) {
-      return "[総合お問い合わせ](https://discord.com/channels/1534636292153807039/1534641084016230600)にて市場チケットを切り、割引券を使用したい旨と商品を商人にお伝えください。割引後の支払額を確認したら、市場パネルからその金額を送金してください。100万LIA以上の商品には利用できません。";
+      return `${GENERAL_INQUIRY_CHANNEL_MENTION}にて市場チケットを切り、割引券を使用したい旨と商品を商人にお伝えください。割引後の支払額を確認したら、市場パネルからその金額を送金してください。100万LIA以上の商品には利用できません。`;
     }
 
-    if (prize.key === "remote_control") {
-      return "[総合お問い合わせ](https://discord.com/channels/1534636292153807039/1534641084016230600)にて市場チケットを切り、皇帝をメンションのうえ、当選メッセージをスクショしてチケット内に送信してください。";
+    if (prize.key === "idol_collab") {
+      return `<@&${ROLE_IDS.SINGER_CROWN}>と歌コラボすることができます！\nご利用の際は${MARKET_TICKET_GUIDANCE}`;
     }
 
-    if (prize.key === "heretic") {
-      return "[総合お問い合わせ](https://discord.com/channels/1534636292153807039/1534641084016230600)にて市場チケットを切り、当選メッセージをスクショしてチケット内に送信してください。";
+    if (prize.key === "superchat_nomination") {
+      return `<@&${ROLE_IDS.CORE_MEMBER_ROLES.HONMEN}> <@&${ROLE_IDS.CORE_MEMBER_ROLES.JUNHONMEN}>の誰か1人にサンプルボイスを撮ってもらうことができます。できたサンプルボイスは市場ガチャに追加されます。\nご利用の際は${MARKET_TICKET_GUIDANCE}`;
     }
 
-    return "[総合お問い合わせ](https://discord.com/channels/1534636292153807039/1534641084016230600)にて市場チケットを切り、当選メッセージをスクショしてチケット内に送信してください。";
+    if (prize.key === "custom_role_week") {
+      return `1週間限定のカスタムロールを作ることができます。\n${MARKET_TICKET_GUIDANCE}`;
+    }
+
+    if (prize.key === "one_more_chance") {
+      return "もう一度ガチャを引くことができます！自動的に招待ポイントが1pt付与されているので、招待ポイントで引くことができます。";
+    }
+
+    if (prize.key === "day_off") {
+      return "今日のガチャはこれでおしまい！また明日ガチャを引いてね。";
+    }
+
+    if (prize.key === "event_proposal") {
+      return `イベントを提案することができます！採用されたら報酬のLIAがあります！\nご利用の際は${MARKET_TICKET_GUIDANCE}`;
+    }
+
+    if (prize.key === "detention_pass_3_days") {
+      return MARKET_TICKET_GUIDANCE;
+    }
+
+    return MARKET_TICKET_GUIDANCE;
   }
 
   private static async sendAudioPrizeDm(
@@ -222,7 +249,7 @@ export class MarketGachaService {
     const audioPrizeName = prize.audioCategory === "superchat" ? "サプボ" : "歌みた";
     try {
       await interaction.user.send(
-        `🎉 **${audioAsset.performerName}** の${audioPrizeName}です！\nファイルURL: <${audioAsset.publicUrl}>\n\n${AUDIO_PRIZE_PROHIBITION_NOTICE}`,
+        `🎉 ${this.getPerformerMention(audioAsset)}の${audioPrizeName}です！\nファイルURL: <${audioAsset.publicUrl}>\n\n${AUDIO_PRIZE_PROHIBITION_NOTICE}`,
       );
       return true;
     } catch (error) {
@@ -265,7 +292,7 @@ export class MarketGachaService {
     }
 
     const [rows] = await connection.execute<AudioAssetRow[]>(
-      `SELECT id, performer_name, file_name, public_url
+      `SELECT id, performer_name, performer_user_id, file_name, public_url
        FROM market_gacha_audio_assets
        WHERE category = ? AND is_active = 1
        ORDER BY RAND()
@@ -280,9 +307,16 @@ export class MarketGachaService {
     return {
       id: Number(asset.id),
       performerName: asset.performer_name,
+      performerUserId: asset.performer_user_id ?? undefined,
       fileName: asset.file_name,
       publicUrl: asset.public_url,
     };
+  }
+
+  private static getPerformerMention(audioAsset: MarketGachaAudioAsset): string {
+    return audioAsset.performerUserId
+      ? `<@${audioAsset.performerUserId}>`
+      : `**${audioAsset.performerName}**`;
   }
 
   /**
@@ -299,6 +333,7 @@ export class MarketGachaService {
     let remainingDraws = 0;
     let afterWallet = 0;
     let afterInvitePoints: number | undefined;
+    let awardedInvitePoints: number | undefined;
     let audioAsset: MarketGachaAudioAsset | undefined;
     try {
       await connection.beginTransaction();
@@ -314,6 +349,18 @@ export class MarketGachaService {
       );
       if (!isDailyLimitExempt && drawRows.length >= MARKET_GACHA_DAILY_LIMIT) {
         throw new Error(`市場ガチャは1日${MARKET_GACHA_DAILY_LIMIT}回までです。`);
+      }
+
+      const [dailyLocks] = await connection.execute<DailyLockRow[]>(
+        `SELECT user_id
+         FROM market_gacha_daily_locks
+         WHERE user_id = ?
+           AND lock_date = DATE(CONVERT_TZ(UTC_TIMESTAMP(), '+00:00', '+09:00'))
+         FOR UPDATE`,
+        [interaction.user.id],
+      );
+      if (dailyLocks[0]) {
+        throw new Error("今日のガチャはこれでおしまい！また明日ガチャを引いてね。");
       }
 
       // 当選ファイルが未登録なら、料金を引き落とす前に中止する。
@@ -395,6 +442,19 @@ export class MarketGachaService {
           gameTicketGrant.quantity,
         );
       }
+      if (prize.key === "one_more_chance") {
+        awardedInvitePoints = await InvitePointService.grantForGachaReward(
+          connection,
+          interaction.user.id,
+        );
+      }
+      if (prize.key === "day_off") {
+        await connection.execute(
+          `INSERT INTO market_gacha_daily_locks (user_id, lock_date)
+           VALUES (?, DATE(CONVERT_TZ(UTC_TIMESTAMP(), '+00:00', '+09:00')))`,
+          [interaction.user.id],
+        );
+      }
       if (paymentSource === "currency") {
         await connection.execute(
           `INSERT INTO actions
@@ -432,12 +492,17 @@ export class MarketGachaService {
         (paymentSource === "invite_point"
           ? `消費：${INVITE_POINT_GACHA_COST}招待ポイント／残り：${afterInvitePoints}pt\n`
           : "") +
-        (isDailyLimitExempt
-          ? "技術統括・鯖主テスト中のため、1日の回数制限は適用されません。\n\n"
-          : `本日の残り回数：${remainingDraws}回\n\n`) +
+        (prize.key === "day_off"
+          ? "\n"
+          : isDailyLimitExempt
+            ? "技術統括・鯖主テスト中のため、1日の回数制限は適用されません。\n\n"
+            : `本日の残り回数：${remainingDraws}回\n\n`) +
         (audioAsset && !audioDmDelivered
           ? `ファイルのURLをDMに送信できませんでした。DMの受信設定を確認後、総合お問い合わせへご連絡ください。\n${AUDIO_PRIZE_PROHIBITION_NOTICE}`
-          : this.getTicketInstructions(prize, audioAsset)),
+          : this.getTicketInstructions(prize, audioAsset)) +
+        (awardedInvitePoints === undefined
+          ? ""
+          : `\n現在の招待ポイント：${awardedInvitePoints}pt`),
       components: [],
     });
   }

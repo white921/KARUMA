@@ -44,6 +44,10 @@ test("only traveler or above can purchase a game pass", () => {
   );
 });
 
+test("game VC and its ticket use a 24-hour duration", () => {
+  assert.equal(GAME_VC.DURATION_HOURS, 24);
+});
+
 test("game pass periods are two weeks and one calendar month", () => {
   const now = dayjs("2026-09-01T12:00:00+09:00");
   assert.equal(

@@ -30,5 +30,5 @@ test("game panel provides VC creation, game passes, and ticket confirmation", ()
   assert.equal(GAME_PANEL_MESSAGES.TICKET_VIEW, "チケット確認");
   assert.match(GAME_PANEL_MESSAGES.DESCRIPTION, /所持している全種類のチケット/);
   assert.match(GAME_PANEL_MESSAGES.DESCRIPTION, /遊戯チケットを所持している場合/);
-  assert.match(GAME_PANEL_MESSAGES.DESCRIPTION, /12時間/);
+  assert.match(GAME_PANEL_MESSAGES.DESCRIPTION, /24時間/);
 });
