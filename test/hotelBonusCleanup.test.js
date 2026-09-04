@@ -2,6 +2,7 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 
 const { HOTEL_TYPE } = require("../dist/constant/hotel.js");
+const { ROLE_IDS } = require("../dist/constant/id.js");
 const { HotelVcService } = require("../dist/service/hotelVcService.js");
 const { DbService } = require("../dist/service/dbService.js");
 
@@ -67,6 +68,10 @@ function createVoiceChannel(id, members = []) {
   };
 }
 
+function memberWithRoles(roleIds) {
+  return { roles: { cache: { has: (roleId) => roleIds.includes(roleId) } } };
+}
+
 test.afterEach(() => {
   DbService.getConnection = originals.getConnection;
   Date.now = originals.dateNow;
@@ -100,6 +105,15 @@ test("does not delete a paid hotel VC when it becomes empty", async () => {
   assert.equal(deleted, false);
   assert.equal(channel.deleted, false);
   assert.equal(statements.length, 1);
+});
+
+test("hotel manager can create a normal hotel as a bonus VC", async () => {
+  assert.equal(
+    await HotelVcService.isNormalHotelBonusMember(
+      memberWithRoles([ROLE_IDS.HOTEL_LEADER]),
+    ),
+    true,
+  );
 });
 
 test("disconnects bots from an empty paid hotel VC", async () => {
