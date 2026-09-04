@@ -53,8 +53,64 @@ const TRAVELER_OR_ABOVE_ROLE_IDS = [
 
 const VC_CONNECT_ROLE_IDS = [
   ...TRAVELER_OR_ABOVE_ROLE_IDS,
-  ROLE_IDS.CORE_MEMBER_ROLES.JUNMEN,
 ];
+
+const GAME_VC_MESSAGE_PERMISSIONS = [
+  PermissionsBitField.Flags.SendMessages,
+  PermissionsBitField.Flags.EmbedLinks,
+  PermissionsBitField.Flags.SendVoiceMessages,
+  PermissionsBitField.Flags.UseEmbeddedActivities,
+];
+
+const GAME_VC_CONNECT_PERMISSIONS = [
+  PermissionsBitField.Flags.ViewChannel,
+  PermissionsBitField.Flags.Connect,
+  PermissionsBitField.Flags.Speak,
+  PermissionsBitField.Flags.UseVAD,
+  PermissionsBitField.Flags.Stream,
+  ...GAME_VC_MESSAGE_PERMISSIONS,
+];
+
+/** 遊戯VC用の権限。空位者・罪人は作成者本人以外への接続を禁止する。 */
+export function createGameVcPermissionOverwrites(
+  guildId: string,
+  creatorUserId: string,
+) {
+  return [
+    {
+      id: guildId,
+      type: OverwriteType.Role,
+      deny: [PermissionsBitField.Flags.ViewChannel],
+    },
+    ...VC_CONNECT_ROLE_IDS.map((roleId) => ({
+      id: roleId,
+      type: OverwriteType.Role,
+      allow: GAME_VC_CONNECT_PERMISSIONS,
+    })),
+    {
+      id: ROLE_IDS.CORE_MEMBER_ROLES.JUNMEN,
+      type: OverwriteType.Role,
+      allow: [PermissionsBitField.Flags.ViewChannel, ...GAME_VC_MESSAGE_PERMISSIONS],
+      deny: [PermissionsBitField.Flags.Connect],
+    },
+    {
+      id: ROLE_IDS.CORE_MEMBER_ROLES.HYOKAOTI,
+      type: OverwriteType.Role,
+      allow: [PermissionsBitField.Flags.ViewChannel, ...GAME_VC_MESSAGE_PERMISSIONS],
+      deny: [PermissionsBitField.Flags.Connect],
+    },
+    {
+      id: creatorUserId,
+      type: OverwriteType.Member,
+      allow: GAME_VC_CONNECT_PERMISSIONS,
+    },
+    {
+      id: ROLE_IDS.GAME_STAFF,
+      type: OverwriteType.Role,
+      allow: GAME_VC_CONNECT_PERMISSIONS,
+    },
+  ];
+}
 
 export function getGameVcTier(member: GuildMember): GameVcTier {
   if (member.roles.cache.has(ROLE_IDS.GAME_STAFF)) {
@@ -190,7 +246,10 @@ export class GameVcService {
       name: `遊戯 - ${member.displayName}`,
       type: ChannelType.GuildVoice,
       parent: category.id,
-      permissionOverwrites: this.createPermissionOverwrites(guild.id),
+      permissionOverwrites: createGameVcPermissionOverwrites(
+        guild.id,
+        interaction.user.id,
+      ),
     });
     const expireAt = new Date(Date.now() + GAME_VC.DURATION_HOURS * 60 * 60 * 1000);
 
@@ -283,40 +342,6 @@ export class GameVcService {
       return "ticket";
     }
     return "money";
-  }
-
-  private static createPermissionOverwrites(guildId: string) {
-    const connectPermissions = [
-      PermissionsBitField.Flags.ViewChannel,
-      PermissionsBitField.Flags.Connect,
-      PermissionsBitField.Flags.Speak,
-      PermissionsBitField.Flags.UseVAD,
-      PermissionsBitField.Flags.Stream,
-      PermissionsBitField.Flags.SendMessages,
-    ];
-    return [
-      {
-        id: guildId,
-        type: OverwriteType.Role,
-        deny: [PermissionsBitField.Flags.ViewChannel],
-      },
-      ...VC_CONNECT_ROLE_IDS.map((roleId) => ({
-        id: roleId,
-        type: OverwriteType.Role,
-        allow: connectPermissions,
-      })),
-      {
-        id: ROLE_IDS.CORE_MEMBER_ROLES.HYOKAOTI,
-        type: OverwriteType.Role,
-        allow: [PermissionsBitField.Flags.ViewChannel],
-        deny: [PermissionsBitField.Flags.Connect],
-      },
-      {
-        id: ROLE_IDS.GAME_STAFF,
-        type: OverwriteType.Role,
-        allow: connectPermissions,
-      },
-    ];
   }
 
   private static async recordVcCreation(

@@ -36,9 +36,47 @@ import { CURRENCY_NAMES } from "../constant/currency";
 import { BOT_ID, ROLE_IDS } from "../constant/id";
 import { normalizePollingIntervalMs } from "../util/runtimeConfig";
 
+const HOTEL_CHAT_PERMISSION_BITS =
+  PermissionsBitField.Flags.SendMessages |
+  PermissionsBitField.Flags.EmbedLinks |
+  PermissionsBitField.Flags.SendVoiceMessages |
+  PermissionsBitField.Flags.UseEmbeddedActivities;
+
+const HOTEL_PARTICIPANT_PERMISSIONS = [
+  PermissionsBitField.Flags.ViewChannel,
+  PermissionsBitField.Flags.Connect,
+  PermissionsBitField.Flags.Speak,
+  PermissionsBitField.Flags.UseVAD,
+  PermissionsBitField.Flags.Stream,
+  PermissionsBitField.Flags.SendMessages,
+  PermissionsBitField.Flags.EmbedLinks,
+  PermissionsBitField.Flags.AttachFiles,
+  PermissionsBitField.Flags.AddReactions,
+  PermissionsBitField.Flags.SendVoiceMessages,
+  PermissionsBitField.Flags.UseEmbeddedActivities,
+];
+
 export class HotelVcService {
   private static expiredVcCheckerStarted = false;
   private static expiredVcCheckerRunning = false;
+
+  /** 接続を許可されたカテゴリロールには、VC内チャットの必要権限も付与する。 */
+  private static copyCategoryPermissionOverwrites(categoryPermissions: any): any[] {
+    const permissionOverwrites: any[] = [];
+    if (!categoryPermissions) return permissionOverwrites;
+
+    categoryPermissions.forEach((overwrite: any) => {
+      permissionOverwrites.push({
+        id: overwrite.id,
+        type: overwrite.type,
+        allow: overwrite.allow.has(PermissionsBitField.Flags.Connect)
+          ? overwrite.allow.bitfield | HOTEL_CHAT_PERMISSION_BITS
+          : overwrite.allow,
+        deny: overwrite.deny,
+      });
+    });
+    return permissionOverwrites;
+  }
 
   private static async sendHotelVcMessage(
     voiceChannel: VoiceChannel,
@@ -282,34 +320,15 @@ export class HotelVcService {
           channelName = `通常 - ${member.displayName}`;
 
           // カテゴリーの権限を取得
-          const normalPermissionOverwrites: any[] = [];
-          if (categoryPermissions) {
-            categoryPermissions.forEach((overwrite) => {
-              normalPermissionOverwrites.push({
-                id: overwrite.id,
-                type: overwrite.type,
-                allow: overwrite.allow,
-                deny: overwrite.deny,
-              });
-            });
-          }
+          const normalPermissionOverwrites = this.copyCategoryPermissionOverwrites(
+            categoryPermissions,
+          );
 
           // 作成者にチャンネル管理権限を追加
           normalPermissionOverwrites.push({
             id: interaction.user.id,
             type: OverwriteType.Member,
-            allow: [
-              PermissionsBitField.Flags.ViewChannel,
-              PermissionsBitField.Flags.Connect,
-              PermissionsBitField.Flags.Speak,
-              PermissionsBitField.Flags.UseVAD,
-              PermissionsBitField.Flags.Stream,
-              PermissionsBitField.Flags.SendMessages,
-              PermissionsBitField.Flags.AttachFiles,
-              PermissionsBitField.Flags.AddReactions,
-              PermissionsBitField.Flags.SendVoiceMessages,
-              PermissionsBitField.Flags.UseEmbeddedActivities,
-            ],
+            allow: HOTEL_PARTICIPANT_PERMISSIONS,
             deny: [
               PermissionsBitField.Flags.UseExternalEmojis,
               PermissionsBitField.Flags.UseExternalStickers,
@@ -354,33 +373,14 @@ export class HotelVcService {
           channelName = `VIP - ${member.displayName} & ${selectedMember?.displayName}`;
 
           // カテゴリーの権限を取得
-          const secretPermissionOverwrites: any[] = [];
-          if (categoryPermissions) {
-            categoryPermissions.forEach((overwrite) => {
-              secretPermissionOverwrites.push({
-                id: overwrite.id,
-                type: overwrite.type,
-                allow: overwrite.allow,
-                deny: overwrite.deny,
-              });
-            });
-          }
+          const secretPermissionOverwrites = this.copyCategoryPermissionOverwrites(
+            categoryPermissions,
+          );
 
           secretPermissionOverwrites.push({
             id: interaction.user.id,
             type: OverwriteType.Member,
-            allow: [
-              PermissionsBitField.Flags.ViewChannel,
-              PermissionsBitField.Flags.Connect,
-              PermissionsBitField.Flags.Speak,
-              PermissionsBitField.Flags.UseVAD,
-              PermissionsBitField.Flags.Stream,
-              PermissionsBitField.Flags.SendMessages,
-              PermissionsBitField.Flags.AttachFiles,
-              PermissionsBitField.Flags.AddReactions,
-              PermissionsBitField.Flags.SendVoiceMessages,
-              PermissionsBitField.Flags.UseEmbeddedActivities,
-            ],
+            allow: HOTEL_PARTICIPANT_PERMISSIONS,
             deny: [
               PermissionsBitField.Flags.UseExternalEmojis,
               PermissionsBitField.Flags.UseExternalStickers,
@@ -392,18 +392,7 @@ export class HotelVcService {
             secretPermissionOverwrites.push({
               id: subMember.id,
               type: OverwriteType.Member,
-              allow: [
-                PermissionsBitField.Flags.ViewChannel,
-                PermissionsBitField.Flags.Connect,
-                PermissionsBitField.Flags.Speak,
-                PermissionsBitField.Flags.UseVAD,
-                PermissionsBitField.Flags.Stream,
-                PermissionsBitField.Flags.SendMessages,
-                PermissionsBitField.Flags.AttachFiles,
-                PermissionsBitField.Flags.AddReactions,
-                PermissionsBitField.Flags.SendVoiceMessages,
-                PermissionsBitField.Flags.UseEmbeddedActivities,
-              ],
+              allow: HOTEL_PARTICIPANT_PERMISSIONS,
               deny: [
                 PermissionsBitField.Flags.UseExternalEmojis,
                 PermissionsBitField.Flags.UseExternalStickers,
@@ -415,18 +404,7 @@ export class HotelVcService {
           secretPermissionOverwrites.push({
             id: selectedUserId,
             type: OverwriteType.Member,
-            allow: [
-              PermissionsBitField.Flags.ViewChannel,
-              PermissionsBitField.Flags.Connect,
-              PermissionsBitField.Flags.Speak,
-              PermissionsBitField.Flags.UseVAD,
-              PermissionsBitField.Flags.Stream,
-              PermissionsBitField.Flags.SendMessages,
-              PermissionsBitField.Flags.AttachFiles,
-              PermissionsBitField.Flags.AddReactions,
-              PermissionsBitField.Flags.SendVoiceMessages,
-              PermissionsBitField.Flags.UseEmbeddedActivities,
-            ],
+            allow: HOTEL_PARTICIPANT_PERMISSIONS,
             deny: [
               PermissionsBitField.Flags.UseExternalEmojis,
               PermissionsBitField.Flags.UseExternalStickers,
@@ -438,18 +416,7 @@ export class HotelVcService {
             secretPermissionOverwrites.push({
               id: selectedSubMember.id,
               type: OverwriteType.Member,
-              allow: [
-                PermissionsBitField.Flags.ViewChannel,
-                PermissionsBitField.Flags.Connect,
-                PermissionsBitField.Flags.Speak,
-                PermissionsBitField.Flags.UseVAD,
-                PermissionsBitField.Flags.Stream,
-                PermissionsBitField.Flags.SendMessages,
-                PermissionsBitField.Flags.AttachFiles,
-                PermissionsBitField.Flags.AddReactions,
-                PermissionsBitField.Flags.SendVoiceMessages,
-                PermissionsBitField.Flags.UseEmbeddedActivities,
-              ],
+              allow: HOTEL_PARTICIPANT_PERMISSIONS,
               deny: [
                 PermissionsBitField.Flags.UseExternalEmojis,
                 PermissionsBitField.Flags.UseExternalStickers,
@@ -527,17 +494,9 @@ export class HotelVcService {
           channelName = `フリーダム - ${member.displayName}`;
 
           // カテゴリーの権限を取得
-          const freedomPermissionOverwrites: any[] = [];
-          if (categoryPermissions) {
-            categoryPermissions.forEach((overwrite) => {
-              freedomPermissionOverwrites.push({
-                id: overwrite.id,
-                type: overwrite.type,
-                allow: overwrite.allow,
-                deny: overwrite.deny,
-              });
-            });
-          }
+          const freedomPermissionOverwrites = this.copyCategoryPermissionOverwrites(
+            categoryPermissions,
+          );
 
           freedomPermissionOverwrites.push(
             {
@@ -582,6 +541,10 @@ export class HotelVcService {
               PermissionsBitField.Flags.Speak,
               PermissionsBitField.Flags.UseVAD,
               PermissionsBitField.Flags.Stream,
+              PermissionsBitField.Flags.SendMessages,
+              PermissionsBitField.Flags.EmbedLinks,
+              PermissionsBitField.Flags.SendVoiceMessages,
+              PermissionsBitField.Flags.UseEmbeddedActivities,
               PermissionsBitField.Flags.ManageChannels,
               PermissionsBitField.Flags.ManageRoles,
             ],
@@ -596,6 +559,10 @@ export class HotelVcService {
                 PermissionsBitField.Flags.Speak,
                 PermissionsBitField.Flags.UseVAD,
                 PermissionsBitField.Flags.Stream,
+                PermissionsBitField.Flags.SendMessages,
+                PermissionsBitField.Flags.EmbedLinks,
+                PermissionsBitField.Flags.SendVoiceMessages,
+                PermissionsBitField.Flags.UseEmbeddedActivities,
                 PermissionsBitField.Flags.ManageChannels,
                 PermissionsBitField.Flags.ManageRoles,
               ],

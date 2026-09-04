@@ -1,6 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const dayjs = require("dayjs");
+const { PermissionsBitField } = require("discord.js");
 
 const { ROLE_IDS } = require("../dist/constant/id.js");
 const { GAME_VC } = require("../dist/constant/game.js");
@@ -8,6 +9,7 @@ const {
   getGameVcTier,
   canPurchaseGamePass,
   calculateGamePassExpireAt,
+  createGameVcPermissionOverwrites,
 } = require("../dist/service/gameVcService.js");
 
 function memberWithRoles(roleIds) {
@@ -58,4 +60,27 @@ test("game pass periods are two weeks and one calendar month", () => {
     calculateGamePassExpireAt("oneMonth", now).toISOString(),
     "2026-10-01T03:00:00.000Z",
   );
+});
+
+test("vacant and criminal roles can use VC chat but cannot connect by role", () => {
+  const overwrites = createGameVcPermissionOverwrites("guild-id", "creator-id");
+  const vacant = overwrites.find((overwrite) => overwrite.id === ROLE_IDS.CORE_MEMBER_ROLES.JUNMEN);
+  const criminal = overwrites.find((overwrite) => overwrite.id === ROLE_IDS.CORE_MEMBER_ROLES.HYOKAOTI);
+  const creator = overwrites.find((overwrite) => overwrite.id === "creator-id");
+  const requiredChatPermissions = [
+    PermissionsBitField.Flags.SendMessages,
+    PermissionsBitField.Flags.EmbedLinks,
+    PermissionsBitField.Flags.SendVoiceMessages,
+    PermissionsBitField.Flags.UseEmbeddedActivities,
+  ];
+
+  for (const overwrite of [vacant, criminal, creator]) {
+    assert.ok(overwrite);
+    for (const permission of requiredChatPermissions) {
+      assert.ok(overwrite.allow.includes(permission));
+    }
+  }
+  assert.ok(vacant.deny.includes(PermissionsBitField.Flags.Connect));
+  assert.ok(criminal.deny.includes(PermissionsBitField.Flags.Connect));
+  assert.ok(creator.allow.includes(PermissionsBitField.Flags.Connect));
 });
