@@ -77,7 +77,7 @@ const GAME_VC_CONNECT_PERMISSIONS = [
   ...GAME_VC_MESSAGE_PERMISSIONS,
 ];
 
-/** 遊戯VC用の権限。空位者・罪人は作成者本人以外への接続を禁止する。 */
+/** 遊戯VC用の権限。空位者は旅人以上と同じ接続権限、罪人は接続権限購入時のみ接続できる。 */
 export function createGameVcPermissionOverwrites(
   guildId: string,
   creatorUserId: string,
@@ -96,8 +96,7 @@ export function createGameVcPermissionOverwrites(
     {
       id: ROLE_IDS.CORE_MEMBER_ROLES.JUNMEN,
       type: OverwriteType.Role,
-      allow: [PermissionsBitField.Flags.ViewChannel, ...GAME_VC_MESSAGE_PERMISSIONS],
-      deny: [PermissionsBitField.Flags.Connect],
+      allow: GAME_VC_CONNECT_PERMISSIONS,
     },
     {
       id: ROLE_IDS.CORE_MEMBER_ROLES.HYOKAOTI,
@@ -423,6 +422,7 @@ export class GameVcService {
       hour: "2-digit",
       minute: "2-digit",
     });
+    await this.sendCriminalAccessLog(interaction, result.afterWallet, expiryText);
     await interaction.editReply({
       content:
         `✅ 遊戯VC接続権限を購入しました。\n` +
@@ -785,18 +785,44 @@ export class GameVcService {
     expiryText: string,
   ): Promise<void> {
     try {
-      const thread = await interaction.client.channels.fetch(THREAD_IDS.GAME_VC_CREATE_LOG_THREAD);
+      const threadId =
+        tier.label === "罪人"
+          ? THREAD_IDS.GAME_CRIMINAL_VC_CREATE_LOG_THREAD
+          : THREAD_IDS.GAME_VC_CREATE_LOG_THREAD;
+      const thread = await interaction.client.channels.fetch(threadId);
       if (!thread || !thread.isThread() || !thread.isTextBased()) {
         throw new Error("VC作成ログスレッドが見つかりません。");
       }
       await (thread as ThreadChannel).send(
-        `**遊戯VC作成**\n<@${interaction.user.id}>\n` +
+        `**${tier.label === "罪人" ? "罪人用遊戯VC作成" : "遊戯VC作成"}**\n<@${interaction.user.id}>\n` +
           `対象ロール: ${tier.label}\n${this.paymentLabel(payment)}\n` +
           `残高: ${formatNumber(afterWallet)}${CURRENCY_NAMES}\n` +
           `作成VC: <#${voiceChannelId}>\n有効期限: ${expiryText}`,
       );
     } catch (error) {
       console.error("遊戯VC作成ログの送信に失敗しました:", error);
+    }
+  }
+
+  private static async sendCriminalAccessLog(
+    interaction: ButtonInteraction,
+    afterWallet: number,
+    expiryText: string,
+  ): Promise<void> {
+    try {
+      const thread = await interaction.client.channels.fetch(
+        THREAD_IDS.GAME_CRIMINAL_ACCESS_LOG_THREAD,
+      );
+      if (!thread || !thread.isThread() || !thread.isTextBased()) {
+        throw new Error("罪人用VC接続権限購入ログスレッドが見つかりません。");
+      }
+      await (thread as ThreadChannel).send(
+        `**罪人用遊戯VC接続権限購入**\n<@${interaction.user.id}>\n` +
+          `料金: ${formatNumber(GAME_VC.CRIMINAL_ACCESS_PRICE)}${CURRENCY_NAMES}\n` +
+          `残高: ${formatNumber(afterWallet)}${CURRENCY_NAMES}\n有効期限: ${expiryText}`,
+      );
+    } catch (error) {
+      console.error("罪人用遊戯VC接続権限購入ログの送信に失敗しました:", error);
     }
   }
 
