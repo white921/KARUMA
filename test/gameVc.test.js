@@ -9,6 +9,7 @@ const {
   getGameVcTier,
   canPurchaseGamePass,
   calculateGamePassExpireAt,
+  buildGameVcCreateConfirmationDescription,
   createGameVcPermissionOverwrites,
 } = require("../dist/service/gameVcService.js");
 
@@ -53,6 +54,17 @@ test("only traveler or above can purchase a game pass", () => {
 
 test("game VC and its ticket use a 24-hour duration", () => {
   assert.equal(GAME_VC.DURATION_HOURS, 24);
+});
+
+test("game VC confirmation omits the creator's role", () => {
+  const description = buildGameVcCreateConfirmationDescription(
+    { label: "支配人", price: GAME_VC.PRICES.TRAVELER_OR_ABOVE },
+    false,
+  );
+
+  assert.doesNotMatch(description, /対象ロール|支配人/);
+  assert.match(description, /利用時間：24時間/);
+  assert.match(description, /料金：\*\*5,000LIA\*\*/);
 });
 
 test("game pass periods are two weeks and one calendar month", () => {

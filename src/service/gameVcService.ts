@@ -145,6 +145,18 @@ export function calculateGamePassExpireAt(
     : jstNow.add(1, "month").tz("UTC");
 }
 
+export function buildGameVcCreateConfirmationDescription(
+  tier: GameVcTier,
+  isFree: boolean,
+): string {
+  return (
+    `利用時間：${GAME_VC.DURATION_HOURS}時間\n` +
+    (isFree
+      ? "料金：**無料**"
+      : `料金：**${formatNumber(tier.price)}${CURRENCY_NAMES}**`)
+  );
+}
+
 function getPassPlanDetail(plan: GamePassPlan) {
   return plan === "twoWeeks"
     ? {
@@ -207,12 +219,7 @@ export class GameVcService {
       embeds: [
         new EmbedBuilder()
           .setTitle("遊戯VCを作成しますか？")
-          .setDescription(
-            `対象ロール：${tier.label}\n利用時間：${GAME_VC.DURATION_HOURS}時間\n` +
-              (isFree
-                ? "料金：**無料**"
-                : `料金：**${formatNumber(tier.price)}${CURRENCY_NAMES}**`),
-          )
+          .setDescription(buildGameVcCreateConfirmationDescription(tier, isFree))
           .setColor(COLOR.YELLOW),
       ],
       components: [new ActionRowBuilder<ButtonBuilder>().addComponents(buttons)],
