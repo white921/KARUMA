@@ -313,7 +313,7 @@ export class AccountService {
       throw new Error(ACCOUNT_MESSAGES.ACCOUNT_NAME_TOO_LONG);
     }
 
-    if (!/^[\p{L}\p{N}！？、ー]+$/u.test(name)) {
+    if (!/^(?=.*[^！？、ー])[\p{L}\p{N}！？、ー]+$/u.test(name)) {
       throw new Error(ACCOUNT_MESSAGES.ACCOUNT_NAME_SYMBOL);
     }
   }
