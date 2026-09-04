@@ -264,8 +264,8 @@ export const TEXT_CHANNEL_IDS = {
   ROULETTE_1ST_PANEL: "", // ルーレットの運用確定待ち
   ROULETTE_2ND_PANEL: "", // 第2部パネル（環境変数から取得）
   ROULETTE_3RD_PANEL: "", // 第3部パネル（環境変数から取得）
-  INTRO_MALE: "1535597533995466823", // 自己紹介♂
-  INTRO_FEMALE: "1535597685376159785", // 自己紹介♀
+  INTRO_MALE: "1534657810070241280", // 自己紹介♂
+  INTRO_FEMALE: "1534657771159556227", // 自己紹介♀
   REDEPLOY_PANEL: "", // LEVELIAでは未設定
 };
 
