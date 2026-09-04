@@ -119,6 +119,9 @@ export function getGameVcTier(member: GuildMember): GameVcTier {
   if (TRAVELER_OR_ABOVE_ROLE_IDS.some((roleId) => member.roles.cache.has(roleId))) {
     return { label: "旅人以上", price: GAME_VC.PRICES.TRAVELER_OR_ABOVE };
   }
+  if (member.roles.cache.has(ROLE_IDS.HOTEL_LEADER)) {
+    return { label: "支配人", price: GAME_VC.PRICES.TRAVELER_OR_ABOVE };
+  }
   if (member.roles.cache.has(ROLE_IDS.CORE_MEMBER_ROLES.JUNMEN)) {
     return { label: "空位者", price: GAME_VC.PRICES.VACANT };
   }

@@ -37,6 +37,7 @@ import { VcService } from "./service/vcService";
 import { DiaryService } from "./service/diaryService";
 import { BotHealthMonitor } from "./service/botHealthMonitor";
 import { getEvaluationCommandHandlerTimeoutMs } from "./util/interactionHealth";
+import { shouldDeferButtonUpdate } from "./util/interactionAck";
 
 import { COMMAND_NAMES, PANEL_COMMAND_NAMES } from "./constant/command";
 import {
@@ -173,12 +174,9 @@ client.on("interactionCreate", async (interaction) => {
         interaction.customId !== PANEL_COMMAND_NAMES.DIARY_UPDATE &&
         interaction.customId !== PANEL_COMMAND_NAMES.REDEPLOY
       ) {
+        const shouldDeferUpdate = shouldDeferButtonUpdate(interaction.customId);
         try {
-          if (
-            interaction.customId.startsWith("history_page_") ||
-            interaction.customId.startsWith("creatorEmblemConfirm:") ||
-            interaction.customId.startsWith("gameVcCreate")
-          ) {
+          if (shouldDeferUpdate) {
             // ページ送りは、現在表示中の取引履歴メッセージを更新する。
             await interaction.deferUpdate();
             BotHealthMonitor.recordAckSuccess(
@@ -191,11 +189,7 @@ client.on("interactionCreate", async (interaction) => {
             );
           }
         } catch (error) {
-          const acknowledgement = (
-            interaction.customId.startsWith("history_page_") ||
-            interaction.customId.startsWith("creatorEmblemConfirm:")
-              || interaction.customId.startsWith("gameVcCreate")
-          )
+          const acknowledgement = shouldDeferUpdate
             ? "deferUpdate"
             : "deferReply";
           BotHealthMonitor.recordAckFailure(

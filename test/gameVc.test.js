@@ -33,6 +33,10 @@ test("game VC prices follow traveler, vacant, criminal, and game-staff rules", (
     getGameVcTier(memberWithRoles([ROLE_IDS.GAME_STAFF])),
     { label: "歓楽師", price: 0 },
   );
+  assert.deepEqual(
+    getGameVcTier(memberWithRoles([ROLE_IDS.HOTEL_LEADER])),
+    { label: "支配人", price: GAME_VC.PRICES.TRAVELER_OR_ABOVE },
+  );
 });
 
 test("only traveler or above can purchase a game pass", () => {
@@ -44,6 +48,7 @@ test("only traveler or above can purchase a game pass", () => {
     canPurchaseGamePass(memberWithRoles([ROLE_IDS.CORE_MEMBER_ROLES.JUNMEN])),
     false,
   );
+  assert.equal(canPurchaseGamePass(memberWithRoles([ROLE_IDS.HOTEL_LEADER])), false);
 });
 
 test("game VC and its ticket use a 24-hour duration", () => {
