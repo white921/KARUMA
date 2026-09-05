@@ -1,7 +1,7 @@
 import { CURRENCY_NAMES } from "./currency";
 import { GAME_PRICE } from "./game";
 import { HOTEL_TYPE_NAMES, HOTEL_PRICE } from "./hotel";
-import { BOT_ID } from "./id";
+import { BOT_ID, TEXT_CHANNEL_IDS } from "./id";
 
 export const PANEL_MESSAGES = {
   TITLE: "LEVELIA銀行窓口",
@@ -109,7 +109,7 @@ export const HAZAMA_PANEL_MESSAGES = {
 export const SHOP_PANEL_MESSAGES = {
   TITLE: "市場パネル",
   DESCRIPTION:
-    `市場の商品購入はこちらのパネルから行ってください。\n購入前に使用するチケットを選択し、商品名と割引適用後の購入金額を入力してください。\n\n**【市場ガチャ】**\n1回5,000${CURRENCY_NAMES}または招待ポイント1pt／合計で1日5回まで。\n商品案内は[市場について](https://discord.com/channels/1534636292153807039/1534644038248960231)にてご確認いただけます。`,
+    `市場の商品購入はこちらのパネルから行ってください。\n購入前に使用するチケットを選択し、商品名と割引適用後の購入金額を入力してください。\n\n**【市場ガチャ】**\n1回5,000${CURRENCY_NAMES}または招待ポイント1pt／合計で1日5回まで。\n商品案内は<#${TEXT_CHANNEL_IDS.MARKET_INFO}>にてご確認いただけます。`,
   VIEW: "残高確認",
   SHOP_SEND: "商品購入",
   TICKET_VIEW: "チケット確認",

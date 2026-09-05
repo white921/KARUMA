@@ -38,11 +38,55 @@ test("server boost reward logs use the salary log thread", () => {
   );
 });
 
-test("creator emblem payments use the dedicated creator log thread", () => {
+test("creator emblem payments have no log target while orders are stopped", () => {
   assert.equal(
     resolveActionLogThreadId(PANEL_COMMAND_NAMES.CREATOR_EMBLEM_PAY),
-    THREAD_IDS.CREATOR_EMBLEM_LOG_THREAD,
+    null,
   );
+  assert.equal(THREAD_IDS.CREATOR_EMBLEM_LOG_THREAD, "");
+});
+
+test("creator emblem payments do not fetch an unconfigured log thread", async () => {
+  await ActionService.createActionLogMessage(
+    { client: { channels: { fetch: async () => { throw new Error("must not fetch"); } } } },
+    PANEL_COMMAND_NAMES.CREATOR_EMBLEM_PAY,
+    5000,
+    "123",
+    "456",
+    "",
+  );
+});
+
+test("standard transfers create only the standard transfer log", async () => {
+  const sentMessages = [];
+  const fetchedThreadIds = [];
+  const thread = {
+    isThread: () => true,
+    isTextBased: () => true,
+    send: async (message) => sentMessages.push(message),
+  };
+  const context = {
+    client: {
+      channels: {
+        fetch: async (threadId) => {
+          fetchedThreadIds.push(threadId);
+          return thread;
+        },
+      },
+    },
+  };
+
+  await ActionService.createActionLogMessage(
+    context,
+    PANEL_COMMAND_NAMES.SEND,
+    5000,
+    "1414010714640613456",
+    "123456789012345678",
+    "スタンプ代",
+  );
+
+  assert.deepEqual(fetchedThreadIds, [THREAD_IDS.SEND_LOG_THREAD]);
+  assert.equal(sentMessages.length, 1);
 });
 
 test("market and dark market purchases use separate log threads", () => {

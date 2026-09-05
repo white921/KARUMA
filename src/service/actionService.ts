@@ -3,7 +3,7 @@ import { TextChannel, ThreadChannel } from "discord.js";
 import { DbService } from "./dbService";
 import { HotelVcService } from "./hotelVcService";
 
-import { THREAD_IDS, TEXT_CHANNEL_IDS, ROLE_IDS } from "../constant/id";
+import { THREAD_IDS, TEXT_CHANNEL_IDS } from "../constant/id";
 import { COMMAND_NAMES, PANEL_COMMAND_NAMES } from "../constant/command";
 import { CURRENCY_NAMES } from "../constant/currency";
 import { CASINO_MESSAGES } from "../constant/casino";
@@ -15,7 +15,7 @@ export function resolveActionLogThreadId(commandName: string): string | null {
     case PANEL_COMMAND_NAMES.SEND:
       return THREAD_IDS.SEND_LOG_THREAD;
     case PANEL_COMMAND_NAMES.CREATOR_EMBLEM_PAY:
-      return THREAD_IDS.CREATOR_EMBLEM_LOG_THREAD;
+      return THREAD_IDS.CREATOR_EMBLEM_LOG_THREAD || null;
     case PANEL_COMMAND_NAMES.SHOP_SEND:
       return THREAD_IDS.SHOP_LOG_THREAD;
     case PANEL_COMMAND_NAMES.DARK_SHOP_SEND:
@@ -116,6 +116,7 @@ export class ActionService {
         case PANEL_COMMAND_NAMES.SEND:
         case PANEL_COMMAND_NAMES.CREATOR_EMBLEM_PAY:
           threadId = resolveActionLogThreadId(commandName);
+          if (!threadId) return;
           thread = await interaction.client.channels.fetch(threadId);
           if (thread && thread.isThread() && thread.isTextBased()) {
             await (thread as ThreadChannel).send(
@@ -123,21 +124,6 @@ export class ActionService {
                 comment ? `\n備考: ${comment}` : ""
               }`,
             );
-          }
-          // ママサブからスタンプ屋さんへの送金は別スレッドにもログ送信
-          if (fromUserId == "1414010714640613456") {
-            const toMember = await interaction.guild?.members.fetch(toUserId);
-            if (toMember && toMember.roles.cache.has(ROLE_IDS.SHOP_STAFF)) {
-              const threadId = THREAD_IDS.SHOP_SALARY_LOG_THREAD;
-              const thread = await interaction.client.channels.fetch(threadId);
-              if (thread && thread.isThread() && thread.isTextBased()) {
-                await (thread as ThreadChannel).send(
-                  `**送金**\n<@${fromUserId}>から<@${toUserId}>に${formatNumber(amount)}${CURRENCY_NAMES}送金されました！${
-                    comment ? `\n備考: ${comment}` : ""
-                  }`,
-                );
-              }
-            }
           }
           break;
         case PANEL_COMMAND_NAMES.SHOP_SEND:
