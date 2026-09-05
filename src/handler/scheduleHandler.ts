@@ -9,6 +9,8 @@ import { GameService } from "../service/gameService";
 import { SalesManagementService } from "../service/salesManagementService";
 import { DiaryService } from "../service/diaryService";
 import { RedeployService } from "../service/redeployService";
+import { DailyMessageService } from "../service/dailyMessageService";
+import { InterviewShiftService } from "../service/interviewShiftService";
 
 /**
  * 定期的な処理を実行するハンドラ
@@ -62,9 +64,29 @@ export async function handleSchedule(client: Client) {
   //   { timezone: "Asia/Tokyo" }
   // );
 
-  // 案内官シフトの定期提出通知は停止中。
+  cron.schedule(
+    "0 21 * * *",
+    async () => {
+      try {
+        await DailyMessageService.sendDailyMessage(client);
+      } catch (err) {
+        console.error("schedule daily attendance report error:", err);
+      }
+    },
+    { timezone: "Asia/Tokyo" },
+  );
 
-  // 定時出席報告は、LEVELIAでの通知先ロールを確定するまで停止中。
+  cron.schedule(
+    "30 0 * * *",
+    async () => {
+      try {
+        await InterviewShiftService.sendDailyShiftMessage(client);
+      } catch (err) {
+        console.error("schedule daily interviewer shift notification error:", err);
+      }
+    },
+    { timezone: "Asia/Tokyo" },
+  );
 
   cron.schedule(
     "*/10 * * * *",

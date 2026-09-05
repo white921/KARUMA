@@ -82,18 +82,18 @@ test("daily shift payloads use one shared introduction and separate shift option
   assert.deepEqual(options, ["21時", "22時", "23時", "欠席"]);
 });
 
-test("interviewer shift notifications are disabled", () => {
+test("interviewer shift notifications run daily at 00:30 JST", () => {
   const scheduleSource = fs.readFileSync(
     path.join(__dirname, "../src/handler/scheduleHandler.ts"),
     "utf8",
   );
 
   assert.equal(TEXT_CHANNEL_IDS.MENSTU_SHIFT, "1536368899183091722");
-  assert.doesNotMatch(scheduleSource, /cron\.schedule\(\s*"30 0 \* \* \*"/);
-  assert.doesNotMatch(scheduleSource, /InterviewShiftService/);
+  assert.match(scheduleSource, /cron\.schedule\(\s*"30 0 \* \* \*"/);
+  assert.match(scheduleSource, /await InterviewShiftService\.sendDailyShiftMessage\(client\)/);
 });
 
-test("daily attendance report is disabled while keeping LEVELIA guide roles configured", () => {
+test("daily attendance report runs at 21:00 JST for LEVELIA guide roles", () => {
   const scheduleSource = fs.readFileSync(
     path.join(__dirname, "../src/handler/scheduleHandler.ts"),
     "utf8",
@@ -103,8 +103,8 @@ test("daily attendance report is disabled while keeping LEVELIA guide roles conf
     "utf8",
   );
 
-  assert.doesNotMatch(scheduleSource, /cron\.schedule\(\s*"0 21 \* \* \*"/);
-  assert.doesNotMatch(scheduleSource, /DailyMessageService/);
+  assert.match(scheduleSource, /cron\.schedule\(\s*"0 21 \* \* \*"/);
+  assert.match(scheduleSource, /await DailyMessageService\.sendDailyMessage\(client\)/);
   assert.match(dailySource, /ROLE_IDS\.MENSETU_LEADER/);
   assert.match(dailySource, /ROLE_IDS\.MENSTUKAN/);
   assert.match(dailySource, /ROLE_IDS\.MENSTU_BUIGINNER/);
