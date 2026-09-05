@@ -212,7 +212,7 @@ test("dark market panel links the LEVELIA dark market product list", () => {
   assert.equal(DARK_SHOP_PANEL_MESSAGES.TITLE, "闇市場パネル");
   assert.match(
     DARK_SHOP_PANEL_MESSAGES.DESCRIPTION,
-    /https:\/\/discord\.com\/channels\/1534636292153807039\/1534638452086276209/,
+    /\[闇市商品一覧\]\(https:\/\/discord\.com\/channels\/1534636292153807039\/1534644437328728164\)/,
   );
   assert.match(DARK_SHOP_PANEL_MESSAGES.DESCRIPTION, /匿名送信機能は準備中/);
   assert.match(DARK_SHOP_PANEL_MESSAGES.DESCRIPTION, /市場割引券は使用できません/);
