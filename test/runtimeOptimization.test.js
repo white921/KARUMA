@@ -93,21 +93,17 @@ test("interviewer shift notifications run daily at 00:30 JST", () => {
   assert.match(scheduleSource, /await InterviewShiftService\.sendDailyShiftMessage\(client\)/);
 });
 
-test("daily attendance report runs at 21:00 JST for LEVELIA guide roles", () => {
+test("daily core-time announcement is not scheduled", () => {
   const scheduleSource = fs.readFileSync(
     path.join(__dirname, "../src/handler/scheduleHandler.ts"),
     "utf8",
   );
-  const dailySource = fs.readFileSync(
-    path.join(__dirname, "../src/constant/daily.ts"),
-    "utf8",
-  );
 
-  assert.match(scheduleSource, /cron\.schedule\(\s*"0 21 \* \* \*"/);
-  assert.match(scheduleSource, /await DailyMessageService\.sendDailyMessage\(client\)/);
-  assert.match(dailySource, /ROLE_IDS\.MENSETU_LEADER/);
-  assert.match(dailySource, /ROLE_IDS\.MENSTUKAN/);
-  assert.match(dailySource, /ROLE_IDS\.MENSTU_BUIGINNER/);
+  assert.doesNotMatch(scheduleSource, /cron\.schedule\(\s*"0 21 \* \* \*"/);
+  assert.doesNotMatch(
+    scheduleSource,
+    /DailyMessageService\.sendDailyMessage\(client\)/,
+  );
 });
 
 test("diary moderation and inactivity cleanup are enabled", () => {

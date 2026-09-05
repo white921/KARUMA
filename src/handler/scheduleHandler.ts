@@ -9,7 +9,6 @@ import { GameService } from "../service/gameService";
 import { SalesManagementService } from "../service/salesManagementService";
 import { DiaryService } from "../service/diaryService";
 import { RedeployService } from "../service/redeployService";
-import { DailyMessageService } from "../service/dailyMessageService";
 import { InterviewShiftService } from "../service/interviewShiftService";
 
 /**
@@ -63,18 +62,6 @@ export async function handleSchedule(client: Client) {
   //   },
   //   { timezone: "Asia/Tokyo" }
   // );
-
-  cron.schedule(
-    "0 21 * * *",
-    async () => {
-      try {
-        await DailyMessageService.sendDailyMessage(client);
-      } catch (err) {
-        console.error("schedule daily attendance report error:", err);
-      }
-    },
-    { timezone: "Asia/Tokyo" },
-  );
 
   cron.schedule(
     "30 0 * * *",
