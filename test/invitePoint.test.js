@@ -22,6 +22,7 @@ test("招待ポイント追加は指定されたショップ運営ロールに�
     ROLE_IDS.GIJUTU_LEADER,
     ROLE_IDS.SABANUSI,
     ROLE_IDS.KANRISYA,
+    ROLE_IDS.GINKOU_STAFF,
     ROLE_IDS.SHOP_LEADER,
     ROLE_IDS.SHOP_STAFF,
   ];
