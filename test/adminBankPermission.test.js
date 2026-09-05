@@ -28,6 +28,10 @@ test("admin bank panel permission allows existing admin bank roles", async () =>
     true,
   );
   assert.equal(
+    await hasAdminBankPanelPermission(memberWithRoles([ROLE_IDS.GINKOU_STAFF])),
+    true,
+  );
+  assert.equal(
     await hasAdminBankPanelPermission(memberWithRoles([ROLE_IDS.KANRISYA])),
     true,
   );
