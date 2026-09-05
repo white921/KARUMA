@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS market_gacha_daily_locks (
 )
 COMMENT='市場ガチャの1日休みロック';
 
+-- 現在抽選対象のR2音源を、対応する実際の録音者へ紐付ける。
 UPDATE market_gacha_audio_assets
 SET performer_user_id = CASE performer_name
   WHEN '強がり' THEN 1223107953444257812
@@ -34,10 +35,12 @@ SET performer_user_id = CASE performer_name
 END
 WHERE performer_name IN ('強がり', 'エロ感ワイド', 'killer対象外');
 
+-- 既存の遊戯チケットも24時間利用として表示を更新する。
 UPDATE items
 SET description = '遊戯VCを1部屋（24時間）無料で作成できる券'
 WHERE item_key = 'GAME_SHORT_FREE';
 
+-- 2026-09-01以降に市場管理チャットへ投稿された音声を抽選対象へ追加する。
 INSERT INTO market_gacha_audio_assets
   (category, performer_name, performer_user_id, object_key, file_name, public_url, is_active)
 VALUES

@@ -2,7 +2,7 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const { PermissionsBitField } = require("discord.js");
 
-const { ROLE_IDS } = require("../dist/constant/id.js");
+const { ROLE_IDS, TEXT_CHANNEL_IDS } = require("../dist/constant/id.js");
 const { CURRENCY_NAMES } = require("../dist/constant/currency.js");
 const { HOTEL_MESSAGES, HOTEL_TYPE_NAMES } = require("../dist/constant/hotel.js");
 const { PANEL_COMMAND_NAMES } = require("../dist/constant/command.js");
@@ -200,7 +200,7 @@ test("shop panel starts the gacha flow from one button", () => {
 test("shop panel links the market gacha product list", () => {
   assert.match(
     require("../dist/constant/panel.js").SHOP_PANEL_MESSAGES.DESCRIPTION,
-    /\[市場について\]\(https:\/\/discord\.com\/channels\/1534636292153807039\/1534644038248960231\)/,
+    new RegExp(`<#${TEXT_CHANNEL_IDS.MARKET_INFO}>`),
   );
   assert.doesNotMatch(
     require("../dist/constant/panel.js").SHOP_PANEL_MESSAGES.DESCRIPTION,
