@@ -44,7 +44,7 @@ WHERE item_key = 'GAME_SHORT_FREE';
 INSERT INTO market_gacha_audio_assets
   (category, performer_name, performer_user_id, object_key, file_name, public_url, is_active)
 VALUES
-  ('song_cover', 'secret', 1074608247463493715, 'song-cover/secret/2c3bb35d17d4eb67c0338ca3e173bd89.mp4', '2c3bb35d17d4eb67c0338ca3e173bd89.mp4', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/song-cover/secret/2c3bb35d17d4eb67c0338ca3e173bd89.mp4', 1),
+  ('song_cover', 'secret', 1086598017345388685, 'song-cover/secret/2c3bb35d17d4eb67c0338ca3e173bd89.mp4', '2c3bb35d17d4eb67c0338ca3e173bd89.mp4', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/song-cover/secret/2c3bb35d17d4eb67c0338ca3e173bd89.mp4', 1),
   ('song_cover', 'フェルミ研究所', 1091698540088139788, 'song-cover/fermi-research-institute/ScreenRecording_08-12-2026_19-52-22_1.mov', 'ScreenRecording_08-12-2026_19-52-22_1.mov', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/song-cover/fermi-research-institute/ScreenRecording_08-12-2026_19-52-22_1.mov', 1),
   ('superchat', '君の愛BOY', 1179423319250964492, 'superchat/kimi-no-ai-boy/copy_176E00E6-F1E6-49DC-B08C-30336EF1A99A-1.mov', 'copy_176E00E6-F1E6-49DC-B08C-30336EF1A99A-1.mov', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/superchat/kimi-no-ai-boy/copy_176E00E6-F1E6-49DC-B08C-30336EF1A99A-1.mov', 1),
   ('superchat', '100円娯楽', 1131832710097293342, 'superchat/100-yen-goraku/2B9298D8-C1F7-46B7-8712-F2E6CFCD9291.mov', '2B9298D8-C1F7-46B7-8712-F2E6CFCD9291.mov', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/superchat/100-yen-goraku/2B9298D8-C1F7-46B7-8712-F2E6CFCD9291.mov', 1),

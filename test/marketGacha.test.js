@@ -116,6 +116,15 @@ test("audio prize output mentions the recording performer", () => {
   assert.match(output, /転載・転送・保存・画面録画等は禁止/);
 });
 
+test("Scarlet's song cover mentions Scarlet's Discord user ID", () => {
+  const output = instructions("song_cover", {
+    performerName: "secret",
+    performerUserId: "1086598017345388685",
+    publicUrl: "https://example.com/file",
+  });
+  assert.match(output, /<@1086598017345388685>の歌みたです！/);
+});
+
 test("manual prizes guide users to the market ticket flow", () => {
   for (const key of ["detention_pass_3_days", "event_proposal"]) {
     const output = instructions(key);
