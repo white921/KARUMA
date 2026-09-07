@@ -5,11 +5,14 @@ const { data } = require("../dist/command/vc.js");
 const { COMMAND_NAMES } = require("../dist/constant/command.js");
 const { GAME_VC } = require("../dist/constant/game.js");
 const { HOTEL_TYPE } = require("../dist/constant/hotel.js");
+const { SOLITARY_CELL } = require("../dist/constant/solitaryCell.js");
+const { TELEPORT_TYPE } = require("../dist/constant/vc.js");
+const { CATEGORY_IDS } = require("../dist/constant/id.js");
 const { ChannelType } = require("discord.js");
 const { DbService } = require("../dist/service/dbService.js");
 const {
   VcService,
-  isUserEditableGameOrHotelVcType,
+  isUserEditableManagedVc,
 } = require("../dist/service/vcService.js");
 
 const originalGetConnection = DbService.getConnection;
@@ -51,34 +54,38 @@ test.afterEach(() => {
   DbService.getConnection = originalGetConnection;
 });
 
-test("vc command exposes name and member-limit changes", () => {
+test("room-name command exposes only a new name option", () => {
   const command = data.toJSON();
 
-  assert.equal(command.name, COMMAND_NAMES.VC);
-  assert.deepEqual(
-    command.options.map((option) => option.name),
-    ["name", "limit"],
-  );
-  assert.equal(command.options[0].options[0].name, "new_name");
-  assert.equal(command.options[1].options[0].name, "members");
-  assert.equal(command.options[1].options[0].min_value, 1);
-  assert.equal(command.options[1].options[0].max_value, 99);
+  assert.equal(command.name, COMMAND_NAMES.ROOM_NAME_CHANGE);
+  assert.deepEqual(command.options.map((option) => option.name), ["new_name"]);
+  assert.equal(command.options[0].required, true);
 });
 
-test("only bot-created game and hotel VC types are user-editable", () => {
-  assert.equal(isUserEditableGameOrHotelVcType(GAME_VC.TYPE), true);
+test("only requested bot-created VC types are user-editable", () => {
+  assert.equal(isUserEditableManagedVc(GAME_VC.TYPE, CATEGORY_IDS.GAME), true);
   for (const type of Object.values(HOTEL_TYPE)) {
-    assert.equal(isUserEditableGameOrHotelVcType(type), true);
+    assert.equal(isUserEditableManagedVc(type, CATEGORY_IDS.HOTEL), true);
   }
-  assert.equal(isUserEditableGameOrHotelVcType("TELEPORT"), false);
-  assert.equal(isUserEditableGameOrHotelVcType("SOLITARY_CELL"), false);
+  assert.equal(
+    isUserEditableManagedVc(SOLITARY_CELL.TYPE, CATEGORY_IDS.SOLITARY),
+    true,
+  );
+  assert.equal(
+    isUserEditableManagedVc(TELEPORT_TYPE.TELEPORT, CATEGORY_IDS.HAZAMA),
+    true,
+  );
+  assert.equal(
+    isUserEditableManagedVc(TELEPORT_TYPE.TELEPORT, CATEGORY_IDS.CASINO),
+    false,
+  );
 });
 
 test("VC owner can rename an active game VC from inside the channel", async () => {
   const channel = createVoiceChannel();
   mockActiveVc({ owner_id: "owner", type: GAME_VC.TYPE });
 
-  const name = await VcService.changeOwnedGameOrHotelVcName(
+  const name = await VcService.changeOwnedManagedVcName(
     createInteraction({ channel }),
     "  まったりゲーム  ",
   );
@@ -87,37 +94,30 @@ test("VC owner can rename an active game VC from inside the channel", async () =
   assert.equal(channel.name, "まったりゲーム");
 });
 
-test("non-owner cannot change a bot-created game or hotel VC", async () => {
+test("non-owner cannot change a bot-created managed VC", async () => {
   const channel = createVoiceChannel();
   mockActiveVc({ owner_id: "owner", type: GAME_VC.TYPE });
 
   await assert.rejects(
-    VcService.changeOwnedGameOrHotelVcLimit(
+    VcService.changeOwnedManagedVcName(
       createInteraction({ userId: "guest", channel }),
-      5,
+      "変更不可",
     ),
     /作成者のみ/,
   );
-  assert.equal(channel.userLimit, 2);
+  assert.equal(channel.name, "before");
 });
 
-test("owner can change a hotel VC limit, but teleport VC is excluded", async () => {
-  const hotelChannel = createVoiceChannel();
-  mockActiveVc({ owner_id: "owner", type: HOTEL_TYPE.FREEDOM });
-  await VcService.changeOwnedGameOrHotelVcLimit(
-    createInteraction({ channel: hotelChannel }),
-    12,
-  );
-  assert.equal(hotelChannel.userLimit, 12);
-
+test("teleport VC outside the requested categories is excluded", async () => {
   const teleportChannel = createVoiceChannel();
-  mockActiveVc({ owner_id: "owner", type: "TELEPORT" });
+  teleportChannel.parentId = CATEGORY_IDS.CASINO;
+  mockActiveVc({ owner_id: "owner", type: TELEPORT_TYPE.TELEPORT });
   await assert.rejects(
-    VcService.changeOwnedGameOrHotelVcName(
+    VcService.changeOwnedManagedVcName(
       createInteraction({ channel: teleportChannel }),
       "対象外",
     ),
-    /ゲームVCまたはホテルVC/,
+    /ゲーム・ホテル・独房・狭間/,
   );
   assert.equal(teleportChannel.name, "before");
 });

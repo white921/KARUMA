@@ -14,6 +14,9 @@ import { DbService } from "./dbService";
 import { VC_MESSAGES } from "../constant/vc";
 import { HOTEL_TYPE } from "../constant/hotel";
 import { GAME_VC } from "../constant/game";
+import { SOLITARY_CELL } from "../constant/solitaryCell";
+import { TELEPORT_TYPE } from "../constant/vc";
+import { CATEGORY_IDS } from "../constant/id";
 
 type ManagedVcRow = RowDataPacket & {
   owner_id: string;
@@ -23,14 +26,24 @@ type ManagedVcRow = RowDataPacket & {
 const USER_EDITABLE_VC_TYPES = new Set<string>([
   GAME_VC.TYPE,
   ...Object.values(HOTEL_TYPE),
+  SOLITARY_CELL.TYPE,
 ]);
 
-export function isUserEditableGameOrHotelVcType(type: string): boolean {
-  return USER_EDITABLE_VC_TYPES.has(type);
+export function isUserEditableManagedVc(
+  type: string,
+  parentId: string | null,
+): boolean {
+  if (USER_EDITABLE_VC_TYPES.has(type)) {
+    return true;
+  }
+  return (
+    type === TELEPORT_TYPE.TELEPORT &&
+    (parentId === CATEGORY_IDS.GAME || parentId === CATEGORY_IDS.HAZAMA)
+  );
 }
 
 export class VcService {
-  private static async getOwnedGameOrHotelVoiceChannel(
+  private static async getOwnedManagedVoiceChannel(
     interaction: ChatInputCommandInteraction,
   ): Promise<VoiceChannel> {
     const guild = interaction.guild;
@@ -41,7 +54,7 @@ export class VcService {
     const member = await guild.members.fetch(interaction.user.id);
     const voiceChannel = member.voice.channel;
     if (!voiceChannel || voiceChannel.type !== ChannelType.GuildVoice) {
-      throw new Error("変更したいゲームVCまたはホテルVCに参加してから実行してください。");
+      throw new Error("変更したいBot作成VCに参加してから実行してください。");
     }
 
     const connection = await DbService.getConnection();
@@ -52,8 +65,8 @@ export class VcService {
         [voiceChannel.id],
       );
       const vc = rows[0];
-      if (!vc || !isUserEditableGameOrHotelVcType(vc.type)) {
-        throw new Error("このコマンドはBotが作成したゲームVCまたはホテルVCでのみ使用できます。");
+      if (!vc || !isUserEditableManagedVc(vc.type, voiceChannel.parentId)) {
+        throw new Error("このコマンドはBotが作成したゲーム・ホテル・独房・狭間のVCでのみ使用できます。");
       }
       if (String(vc.owner_id) !== interaction.user.id) {
         throw new Error("このVCの作成者のみ変更できます。");
@@ -64,7 +77,7 @@ export class VcService {
     }
   }
 
-  static async changeOwnedGameOrHotelVcName(
+  static async changeOwnedManagedVcName(
     interaction: ChatInputCommandInteraction,
     newName: string,
   ): Promise<string> {
@@ -73,18 +86,9 @@ export class VcService {
       throw new Error(VC_MESSAGES.NO_NEW_NAME_INPUT);
     }
 
-    const voiceChannel = await this.getOwnedGameOrHotelVoiceChannel(interaction);
+    const voiceChannel = await this.getOwnedManagedVoiceChannel(interaction);
     await voiceChannel.setName(name);
     return name;
-  }
-
-  static async changeOwnedGameOrHotelVcLimit(
-    interaction: ChatInputCommandInteraction,
-    limit: number,
-  ): Promise<number> {
-    const voiceChannel = await this.getOwnedGameOrHotelVoiceChannel(interaction);
-    await voiceChannel.setUserLimit(limit);
-    return limit;
   }
 
   /**

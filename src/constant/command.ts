@@ -39,7 +39,7 @@ export const COMMAND_NAMES = {
   ROULETTE_RESULT: "結果",
   ROULETTE_BONUS: "ボーナス付与",
   INVITE_POINT_ADD: "招待ポイント追加",
-  VC: "vc",
+  ROOM_NAME_CHANGE: "部屋名変更",
 };
 
 export const PANEL_COMMAND_NAMES = {

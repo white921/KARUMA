@@ -111,7 +111,7 @@ export async function exeCommand(
       case COMMAND_NAMES.INVITE_POINT_ADD:
         await invitePointAdd(interaction);
         break;
-      case COMMAND_NAMES.VC:
+      case COMMAND_NAMES.ROOM_NAME_CHANGE:
         await vc(interaction);
         break;
       // case COMMAND_NAMES.SHOW_EVALUATION_END:
