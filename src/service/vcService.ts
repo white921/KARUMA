@@ -5,14 +5,88 @@ import {
   ButtonInteraction,
   ChannelType,
   REST,
+  ChatInputCommandInteraction,
 } from "discord.js";
+import { RowDataPacket } from "mysql2";
 
 import { DbService } from "./dbService";
 
 import { VC_MESSAGES } from "../constant/vc";
 import { HOTEL_TYPE } from "../constant/hotel";
+import { GAME_VC } from "../constant/game";
+
+type ManagedVcRow = RowDataPacket & {
+  owner_id: string;
+  type: string;
+};
+
+const USER_EDITABLE_VC_TYPES = new Set<string>([
+  GAME_VC.TYPE,
+  ...Object.values(HOTEL_TYPE),
+]);
+
+export function isUserEditableGameOrHotelVcType(type: string): boolean {
+  return USER_EDITABLE_VC_TYPES.has(type);
+}
 
 export class VcService {
+  private static async getOwnedGameOrHotelVoiceChannel(
+    interaction: ChatInputCommandInteraction,
+  ): Promise<VoiceChannel> {
+    const guild = interaction.guild;
+    if (!guild) {
+      throw new Error("このコマンドはサーバー内でのみ実行できます。");
+    }
+
+    const member = await guild.members.fetch(interaction.user.id);
+    const voiceChannel = member.voice.channel;
+    if (!voiceChannel || voiceChannel.type !== ChannelType.GuildVoice) {
+      throw new Error("変更したいゲームVCまたはホテルVCに参加してから実行してください。");
+    }
+
+    const connection = await DbService.getConnection();
+    try {
+      const [rows] = await connection.execute<ManagedVcRow[]>(
+        `SELECT owner_id, type FROM vcs
+         WHERE channel_id = ? AND is_active = TRUE`,
+        [voiceChannel.id],
+      );
+      const vc = rows[0];
+      if (!vc || !isUserEditableGameOrHotelVcType(vc.type)) {
+        throw new Error("このコマンドはBotが作成したゲームVCまたはホテルVCでのみ使用できます。");
+      }
+      if (String(vc.owner_id) !== interaction.user.id) {
+        throw new Error("このVCの作成者のみ変更できます。");
+      }
+      return voiceChannel;
+    } finally {
+      connection.release();
+    }
+  }
+
+  static async changeOwnedGameOrHotelVcName(
+    interaction: ChatInputCommandInteraction,
+    newName: string,
+  ): Promise<string> {
+    const name = newName.trim();
+    if (!name) {
+      throw new Error(VC_MESSAGES.NO_NEW_NAME_INPUT);
+    }
+
+    const voiceChannel = await this.getOwnedGameOrHotelVoiceChannel(interaction);
+    await voiceChannel.setName(name);
+    return name;
+  }
+
+  static async changeOwnedGameOrHotelVcLimit(
+    interaction: ChatInputCommandInteraction,
+    limit: number,
+  ): Promise<number> {
+    const voiceChannel = await this.getOwnedGameOrHotelVoiceChannel(interaction);
+    await voiceChannel.setUserLimit(limit);
+    return limit;
+  }
+
   /**
    * VCタイプをデータベースから取得
    * @param channelId VCチャンネルID
