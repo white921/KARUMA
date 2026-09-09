@@ -3,7 +3,11 @@ const assert = require("node:assert/strict");
 
 const { EvaluationService } = require("../dist/service/evaluationService.js");
 const { InterviewService } = require("../dist/service/interviewService.js");
-const { BASE_EVALUATION_DAYS } = require("../dist/constant/evaluation.js");
+const {
+  BASE_EVALUATION_DAYS,
+  MAX_EVALUATION_EXTENSION_DAYS,
+} = require("../dist/constant/evaluation.js");
+const { data: extraExtend } = require("../dist/command/extraExtend.js");
 const { CATEGORY_IDS } = require("../dist/constant/id.js");
 const {
   EVALUATION_SHEET_MESSAGES,
@@ -82,5 +86,24 @@ test("評価期間延長ログは実行者の表示名を記載し、メンシ�
       "デモ",
     ),
     "📅 評価期間を 1日 延長しました: 08/28 → 08/29\nby 案内官テスト\n理由: デモ",
+  );
+});
+
+test("評価期間延長コマンドは14日までの短縮を受け付ける", () => {
+  const days = extraExtend.toJSON().options.find((option) => option.name === "days");
+
+  assert.equal(days.min_value, -MAX_EVALUATION_EXTENSION_DAYS);
+  assert.equal(days.max_value, MAX_EVALUATION_EXTENSION_DAYS);
+});
+
+test("評価期間短縮ログは日数を正数で記載する", () => {
+  assert.equal(
+    EvaluationService.createEvaluationExtensionLog(
+      -3,
+      "09/20",
+      "09/17",
+      "案内官テスト",
+    ),
+    "📅 評価期間を 3日 短縮しました: 09/20 → 09/17\nby 案内官テスト",
   );
 });

@@ -8,6 +8,7 @@ import {
 
 import { EvaluationService } from "../service/evaluationService";
 import { COMMAND_NAMES } from "../constant/command";
+import { MAX_EVALUATION_EXTENSION_DAYS } from "../constant/evaluation";
 import { EVALUATION_SHEET_MESSAGES } from "../constant/evaluationSheet";
 import { ROLE_IDS } from "../constant/id";
 
@@ -26,8 +27,9 @@ export const data = new SlashCommandBuilder()
   .addIntegerOption((option) =>
     option
       .setName("days")
-      .setDescription("延長日数")
-      .setMinValue(1)
+      .setDescription("延長日数（マイナスで短縮）")
+      .setMinValue(-MAX_EVALUATION_EXTENSION_DAYS)
+      .setMaxValue(MAX_EVALUATION_EXTENSION_DAYS)
       .setRequired(true),
   )
   .addUserOption((option) =>
@@ -55,6 +57,9 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   const allowed = ALLOWED_ROLE_IDS.some((id) => operator.roles.cache.has(id));
   if (!allowed) {
     throw new Error(EVALUATION_SHEET_MESSAGES.EXTEND_NO_PERMISSION);
+  }
+  if (days === 0) {
+    throw new Error("延長日数は0以外を指定してください。");
   }
 
   const isBulkExtension = !targetMember;
@@ -85,12 +90,14 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   const { extendedCount, skipped, failed } = result;
 
   const scope = targetMember ? `<@${targetMember.id}> の` : "";
+  const operation = days < 0 ? "短縮" : "延長";
+  const displayDays = Math.abs(days);
   const summary =
     extendedCount === 0 && failed.length === 0
       ? `${EVALUATION_SHEET_MESSAGES.EXTEND_NO_TARGET}${
           targetMember ? ` (対象: <@${targetMember.id}>)` : ""
         }`
-      : `✅ ${scope}評価シート ${extendedCount}件 の期間を ${days}日 延長しました。`;
+      : `✅ ${scope}評価シート ${extendedCount}件 の期間を ${displayDays}日 ${operation}しました。`;
   const sections: string[] = [summary];
 
   if (failed.length > 0) {

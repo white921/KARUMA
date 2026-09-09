@@ -300,8 +300,10 @@ export class EvaluationService {
     operatorDisplayName: string,
     reason?: string | null,
   ): string {
+    const operation = days < 0 ? "短縮" : "延長";
+    const displayDays = Math.abs(days);
     const lines = [
-      `📅 評価期間を ${days}日 延長しました: ${previousEndDate} → ${newEndDate}`,
+      `📅 評価期間を ${displayDays}日 ${operation}しました: ${previousEndDate} → ${newEndDate}`,
       `by ${operatorDisplayName}`,
     ];
     if (reason) {
