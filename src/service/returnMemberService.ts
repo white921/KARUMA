@@ -7,7 +7,9 @@ import { AccountService } from "./accountService";
 
 import { ACCOUNT_MESSAGES } from "../constant/account";
 import { COLOR } from "../constant/color";
+import { CURRENCY_NAMES } from "../constant/currency";
 import { RETURN_MEMBER_MESSAGES } from "../constant/returnMember";
+import { formatNumber } from "../util/number";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -28,6 +30,10 @@ export class ReturnMemberService {
       ? this.formatDate(targetAccount.left_at)
       : RETURN_MEMBER_MESSAGES.NO_HISTORY;
 
+    const leftWallet = targetAccount.left_wallet === null
+      ? RETURN_MEMBER_MESSAGES.NO_HISTORY
+      : `${formatNumber(targetAccount.left_wallet)}${CURRENCY_NAMES}`;
+
     return new EmbedBuilder()
       .setColor(COLOR.COBALT_GREEN)
       .setTitle("出戻り情報")
@@ -46,6 +52,11 @@ export class ReturnMemberService {
         {
           name: "出戻り回数",
           value: String(targetAccount.left_count),
+          inline: true,
+        },
+        {
+          name: "抜けた時の残高",
+          value: leftWallet,
           inline: true,
         },
         {

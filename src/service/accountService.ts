@@ -84,7 +84,8 @@ export class AccountService {
 
       await connection.execute(
         `UPDATE accounts
-         SET wallet = 0,
+         SET left_wallet = wallet,
+             wallet = 0,
              user_name = ?,
              left_count = left_count + 1,
              left_at = CURRENT_TIMESTAMP,

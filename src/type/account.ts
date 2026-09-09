@@ -5,6 +5,7 @@ export interface Account {
   is_frozen: boolean;
   left_count: number;
   left_at: Date | null;
+  left_wallet: number | null;
   left_core_member_roles: string | null;
   boost_count: number;
   created_at: Date;

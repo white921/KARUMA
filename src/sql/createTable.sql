@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS accounts (
   is_frozen BOOLEAN NOT NULL DEFAULT FALSE COMMENT '凍結状態',
   left_count INTEGER NOT NULL DEFAULT 0 COMMENT '鯖抜け回数',
   left_at TIMESTAMP DEFAULT NULL COMMENT '鯖抜け日時',
+  left_wallet INTEGER DEFAULT NULL COMMENT '鯖抜け時点の残高',
   left_core_member_roles BIGINT DEFAULT NULL COMMENT '鯖抜け時点の基本ロール',
   boost_count INTEGER NOT NULL DEFAULT 0 COMMENT 'サーバーブースト回数',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT '作成日時',
