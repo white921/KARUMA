@@ -126,6 +126,7 @@ test("Scarlet's song cover mentions Scarlet's Discord user ID", () => {
 });
 
 test("manual prizes guide users to the market ticket flow", () => {
+  assert.equal(prize("detention_pass_3_days").label, "どこでも通行券");
   for (const key of ["detention_pass_3_days", "event_proposal"]) {
     const output = instructions(key);
     assert.match(output, new RegExp(`<#${TEXT_CHANNEL_IDS.GENERAL_INQUIRY}>`));

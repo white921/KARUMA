@@ -60,7 +60,7 @@ export const MARKET_GACHA_PRIZES: readonly MarketGachaPrize[] = [
     label: "市場割引 10%OFF（100万LIA以上の商品は利用不可）",
     probability: 2,
   },
-  { key: "detention_pass_3_days", label: "収容所通行券（3日）", probability: 7 },
+  { key: "detention_pass_3_days", label: "どこでも通行券", probability: 7 },
   { key: "custom_role_week", label: "カスタムロール（1週間）", probability: 0.5 },
   { key: "one_more_chance", label: "ワンモアチャンス", probability: 5 },
   { key: "day_off", label: "1日休み", probability: 2 },
