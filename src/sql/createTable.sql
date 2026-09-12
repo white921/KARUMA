@@ -357,6 +357,9 @@ COMMENT='市場ガチャの音源配信履歴';
 INSERT INTO market_gacha_audio_assets
   (category, performer_name, performer_user_id, object_key, file_name, public_url)
 VALUES
+  ('superchat', '天与呪縛', 1256656484838932563, 'superchat/tenyo-jubaku/copy_66312C16-481F-4312-95B0-E38C06649B0A.mov', 'copy_66312C16-481F-4312-95B0-E38C06649B0A.mov', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/superchat/tenyo-jubaku/copy_66312C16-481F-4312-95B0-E38C06649B0A.mov'),
+  ('superchat', 'killer対象外', 1508895495873888452, 'superchat/zanki/copy_BC27E94F-FC41-4A10-BBB1-0F17A71ED2BD.mov', 'copy_BC27E94F-FC41-4A10-BBB1-0F17A71ED2BD.mov', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/superchat/zanki/copy_BC27E94F-FC41-4A10-BBB1-0F17A71ED2BD.mov'),
+  ('superchat', '夏', 1363509186461176121, 'superchat/natsu/copy_B8F8FC93-6EAD-4DE2-BDF5-76F0C4C7B65A.mov', 'copy_B8F8FC93-6EAD-4DE2-BDF5-76F0C4C7B65A.mov', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/superchat/natsu/copy_B8F8FC93-6EAD-4DE2-BDF5-76F0C4C7B65A.mov'),
   ('superchat', '強がり', 1223107953444257812, 'superchat/seikin/trim_B20B1C9A-508E-44CC-A98F-F9979DEE8CC4.mp4', 'trim_B20B1C9A-508E-44CC-A98F-F9979DEE8CC4.mp4', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/superchat/seikin/trim_B20B1C9A-508E-44CC-A98F-F9979DEE8CC4.mp4'),
   ('song_cover', '強がり', 1223107953444257812, 'song-cover/seikin/My_Movie.mov', 'My_Movie.mov', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/song-cover/seikin/My_Movie.mov'),
   ('song_cover', 'エロ感ワイド', 1536218537696165949, 'song-cover/kenzoku/ScreenRecording_07-03-2026_02-49-16_1.mov', 'ScreenRecording_07-03-2026_02-49-16_1.mov', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/song-cover/kenzoku/ScreenRecording_07-03-2026_02-49-16_1.mov'),
