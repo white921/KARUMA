@@ -374,8 +374,8 @@ VALUES
   ('superchat', '100円娯楽', 1131832710097293342, 'superchat/100-yen-goraku/2B9298D8-C1F7-46B7-8712-F2E6CFCD9291.mov', '2B9298D8-C1F7-46B7-8712-F2E6CFCD9291.mov', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/superchat/100-yen-goraku/2B9298D8-C1F7-46B7-8712-F2E6CFCD9291.mov'),
   ('superchat', '夏', 1363509186461176121, 'superchat/natsu/copy_9511E1BF-C787-456A-8AD5-C99A4CBD888F.mov', 'copy_9511E1BF-C787-456A-8AD5-C99A4CBD888F.mov', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/superchat/natsu/copy_9511E1BF-C787-456A-8AD5-C99A4CBD888F.mov'),
   ('superchat', '夏', 1363509186461176121, 'superchat/natsu/copy_BB847ACA-73BB-4CAE-A733-6BA1459ADDF3.mov', 'copy_BB847ACA-73BB-4CAE-A733-6BA1459ADDF3.mov', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/superchat/natsu/copy_BB847ACA-73BB-4CAE-A733-6BA1459ADDF3.mov'),
-  ('song_cover', '強がり', 1223107953444257812, 'song-cover/seikin/copy_E1CE7C12-66B3-40D5-8DE0-EE6B4A1B5FB3.mov', 'copy_E1CE7C12-66B3-40D5-8DE0-EE6B4A1B5FB3.mov', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/song-cover/seikin/copy_E1CE7C12-66B3-40D5-8DE0-EE6B4A1B5FB3.mov'),
-  ('superchat', '強がり', 1223107953444257812, 'superchat/seikin/ScreenRecording_11-28-2025_23-14-12_1.mov', 'ScreenRecording_11-28-2025 23-14-12_1.mov', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/superchat/seikin/ScreenRecording_11-28-2025_23-14-12_1.mov')
+  ('superchat', '強がり', 1223107953444257812, 'song-cover/seikin/copy_E1CE7C12-66B3-40D5-8DE0-EE6B4A1B5FB3.mov', 'copy_E1CE7C12-66B3-40D5-8DE0-EE6B4A1B5FB3.mov', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/song-cover/seikin/copy_E1CE7C12-66B3-40D5-8DE0-EE6B4A1B5FB3.mov'),
+  ('song_cover', '強がり', 1223107953444257812, 'superchat/seikin/ScreenRecording_11-28-2025_23-14-12_1.mov', 'ScreenRecording_11-28-2025 23-14-12_1.mov', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/superchat/seikin/ScreenRecording_11-28-2025_23-14-12_1.mov')
 ON DUPLICATE KEY UPDATE
   category = VALUES(category),
   performer_name = VALUES(performer_name),
