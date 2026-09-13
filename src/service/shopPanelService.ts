@@ -12,6 +12,7 @@ import { deletePanelMessage } from "../util/channelMessage";
 import { TEXT_CHANNEL_IDS } from "../constant/id";
 import {
   DARK_SHOP_PANEL_MESSAGES,
+  COURT_SHOP_PANEL_MESSAGES,
   SHOP_PANEL_MESSAGES,
 } from "../constant/panel";
 import { PANEL_COMMAND_NAMES } from "../constant/command";
@@ -51,6 +52,19 @@ export function createDarkShopPanelActionRow() {
   );
 }
 
+export function createCourtShopPanelActionRow() {
+  return new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder()
+      .setCustomId(PANEL_COMMAND_NAMES.COURT_SHOP_SEND)
+      .setLabel("購入")
+      .setStyle(ButtonStyle.Success),
+    new ButtonBuilder()
+      .setCustomId(PANEL_COMMAND_NAMES.VIEW)
+      .setLabel(SHOP_PANEL_MESSAGES.VIEW)
+      .setStyle(ButtonStyle.Primary),
+  );
+}
+
 export class ShopPanelService {
   /**
    * ショップパネルを作成
@@ -77,6 +91,17 @@ export class ShopPanelService {
       DARK_SHOP_PANEL_MESSAGES.DESCRIPTION,
       DARK_SHOP_PANEL_MESSAGES.ERROR,
       createDarkShopPanelActionRow(),
+    );
+  }
+
+  static async createCourtShopPanel(client: Client) {
+    await this.createPanelInChannel(
+      client,
+      TEXT_CHANNEL_IDS.COURT_SHOP_PANEL,
+      COURT_SHOP_PANEL_MESSAGES.TITLE,
+      COURT_SHOP_PANEL_MESSAGES.DESCRIPTION,
+      COURT_SHOP_PANEL_MESSAGES.ERROR,
+      createCourtShopPanelActionRow(),
     );
   }
 

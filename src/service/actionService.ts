@@ -18,6 +18,8 @@ export function resolveActionLogThreadId(commandName: string): string | null {
       return THREAD_IDS.CREATOR_EMBLEM_LOG_THREAD || null;
     case PANEL_COMMAND_NAMES.SHOP_SEND:
       return THREAD_IDS.SHOP_LOG_THREAD;
+    case PANEL_COMMAND_NAMES.COURT_SHOP_SEND:
+      return THREAD_IDS.COURT_SHOP_LOG_THREAD;
     case PANEL_COMMAND_NAMES.DARK_SHOP_SEND:
       return THREAD_IDS.DARK_SHOP_LOG_THREAD;
     case COMMAND_NAMES.PAY_SALARY:
@@ -127,12 +129,13 @@ export class ActionService {
           }
           break;
         case PANEL_COMMAND_NAMES.SHOP_SEND:
+        case PANEL_COMMAND_NAMES.COURT_SHOP_SEND:
         case PANEL_COMMAND_NAMES.DARK_SHOP_SEND:
           threadId = resolveActionLogThreadId(commandName);
           thread = await interaction.client.channels.fetch(threadId);
           if (thread && thread.isThread() && thread.isTextBased()) {
             await (thread as ThreadChannel).send(
-              `**${commandName === PANEL_COMMAND_NAMES.DARK_SHOP_SEND ? "闇市場商品購入" : "市場商品購入"}**\n<@${fromUserId}>が${formatNumber(amount)}${CURRENCY_NAMES}の商品を購入しました！${
+              `**${commandName === PANEL_COMMAND_NAMES.COURT_SHOP_SEND ? "宮廷市場商品購入" : commandName === PANEL_COMMAND_NAMES.DARK_SHOP_SEND ? "闇市場商品購入" : "市場商品購入"}**\n<@${fromUserId}>が${formatNumber(amount)}${CURRENCY_NAMES}の商品を購入しました！${
                 comment ? `\n備考: ${comment}` : ""
               }`,
             );

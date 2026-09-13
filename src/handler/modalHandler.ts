@@ -118,6 +118,7 @@ export async function handleModalSubmit(interaction: ModalSubmitInteraction) {
         );
         break;
       }
+      case PANEL_COMMAND_NAMES.COURT_SHOP_SEND:
       case PANEL_COMMAND_NAMES.DARK_SHOP_SEND: {
         const amount = Number(getModalFieldValue(interaction, "amount"));
         const comment = getModalFieldValue(interaction, "comment");
@@ -126,7 +127,7 @@ export async function handleModalSubmit(interaction: ModalSubmitInteraction) {
           amount,
           comment,
           SHOP_TICKET_NONE,
-          PANEL_COMMAND_NAMES.DARK_SHOP_SEND,
+          commandId,
         );
         break;
       }

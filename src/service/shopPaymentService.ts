@@ -18,7 +18,8 @@ import { toActionType } from "../constant/action";
 type WalletRow = RowDataPacket & { wallet: number };
 type ShopPaymentCommandName =
   | typeof PANEL_COMMAND_NAMES.SHOP_SEND
-  | typeof PANEL_COMMAND_NAMES.DARK_SHOP_SEND;
+  | typeof PANEL_COMMAND_NAMES.DARK_SHOP_SEND
+  | typeof PANEL_COMMAND_NAMES.COURT_SHOP_SEND;
 
 export class ShopPaymentService {
   private static validateAmount(amount: number): void {
@@ -48,7 +49,10 @@ export class ShopPaymentService {
     commandName: ShopPaymentCommandName = PANEL_COMMAND_NAMES.SHOP_SEND,
   ): Promise<void> {
     this.validateAmount(amount);
-    const appliedTicketType = commandName === PANEL_COMMAND_NAMES.DARK_SHOP_SEND
+    const shopName = commandName === PANEL_COMMAND_NAMES.COURT_SHOP_SEND
+      ? "宮廷市場"
+      : commandName === PANEL_COMMAND_NAMES.DARK_SHOP_SEND ? "闇市場" : "市場";
+    const appliedTicketType = commandName !== PANEL_COMMAND_NAMES.SHOP_SEND
       ? SHOP_TICKET_NONE
       : ticketType;
     if (!productName.trim()) {
@@ -82,7 +86,7 @@ export class ShopPaymentService {
       const bot = botRows[0];
       if (!user || !bot) {
         throw new Error(
-          `${commandName === PANEL_COMMAND_NAMES.DARK_SHOP_SEND ? "闇市場" : "市場"}商品購入用の口座情報が見つかりません。`,
+          `${shopName}商品購入用の口座情報が見つかりません。`,
         );
       }
 
@@ -132,7 +136,7 @@ export class ShopPaymentService {
 
     await interaction.editReply({
       content:
-        `✅ ${commandName === PANEL_COMMAND_NAMES.DARK_SHOP_SEND ? "闇市場" : "市場"}で ${amount.toLocaleString()}${CURRENCY_NAMES}の商品を購入しました！\n` +
+        `✅ ${shopName}で ${amount.toLocaleString()}${CURRENCY_NAMES}の商品を購入しました！\n` +
         `商品名: ${productName.trim()}\n` +
         (commandName === PANEL_COMMAND_NAMES.DARK_SHOP_SEND ||
         appliedTicketType === SHOP_TICKET_NONE

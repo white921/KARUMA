@@ -132,6 +132,37 @@ export async function showDarkShopAmountModal(
   await interaction.showModal(modal);
 }
 
+/** 宮廷市場用の商品購入モーダルを表示する。割引チケット・Lv特典は使用しない。 */
+export async function showCourtShopAmountModal(
+  interaction: ButtonInteraction,
+) {
+  const modal = new ModalBuilder()
+    .setCustomId(PANEL_COMMAND_NAMES.COURT_SHOP_SEND)
+    .setTitle("宮廷市場商品購入");
+
+  const amountInput = new TextInputBuilder()
+    .setCustomId("amount")
+    .setLabel("送金額")
+    .setStyle(TextInputStyle.Short)
+    .setPlaceholder("送金額を入力してください")
+    .setRequired(true)
+    .setMinLength(1)
+    .setMaxLength(10);
+  const commentInput = new TextInputBuilder()
+    .setCustomId("comment")
+    .setLabel("商品名")
+    .setStyle(TextInputStyle.Paragraph)
+    .setPlaceholder("購入する宮廷市場の商品名を入力してください")
+    .setRequired(true)
+    .setMaxLength(200);
+
+  modal.addComponents(
+    new ActionRowBuilder<TextInputBuilder>().addComponents(amountInput),
+    new ActionRowBuilder<TextInputBuilder>().addComponents(commentInput),
+  );
+  await interaction.showModal(modal);
+}
+
 /**
  * 文字入力モーダルを表示
  * @param interaction

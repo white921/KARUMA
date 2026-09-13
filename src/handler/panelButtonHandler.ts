@@ -9,6 +9,7 @@ import { showConfirmButton } from "../util/button";
 import {
   showAmountModal,
   showDarkShopAmountModal,
+  showCourtShopAmountModal,
   showStringModal,
   showVcStatusModal,
 } from "../util/modal";
@@ -90,6 +91,9 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
         break;
       case PANEL_COMMAND_NAMES.SHOP_SEND:
         await showShopTicketSelectMenu(interaction);
+        break;
+      case PANEL_COMMAND_NAMES.COURT_SHOP_SEND:
+        await showCourtShopAmountModal(interaction);
         break;
       case PANEL_COMMAND_NAMES.DARK_SHOP_SEND:
         await showDarkShopAmountModal(interaction);

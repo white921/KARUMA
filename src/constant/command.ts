@@ -47,6 +47,7 @@ export const PANEL_COMMAND_NAMES = {
   SEND: "send",
   SHOP_SEND: "shopSend",
   DARK_SHOP_SEND: "darkShopSend",
+  COURT_SHOP_SEND: "courtShopSend",
   CREATOR_EMBLEM_PAY: "creatorEmblemPay",
   SUPERCHAT_SEND: "superchatSend",
   SUPERCHAT_STREAMER_SELECT: "superchatStreamerSelect",

@@ -118,6 +118,12 @@ export const SHOP_PANEL_MESSAGES = {
   ERROR: "市場パネルチャンネルが見つからないか、無効な型です。",
 };
 
+export const COURT_SHOP_PANEL_MESSAGES = {
+  TITLE: "宮廷市場パネル",
+  DESCRIPTION: "宮廷市場の商品購入はこちらのパネルから行ってください。\n割引チケット、Lv特典は使用できません。",
+  ERROR: "宮廷市場パネルチャンネルが見つからないか、無効な型です。",
+};
+
 export const DARK_SHOP_PANEL_MESSAGES = {
   TITLE: "闇市場パネル",
   DESCRIPTION:
