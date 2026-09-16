@@ -8,6 +8,7 @@ import { execute as evaluationSheet } from "../command/evaluationSheet";
 import { execute as evaluationSheetArchive } from "../command/evaluationSheetArchive";
 import { execute as evaluationSheetRestore } from "../command/evaluationSheetRestore";
 import { execute as send } from "../command/send";
+import { execute as balanceAdjustment } from "../command/balanceAdjustment";
 import { execute as roleBasedSend } from "../command/roleBasedSend";
 import { execute as view } from "../command/view";
 import { execute as linkAccount } from "../command/linkAccount";
@@ -59,6 +60,9 @@ export async function exeCommand(
         break;
       case COMMAND_NAMES.SEND:
         await send(interaction);
+        break;
+      case COMMAND_NAMES.BALANCE_ADJUSTMENT:
+        await balanceAdjustment(interaction);
         break;
       case COMMAND_NAMES.ROLE_BASED_SEND:
         await roleBasedSend(interaction);

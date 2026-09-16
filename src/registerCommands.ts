@@ -10,6 +10,7 @@ import { data as evaluationSheet } from "./command/evaluationSheet";
 import { data as evaluationSheetArchive } from "./command/evaluationSheetArchive";
 import { data as evaluationSheetRestore } from "./command/evaluationSheetRestore";
 import { data as send } from "./command/send";
+import { data as balanceAdjustment } from "./command/balanceAdjustment";
 import { data as roleBasedSend } from "./command/roleBasedSend";
 import { data as view } from "./command/view";
 import { data as linkAccount } from "./command/linkAccount";
@@ -50,6 +51,7 @@ export async function registerCommands() {
     evaluationSheetArchive.toJSON(),
     evaluationSheetRestore.toJSON(),
     send.toJSON(),
+    balanceAdjustment.toJSON(),
     roleBasedSend.toJSON(),
     view.toJSON(),
     linkAccount.toJSON(),

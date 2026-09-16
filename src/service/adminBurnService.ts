@@ -1,4 +1,4 @@
-import { ModalSubmitInteraction, User, MessageFlags } from "discord.js";
+import { ChatInputCommandInteraction, ModalSubmitInteraction, User, MessageFlags } from "discord.js";
 
 import { Account } from "../type/account";
 
@@ -26,7 +26,7 @@ export class AdminBurnService {
    * @param comment 備考
    */
   static async burn(
-    interaction: ModalSubmitInteraction,
+    interaction: ModalSubmitInteraction | ChatInputCommandInteraction,
     burnedUserId: string,
     amount: number,
     comment: string,
@@ -57,13 +57,12 @@ export class AdminBurnService {
         connection.release();
       }
 
-      await interaction.reply({
-        content: `✅ <@${burnedUserId}> から ${formatNumber(amount)}${CURRENCY_NAMES}減額しました！`,
-        flags: MessageFlags.Ephemeral,
-      });
-      await interaction.editReply({
-        content: `✅ <@${burnedUserId}> から ${formatNumber(amount)}${CURRENCY_NAMES}減額しました！`,
-      });
+      const content = `✅ <@${burnedUserId}> から ${formatNumber(amount)}${CURRENCY_NAMES}減額しました！`;
+      if (interaction.deferred || interaction.replied) {
+        await interaction.editReply({ content });
+      } else {
+        await interaction.reply({ content, flags: MessageFlags.Ephemeral });
+      }
 
       // アクション記録
       await ActionService.executeActionLog(
@@ -91,7 +90,7 @@ export class AdminBurnService {
    */
   static async validateBurn(
     burnedUserAccount: Account,
-    interaction: ModalSubmitInteraction,
+    interaction: ModalSubmitInteraction | ChatInputCommandInteraction,
     user: User,
     amount: number,
   ) {

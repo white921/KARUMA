@@ -1,4 +1,4 @@
-import { ModalSubmitInteraction, User, MessageFlags } from "discord.js";
+import { ChatInputCommandInteraction, ModalSubmitInteraction, User, MessageFlags } from "discord.js";
 
 import { Account } from "../type/account";
 
@@ -25,7 +25,7 @@ export class AdminMintService {
    * @param comment 備考
    */
   static async mint(
-    interaction: ModalSubmitInteraction,
+    interaction: ModalSubmitInteraction | ChatInputCommandInteraction,
     toUserId: string,
     amount: number,
     comment: string,
@@ -58,13 +58,12 @@ export class AdminMintService {
         connection.release();
       }
 
-      await interaction.reply({
-        content: `✅ <@${toUserId}> に ${formatNumber(amount)}${CURRENCY_NAMES}付与しました！`,
-        flags: MessageFlags.Ephemeral,
-      });
-      await interaction.editReply({
-        content: `✅ <@${toUserId}> に ${formatNumber(amount)}${CURRENCY_NAMES}付与しました！`,
-      });
+      const content = `✅ <@${toUserId}> に ${formatNumber(amount)}${CURRENCY_NAMES}付与しました！`;
+      if (interaction.deferred || interaction.replied) {
+        await interaction.editReply({ content });
+      } else {
+        await interaction.reply({ content, flags: MessageFlags.Ephemeral });
+      }
 
       // アクション記録
       await ActionService.executeActionLog(
@@ -91,7 +90,7 @@ export class AdminMintService {
    */
   static async validateMint(
     toUserAccount: Account,
-    interaction: ModalSubmitInteraction,
+    interaction: ModalSubmitInteraction | ChatInputCommandInteraction,
     user: User,
     amount: number,
   ) {

@@ -17,6 +17,7 @@ export const COMMAND_NAMES = {
   EVALUATION_SHEET_ARCHIVE: "評価シート保存削除",
   EVALUATION_SHEET_RESTORE: "評価シート復元",
   SEND: "送金",
+  BALANCE_ADJUSTMENT: "残高増減",
   ROLE_BASED_SEND: "ロール別送金",
   VIEW: "残高確認",
   LINK_ACCOUNT: "サブ垢登録",
