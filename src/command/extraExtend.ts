@@ -11,6 +11,7 @@ import { COMMAND_NAMES } from "../constant/command";
 import { MAX_EVALUATION_EXTENSION_DAYS } from "../constant/evaluation";
 import { EVALUATION_SHEET_MESSAGES } from "../constant/evaluationSheet";
 import { ROLE_IDS } from "../constant/id";
+import { hasOperatorRole } from "../util/operatorPermission";
 
 const ALLOWED_ROLE_IDS = [
   ROLE_IDS.EVALUATION_LEADER,
@@ -54,7 +55,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     ? await interaction.guild?.members.fetch(targetUser.id)
     : null;
 
-  const allowed = ALLOWED_ROLE_IDS.some((id) => operator.roles.cache.has(id));
+  const allowed = hasOperatorRole(operator, ALLOWED_ROLE_IDS);
   if (!allowed) {
     throw new Error(EVALUATION_SHEET_MESSAGES.EXTEND_NO_PERMISSION);
   }

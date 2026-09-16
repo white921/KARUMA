@@ -33,6 +33,7 @@ import { addRole } from "../util/role";
 import { GameFreeTicketService } from "./gameFreeTicketService";
 import { ItemService } from "./itemService";
 import { DbService } from "./dbService";
+import { hasSystemAdminRole } from "../util/operatorPermission";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -49,6 +50,7 @@ type WalletRow = RowDataPacket & { wallet: number };
 type PassRow = RowDataPacket & { expire_at: Date | null; is_deleted: number };
 
 const TRAVELER_OR_ABOVE_ROLE_IDS = [
+  ROLE_IDS.GIJUTU_LEADER,
   ROLE_IDS.SABANUSI,
   ROLE_IDS.KANRISYA,
   ROLE_IDS.CORE_MEMBER_ROLES.HONMEN,
@@ -434,6 +436,7 @@ export class GameVcService {
     interaction: ButtonInteraction,
     member: GuildMember,
   ): void {
+    if (hasSystemAdminRole(member)) return;
     if (member.roles.cache.has(ROLE_IDS.CORE_MEMBER_ROLES.HYOKAOTI)) {
       this.assertCriminalPanel(interaction, member);
       return;
@@ -445,6 +448,7 @@ export class GameVcService {
     interaction: ButtonInteraction,
     member: GuildMember,
   ): void {
+    if (hasSystemAdminRole(member)) return;
     if (member.roles.cache.has(ROLE_IDS.CORE_MEMBER_ROLES.HYOKAOTI)) {
       throw new Error(GAME_MESSAGES.CRIMINAL_PANEL_ONLY);
     }
@@ -457,6 +461,7 @@ export class GameVcService {
     interaction: ButtonInteraction,
     member: GuildMember,
   ): void {
+    if (hasSystemAdminRole(member)) return;
     if (!member.roles.cache.has(ROLE_IDS.CORE_MEMBER_ROLES.HYOKAOTI)) {
       throw new Error(GAME_MESSAGES.CRIMINAL_ROLE_REQUIRED);
     }

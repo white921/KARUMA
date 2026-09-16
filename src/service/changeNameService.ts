@@ -7,6 +7,7 @@ import { ActionService } from "./actionService";
 import { DbService } from "./dbService";
 
 import { CHANGE_NAME_MESSAGES } from "../constant/changeName";
+import { hasSystemAdminRole } from "../util/operatorPermission";
 import { ACCOUNT_MESSAGES } from "../constant/account";
 import { COMMAND_NAMES } from "../constant/command";
 import { ROLE_IDS } from "../constant/id";
@@ -95,6 +96,7 @@ export class ChangeNameService {
 
       // 準メン以上でない
       if (
+        !hasSystemAdminRole(user) &&
         !(await hasRole(member, ROLE_IDS.CORE_MEMBER_ROLES.JUNJUNHONMEN)) &&
         !(await hasRole(member, ROLE_IDS.CORE_MEMBER_ROLES.HONMEN))
       ) {

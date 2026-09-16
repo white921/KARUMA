@@ -23,12 +23,14 @@ import {
 import { BASE_EVALUATION_DAYS } from "../constant/evaluation";
 import { hasRole } from "../util/role";
 import { EvaluationSheetArchiveService } from "./evaluationSheetArchiveService";
+import { hasSystemAdminRole } from "../util/operatorPermission";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
 export class EvaluationService {
   static validateCommandCategory(interaction: ChatInputCommandInteraction) {
+    if (hasSystemAdminRole(interaction.member)) return;
     const channel = interaction.channel;
     const parentId =
       channel && "parentId" in channel ? channel.parentId : undefined;

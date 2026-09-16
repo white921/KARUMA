@@ -4,6 +4,7 @@ import { COMMAND_NAMES } from "../constant/command";
 import { ROLE_IDS } from "../constant/id";
 import { AdminMintService } from "../service/adminMintService";
 import { AdminBurnService } from "../service/adminBurnService";
+import { hasOperatorRole } from "../util/operatorPermission";
 
 const ALLOWED_ROLE_IDS = [
   ROLE_IDS.SABANUSI,
@@ -13,7 +14,7 @@ const ALLOWED_ROLE_IDS = [
 
 export const data = new SlashCommandBuilder()
   .setName(COMMAND_NAMES.BALANCE_ADJUSTMENT)
-  .setDescription("皇帝・英傑・財務員が指定ユーザーのLIAを付与・剥奪します")
+  .setDescription("皇帝・英傑・財務員・システム支配人が指定ユーザーのLIAを付与・剥奪します")
   .setDMPermission(false)
   .addUserOption((option) =>
     option
@@ -42,8 +43,8 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     user: interaction.user.id,
     force: true,
   });
-  if (!ALLOWED_ROLE_IDS.some((roleId) => operator.roles.cache.has(roleId))) {
-    throw new Error("残高増減は皇帝・英傑・財務員のみ実行できます。");
+  if (!hasOperatorRole(operator, ALLOWED_ROLE_IDS)) {
+    throw new Error("残高増減は皇帝・英傑・財務員・システム支配人のみ実行できます。");
   }
 
   const target = interaction.options.getUser("ユーザー", true);

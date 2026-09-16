@@ -24,6 +24,7 @@ import {
 import { toActionType } from "../constant/action";
 import { CURRENCY_NAMES } from "../constant/currency";
 import { DbService } from "./dbService";
+import { hasOperatorRole } from "../util/operatorPermission";
 import {
   calculateRoulettePayout,
   getAllowedBetKinds,
@@ -104,7 +105,7 @@ export class RouletteService {
       ROLE_IDS.EVENT_STAFF,
       ROLE_IDS.GIJUTU_LEADER,
     ];
-    if (!operatorRoles.some((roleId) => member.roles.cache.has(roleId))) {
+    if (!hasOperatorRole(member, operatorRoles)) {
       throw new Error(ROULETTE_MESSAGES.OPERATOR_ONLY);
     }
   }

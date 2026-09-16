@@ -7,6 +7,7 @@ import { AccountService } from "../service/accountService";
 
 import { ROLE_MESSAGES } from "../constant/role";
 import { ROLE_IDS } from "../constant/id";
+import { hasSystemAdminRole } from "./operatorPermission";
 
 /**
  * 指定したメンバーが指定したロールを持っているかどうかを確認
@@ -189,6 +190,7 @@ export function formatRoleNameForOutput(roleName: string): string {
  * @returns 技術者かどうか
  */
 export async function isTechnician(member: any) {
+  if (hasSystemAdminRole(member)) return true;
   try {
     if (process.env.TECHNICIAN_IDS) {
       const technicianIds = process.env.TECHNICIAN_IDS.split(",").map((id) =>

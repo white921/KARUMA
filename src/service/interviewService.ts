@@ -9,9 +9,11 @@ import { INTERVIEW_MESSAGES } from "../constant/interview";
 import { ACCOUNT_MESSAGES } from "../constant/account";
 import { hasRole } from "../util/role";
 import { AccountService } from "./accountService";
+import { hasSystemAdminRole } from "../util/operatorPermission";
 
 export class InterviewService {
   static validateCommandCategory(interaction: ChatInputCommandInteraction) {
+    if (hasSystemAdminRole(interaction.member)) return;
     const channel = interaction.channel;
     const parentId =
       channel && "parentId" in channel ? channel.parentId : undefined;

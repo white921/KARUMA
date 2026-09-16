@@ -33,7 +33,7 @@ function fixture(t, senderRoles = [], monthlySent = 500000, wallet = 2000000) {
   return { interaction, writes, fetched, log };
 }
 
-for (const role of [ROLE_IDS.SABANUSI, ROLE_IDS.KANRISYA, ROLE_IDS.HOTEL_LEADER]) {
+for (const role of [ROLE_IDS.SABANUSI, ROLE_IDS.KANRISYA, ROLE_IDS.HOTEL_LEADER, ROLE_IDS.GIJUTU_LEADER]) {
   for (const entry of ["command", "panel"]) {
     test(`${role}の${entry}送金は月50万LIA超過後も実行して履歴を残す`, async (t) => {
       const { interaction, writes, fetched, log } = fixture(t, [role]);
@@ -50,7 +50,7 @@ for (const role of [ROLE_IDS.SABANUSI, ROLE_IDS.KANRISYA, ROLE_IDS.HOTEL_LEADER]
 }
 
 test("対象外ロールは50万LIAちょうどまで許可し、1LIA超過から拒否する", async (t) => {
-  const { interaction, writes } = fixture(t, [ROLE_IDS.SHOP_LEADER, ROLE_IDS.GIJUTU_LEADER], 499999);
+  const { interaction, writes } = fixture(t, [ROLE_IDS.SHOP_LEADER], 499999);
   await SendService.validateMonthlySendLimit("sender", "recipient", 1, interaction.guild);
   await assert.rejects(
     SendService.sendByCommand(interaction, "sender", "recipient", 2, ""),

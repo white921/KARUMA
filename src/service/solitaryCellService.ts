@@ -19,6 +19,7 @@ import { CURRENCY_NAMES } from "../constant/currency";
 import { SOLITARY_CELL, SOLITARY_CELL_MESSAGES } from "../constant/solitaryCell";
 import { formatNumber } from "../util/number";
 import { DbService } from "./dbService";
+import { hasSystemAdminRole } from "../util/operatorPermission";
 
 type SolitaryCellTier = {
   label: string;
@@ -56,6 +57,10 @@ export class SolitaryCellService {
 
     if (member.roles.cache.has(ROLE_IDS.CORE_MEMBER_ROLES.JUNMEN)) {
       return { label: "空位者", price: SOLITARY_CELL.PRICES.VACANT };
+    }
+
+    if (hasSystemAdminRole(member)) {
+      return { label: "システム支配人", price: SOLITARY_CELL.PRICES.VACANT };
     }
 
     throw new Error(SOLITARY_CELL_MESSAGES.NO_ELIGIBLE_ROLE);

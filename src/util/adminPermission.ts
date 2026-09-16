@@ -1,7 +1,7 @@
 import { GuildMember } from "discord.js";
 
 import { ROLE_IDS } from "../constant/id";
-import { hasRole } from "./role";
+import { hasOperatorRole } from "./operatorPermission";
 
 const ADMIN_BANK_PANEL_ROLE_IDS = [
   ROLE_IDS.GINKOU_LEADER,
@@ -14,11 +14,5 @@ const ADMIN_BANK_PANEL_ROLE_IDS = [
 export async function hasAdminBankPanelPermission(
   member: GuildMember,
 ): Promise<boolean> {
-  for (const roleId of ADMIN_BANK_PANEL_ROLE_IDS) {
-    if (await hasRole(member, roleId)) {
-      return true;
-    }
-  }
-
-  return false;
+  return hasOperatorRole(member, ADMIN_BANK_PANEL_ROLE_IDS);
 }

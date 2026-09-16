@@ -22,6 +22,7 @@ import { PANEL_COMMAND_NAMES } from "../constant/command";
 import { ACCOUNT_MESSAGES } from "../constant/account";
 import { BOT_ID } from "../constant/id";
 import { ACTION_TYPES } from "../constant/action";
+import { hasOperatorRole } from "../util/operatorPermission";
 
 export class SendService {
   /**
@@ -221,7 +222,7 @@ export class SendService {
       if (guild) {
         // 送金元本人の最新ロールを確認し、ロール解除後は上限を再適用する。
         const sender = await guild.members.fetch({ user: fromUserId, force: true });
-        if (MONTHLY_SEND_LIMIT_EXEMPT_ROLE_IDS.some((roleId) => sender.roles.cache.has(roleId))) {
+        if (hasOperatorRole(sender, MONTHLY_SEND_LIMIT_EXEMPT_ROLE_IDS)) {
           return;
         }
       }

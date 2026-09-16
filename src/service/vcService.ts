@@ -17,6 +17,7 @@ import { GAME_VC } from "../constant/game";
 import { SOLITARY_CELL } from "../constant/solitaryCell";
 import { TELEPORT_TYPE } from "../constant/vc";
 import { CATEGORY_IDS } from "../constant/id";
+import { hasSystemAdminRole } from "../util/operatorPermission";
 
 type ManagedVcRow = RowDataPacket & {
   owner_id: string;
@@ -68,7 +69,7 @@ export class VcService {
       if (!vc || !isUserEditableManagedVc(vc.type, voiceChannel.parentId)) {
         throw new Error("このコマンドはBotが作成したゲーム・ホテル・独房・狭間のVCでのみ使用できます。");
       }
-      if (String(vc.owner_id) !== interaction.user.id) {
+      if (String(vc.owner_id) !== interaction.user.id && !hasSystemAdminRole(member)) {
         throw new Error("このVCの作成者のみ変更できます。");
       }
       return voiceChannel;
@@ -238,6 +239,7 @@ export class VcService {
       const guild = interaction.guild;
       if (!guild) return;
       const member = await guild.members.fetch(interaction.user.id);
+      if (hasSystemAdminRole(member)) return;
       const vcId = interaction.channel?.id!;
       // 操作した人がVC内にいなければエラーが起きる
       const voiceChannel = member.voice?.channel;

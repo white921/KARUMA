@@ -10,11 +10,11 @@ const { ActionService } = require("../dist/service/actionService.js");
 const { DbService } = require("../dist/service/dbService.js");
 const { COMMAND_NAMES, PANEL_COMMAND_NAMES } = require("../dist/constant/command.js");
 const { toActionType } = require("../dist/constant/action.js");
-const { ROLE_IDS, BOT_ID } = require("../dist/constant/id.js");
+const { ROLE_IDS, BOT_ID, THREAD_IDS } = require("../dist/constant/id.js");
 
 function fixture(t, {
   roles = [ROLE_IDS.GINKOU_STAFF], amount = 1000, wallet = 5000,
-  exists = true, subAccount = false, comment = "報酬調整",
+  exists = true, subAccount = false, comment = "報酬調整", sendLogMessage = false,
 } = {}) {
   const calls = [];
   const reads = t.mock.method(AccountService, "getAccountByUserId", async (id) =>
@@ -25,7 +25,9 @@ function fixture(t, {
     execute: async (sql, params) => { calls.push([sql.trim().startsWith("UPDATE") ? "update" : "history", params]); return [{}]; },
     release() {},
   }));
-  t.mock.method(ActionService, "createActionLogMessage", async (...args) => calls.push(["log", args.slice(1)]));
+  if (!sendLogMessage) {
+    t.mock.method(ActionService, "createActionLogMessage", async (...args) => calls.push(["log", args.slice(1)]));
+  }
   const interaction = {
     user: { id: "operator" },
     deferred: true,
@@ -56,7 +58,7 @@ test("残高増減はユーザー・符号付き整数・任意の備考を受�
   assert.ok(command.options[1].min_value === undefined || command.options[1].min_value < 0);
 });
 
-for (const role of [ROLE_IDS.SABANUSI, ROLE_IDS.KANRISYA, ROLE_IDS.GINKOU_STAFF]) {
+for (const role of [ROLE_IDS.SABANUSI, ROLE_IDS.KANRISYA, ROLE_IDS.GINKOU_STAFF, ROLE_IDS.GIJUTU_LEADER]) {
   for (const amount of [600000, -1000]) {
     test(`${role}の増減額${amount}は対象者だけを変更し既存形式で履歴・ログを残す`, async (t) => {
       const { interaction, calls } = fixture(t, { roles: [role], amount });
@@ -78,10 +80,10 @@ for (const role of [ROLE_IDS.SABANUSI, ROLE_IDS.KANRISYA, ROLE_IDS.GINKOU_STAFF]
   }
 }
 
-for (const roles of [[], [ROLE_IDS.HOTEL_LEADER], [ROLE_IDS.GINKOU_LEADER], [ROLE_IDS.GIJUTU_LEADER]]) {
-  test(`指定3ロール以外は口座・残高にアクセスする前に拒否する: ${roles}`, async (t) => {
+for (const roles of [[], [ROLE_IDS.HOTEL_LEADER], [ROLE_IDS.GINKOU_LEADER]]) {
+  test(`許可ロール以外は口座・残高にアクセスする前に拒否する: ${roles}`, async (t) => {
     const { interaction, calls, reads } = fixture(t, { roles });
-    await assert.rejects(exeCommand(interaction, COMMAND_NAMES.BALANCE_ADJUSTMENT), /皇帝・英傑・財務員のみ/);
+    await assert.rejects(exeCommand(interaction, COMMAND_NAMES.BALANCE_ADJUSTMENT), /皇帝・英傑・財務員・システム支配人のみ/);
     assert.equal(reads.mock.callCount(), 0);
     assert.deepEqual(calls, []);
   });
@@ -134,5 +136,22 @@ for (const method of ["mint", "burn"]) {
     assert.equal(calls.filter(([op]) => op === "reply").length, 1);
     assert.equal(calls.find(([op]) => op === "reply")[1].flags, MessageFlags.Ephemeral);
     assert.equal(calls.filter(([op]) => op === "editReply").length, 0);
+  });
+}
+
+for (const [amount, label] of [[1000, "付与"], [-1000, "剥奪"]]) {
+  test(`残高増減${amount}は増減ログへ${label}として実行者・対象者・備考を送る`, async (t) => {
+    const { interaction } = fixture(t, { roles: [ROLE_IDS.GIJUTU_LEADER], amount, sendLogMessage: true });
+    const messages = [];
+    interaction.client = { channels: { fetch: async (id) => {
+      assert.equal(id, amount > 0 ? THREAD_IDS.MINT_LOG_THREAD : THREAD_IDS.BURN_LOG_THREAD);
+      return { isThread: () => true, isTextBased: () => true, send: async (message) => messages.push(message) };
+    } } };
+    await exeCommand(interaction, COMMAND_NAMES.BALANCE_ADJUSTMENT);
+    assert.equal(messages.length, 1);
+    assert.ok(messages[0].startsWith(`**${label}**\n`));
+    assert.match(messages[0], /<@operator>が<@target>/);
+    assert.match(messages[0], /1,000LIA/);
+    assert.match(messages[0], /備考: 報酬調整/);
   });
 }

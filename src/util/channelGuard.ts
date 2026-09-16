@@ -1,5 +1,6 @@
 // src/utils/channelGuard.ts
 import { ChatInputCommandInteraction } from "discord.js";
+import { hasSystemAdminRole } from "./operatorPermission";
 
 /**
  * このコマンドを使ってよいフォーラム（親チャンネル）かを判定。
@@ -10,6 +11,7 @@ export async function requireForum(
   allowedForumIds: string[],
   opts?: { ephemeral?: boolean }
 ): Promise<boolean> {
+  if (hasSystemAdminRole(interaction.member)) return true;
   const ephemeral = opts?.ephemeral ?? true;
   const ch = interaction.channel;
 
@@ -35,6 +37,7 @@ export async function requireChannel(
   interaction: ChatInputCommandInteraction,
   allowedChannelIds: string[]
 ): Promise<boolean> {
+  if (hasSystemAdminRole(interaction.member)) return true;
   const ch = interaction.channel;
   // チャンネルが存在しない場合もfalse
   if (!ch) {

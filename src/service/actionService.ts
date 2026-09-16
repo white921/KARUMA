@@ -180,7 +180,7 @@ export class ActionService {
           thread = await interaction.client.channels.fetch(threadId);
           if (thread && thread.isThread() && thread.isTextBased()) {
             await (thread as ThreadChannel).send(
-              `**減額**\n<@${toUserId}>が<@${fromUserId}>から${formatNumber(amount)}${CURRENCY_NAMES}減額しました！${
+              `**剥奪**\n<@${toUserId}>が<@${fromUserId}>から${formatNumber(amount)}${CURRENCY_NAMES}剥奪しました！${
                 comment ? `\n備考: ${comment}` : ""
               }`,
             );
