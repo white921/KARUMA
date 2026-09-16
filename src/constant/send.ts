@@ -1,7 +1,13 @@
 import { formatNumber } from "../util/number";
 import { CURRENCY_NAMES } from "./currency";
+import { ROLE_IDS } from "./id";
 
 export const MONTHLY_SEND_LIMIT = 500000;
+export const MONTHLY_SEND_LIMIT_EXEMPT_ROLE_IDS = [
+  ROLE_IDS.SABANUSI,
+  ROLE_IDS.KANRISYA,
+  ROLE_IDS.HOTEL_LEADER,
+] as const;
 
 export const SEND_MESSAGES = {
   SAME_USER: "送金元と送金先が同じです。",

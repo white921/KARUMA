@@ -3,6 +3,7 @@ import {
   MessageFlags,
   ModalSubmitInteraction,
   ButtonInteraction,
+  Guild,
 } from "discord.js";
 
 import { Account } from "../type/account";
@@ -11,7 +12,11 @@ import { AccountService } from "./accountService";
 import { ActionService } from "./actionService";
 import { DbService } from "./dbService";
 
-import { MONTHLY_SEND_LIMIT, SEND_MESSAGES } from "../constant/send";
+import {
+  MONTHLY_SEND_LIMIT,
+  MONTHLY_SEND_LIMIT_EXEMPT_ROLE_IDS,
+  SEND_MESSAGES,
+} from "../constant/send";
 import { CURRENCY_NAMES } from "../constant/currency";
 import { PANEL_COMMAND_NAMES } from "../constant/command";
 import { ACCOUNT_MESSAGES } from "../constant/account";
@@ -42,7 +47,7 @@ export class SendService {
     const toUserAccount = (await AccountService.getAccountByUserId(toUserId))[0];
 
     await this.validateSend(fromUserAccount, toUserAccount, amount);
-    await this.validateMonthlySendLimit(fromUserId, toUserId, amount);
+    await this.validateMonthlySendLimit(fromUserId, toUserId, amount, interaction.guild);
 
     const fromUserAmount = fromUserAccount.wallet - amount;
     const toUserAmount = toUserAccount.wallet + amount;
@@ -201,6 +206,7 @@ export class SendService {
     fromUserId: string,
     toUserId: string,
     amount: number,
+    guild?: Guild | null,
   ) {
     if (await AccountService.isLinkedMainAndSubAccount(fromUserId, toUserId)) {
       return;
@@ -212,6 +218,13 @@ export class SendService {
 
     const monthlySentAmount = await this.getMonthlySentAmount(fromUserId, toUserId);
     if (monthlySentAmount + amount > MONTHLY_SEND_LIMIT) {
+      if (guild) {
+        // 送金元本人の最新ロールを確認し、ロール解除後は上限を再適用する。
+        const sender = await guild.members.fetch({ user: fromUserId, force: true });
+        if (MONTHLY_SEND_LIMIT_EXEMPT_ROLE_IDS.some((roleId) => sender.roles.cache.has(roleId))) {
+          return;
+        }
+      }
       throw new Error(
         SEND_MESSAGES.MONTHLY_LIMIT_EXCEEDED(
           monthlySentAmount,
