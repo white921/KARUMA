@@ -1,9 +1,9 @@
+import type { DiaryType } from "../type/diary";
+
 export const DIARY_TYPE = {
   PRIVATE: "diaryPrivate",
   PUBLIC: "diaryPublic",
 } as const;
-
-export type DiaryType = (typeof DIARY_TYPE)[keyof typeof DIARY_TYPE];
 
 export const DIARY_TYPE_NAMES: Record<DiaryType, string> = {
   [DIARY_TYPE.PRIVATE]: "通常日記",
@@ -54,3 +54,7 @@ export const DIARY_MESSAGES = {
   INACTIVE_CLOSE_REASON:
     "本人または紐づくサブアカウントから3日間投稿がなかったためクローズしました。",
 };
+
+export const DIARY_INACTIVE_DAYS = 3;
+export const DIARY_INACTIVE_MS = DIARY_INACTIVE_DAYS * 24 * 60 * 60 * 1000;
+export const DIARY_PENDING_EXPIRATION_MS = 10 * 60 * 1000;

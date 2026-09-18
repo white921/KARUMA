@@ -1,40 +1,36 @@
+import dayjs from "dayjs";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
 import {
-  ButtonInteraction,
-  EmbedBuilder,
   ActionRowBuilder,
   ButtonBuilder,
+  ButtonInteraction,
   ButtonStyle,
+  EmbedBuilder,
 } from "discord.js";
-import { RowDataPacket } from "mysql2";
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import timezone from "dayjs/plugin/timezone";
-
-import { Action } from "../../type/action";
-import { EmbedField } from "../../type/embed";
-
-import { DbService } from "../system/dbService";
-import { AccountService } from "../account/accountService";
-
-import { COLOR } from "../../constant/color";
+import type { RowDataPacket } from "mysql2";
 import { ACCOUNT_MESSAGES } from "../../constant/account";
-
-import { HISTORY_TITLE_MAPPER } from "../../constant/history";
-import { PANEL_COMMAND_NAMES, COMMAND_NAMES } from "../../constant/command";
+import { ACTION_TYPES, toActionType } from "../../constant/action";
+import { COLOR } from "../../constant/color";
+import { COMMAND_NAMES, PANEL_COMMAND_NAMES } from "../../constant/command";
 import { CURRENCY_NAMES } from "../../constant/currency";
-import { ACTION_TYPES } from "../../constant/action";
-import { BOT_ID } from "../../constant/id";
 import { EXTERNALE_MOJI_VIEWS } from "../../constant/emoji";
+import {
+  HISTORY_FIELD_VALUE_MAX_LENGTH,
+  HISTORY_PAGE_CONTENT_MAX_LENGTH,
+  HISTORY_PAGE_ITEM_LIMIT,
+  HISTORY_TITLE_MAPPER,
+} from "../../constant/history";
+import { BOT_ID } from "../../constant/id";
 import { ROULETTE_ACTION_NAMES } from "../../constant/roulette";
-import { toActionType } from "../../constant/action";
+import type { Action } from "../../type/action";
+import type { EmbedField } from "../../type/embed";
+import { AccountService } from "../account/accountService";
+import { DbService } from "../system/dbService";
 
 dayjs.extend(utc);
-dayjs.extend(timezone);
 
-// Discordのフィールド上限（1,024文字）とEmbed全体上限（6,000文字）より余裕を持たせる。
-const HISTORY_FIELD_VALUE_MAX_LENGTH = 900;
-const HISTORY_PAGE_CONTENT_MAX_LENGTH = 5_000;
-const HISTORY_PAGE_ITEM_LIMIT = 10;
+dayjs.extend(timezone);
 
 export class HistoryService {
   /**

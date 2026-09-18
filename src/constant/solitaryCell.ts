@@ -1,3 +1,5 @@
+import type { SolitaryCellTier } from "../type/solitaryCell";
+import { ROLE_IDS } from "./id";
 export const SOLITARY_CELL = {
   TYPE: "SOLITARY_CELL",
   DURATION_HOURS: 12,
@@ -25,3 +27,21 @@ export const SOLITARY_CELL_MESSAGES = {
   NO_ELIGIBLE_ROLE: "独房を作成できるロールではありません。",
   EXPIRED_NOTICE: "期限になると独房は削除されます。",
 } as const;
+
+export const SOLITARY_CELL_PAID_TIERS: Array<SolitaryCellTier & { roleId: string }> = [
+  {
+    label: "徴兵罪（上級）",
+    price: SOLITARY_CELL.PRICES.CONSCRIPTION_CRIME,
+    roleId: ROLE_IDS.DETENTION_ROLES.CONSCRIPTION_CRIME,
+  },
+  {
+    label: "従軍罪（中級）",
+    price: SOLITARY_CELL.PRICES.MILITARY_CRIME,
+    roleId: ROLE_IDS.DETENTION_ROLES.MILITARY_CRIME,
+  },
+  {
+    label: "召役罪（下級）",
+    price: SOLITARY_CELL.PRICES.SUMMONED_CRIME,
+    roleId: ROLE_IDS.DETENTION_ROLES.SUMMONED_CRIME,
+  },
+];

@@ -1,3 +1,6 @@
+import dayjs, { Dayjs } from "dayjs";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -10,16 +13,19 @@ import {
   PermissionsBitField,
   ThreadChannel,
 } from "discord.js";
-import dayjs, { Dayjs } from "dayjs";
-import timezone from "dayjs/plugin/timezone";
-import utc from "dayjs/plugin/utc";
-import { ResultSetHeader, RowDataPacket } from "mysql2";
-
+import type { ResultSetHeader } from "mysql2";
 import { toActionType } from "../../constant/action";
 import { COLOR } from "../../constant/color";
 import { PANEL_COMMAND_NAMES } from "../../constant/command";
 import { CURRENCY_NAMES } from "../../constant/currency";
-import { GAME_MESSAGES, GAME_VC } from "../../constant/game";
+import {
+  GAME_MESSAGES,
+  GAME_VC,
+  GAME_VC_CONNECT_PERMISSIONS,
+  GAME_VC_MESSAGE_PERMISSIONS,
+  TRAVELER_OR_ABOVE_ROLE_IDS,
+  VC_CONNECT_ROLE_IDS,
+} from "../../constant/game";
 import { GAME_FREE_TICKET_TYPE } from "../../constant/gameTicket";
 import {
   BOT_ID,
@@ -28,56 +34,23 @@ import {
   TEXT_CHANNEL_IDS,
   THREAD_IDS,
 } from "../../constant/id";
+import type {
+  GamePassPlan,
+  GameVcPayment,
+  GameVcTier,
+  PassRow,
+  WalletRow,
+} from "../../type/gameVc";
 import { formatNumber } from "../../util/number";
+import { hasSystemAdminRole } from "../../util/operatorPermission";
 import { addRole } from "../../util/role";
-import { GameFreeTicketService } from "./gameFreeTicketService";
 import { ItemService } from "../inventory/itemService";
 import { DbService } from "../system/dbService";
-import { hasSystemAdminRole } from "../../util/operatorPermission";
+import { GameFreeTicketService } from "./gameFreeTicketService";
 
 dayjs.extend(utc);
+
 dayjs.extend(timezone);
-
-type GameVcPayment = "money" | "ticket" | "pass" | "staff";
-type GamePassPlan = "twoWeeks" | "oneMonth";
-
-type GameVcTier = {
-  label: string;
-  price: number;
-};
-
-type WalletRow = RowDataPacket & { wallet: number };
-type PassRow = RowDataPacket & { expire_at: Date | null; is_deleted: number };
-
-const TRAVELER_OR_ABOVE_ROLE_IDS = [
-  ROLE_IDS.GIJUTU_LEADER,
-  ROLE_IDS.SABANUSI,
-  ROLE_IDS.KANRISYA,
-  ROLE_IDS.CORE_MEMBER_ROLES.HONMEN,
-  ROLE_IDS.CORE_MEMBER_ROLES.JUNHONMEN,
-  ROLE_IDS.CORE_MEMBER_ROLES.JUNJUNHONMEN,
-  ROLE_IDS.CORE_MEMBER_ROLES.KARIMEN,
-];
-
-const VC_CONNECT_ROLE_IDS = [
-  ...TRAVELER_OR_ABOVE_ROLE_IDS,
-];
-
-const GAME_VC_MESSAGE_PERMISSIONS = [
-  PermissionsBitField.Flags.SendMessages,
-  PermissionsBitField.Flags.EmbedLinks,
-  PermissionsBitField.Flags.SendVoiceMessages,
-  PermissionsBitField.Flags.UseEmbeddedActivities,
-];
-
-const GAME_VC_CONNECT_PERMISSIONS = [
-  PermissionsBitField.Flags.ViewChannel,
-  PermissionsBitField.Flags.Connect,
-  PermissionsBitField.Flags.Speak,
-  PermissionsBitField.Flags.UseVAD,
-  PermissionsBitField.Flags.Stream,
-  ...GAME_VC_MESSAGE_PERMISSIONS,
-];
 
 /** 遊戯VC用の権限。空位者は旅人以上と同じ接続権限、罪人は接続権限購入時のみ接続できる。 */
 export function createGameVcPermissionOverwrites(

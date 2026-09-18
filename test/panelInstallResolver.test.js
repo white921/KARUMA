@@ -1,10 +1,8 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
-const {
-  resolvePanelInstallTarget,
-  PANEL_INSTALL_TARGETS,
-} = require("../dist/service/panel/panelInstallService.js");
+const { resolvePanelInstallTarget } = require("../dist/service/panel/panelInstallService.js");
+const { PANEL_INSTALL_TARGETS } = require("../dist/constant/panelInstall.js");
 const {
   FORUM_IDS,
   TEXT_CHANNEL_IDS,

@@ -7,7 +7,8 @@ const { ACTION_TYPES, toActionType } = require("../dist/constant/action.js");
 const { SOLITARY_CELL } = require("../dist/constant/solitaryCell.js");
 const { SolitaryCellService } = require("../dist/service/vc/solitaryCellService.js");
 const { createSolitaryCellPanelActionRow } = require("../dist/service/vc/solitaryCellPanelService.js");
-const { resolvePanelInstallTarget, PANEL_INSTALL_TARGETS } = require("../dist/service/panel/panelInstallService.js");
+const { resolvePanelInstallTarget } = require("../dist/service/panel/panelInstallService.js");
+const { PANEL_INSTALL_TARGETS } = require("../dist/constant/panelInstall.js");
 const { HistoryService } = require("../dist/service/currency/historyService.js");
 
 function memberWithRoles(roleIds) {

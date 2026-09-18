@@ -13,10 +13,8 @@ const {
 const {
   createGameCriminalPanelActionRows,
 } = require("../dist/service/game/gamePanelService.js");
-const {
-  PANEL_INSTALL_TARGETS,
-  resolvePanelInstallTarget,
-} = require("../dist/service/panel/panelInstallService.js");
+const { PANEL_INSTALL_TARGETS } = require("../dist/constant/panelInstall.js");
+const { resolvePanelInstallTarget } = require("../dist/service/panel/panelInstallService.js");
 const {
   getGameVcTier,
   canPurchaseGamePass,

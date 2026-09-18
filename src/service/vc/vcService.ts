@@ -1,34 +1,18 @@
 import {
-  StringSelectMenuInteraction,
-  VoiceChannel,
-  ModalSubmitInteraction,
   ButtonInteraction,
   ChannelType,
-  REST,
   ChatInputCommandInteraction,
+  ModalSubmitInteraction,
+  REST,
+  StringSelectMenuInteraction,
+  VoiceChannel,
 } from "discord.js";
-import { RowDataPacket } from "mysql2";
-
-import { DbService } from "../system/dbService";
-
-import { VC_MESSAGES } from "../../constant/vc";
 import { HOTEL_TYPE } from "../../constant/hotel";
-import { GAME_VC } from "../../constant/game";
-import { SOLITARY_CELL } from "../../constant/solitaryCell";
-import { TELEPORT_TYPE } from "../../constant/vc";
 import { CATEGORY_IDS } from "../../constant/id";
+import { TELEPORT_TYPE, USER_EDITABLE_VC_TYPES, VC_MESSAGES } from "../../constant/vc";
+import type { ManagedVcRow } from "../../type/vc";
 import { hasSystemAdminRole } from "../../util/operatorPermission";
-
-type ManagedVcRow = RowDataPacket & {
-  owner_id: string;
-  type: string;
-};
-
-const USER_EDITABLE_VC_TYPES = new Set<string>([
-  GAME_VC.TYPE,
-  ...Object.values(HOTEL_TYPE),
-  SOLITARY_CELL.TYPE,
-]);
+import { DbService } from "../system/dbService";
 
 export function isUserEditableManagedVc(
   type: string,

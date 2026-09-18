@@ -1,4 +1,6 @@
+import { GAME_VC } from "./game";
 import { HOTEL_TYPE } from "./hotel";
+import { SOLITARY_CELL } from "./solitaryCell";
 
 export const TELEPORT_TYPE = {
   TELEPORT: "TELEPORT",
@@ -19,3 +21,9 @@ export const VC_MESSAGES = {
   DO_NOT_UPDATE_VC_LIMIT_TO_INFINITY:
     "このVCの人数制限は無制限に変更できません。",
 };
+
+export const USER_EDITABLE_VC_TYPES = new Set<string>([
+  GAME_VC.TYPE,
+  ...Object.values(HOTEL_TYPE),
+  SOLITARY_CELL.TYPE,
+]);

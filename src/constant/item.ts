@@ -1,3 +1,5 @@
+import type { ItemKey } from "../type/item";
+
 export const ITEM_KEY = {
   HOTEL_SECRET_FREE: "HOTEL_SECRET_FREE",
   HOTEL_FREEDOM_FREE: "HOTEL_FREEDOM_FREE",
@@ -5,8 +7,6 @@ export const ITEM_KEY = {
   SHOP_DISCOUNT_10: "SHOP_DISCOUNT_10",
   GAME_SHORT_FREE: "GAME_SHORT_FREE",
 } as const;
-
-export type ItemKey = (typeof ITEM_KEY)[keyof typeof ITEM_KEY];
 
 export const ITEM_DEFINITIONS: readonly {
   key: ItemKey;

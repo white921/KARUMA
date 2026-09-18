@@ -1,16 +1,12 @@
 import { Client, GuildMember, PartialGuildMember } from "discord.js";
 
-// import { ChallengeMarkService } from "../service/member/challengeMarkService";
 // import { RemindToMadoromiService } from "../service/member/remindToMadoromiService";
 // import { EvaluationService } from "../service/evaluation/evaluationService";
 import { AccountService } from "../service/account/accountService";
 import { ServerBoostService } from "../service/member/serverBoostService";
 import { addRole, deleteRole } from "../util/role";
 
-import {
-  RETURN_MEMBER_ROLE_CHANGE_EXCLUDED_USER_IDS,
-  ROLE_IDS,
-} from "../constant/id";
+import { RETURN_MEMBER_ROLE_CHANGE_EXCLUDED_USER_IDS, ROLE_IDS } from "../constant/id";
 
 export function shouldSkipReturnMemberRoleChange(userId: string): boolean {
   return RETURN_MEMBER_ROLE_CHANGE_EXCLUDED_USER_IDS.has(userId);
@@ -44,14 +40,6 @@ export async function handleRoleChange(
   }
 
   await ServerBoostService.handleMemberUpdate(oldMember, newMember, client);
-
-  // 挑戦の印ロールの付与を監視
-  // const hadTyosen = oldMember.roles.cache.has(ROLE_IDS.TYOSEN_NO_SHIRUSHI);
-  // const hasTyosen = newMember.roles.cache.has(ROLE_IDS.TYOSEN_NO_SHIRUSHI);
-  // if (!hadTyosen && hasTyosen) {
-  //   ChallengeMarkService.insertIntoRoleManagementLogs(newMember.id);
-  //   ChallengeMarkService.createChallengeEvaluateSheet(client, newMember);
-  // }
 
   // まどろみロールの付与・剥奪を監視
   // const hadMadoromi = oldMember.roles.cache.has(ROLE_IDS.CORE_MEMBER_ROLES.MADOROMI);

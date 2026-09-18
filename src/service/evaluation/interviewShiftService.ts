@@ -1,15 +1,13 @@
-import { Client, TextChannel } from "discord.js";
 import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
-
+import utc from "dayjs/plugin/utc";
+import { Client, TextChannel } from "discord.js";
 import { ROLE_IDS, TEXT_CHANNEL_IDS } from "../../constant/id";
+import { SHIFT_OPTIONS, WEEK_DAYS } from "../../constant/interview";
 
 dayjs.extend(utc);
-dayjs.extend(timezone);
 
-const WEEK_DAYS = ["日", "月", "火", "水", "木", "金", "土"];
-const SHIFT_OPTIONS = ["21時", "22時", "23時", "欠席"];
+dayjs.extend(timezone);
 
 export function buildDailyShiftMessagePayloads(dateLabel: string): string[] {
   const introduction = [

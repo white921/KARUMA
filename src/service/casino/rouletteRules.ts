@@ -1,24 +1,10 @@
-import { RouletteBet, RouletteBetKind, RouletteStage } from "../../type/roulette";
-
-const RED_NUMBERS = new Set([
-  1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36,
-]);
-
-const STAGE_BET_KINDS: Record<RouletteStage, RouletteBetKind[]> = {
-  1: ["red", "black", "even", "odd"],
-  2: ["red", "black", "even", "odd", "dozen"],
-  3: ["red", "black", "even", "odd", "dozen", "straight", "split"],
-};
-
-export const ROULETTE_BET_LABELS: Record<RouletteBetKind, string> = {
-  red: "赤",
-  black: "黒",
-  even: "偶数",
-  odd: "奇数",
-  dozen: "ダズン",
-  straight: "ストレートアップ",
-  split: "スプリット",
-};
+import {
+  RED_NUMBERS,
+  ROULETTE_BET_LABELS,
+  ROULETTE_DOZEN_RANGES,
+  STAGE_BET_KINDS,
+} from "../../constant/roulette";
+import type { RouletteBet, RouletteBetKind, RouletteStage } from "../../type/roulette";
 
 export function isRouletteStage(value: number): value is RouletteStage {
   return value === 1 || value === 2 || value === 3;
@@ -29,15 +15,10 @@ export function getAllowedBetKinds(stage: RouletteStage): RouletteBetKind[] {
 }
 
 export function getDozenRange(selection: string): string {
-  const ranges: Record<string, string> = {
-    1: "1-12",
-    2: "13-24",
-    3: "25-36",
-  };
   if (!/^[1-3]$/.test(selection)) {
     throw new Error("ダズンは1・2・3から選択してください。");
   }
-  return ranges[selection];
+  return ROULETTE_DOZEN_RANGES[selection];
 }
 
 export function getBetLabel(bet: Pick<RouletteBet, "kind" | "selection">): string {

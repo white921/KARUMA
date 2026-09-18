@@ -1,24 +1,12 @@
 import { ChatInputCommandInteraction, GuildMember } from "discord.js";
-import { PoolConnection, RowDataPacket } from "mysql2/promise";
-
-import { ROLE_IDS } from "../../constant/id";
+import type { PoolConnection } from "mysql2/promise";
 import {
   INVITE_POINT_GACHA_COST,
   INVITE_POINT_MESSAGES,
+  INVITE_POINT_OPERATOR_ROLE_IDS,
 } from "../../constant/invitePoint";
+import type { AccountRow, InvitePointBalanceRow } from "../../type/invitePoint";
 import { DbService } from "../system/dbService";
-
-type AccountRow = RowDataPacket & { user_id: string };
-type InvitePointBalanceRow = RowDataPacket & { points: number };
-
-const INVITE_POINT_OPERATOR_ROLE_IDS = [
-  ROLE_IDS.GIJUTU_LEADER,
-  ROLE_IDS.SABANUSI,
-  ROLE_IDS.KANRISYA,
-  ROLE_IDS.GINKOU_STAFF,
-  ROLE_IDS.SHOP_LEADER,
-  ROLE_IDS.SHOP_STAFF,
-];
 
 export function canManageInvitePoints(member: unknown): boolean {
   const roleBackedMember = member as

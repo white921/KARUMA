@@ -1,40 +1,18 @@
-import {
-  Client,
-  Collection,
-  Message,
-  ThreadChannel,
-} from "discord.js";
-import { ResultSetHeader, RowDataPacket } from "mysql2";
-
-import { DbService } from "../system/dbService";
-import { EvaluationSheetArchiveStorageService } from "./evaluationSheetArchiveStorageService";
+import { Client, Collection, Message, ThreadChannel } from "discord.js";
+import type { ResultSetHeader } from "mysql2";
 import {
   EVALUATION_SHEET_FORUM_IDS,
   EVALUATION_SHEET_MESSAGES,
 } from "../../constant/evaluationSheet";
-import {
+import type {
+  ArchiveRow,
   EvaluationSheetArchiveRecord,
   EvaluationSheetThreadRecord,
+  SessionRow,
+  ThreadRow,
 } from "../../type/evaluationSheetArchive";
-
-interface SessionRow extends RowDataPacket {
-  id: number;
-  user_id: string;
-  status: "active" | "saved" | "deleted";
-}
-
-interface ThreadRow extends RowDataPacket {
-  forum_id: string;
-  thread_id: string;
-}
-
-interface ArchiveRow extends RowDataPacket {
-  id: number;
-  transcript_html: string;
-  message_count: number;
-  archived_at: Date;
-  source_thread_id: string;
-}
+import { DbService } from "../system/dbService";
+import { EvaluationSheetArchiveStorageService } from "./evaluationSheetArchiveStorageService";
 
 export class EvaluationSheetArchiveService {
   static async attachLatestArchiveToThread(

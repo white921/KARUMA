@@ -1,20 +1,17 @@
 import { ButtonInteraction, EmbedBuilder, GuildMember, TextChannel } from "discord.js";
-import { RowDataPacket } from "mysql2";
-
-import { PANEL_COMMAND_NAMES } from "../../constant/command";
+import type { RowDataPacket } from "mysql2";
+import { ACTION_TYPES } from "../../constant/action";
+import { COLOR } from "../../constant/color";
 import { CURRENCY_NAMES } from "../../constant/currency";
 import { BOT_ID, TEXT_CHANNEL_IDS } from "../../constant/id";
 import {
-  OmikujiPrize,
+  OMIKUJI_FORTUNE_MESSAGES,
   OMIKUJI_MESSAGES,
   selectOmikujiPrize,
 } from "../../constant/omikuji";
-import { COLOR } from "../../constant/color";
+import type { OmikujiPrize, WalletRow } from "../../type/omikuji";
 import { AccountService } from "../account/accountService";
 import { DbService } from "../system/dbService";
-import { ACTION_TYPES } from "../../constant/action";
-
-type WalletRow = RowDataPacket & { wallet: number };
 
 export function assertOmikujiDrawAllowed(isSubAccount: boolean): void {
   if (isSubAccount) {
@@ -53,15 +50,7 @@ export function formatOmikujiDrawReply(
       `現在の残高：${afterWallet.toLocaleString()}${CURRENCY_NAMES}`
     );
   }
-
-  const messages: Record<OmikujiPrize["fortune"], string> = {
-    小吉: "ささやかな福を授けよう。日々の積み重ねを大切にするのだよ。",
-    中吉: "よい流れが来ている。その調子で励むのだよ。",
-    大吉: "大いに祝福しよう。この運を周りにも分け与えるのだよ。",
-    超大吉: "天はそなたを祝福している。今日の恵みに感謝し、堂々と進みなさい。",
-    凶: "",
-  };
-  const message = messages[prize.fortune];
+  const message = OMIKUJI_FORTUNE_MESSAGES[prize.fortune];
 
   return (
     `📜 **皇帝のお告げ：${prize.fortune}**\n` +

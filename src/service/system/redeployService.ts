@@ -1,18 +1,5 @@
-const RAILWAY_GRAPHQL_ENDPOINT = "https://backboard.railway.com/graphql/v2";
-
-type RailwayGraphqlResponse<T> = {
-  data?: T;
-  errors?: Array<{
-    message: string;
-  }>;
-};
-
-type DeploymentRedeployResponse = {
-  deploymentRedeploy: {
-    id: string;
-    status: string;
-  };
-};
+import { RAILWAY_GRAPHQL_ENDPOINT } from "../../constant/redeploy";
+import type { DeploymentRedeployResponse, RailwayGraphqlResponse } from "../../type/redeploy";
 
 export class RedeployService {
   private static getProjectToken() {

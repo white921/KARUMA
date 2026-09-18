@@ -1,47 +1,35 @@
 import {
-  ButtonInteraction,
   ChannelType,
   Client,
   ForumChannel,
   GuildMember,
   Message,
   MessageFlags,
-  ModalSubmitInteraction,
   ThreadChannel,
 } from "discord.js";
-import { RowDataPacket } from "mysql2/promise";
-
+import type { RowDataPacket } from "mysql2/promise";
+import { ACCOUNT_MESSAGES } from "../../constant/account";
+import {
+  DIARY_INACTIVE_MS,
+  DIARY_MESSAGES,
+  DIARY_PENDING_EXPIRATION_MS,
+  DIARY_PRICE,
+  DIARY_TYPE,
+  DIARY_TYPE_NAMES,
+} from "../../constant/diary";
+import { BOT_ID, FORUM_IDS, ROLE_IDS } from "../../constant/id";
+import type {
+  DiaryExecutionInteraction,
+  DiaryRow,
+  DiaryType,
+  PendingDiaryAction,
+} from "../../type/diary";
+import { hasRole } from "../../util/role";
 import { AccountService } from "../account/accountService";
 import { ActionService } from "../currency/actionService";
 import { DbService } from "../system/dbService";
 
-import { DiaryRow } from "../../type/diary";
-
-import { hasRole } from "../../util/role";
-
-import {
-  DIARY_MESSAGES,
-  DIARY_PRICE,
-  DIARY_TYPE,
-  DIARY_TYPE_NAMES,
-  DiaryType,
-} from "../../constant/diary";
-import { BOT_ID, FORUM_IDS, ROLE_IDS } from "../../constant/id";
-import { ACCOUNT_MESSAGES } from "../../constant/account";
-
-type DiaryExecutionInteraction = ModalSubmitInteraction | ButtonInteraction;
-type PendingDiaryAction = {
-  commandId: string;
-  title: string;
-  body: string;
-  createdAt: number;
-};
-
 export class DiaryService {
-  private static readonly INACTIVE_DAYS = 3;
-  private static readonly INACTIVE_MS =
-    DiaryService.INACTIVE_DAYS * 24 * 60 * 60 * 1000;
-  private static readonly PENDING_EXPIRATION_MS = 10 * 60 * 1000;
   private static readonly pendingDiaryActions = new Map<
     string,
     PendingDiaryAction
@@ -73,7 +61,7 @@ export class DiaryService {
       return null;
     }
 
-    if (Date.now() - pending.createdAt > this.PENDING_EXPIRATION_MS) {
+    if (Date.now() - pending.createdAt > DIARY_PENDING_EXPIRATION_MS) {
       return null;
     }
 
@@ -647,7 +635,7 @@ export class DiaryService {
     thread: ThreadChannel,
     linkedUserIds: string[],
   ): Promise<boolean> {
-    const threshold = Date.now() - this.INACTIVE_MS;
+    const threshold = Date.now() - DIARY_INACTIVE_MS;
     let before: string | undefined;
 
     while (true) {

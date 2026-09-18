@@ -8,29 +8,25 @@ import {
   StringSelectMenuBuilder,
   StringSelectMenuInteraction,
 } from "discord.js";
-
+import { COLOR } from "../../constant/color";
 import { PANEL_COMMAND_NAMES } from "../../constant/command";
+import {
+  CREATOR_EMBLEM_CONFIRM_PREFIX,
+  CREATOR_EMBLEM_CREATOR_SELECT_PREFIX,
+  CREATOR_EMBLEM_ENABLED,
+  CREATOR_EMBLEM_PRODUCT_SELECT_ID,
+  PRODUCTS,
+} from "../../constant/creatorEmblem";
 import { CURRENCY_NAMES } from "../../constant/currency";
 import { ROLE_IDS } from "../../constant/id";
 import { CREATOR_EMBLEM_PANEL_MESSAGES } from "../../constant/panel";
-import { COLOR } from "../../constant/color";
-import { CREATOR_EMBLEM_ENABLED } from "../../constant/creatorEmblem";
+import type { EmblemProduct } from "../../type/creatorEmblemPayment";
 import { SendService } from "../currency/sendService";
 
-export type EmblemProduct = "personal" | "large";
-
-const PRODUCTS: Record<EmblemProduct, { label: string; apostlePrice: number; memberPrice?: number }> = {
-  personal: { label: "個人紋章", apostlePrice: 60_000, memberPrice: 100_000 },
-  large: { label: "デカ紋章", apostlePrice: 150_000 },
-};
-
 export class CreatorEmblemPaymentService {
-  static readonly PRODUCT_SELECT_ID = "creatorEmblemProductSelect";
-  static readonly CREATOR_SELECT_PREFIX = "creatorEmblemCreatorSelect";
-  private static readonly CONFIRM_PREFIX = "creatorEmblemConfirm";
 
   static isConfirmCustomId(customId: string): boolean {
-    return customId.startsWith(`${this.CONFIRM_PREFIX}:`);
+    return customId.startsWith(`${CREATOR_EMBLEM_CONFIRM_PREFIX}:`);
   }
 
   private static assertEnabled(): void {
@@ -85,7 +81,7 @@ export class CreatorEmblemPaymentService {
     this.assertCanUse(member);
 
     const select = new StringSelectMenuBuilder()
-      .setCustomId(this.PRODUCT_SELECT_ID)
+      .setCustomId(CREATOR_EMBLEM_PRODUCT_SELECT_ID)
       .setPlaceholder("紋章の種類を選択してください")
       .addOptions(
         {
@@ -128,7 +124,7 @@ export class CreatorEmblemPaymentService {
     }
 
     const select = new StringSelectMenuBuilder()
-      .setCustomId(`${this.CREATOR_SELECT_PREFIX}:${product}`)
+      .setCustomId(`${CREATOR_EMBLEM_CREATOR_SELECT_PREFIX}:${product}`)
       .setPlaceholder("夢印屋さんを選択してください")
       .addOptions(
         creators.first(25).map((member) => ({
@@ -177,7 +173,7 @@ export class CreatorEmblemPaymentService {
       .setColor(COLOR.YELLOW);
     const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
-        .setCustomId(`${this.CONFIRM_PREFIX}:${productValue}:${creator.id}`)
+        .setCustomId(`${CREATOR_EMBLEM_CONFIRM_PREFIX}:${productValue}:${creator.id}`)
         .setLabel("確定して支払う")
         .setStyle(ButtonStyle.Success),
       new ButtonBuilder()

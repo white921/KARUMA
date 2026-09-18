@@ -1,60 +1,38 @@
+import type { Channel } from "discord.js";
 import {
   ButtonInteraction,
-  UserSelectMenuInteraction,
   ChannelType,
-  GuildMember,
-  PermissionsBitField,
   Client,
-  Channel,
-  VoiceChannel,
-  StringSelectMenuInteraction,
+  GuildMember,
   OverwriteType,
+  PermissionsBitField,
+  StringSelectMenuInteraction,
+  UserSelectMenuInteraction,
+  VoiceChannel,
 } from "discord.js";
-
-import { Account } from "../../type/account";
-
-import { hasRole } from "../../util/role";
+import { PANEL_COMMAND_NAMES } from "../../constant/command";
+import { CURRENCY_NAMES } from "../../constant/currency";
+import {
+  HOTEL_CHAT_PERMISSION_BITS,
+  HOTEL_MESSAGES,
+  HOTEL_PARTICIPANT_PERMISSIONS,
+  HOTEL_PRICE,
+  HOTEL_PURCHASE_WAY_TYPE,
+  HOTEL_TYPE,
+  HOTEL_TYPE_NAMES,
+} from "../../constant/hotel";
+import { BOT_ID, ROLE_IDS } from "../../constant/id";
+import { VC_ALL_TYPES } from "../../constant/vc";
+import type { Account } from "../../type/account";
 import { formatNumber } from "../../util/number";
+import { hasRole } from "../../util/role";
+import { normalizePollingIntervalMs } from "../../util/runtimeConfig";
 import { updateVcStatus } from "../../util/vc";
-
 import { AccountService } from "../account/accountService";
 import { ActionService } from "../currency/actionService";
 import { DbService } from "../system/dbService";
-import { HotelFreeTicketService } from "./hotelFreeTicketService";
 import { VcPanelService } from "../vc/vcPanelService";
-
-import {
-  HOTEL_PRICE,
-  HOTEL_TYPE_NAMES,
-  HOTEL_MESSAGES,
-  HOTEL_PURCHASE_WAY_TYPE,
-} from "../../constant/hotel";
-import { VC_ALL_TYPES } from "../../constant/vc";
-import { HOTEL_TYPE } from "../../constant/hotel";
-import { PANEL_COMMAND_NAMES } from "../../constant/command";
-import { CURRENCY_NAMES } from "../../constant/currency";
-import { BOT_ID, ROLE_IDS } from "../../constant/id";
-import { normalizePollingIntervalMs } from "../../util/runtimeConfig";
-
-const HOTEL_CHAT_PERMISSION_BITS =
-  PermissionsBitField.Flags.SendMessages |
-  PermissionsBitField.Flags.EmbedLinks |
-  PermissionsBitField.Flags.SendVoiceMessages |
-  PermissionsBitField.Flags.UseEmbeddedActivities;
-
-const HOTEL_PARTICIPANT_PERMISSIONS = [
-  PermissionsBitField.Flags.ViewChannel,
-  PermissionsBitField.Flags.Connect,
-  PermissionsBitField.Flags.Speak,
-  PermissionsBitField.Flags.UseVAD,
-  PermissionsBitField.Flags.Stream,
-  PermissionsBitField.Flags.SendMessages,
-  PermissionsBitField.Flags.EmbedLinks,
-  PermissionsBitField.Flags.AttachFiles,
-  PermissionsBitField.Flags.AddReactions,
-  PermissionsBitField.Flags.SendVoiceMessages,
-  PermissionsBitField.Flags.UseEmbeddedActivities,
-];
+import { HotelFreeTicketService } from "./hotelFreeTicketService";
 
 export class HotelVcService {
   private static expiredVcCheckerStarted = false;

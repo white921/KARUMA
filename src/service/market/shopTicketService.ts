@@ -1,13 +1,9 @@
-import { PoolConnection } from "mysql2/promise";
-
-import { SHOP_TICKET_TYPE, ShopTicketType } from "../../constant/shopTicket";
-import { ITEM_KEY, ItemKey } from "../../constant/item";
+import type { PoolConnection } from "mysql2/promise";
+import { ITEM_KEY } from "../../constant/item";
+import { SHOP_TICKET_TYPE } from "../../constant/shopTicket";
+import type { ItemKey } from "../../type/item";
+import type { OwnedShopTicket, ShopTicketType } from "../../type/shopTicket";
 import { ItemService } from "../inventory/itemService";
-
-export type OwnedShopTicket = {
-  type: ShopTicketType;
-  quantity: number;
-};
 
 export class ShopTicketService {
   static getItemKey(ticketType: ShopTicketType): ItemKey {

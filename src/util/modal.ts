@@ -1,15 +1,15 @@
 import {
   ActionRowBuilder,
+  ButtonInteraction,
   ModalBuilder,
+  StringSelectMenuInteraction,
   TextInputBuilder,
   TextInputStyle,
   UserSelectMenuInteraction,
-  ButtonInteraction,
-  StringSelectMenuInteraction,
 } from "discord.js";
-
 import { PANEL_COMMAND_NAMES } from "../constant/command";
-import { SHOP_TICKET_NONE, ShopTicketType } from "../constant/shopTicket";
+import { SHOP_TICKET_NONE } from "../constant/shopTicket";
+import type { ShopTicketType } from "../type/shopTicket";
 
 /**
  * 数値入力モーダルを表示

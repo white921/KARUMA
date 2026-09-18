@@ -1,12 +1,5 @@
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-
-interface EvaluationArchiveR2Config {
-  endpoint: string;
-  accessKeyId: string;
-  secretAccessKey: string;
-  bucket: string;
-  publicBaseUrl: string;
-}
+import type { EvaluationArchiveR2Config } from "../../type/evaluationSheetArchive";
 
 export class EvaluationSheetArchiveStorageService {
   private static client: S3Client | null = null;

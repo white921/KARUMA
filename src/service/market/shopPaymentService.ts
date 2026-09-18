@@ -1,25 +1,18 @@
 import { MessageFlags, ModalSubmitInteraction } from "discord.js";
-import { RowDataPacket } from "mysql2/promise";
-
+import { toActionType } from "../../constant/action";
+import { PANEL_COMMAND_NAMES } from "../../constant/command";
+import { CURRENCY_NAMES } from "../../constant/currency";
+import { BOT_ID } from "../../constant/id";
 import {
   getShopTicket,
   SHOP_TICKET_MAX_APPLICABLE_AMOUNT,
   SHOP_TICKET_NONE,
-  ShopTicketType,
 } from "../../constant/shopTicket";
-import { BOT_ID } from "../../constant/id";
-import { CURRENCY_NAMES } from "../../constant/currency";
-import { PANEL_COMMAND_NAMES } from "../../constant/command";
+import type { ShopPaymentCommandName, WalletRow } from "../../type/shopPayment";
+import type { ShopTicketType } from "../../type/shopTicket";
 import { ActionService } from "../currency/actionService";
 import { DbService } from "../system/dbService";
 import { ShopTicketService } from "./shopTicketService";
-import { toActionType } from "../../constant/action";
-
-type WalletRow = RowDataPacket & { wallet: number };
-type ShopPaymentCommandName =
-  | typeof PANEL_COMMAND_NAMES.SHOP_SEND
-  | typeof PANEL_COMMAND_NAMES.DARK_SHOP_SEND
-  | typeof PANEL_COMMAND_NAMES.COURT_SHOP_SEND;
 
 export class ShopPaymentService {
   private static validateAmount(amount: number): void {

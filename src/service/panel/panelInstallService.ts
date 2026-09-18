@@ -1,89 +1,25 @@
 import { ChatInputCommandInteraction, Client, GuildMember } from "discord.js";
-
-import { getRoulettePanelChannelId, ROLE_IDS, TEXT_CHANNEL_IDS, THREAD_IDS } from "../../constant/id";
-import { AdminPanelService } from "../currency/adminPanelService";
+import { getRoulettePanelChannelId, ROLE_IDS } from "../../constant/id";
+import {
+  PANEL_INSTALL_CHANNEL_MAP,
+  PANEL_INSTALL_TARGET_LABELS,
+  PANEL_INSTALL_TARGETS,
+} from "../../constant/panelInstall";
+import type { PanelInstallTarget } from "../../type/panelInstall";
 import { CasinoPanelService } from "../casino/casinoPanel";
+import { RoulettePanelService } from "../casino/roulettePanelService";
+import { AdminPanelService } from "../currency/adminPanelService";
+import { PanelService } from "../currency/panelService";
 import { DiaryPanelService } from "../diary/diaryPanelService";
 import { GamePanelService } from "../game/gamePanelService";
 import { HotelVcPanelService } from "../hotel/hotelPanelService";
-import { PanelService } from "../currency/panelService";
-import { RedeployPanelService } from "../system/redeployPanelService";
-import { ShopPanelService } from "../market/shopPanelService";
 import { CreatorEmblemPanelService } from "../market/creatorEmblemPanelService";
-import { RoulettePanelService } from "../casino/roulettePanelService";
-import { OmikujiPanelService } from "../omikuji/omikujiPanelService";
-import { HazamaPanelService } from "../vc/hazamaPanelService";
+import { ShopPanelService } from "../market/shopPanelService";
 import { SuperchatPanelService } from "../market/superchatPanelService";
+import { OmikujiPanelService } from "../omikuji/omikujiPanelService";
+import { RedeployPanelService } from "../system/redeployPanelService";
+import { HazamaPanelService } from "../vc/hazamaPanelService";
 import { SolitaryCellPanelService } from "../vc/solitaryCellPanelService";
-
-export const PANEL_INSTALL_TARGETS = {
-  BANK: "bank",
-  ADMIN_BANK: "admin_bank",
-  HOTEL: "hotel",
-  SOLITARY_CELL: "solitary_cell",
-  GAME: "game",
-  GAME_CRIMINAL: "game_criminal",
-  HAZAMA: "hazama",
-  CASINO: "casino",
-  SHOP: "shop",
-  DARK_SHOP: "dark_shop",
-  COURT_SHOP: "court_shop",
-  CREATOR_EMBLEM: "creator_emblem",
-  SUPERCHAT: "superchat",
-  OMIKUJI: "omikuji",
-  DIARY: "diary",
-  REDEPLOY: "redeploy",
-  ROULETTE_1ST: "roulette_1st",
-  ROULETTE_2ND: "roulette_2nd",
-  ROULETTE_3RD: "roulette_3rd",
-} as const;
-
-type PanelInstallTarget =
-  (typeof PANEL_INSTALL_TARGETS)[keyof typeof PANEL_INSTALL_TARGETS];
-
-const PANEL_INSTALL_TARGET_LABELS: Record<PanelInstallTarget, string> = {
-  [PANEL_INSTALL_TARGETS.BANK]: "銀行パネル",
-  [PANEL_INSTALL_TARGETS.ADMIN_BANK]: "管理者銀行パネル",
-  [PANEL_INSTALL_TARGETS.HOTEL]: "ホテルVCパネル",
-  [PANEL_INSTALL_TARGETS.SOLITARY_CELL]: "独房作成パネル",
-  [PANEL_INSTALL_TARGETS.GAME]: "遊戯パネル",
-  [PANEL_INSTALL_TARGETS.GAME_CRIMINAL]: "罪人用遊戯パネル",
-  [PANEL_INSTALL_TARGETS.HAZAMA]: "辺境の狭間パネル",
-  [PANEL_INSTALL_TARGETS.CASINO]: "賭博パネル",
-  [PANEL_INSTALL_TARGETS.SHOP]: "市場パネル",
-  [PANEL_INSTALL_TARGETS.DARK_SHOP]: "闇市場パネル",
-  [PANEL_INSTALL_TARGETS.COURT_SHOP]: "宮廷市場パネル",
-  [PANEL_INSTALL_TARGETS.CREATOR_EMBLEM]: "夢印工房パネル",
-  [PANEL_INSTALL_TARGETS.SUPERCHAT]: "スパチャパネル",
-  [PANEL_INSTALL_TARGETS.OMIKUJI]: "おみくじパネル",
-  [PANEL_INSTALL_TARGETS.DIARY]: "日記パネル",
-  [PANEL_INSTALL_TARGETS.REDEPLOY]: "再起動パネル",
-  [PANEL_INSTALL_TARGETS.ROULETTE_1ST]: "ヨーロピアンルーレット第1部パネル",
-  [PANEL_INSTALL_TARGETS.ROULETTE_2ND]: "ヨーロピアンルーレット第2部パネル",
-  [PANEL_INSTALL_TARGETS.ROULETTE_3RD]: "ヨーロピアンルーレット第3部パネル",
-};
-
-const PANEL_INSTALL_CHANNEL_MAP = new Map<string, PanelInstallTarget>(
-  [
-    [TEXT_CHANNEL_IDS.GINKOU_PANEL, PANEL_INSTALL_TARGETS.BANK],
-    [THREAD_IDS.ADMIN_PANEL_THREAD, PANEL_INSTALL_TARGETS.ADMIN_BANK],
-    [TEXT_CHANNEL_IDS.NORMAL_HOTEL_VC_PANEL, PANEL_INSTALL_TARGETS.HOTEL],
-    [TEXT_CHANNEL_IDS.SPECIAL_HOTEL_VC_PANEL, PANEL_INSTALL_TARGETS.HOTEL],
-    [TEXT_CHANNEL_IDS.SOLITARY_CELL_PANEL, PANEL_INSTALL_TARGETS.SOLITARY_CELL],
-    [TEXT_CHANNEL_IDS.GAME_PANEL, PANEL_INSTALL_TARGETS.GAME],
-    [TEXT_CHANNEL_IDS.GAME_CRIMINAL_PANEL, PANEL_INSTALL_TARGETS.GAME_CRIMINAL],
-    [TEXT_CHANNEL_IDS.HAZAMA_PANEL, PANEL_INSTALL_TARGETS.HAZAMA],
-    [TEXT_CHANNEL_IDS.CASINO_PANEL, PANEL_INSTALL_TARGETS.CASINO],
-    [TEXT_CHANNEL_IDS.SHOP_PANEL, PANEL_INSTALL_TARGETS.SHOP],
-    [TEXT_CHANNEL_IDS.DARK_SHOP_PANEL, PANEL_INSTALL_TARGETS.DARK_SHOP],
-    [TEXT_CHANNEL_IDS.COURT_SHOP_PANEL, PANEL_INSTALL_TARGETS.COURT_SHOP],
-    [TEXT_CHANNEL_IDS.CREATOR_EMBLEM_PANEL, PANEL_INSTALL_TARGETS.CREATOR_EMBLEM],
-    [TEXT_CHANNEL_IDS.SUPERCHAT_PANEL, PANEL_INSTALL_TARGETS.SUPERCHAT],
-    [TEXT_CHANNEL_IDS.OMIKUJI_PANEL, PANEL_INSTALL_TARGETS.OMIKUJI],
-    [THREAD_IDS.DIARY_PANEL_THREAD, PANEL_INSTALL_TARGETS.DIARY],
-    [TEXT_CHANNEL_IDS.REDEPLOY_PANEL, PANEL_INSTALL_TARGETS.REDEPLOY],
-  ].filter(([channelId]) => Boolean(channelId)) as [string, PanelInstallTarget][],
-);
 
 export function resolvePanelInstallTarget(
   channelId: string,

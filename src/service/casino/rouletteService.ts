@@ -13,57 +13,37 @@ import {
   TextInputBuilder,
   TextInputStyle,
 } from "discord.js";
-import { ResultSetHeader, RowDataPacket } from "mysql2";
-
-import { BOT_ID, ROLE_IDS } from "../../constant/id";
-import {
-  ROULETTE_ACTION_NAMES,
-  ROULETTE_MESSAGES,
-  ROULETTE_PARTICIPATION_BONUS,
-} from "../../constant/roulette";
+import type { ResultSetHeader, RowDataPacket } from "mysql2";
 import { toActionType } from "../../constant/action";
 import { CURRENCY_NAMES } from "../../constant/currency";
-import { DbService } from "../system/dbService";
+import { BOT_ID } from "../../constant/id";
+import {
+  ROULETTE_ACTION_NAMES,
+  ROULETTE_BET_KINDS,
+  ROULETTE_BET_LABELS,
+  ROULETTE_MESSAGES,
+  ROULETTE_OPERATOR_ROLE_IDS,
+  ROULETTE_PARTICIPATION_BONUS,
+} from "../../constant/roulette";
+import type {
+  AccountRow,
+  RouletteBet,
+  RouletteBetKind,
+  RouletteBetRow,
+  RouletteBonusBatchRow,
+  RouletteRoundRow,
+  RouletteSettlement,
+  RouletteStage,
+} from "../../type/roulette";
 import { hasOperatorRole } from "../../util/operatorPermission";
+import { DbService } from "../system/dbService";
 import {
   calculateRoulettePayout,
   getAllowedBetKinds,
   getBetLabel,
   getDozenRange,
-  ROULETTE_BET_LABELS,
   validateRouletteBet,
 } from "./rouletteRules";
-import { RouletteBet, RouletteBetKind, RouletteStage } from "../../type/roulette";
-
-type RouletteRoundRow = RowDataPacket & {
-  id: number;
-  stage: RouletteStage;
-  status: "open" | "closed" | "settled";
-};
-
-type RouletteBetRow = RowDataPacket & {
-  id: number;
-  user_id: string;
-  bet_kind: RouletteBetKind;
-  selection: string;
-  amount: number;
-};
-
-type RouletteBonusBatchRow = RowDataPacket & {
-  id: number;
-  last_round_id: number;
-};
-
-type AccountRow = RowDataPacket & { wallet: number };
-
-export type RouletteSettlement = {
-  roundId: number;
-  roundNumber: number;
-  stage: RouletteStage;
-  result: number;
-  winners: Array<{ userId: string; payout: number; bet: RouletteBet }>;
-  betCount: number;
-};
 
 function parseStage(value: string): RouletteStage {
   const stage = Number(value);
@@ -81,10 +61,7 @@ function parseConfirmId(customId: string): {
 } {
   const [, stageValue, kindValue, selection, amountValue] = customId.split("_");
   const stage = parseStage(stageValue);
-  const kinds: RouletteBetKind[] = [
-    "red", "black", "even", "odd", "dozen", "straight", "split",
-  ];
-  if (!kinds.includes(kindValue as RouletteBetKind)) {
+  if (!ROULETTE_BET_KINDS.includes(kindValue as RouletteBetKind)) {
     throw new Error("賭け方の情報が不正です。最初からやり直してください。");
   }
   return { stage, kind: kindValue as RouletteBetKind, selection, amount: Number(amountValue) };
@@ -100,12 +77,7 @@ async function getMember(interaction: ChatInputCommandInteraction): Promise<Guil
 export class RouletteService {
   static async assertOperator(interaction: ChatInputCommandInteraction): Promise<void> {
     const member = await getMember(interaction);
-    const operatorRoles = [
-      ROLE_IDS.EVENT_LEADER,
-      ROLE_IDS.EVENT_STAFF,
-      ROLE_IDS.GIJUTU_LEADER,
-    ];
-    if (!hasOperatorRole(member, operatorRoles)) {
+    if (!hasOperatorRole(member, ROULETTE_OPERATOR_ROLE_IDS)) {
       throw new Error(ROULETTE_MESSAGES.OPERATOR_ONLY);
     }
   }

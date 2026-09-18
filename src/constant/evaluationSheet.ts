@@ -1,4 +1,4 @@
-import { FORUM_IDS } from "./id";
+import { FORUM_IDS, ROLE_IDS } from "./id";
 
 export const EVALUATION_SHEET_FORUM_IDS = [
   FORUM_IDS.EVALUATION_001,
@@ -33,3 +33,12 @@ export const EVALUATION_SHEET_MESSAGES = {
   TEMPLATE:
     "自己紹介: {introductionLink}\nユーザーID: {userId}\n終了日: {endDate}\n\n",
 };
+
+export const EVALUATION_SHEET_ARCHIVE_ALLOWED_ROLE_IDS = [
+  ROLE_IDS.GIJUTU_LEADER,
+  ROLE_IDS.SABANUSI,
+  ROLE_IDS.EVALUATION_LEADER,
+  ROLE_IDS.KANRISYA,
+] as const;
+
+export const EVALUATION_SHEET_EXTEND_DELAY_MS = 500;

@@ -1,12 +1,10 @@
-import { PoolConnection } from "mysql2/promise";
-
-import {
-  GAME_FREE_TICKET_TYPE,
-  GameFreeTicketType,
-} from "../../constant/gameTicket";
-import { ITEM_KEY, ItemKey } from "../../constant/item";
+import type { PoolConnection } from "mysql2/promise";
 import { PANEL_COMMAND_NAMES } from "../../constant/command";
 import { GAME_MESSAGES } from "../../constant/game";
+import { GAME_FREE_TICKET_TYPE } from "../../constant/gameTicket";
+import { ITEM_KEY } from "../../constant/item";
+import type { GameFreeTicketType } from "../../type/gameTicket";
+import type { ItemKey } from "../../type/item";
 import { ItemService } from "../inventory/itemService";
 
 export class GameFreeTicketService {

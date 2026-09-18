@@ -1,8 +1,4 @@
-export type OmikujiPrize = {
-  fortune: "小吉" | "中吉" | "大吉" | "凶" | "超大吉";
-  amount: number;
-  probability: number;
-};
+import type { OmikujiPrize } from "../type/omikuji";
 
 /** 確率の単位は %。合計が100になることをテストで保証する。 */
 export const OMIKUJI_PRIZES: readonly OmikujiPrize[] = [
@@ -33,3 +29,11 @@ export function selectOmikujiPrize(randomValue: number): OmikujiPrize {
 
   throw new Error("おみくじの確率設定が不正です。");
 }
+
+export const OMIKUJI_FORTUNE_MESSAGES: Record<OmikujiPrize["fortune"], string> = {
+  小吉: "ささやかな福を授けよう。日々の積み重ねを大切にするのだよ。",
+  中吉: "よい流れが来ている。その調子で励むのだよ。",
+  大吉: "大いに祝福しよう。この運を周りにも分け与えるのだよ。",
+  超大吉: "天はそなたを祝福している。今日の恵みに感謝し、堂々と進みなさい。",
+  凶: "",
+};

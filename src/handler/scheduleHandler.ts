@@ -3,13 +3,12 @@ import cron from "node-cron";
 import { Client, Guild } from "discord.js";
 
 import { SalaryService } from "../service/currency/salaryService";
-// import { ChallengeMarkService } from "../service/member/challengeMarkService";
 // import { MonthlyDebitService } from "../service/currency/monthlyDebitService";
+import { DiaryService } from "../service/diary/diaryService";
+import { InterviewShiftService } from "../service/evaluation/interviewShiftService";
 import { GameService } from "../service/game/gameService";
 import { SalesManagementService } from "../service/market/salesManagementService";
-import { DiaryService } from "../service/diary/diaryService";
 import { RedeployService } from "../service/system/redeployService";
-import { InterviewShiftService } from "../service/evaluation/interviewShiftService";
 
 /**
  * 定期的な処理を実行するハンドラ
@@ -46,19 +45,6 @@ export async function handleSchedule(client: Client) {
   //   () => {
   //     // 毎月1日の3:50に実行される処理
   //     MonthlyDebitService.debitMonthly(guild!);
-  //   },
-  //   { timezone: "Asia/Tokyo" }
-  // );
-
-  // cron.schedule(
-  //   "0 0 * * *",
-  //   () => {
-  //     // 毎日0:00に実行される処理
-  //     try {
-  //       ChallengeMarkService.executeChallengeMark(guild!, client);
-  //     } catch (err) {
-  //       console.error("schedule daily job error:", err);
-  //     }
   //   },
   //   { timezone: "Asia/Tokyo" }
   // );

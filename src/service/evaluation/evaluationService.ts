@@ -1,3 +1,6 @@
+import dayjs from "dayjs";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
 import {
   ChannelType,
   ChatInputCommandInteraction,
@@ -7,23 +10,17 @@ import {
   TextChannel,
   ThreadChannel,
 } from "discord.js";
-import dayjs from "dayjs";
-import timezone from "dayjs/plugin/timezone";
-import utc from "dayjs/plugin/utc";
+import { EVALUATION_SHEET_EXTEND_DELAY_MS } from "../../constant/evaluationSheet";
 
-import {
-  ROLE_IDS,
-  TEXT_CHANNEL_IDS,
-  CATEGORY_IDS,
-} from "../../constant/id";
+import { BASE_EVALUATION_DAYS } from "../../constant/evaluation";
 import {
   EVALUATION_SHEET_FORUM_IDS,
   EVALUATION_SHEET_MESSAGES,
 } from "../../constant/evaluationSheet";
-import { BASE_EVALUATION_DAYS } from "../../constant/evaluation";
+import { CATEGORY_IDS, ROLE_IDS, TEXT_CHANNEL_IDS } from "../../constant/id";
+import { hasSystemAdminRole } from "../../util/operatorPermission";
 import { hasRole } from "../../util/role";
 import { EvaluationSheetArchiveService } from "./evaluationSheetArchiveService";
-import { hasSystemAdminRole } from "../../util/operatorPermission";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -328,7 +325,6 @@ export class EvaluationService {
       : null;
     const sleep = (ms: number) =>
       new Promise<void>((resolve) => setTimeout(resolve, ms));
-    const DELAY_MS = 500;
 
     let extendedCount = 0;
     const skipped: { thread: string; reason: string }[] = [];
@@ -404,7 +400,7 @@ export class EvaluationService {
           });
         }
 
-        await sleep(DELAY_MS);
+        await sleep(EVALUATION_SHEET_EXTEND_DELAY_MS);
       }
     }
 

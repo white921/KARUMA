@@ -1,33 +1,9 @@
+import type { MarketGachaPrize } from "../type/marketGacha";
+import { TEXT_CHANNEL_IDS } from "./id";
+
 export const MARKET_GACHA_PRICE = 5_000;
+
 export const MARKET_GACHA_DAILY_LIMIT = 5;
-
-export type MarketGachaPrizeKey =
-  | "superchat"
-  | "song_cover"
-  | "idol_collab"
-  | "superchat_nomination"
-  | "game_free_1"
-  | "game_free_3"
-  | "secret_free_1"
-  | "secret_free_3"
-  | "freedom_free_1"
-  | "discount_5"
-  | "discount_10"
-  | "detention_pass_3_days"
-  | "custom_role_week"
-  | "one_more_chance"
-  | "day_off"
-  | "event_proposal";
-
-export type MarketGachaAudioCategory = "superchat" | "song_cover";
-
-export type MarketGachaPrize = {
-  key: MarketGachaPrizeKey;
-  label: string;
-  probability: number;
-  /** R2上の当選ファイルをDBから選んで渡す景品かどうか */
-  audioCategory?: MarketGachaAudioCategory;
-};
 
 /** 確率の単位は %。合計が100になることをテストで保証する。 */
 export const MARKET_GACHA_PRIZES: readonly MarketGachaPrize[] = [
@@ -84,3 +60,10 @@ export function selectMarketGachaPrize(randomValue: number): MarketGachaPrize {
   // 景品確率を変更したときに、設定漏れを見逃さないための保険。
   throw new Error("市場ガチャの景品確率設定が不正です。");
 }
+
+export const GENERAL_INQUIRY_CHANNEL_MENTION = `<#${TEXT_CHANNEL_IDS.GENERAL_INQUIRY}>`;
+
+export const MARKET_TICKET_GUIDANCE = `${GENERAL_INQUIRY_CHANNEL_MENTION}にて市場チケットを切り、当選メッセージをスクショしてチケット内に送信してください。`;
+
+export const AUDIO_PRIZE_PROHIBITION_NOTICE =
+  "※転載・転送・保存・画面録画等は禁止です。";

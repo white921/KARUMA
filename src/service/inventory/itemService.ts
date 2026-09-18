@@ -1,16 +1,6 @@
-import { PoolConnection, ResultSetHeader, RowDataPacket } from "mysql2/promise";
-
-import { ItemKey } from "../../constant/item";
+import type { PoolConnection, ResultSetHeader } from "mysql2/promise";
+import type { ItemInventoryRow, ItemKey, ItemQuantityRow } from "../../type/item";
 import { DbService } from "../system/dbService";
-
-type ItemQuantityRow = RowDataPacket & {
-  item_key: ItemKey;
-  quantity: number;
-};
-
-type ItemInventoryRow = ItemQuantityRow & {
-  item_id: number;
-};
 
 export class ItemService {
   static async getQuantities(

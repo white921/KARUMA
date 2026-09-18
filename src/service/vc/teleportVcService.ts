@@ -1,37 +1,10 @@
-import {
-  VoiceChannel,
-  ChannelType,
-  GuildMember,
-} from "discord.js";
-
-import { getVcMembersCount, updateVcStatus } from "../../util/vc";
-
-import { VcPanelService } from "./vcPanelService";
-import { DbService } from "../system/dbService";
-
-import { CATEGORY_IDS, VC_IDS } from "../../constant/id";
-import { TELEPORT_MESSAGE } from "../../constant/teleport";
+import { ChannelType, GuildMember, VoiceChannel } from "discord.js";
+import { TELEPORT_MESSAGE, TELEPORT_VC_CONFIGS } from "../../constant/teleport";
 import { TELEPORT_TYPE } from "../../constant/vc";
-
-export type TeleportVcConfig = {
-  triggerVcId: string;
-  categoryId: string;
-};
-
-export const TELEPORT_VC_CONFIGS: readonly TeleportVcConfig[] = [
-  {
-    triggerVcId: VC_IDS.GAME_TELEPORT,
-    categoryId: CATEGORY_IDS.GAME,
-  },
-  {
-    triggerVcId: VC_IDS.CASINO_TELEPORT,
-    categoryId: CATEGORY_IDS.CASINO,
-  },
-  {
-    triggerVcId: VC_IDS.HAZAMA_TELEPORT,
-    categoryId: CATEGORY_IDS.HAZAMA,
-  },
-].filter((config) => Boolean(config.triggerVcId));
+import type { TeleportVcConfig } from "../../type/teleportVc";
+import { getVcMembersCount, updateVcStatus } from "../../util/vc";
+import { DbService } from "../system/dbService";
+import { VcPanelService } from "./vcPanelService";
 
 export function resolveTeleportVcConfig(
   channelId: string,

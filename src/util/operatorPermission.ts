@@ -1,8 +1,5 @@
 import { ROLE_IDS } from "../constant/id";
-
-type RoleBackedMember = {
-  roles?: string[] | { cache?: { has: (roleId: string) => boolean } };
-};
+import type { RoleBackedMember } from "../type/operatorPermission";
 
 function memberHasRole(member: unknown, roleId: string): boolean {
   const roles = (member as RoleBackedMember | null | undefined)?.roles;

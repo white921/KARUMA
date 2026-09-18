@@ -1,3 +1,4 @@
+import { PermissionsBitField } from "discord.js";
 import { CURRENCY_NAMES } from "./currency";
 
 export const HOTEL_TYPE = {
@@ -27,9 +28,6 @@ export const HOTEL_FREE_TICKET_TYPE = {
   FREEDOM: "FREEDOM",
 } as const;
 
-export type HotelFreeTicketType =
-  (typeof HOTEL_FREE_TICKET_TYPE)[keyof typeof HOTEL_FREE_TICKET_TYPE];
-
 export const HOTEL_PRICE = {
   NORMAL: 10000,
   SECRET: 30000,
@@ -52,3 +50,23 @@ export const HOTEL_MESSAGES = {
   HAS_NOT_TICKET: "チケットがありません",
   TICKET_PRIORITY_NOTICE: "※無料券を所持しているため、チケットを優先して消費します。",
 };
+
+export const HOTEL_CHAT_PERMISSION_BITS =
+  PermissionsBitField.Flags.SendMessages |
+  PermissionsBitField.Flags.EmbedLinks |
+  PermissionsBitField.Flags.SendVoiceMessages |
+  PermissionsBitField.Flags.UseEmbeddedActivities;
+
+export const HOTEL_PARTICIPANT_PERMISSIONS = [
+  PermissionsBitField.Flags.ViewChannel,
+  PermissionsBitField.Flags.Connect,
+  PermissionsBitField.Flags.Speak,
+  PermissionsBitField.Flags.UseVAD,
+  PermissionsBitField.Flags.Stream,
+  PermissionsBitField.Flags.SendMessages,
+  PermissionsBitField.Flags.EmbedLinks,
+  PermissionsBitField.Flags.AttachFiles,
+  PermissionsBitField.Flags.AddReactions,
+  PermissionsBitField.Flags.SendVoiceMessages,
+  PermissionsBitField.Flags.UseEmbeddedActivities,
+];

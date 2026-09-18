@@ -1,3 +1,6 @@
+import { PermissionsBitField } from "discord.js";
+import { ROLE_IDS } from "./id";
+
 export const GAME_PRICE = {
   SHORT: 5000,
   LONG: 10000,
@@ -37,3 +40,33 @@ export const GAME_MESSAGES = {
   CRIMINAL_ROLE_REQUIRED: "罪人用の遊戯パネルです。",
   CRIMINAL_ACCESS_ALREADY_ACTIVE: "遊戯VC接続権限はすでに有効です。",
 };
+
+export const TRAVELER_OR_ABOVE_ROLE_IDS = [
+  ROLE_IDS.GIJUTU_LEADER,
+  ROLE_IDS.SABANUSI,
+  ROLE_IDS.KANRISYA,
+  ROLE_IDS.CORE_MEMBER_ROLES.HONMEN,
+  ROLE_IDS.CORE_MEMBER_ROLES.JUNHONMEN,
+  ROLE_IDS.CORE_MEMBER_ROLES.JUNJUNHONMEN,
+  ROLE_IDS.CORE_MEMBER_ROLES.KARIMEN,
+];
+
+export const VC_CONNECT_ROLE_IDS = [
+  ...TRAVELER_OR_ABOVE_ROLE_IDS,
+];
+
+export const GAME_VC_MESSAGE_PERMISSIONS = [
+  PermissionsBitField.Flags.SendMessages,
+  PermissionsBitField.Flags.EmbedLinks,
+  PermissionsBitField.Flags.SendVoiceMessages,
+  PermissionsBitField.Flags.UseEmbeddedActivities,
+];
+
+export const GAME_VC_CONNECT_PERMISSIONS = [
+  PermissionsBitField.Flags.ViewChannel,
+  PermissionsBitField.Flags.Connect,
+  PermissionsBitField.Flags.Speak,
+  PermissionsBitField.Flags.UseVAD,
+  PermissionsBitField.Flags.Stream,
+  ...GAME_VC_MESSAGE_PERMISSIONS,
+];

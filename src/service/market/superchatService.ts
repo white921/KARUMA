@@ -13,9 +13,8 @@ import {
   TextInputStyle,
   ThreadChannel,
 } from "discord.js";
-
-import { PANEL_COMMAND_NAMES } from "../../constant/command";
 import { COLOR } from "../../constant/color";
+import { PANEL_COMMAND_NAMES } from "../../constant/command";
 import { CURRENCY_NAMES } from "../../constant/currency";
 import {
   ROLE_IDS,
@@ -24,17 +23,12 @@ import {
   TEXT_CHANNEL_IDS,
 } from "../../constant/id";
 import { SUPERCHAT_PANEL_MESSAGES } from "../../constant/panel";
+import { STAGE_OPTIONS } from "../../constant/superchat";
+import type { SuperchatStage } from "../../type/superchat";
 import { AccountService } from "../account/accountService";
 import { ActionService } from "../currency/actionService";
-import { DbService } from "../system/dbService";
 import { SendService } from "../currency/sendService";
-
-export type SuperchatStage = "singer" | "voice";
-
-const STAGE_OPTIONS: Array<{ value: SuperchatStage; label: string }> = [
-  { value: "singer", label: "歌冠ステージ" },
-  { value: "voice", label: "声冠ステージ" },
-];
+import { DbService } from "../system/dbService";
 
 export function canReceiveSuperchat(member: GuildMember): boolean {
   return SUPERCHAT_TEST_STREAMER_IDS.has(member.id) ||

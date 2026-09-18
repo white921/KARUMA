@@ -9,50 +9,30 @@ import {
   OverwriteType,
   PermissionsBitField,
 } from "discord.js";
-import { ResultSetHeader, RowDataPacket } from "mysql2";
-
+import type { ResultSetHeader } from "mysql2";
 import { toActionType } from "../../constant/action";
 import { COLOR } from "../../constant/color";
 import { PANEL_COMMAND_NAMES } from "../../constant/command";
-import { BOT_ID, CATEGORY_IDS, ROLE_IDS, TEXT_CHANNEL_IDS } from "../../constant/id";
 import { CURRENCY_NAMES } from "../../constant/currency";
-import { SOLITARY_CELL, SOLITARY_CELL_MESSAGES } from "../../constant/solitaryCell";
+import { BOT_ID, CATEGORY_IDS, ROLE_IDS, TEXT_CHANNEL_IDS } from "../../constant/id";
+import {
+  SOLITARY_CELL,
+  SOLITARY_CELL_MESSAGES,
+  SOLITARY_CELL_PAID_TIERS,
+} from "../../constant/solitaryCell";
+import type { SolitaryCellTier, WalletRow } from "../../type/solitaryCell";
 import { formatNumber } from "../../util/number";
-import { DbService } from "../system/dbService";
 import { hasSystemAdminRole } from "../../util/operatorPermission";
-
-type SolitaryCellTier = {
-  label: string;
-  price: number;
-};
-
-type WalletRow = RowDataPacket & { wallet: number };
+import { DbService } from "../system/dbService";
 
 export class SolitaryCellService {
   static getTier(member: GuildMember): SolitaryCellTier {
-    const paidTiers: Array<SolitaryCellTier & { roleId: string }> = [
-      {
-        label: "徴兵罪（上級）",
-        price: SOLITARY_CELL.PRICES.CONSCRIPTION_CRIME,
-        roleId: ROLE_IDS.DETENTION_ROLES.CONSCRIPTION_CRIME,
-      },
-      {
-        label: "従軍罪（中級）",
-        price: SOLITARY_CELL.PRICES.MILITARY_CRIME,
-        roleId: ROLE_IDS.DETENTION_ROLES.MILITARY_CRIME,
-      },
-      {
-        label: "召役罪（下級）",
-        price: SOLITARY_CELL.PRICES.SUMMONED_CRIME,
-        roleId: ROLE_IDS.DETENTION_ROLES.SUMMONED_CRIME,
-      },
-    ];
 
-    const paidTier = paidTiers.find((tier) =>
+    const paidTier = SOLITARY_CELL_PAID_TIERS.find((tier) =>
       member.roles.cache.has(tier.roleId),
     );
     if (paidTier) {
-      return paidTier;
+      return { ...paidTier };
     }
 
     if (member.roles.cache.has(ROLE_IDS.CORE_MEMBER_ROLES.JUNMEN)) {

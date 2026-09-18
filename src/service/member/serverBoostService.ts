@@ -1,28 +1,17 @@
-import { Client, GuildMember, PartialGuildMember } from "discord.js";
-import { RowDataPacket } from "mysql2";
-
+import type { PartialGuildMember } from "discord.js";
+import { Client, GuildMember } from "discord.js";
+import type { RowDataPacket } from "mysql2";
+import { ACTION_TYPES } from "../../constant/action";
+import { COMMAND_NAMES } from "../../constant/command";
+import { BOT_ID } from "../../constant/id";
 import {
   SERVER_BOOST_AFTER_REWARD,
   SERVER_BOOST_FIRST_REWARD,
   SERVER_BOOST_HIGH_REWARD_COUNT,
 } from "../../constant/salary";
-import { COMMAND_NAMES } from "../../constant/command";
-import { BOT_ID } from "../../constant/id";
+import type { BoostAccountRow, ServerBoostReward } from "../../type/serverBoost";
 import { ActionService } from "../currency/actionService";
 import { DbService } from "../system/dbService";
-import { ACTION_TYPES } from "../../constant/action";
-
-type BoostAccountRow = RowDataPacket & {
-  user_id: string;
-  wallet: number;
-  boost_count: number;
-};
-
-export type ServerBoostReward = {
-  amount: number;
-  boostCount: number;
-  comment: string;
-};
 
 export function isNewServerBoost(
   oldPremiumSinceTimestamp: number | null,

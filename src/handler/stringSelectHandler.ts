@@ -1,23 +1,23 @@
 import { StringSelectMenuInteraction } from "discord.js";
+import {
+  CREATOR_EMBLEM_CREATOR_SELECT_PREFIX,
+  CREATOR_EMBLEM_PRODUCT_SELECT_ID,
+} from "../constant/creatorEmblem";
 
 import { showConfirmButton } from "../util/button";
-import { showSelectUserMenu } from "../util/select";
 import { showShopAmountModal } from "../util/modal";
+import { showSelectUserMenu } from "../util/select";
 
-import { HotelFreeTicketService } from "../service/hotel/hotelFreeTicketService";
-import { VcService } from "../service/vc/vcService";
 import { RouletteService } from "../service/casino/rouletteService";
+import { HotelFreeTicketService } from "../service/hotel/hotelFreeTicketService";
 import { CreatorEmblemPaymentService } from "../service/market/creatorEmblemPaymentService";
 import { SuperchatService } from "../service/market/superchatService";
+import { VcService } from "../service/vc/vcService";
 import { RouletteBetKind, RouletteStage } from "../type/roulette";
 
-import { HOTEL_PURCHASE_WAY_TYPE } from "../constant/hotel";
 import { PANEL_COMMAND_NAMES } from "../constant/command";
-import { HOTEL_MESSAGES } from "../constant/hotel";
-import {
-  isShopTicketType,
-  SHOP_TICKET_NONE,
-} from "../constant/shopTicket";
+import { HOTEL_MESSAGES, HOTEL_PURCHASE_WAY_TYPE } from "../constant/hotel";
+import { isShopTicketType, SHOP_TICKET_NONE } from "../constant/shopTicket";
 
 /**
  * 文字列のプルダウンを選択した時のハンドラ
@@ -70,11 +70,11 @@ export async function handleStringSelectMenu(
       await showShopAmountModal(interaction, ticketType);
       return;
     }
-    if (customId === CreatorEmblemPaymentService.PRODUCT_SELECT_ID) {
+    if (customId === CREATOR_EMBLEM_PRODUCT_SELECT_ID) {
       await CreatorEmblemPaymentService.showCreatorSelect(interaction);
       return;
     }
-    if (customId.startsWith(`${CreatorEmblemPaymentService.CREATOR_SELECT_PREFIX}:`)) {
+    if (customId.startsWith(`${CREATOR_EMBLEM_CREATOR_SELECT_PREFIX}:`)) {
       await CreatorEmblemPaymentService.showConfirmation(interaction);
       return;
     }

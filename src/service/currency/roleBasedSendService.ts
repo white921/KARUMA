@@ -1,31 +1,15 @@
-import {
-  ChatInputCommandInteraction,
-  Collection,
-  GuildMember,
-  Role,
-} from "discord.js";
-
-import { Account } from "../../type/account";
-
-import { AccountService } from "../account/accountService";
-import { ActionService } from "./actionService";
-import { DbService } from "../system/dbService";
-
-import { formatRoleNameForOutput, hasRole } from "../../util/role";
-
+import { ChatInputCommandInteraction, Collection, GuildMember, Role } from "discord.js";
 import { COMMAND_NAMES } from "../../constant/command";
+import { CURRENCY_NAMES } from "../../constant/currency";
 import { BOT_ID, ROLE_IDS } from "../../constant/id";
 import { ROLE_BASED_SEND_MESSAGES } from "../../constant/roleBasedSend";
 import { SEND_MESSAGES } from "../../constant/send";
-import { CURRENCY_NAMES } from "../../constant/currency";
+import type { SkipReason, TargetUser } from "../../type/roleBasedSend";
 import { formatNumber } from "../../util/number";
-
-type SkipReason = "bot" | "subAccount" | "accountNotFound";
-
-type TargetUser = {
-  member: GuildMember;
-  account: Account;
-};
+import { formatRoleNameForOutput, hasRole } from "../../util/role";
+import { AccountService } from "../account/accountService";
+import { DbService } from "../system/dbService";
+import { ActionService } from "./actionService";
 
 export class RoleBasedSendService {
   static async execute(

@@ -1,12 +1,9 @@
-import { PoolConnection } from "mysql2/promise";
-
-import {
-  HOTEL_FREE_TICKET_TYPE,
-  HOTEL_MESSAGES,
-  HotelFreeTicketType,
-} from "../../constant/hotel";
-import { ITEM_KEY, ItemKey } from "../../constant/item";
+import type { PoolConnection } from "mysql2/promise";
 import { PANEL_COMMAND_NAMES } from "../../constant/command";
+import { HOTEL_FREE_TICKET_TYPE, HOTEL_MESSAGES } from "../../constant/hotel";
+import { ITEM_KEY } from "../../constant/item";
+import type { HotelFreeTicketType } from "../../type/hotel";
+import type { ItemKey } from "../../type/item";
 import { ItemService } from "../inventory/itemService";
 
 export class HotelFreeTicketService {

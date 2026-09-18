@@ -1,18 +1,11 @@
+import type { ShopTicket, ShopTicketType } from "../type/shopTicket";
+
 export const SHOP_TICKET_TYPE = {
   DISCOUNT_5: "DISCOUNT_5",
   DISCOUNT_10: "DISCOUNT_10",
 } as const;
 
-export type ShopTicketType =
-  (typeof SHOP_TICKET_TYPE)[keyof typeof SHOP_TICKET_TYPE];
-
 export const SHOP_TICKET_NONE = "none";
-
-export type ShopTicket = {
-  type: ShopTicketType;
-  label: string;
-  discountRate: number;
-};
 
 export const SHOP_TICKETS: readonly ShopTicket[] = [
   {

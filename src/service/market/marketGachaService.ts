@@ -6,55 +6,41 @@ import {
   GuildMember,
   ThreadChannel,
 } from "discord.js";
-import { RowDataPacket } from "mysql2";
-import { PoolConnection, ResultSetHeader } from "mysql2/promise";
-
+import type { RowDataPacket } from "mysql2";
+import type { PoolConnection, ResultSetHeader } from "mysql2/promise";
+import { ACTION_TYPES } from "../../constant/action";
+import { PANEL_COMMAND_NAMES } from "../../constant/command";
+import { CURRENCY_NAMES } from "../../constant/currency";
+import { GAME_FREE_TICKET_TYPE } from "../../constant/gameTicket";
+import { HOTEL_FREE_TICKET_TYPE } from "../../constant/hotel";
+import { BOT_ID, ROLE_IDS, THREAD_IDS } from "../../constant/id";
+import { INVITE_POINT_GACHA_COST } from "../../constant/invitePoint";
 import {
+  AUDIO_PRIZE_PROHIBITION_NOTICE,
+  GENERAL_INQUIRY_CHANNEL_MENTION,
   MARKET_GACHA_DAILY_LIMIT,
   MARKET_GACHA_PRICE,
-  MarketGachaAudioCategory,
-  MarketGachaPrize,
+  MARKET_TICKET_GUIDANCE,
   selectMarketGachaPrize,
 } from "../../constant/marketGacha";
-import { PANEL_COMMAND_NAMES } from "../../constant/command";
-import { BOT_ID, ROLE_IDS, TEXT_CHANNEL_IDS, THREAD_IDS } from "../../constant/id";
-import { CURRENCY_NAMES } from "../../constant/currency";
-import { DbService } from "../system/dbService";
-import { HotelFreeTicketService } from "../hotel/hotelFreeTicketService";
+import { SHOP_TICKET_TYPE } from "../../constant/shopTicket";
+import type { GameFreeTicketType } from "../../type/gameTicket";
+import type { HotelFreeTicketType } from "../../type/hotel";
+import type {
+  AudioAssetRow,
+  DailyLockRow,
+  MarketGachaAudioAsset,
+  MarketGachaAudioCategory,
+  MarketGachaPaymentSource,
+  MarketGachaPrize,
+  WalletRow,
+} from "../../type/marketGacha";
+import type { ShopTicketType } from "../../type/shopTicket";
 import { GameFreeTicketService } from "../game/gameFreeTicketService";
-import { ShopTicketService } from "./shopTicketService";
+import { HotelFreeTicketService } from "../hotel/hotelFreeTicketService";
+import { DbService } from "../system/dbService";
 import { InvitePointService } from "./invitePointService";
-import { HOTEL_FREE_TICKET_TYPE, HotelFreeTicketType } from "../../constant/hotel";
-import { GAME_FREE_TICKET_TYPE, GameFreeTicketType } from "../../constant/gameTicket";
-import { SHOP_TICKET_TYPE, ShopTicketType } from "../../constant/shopTicket";
-import { INVITE_POINT_GACHA_COST } from "../../constant/invitePoint";
-import { ACTION_TYPES } from "../../constant/action";
-
-const GENERAL_INQUIRY_CHANNEL_MENTION = `<#${TEXT_CHANNEL_IDS.GENERAL_INQUIRY}>`;
-const MARKET_TICKET_GUIDANCE = `${GENERAL_INQUIRY_CHANNEL_MENTION}にて市場チケットを切り、当選メッセージをスクショしてチケット内に送信してください。`;
-
-type WalletRow = RowDataPacket & { wallet: number };
-type AudioAssetRow = RowDataPacket & {
-  id: number;
-  performer_name: string;
-  performer_user_id: string | null;
-  file_name: string;
-  public_url: string;
-};
-
-type DailyLockRow = RowDataPacket & { user_id: string };
-
-type MarketGachaAudioAsset = {
-  id: number;
-  performerName: string;
-  performerUserId?: string;
-  fileName: string;
-  publicUrl: string;
-};
-
-export type MarketGachaPaymentSource = "currency" | "invite_point";
-const AUDIO_PRIZE_PROHIBITION_NOTICE =
-  "※転載・転送・保存・画面録画等は禁止です。";
+import { ShopTicketService } from "./shopTicketService";
 
 export function createMarketGachaPaymentSelectionRow() {
   return new ActionRowBuilder<ButtonBuilder>().addComponents(

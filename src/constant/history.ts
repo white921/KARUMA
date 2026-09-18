@@ -1,6 +1,6 @@
+import { toActionType } from "./action";
 import { COMMAND_NAMES, PANEL_COMMAND_NAMES } from "./command";
 import { ROULETTE_ACTION_NAMES } from "./roulette";
-import { toActionType } from "./action";
 
 const HISTORY_TITLE_BY_COMMAND_NAME = {
   [PANEL_COMMAND_NAMES.SEND]: "送金",
@@ -50,3 +50,10 @@ export const HISTORY_TITLE_MAPPER: Record<string, string> = Object.fromEntries(
     title,
   ]),
 );
+
+// Discordのフィールド上限（1,024文字）とEmbed全体上限（6,000文字）より余裕を持たせる。
+export const HISTORY_FIELD_VALUE_MAX_LENGTH = 900;
+
+export const HISTORY_PAGE_CONTENT_MAX_LENGTH = 5_000;
+
+export const HISTORY_PAGE_ITEM_LIMIT = 10;

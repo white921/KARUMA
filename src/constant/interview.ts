@@ -12,3 +12,7 @@ export const INTERVIEW_MESSAGES = {
   EVALUATION_SHEET_CONTENT:
     "【適合世界】\n【声】\n【コミュ力】\n【モチベ】\n【ユーモア】\n【サーバー理解度】",
 };
+
+export const WEEK_DAYS = ["日", "月", "火", "水", "木", "金", "土"];
+
+export const SHIFT_OPTIONS = ["21時", "22時", "23時", "欠席"];
