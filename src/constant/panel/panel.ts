@@ -1,7 +1,7 @@
 import { CURRENCY_NAMES } from "../currency/currency";
 import { GAME_PRICE } from "../game/game";
 import { HOTEL_TYPE_NAMES, HOTEL_PRICE } from "../hotel/hotel";
-import { CREATOR_EMBLEM_RECIPIENT_ID, PRODUCTS } from "../market/creatorEmblem";
+import { PRODUCTS } from "../market/creatorEmblem";
 import { BOT_ID, TEXT_CHANNEL_IDS } from "../shared/id";
 
 export const PANEL_MESSAGES = {
@@ -136,10 +136,7 @@ export const CREATOR_EMBLEM_PANEL_MESSAGES = {
   TITLE: "スタンプ支払いパネル",
   DESCRIPTION:
     `**${PRODUCTS.personal.label}**\n貴族：${PRODUCTS.personal.prices.noble!.toLocaleString()} ${CURRENCY_NAMES}\n騎士：${PRODUCTS.personal.prices.knight!.toLocaleString()} ${CURRENCY_NAMES}\n\n` +
-    `**${PRODUCTS.large.label}**\n貴族のみ：${PRODUCTS.large.prices.noble!.toLocaleString()} ${CURRENCY_NAMES}\n\n` +
-    "「支払う」から商品を選び、確認画面で確定してください。\n" +
-    `支払先：<@${CREATOR_EMBLEM_RECIPIENT_ID}>（うゆSub）\n` +
-    "貴族と騎士で料金が異なります。確定前に商品と金額をご確認ください。",
+    `**${PRODUCTS.large.label}**\n貴族のみ：${PRODUCTS.large.prices.noble!.toLocaleString()} ${CURRENCY_NAMES}`,
   PAY: "支払う",
   VIEW: "残高確認",
   DISABLED: "スタンプ支払いの受付は現在停止中です。",

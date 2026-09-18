@@ -151,12 +151,11 @@ test("creator emblem pricing follows noble and knight prices", () => {
     memberWithRoles([ROLE_IDS.CORE_MEMBER_ROLES.JUNJUNHONMEN]), "personal"), /貴族または騎士/);
 });
 
-test("creator emblem panel explains prices and the fixed recipient", () => {
+test("creator emblem panel explains product prices", () => {
   const description = CREATOR_EMBLEM_PANEL_MESSAGES.DESCRIPTION;
   assert.match(description, /貴族：60,000 LIA/);
   assert.match(description, /騎士：100,000 LIA/);
   assert.match(description, /貴族のみ：200,000 LIA/);
-  assert.match(description, /1400304116152139837/);
 });
 
 test("hotel and shop panels include their ticket confirmation buttons", () => {
