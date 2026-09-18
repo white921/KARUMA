@@ -34,9 +34,9 @@ test("resolves dark market panel channel to the dark market panel target", () =>
   );
 });
 
-test("creator emblem panel stays disabled until its channel is configured", () => {
-  assert.equal(TEXT_CHANNEL_IDS.CREATOR_EMBLEM_PANEL, "");
-  assert.equal(resolvePanelInstallTarget(TEXT_CHANNEL_IDS.CREATOR_EMBLEM_PANEL), null);
+test("creator emblem panel resolves the stamp payment channel", () => {
+  assert.equal(TEXT_CHANNEL_IDS.CREATOR_EMBLEM_PANEL, "1549981844664229898");
+  assert.equal(resolvePanelInstallTarget(TEXT_CHANNEL_IDS.CREATOR_EMBLEM_PANEL), PANEL_INSTALL_TARGETS.CREATOR_EMBLEM);
 });
 
 test("resolves superchat panel channel to the superchat panel target", () => {

@@ -1,3 +1,4 @@
+import { CREATOR_EMBLEM_CANCEL_ID } from "../../constant/market/creatorEmblem";
 import { ButtonInteraction, GuildMember } from "discord.js";
 
 import {
@@ -79,6 +80,10 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
     }
     if (customId === "rouletteCancel") {
       await interaction.editReply({ content: "ベットをキャンセルしました。", embeds: [], components: [] });
+      return;
+    }
+    if (customId === CREATOR_EMBLEM_CANCEL_ID) {
+      await interaction.editReply({ content: "支払いをキャンセルしました。", embeds: [], components: [] });
       return;
     }
     switch (customId) {

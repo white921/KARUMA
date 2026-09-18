@@ -5,208 +5,209 @@ import {
   ButtonStyle,
   EmbedBuilder,
   GuildMember,
+  PermissionsBitField,
   StringSelectMenuBuilder,
   StringSelectMenuInteraction,
 } from "discord.js";
-import { COLOR } from "../../constant/shared/color";
-import { PANEL_COMMAND_NAMES } from "../../constant/shared/command";
+import type { RowDataPacket } from "mysql2";
+import { ACTION_TYPES } from "../../constant/currency/action";
+import { CURRENCY_NAMES } from "../../constant/currency/currency";
 import {
+  CREATOR_EMBLEM_CANCEL_ID,
   CREATOR_EMBLEM_CONFIRM_PREFIX,
-  CREATOR_EMBLEM_CREATOR_SELECT_PREFIX,
   CREATOR_EMBLEM_ENABLED,
+  CREATOR_EMBLEM_LOG_ROLE_LIMIT,
+  CREATOR_EMBLEM_PRICING_ROLES,
   CREATOR_EMBLEM_PRODUCT_SELECT_ID,
+  CREATOR_EMBLEM_RECIPIENT_ID,
   PRODUCTS,
 } from "../../constant/market/creatorEmblem";
-import { CURRENCY_NAMES } from "../../constant/currency/currency";
-import { ROLE_IDS } from "../../constant/shared/id";
 import { CREATOR_EMBLEM_PANEL_MESSAGES } from "../../constant/panel/panel";
-import type { EmblemProduct } from "../../type/market/creatorEmblemPayment";
+import { COLOR } from "../../constant/shared/color";
+import { THREAD_IDS } from "../../constant/shared/id";
+import type { Account } from "../../type/account/account";
+import type {
+  EmblemPaymentActionRow,
+  EmblemPaymentDetails,
+  EmblemPricingTier,
+  EmblemProduct,
+} from "../../type/market/creatorEmblemPayment";
 import { SendService } from "../currency/sendService";
+import { DbService } from "../system/dbService";
+
+export function createCreatorEmblemPaymentLogEmbed(payment: EmblemPaymentDetails) {
+  const role = CREATOR_EMBLEM_PRICING_ROLES[payment.pricingTier];
+  const roleMentions = payment.roleIds.slice(0, CREATOR_EMBLEM_LOG_ROLE_LIMIT)
+    .map((id) => `<@&${id}>`).join(" ");
+  const remainingRoles = payment.roleIds.length - CREATOR_EMBLEM_LOG_ROLE_LIMIT;
+  return new EmbedBuilder()
+    .setTitle("スタンプ支払い完了")
+    .setColor(COLOR.GREEN)
+    .addFields(
+      { name: "購入者", value: `<@${payment.payerId}>\nID: ${payment.payerId}` },
+      { name: "商品", value: PRODUCTS[payment.product].label, inline: true },
+      { name: "送金額", value: `${payment.amount.toLocaleString()} ${CURRENCY_NAMES}`, inline: true },
+      { name: "適用ロール", value: `<@&${role.id}>（${role.label}）`, inline: true },
+      { name: "所持ロール", value: (roleMentions || "なし") + (remainingRoles > 0 ? ` ほか${remainingRoles}件` : "") },
+      { name: "支払先", value: `<@${CREATOR_EMBLEM_RECIPIENT_ID}>（うゆSub）` },
+    )
+    .setFooter({ text: `確認ID: ${payment.confirmationId}` })
+    .setTimestamp();
+}
 
 export class CreatorEmblemPaymentService {
-
   static isConfirmCustomId(customId: string): boolean {
     return customId.startsWith(`${CREATOR_EMBLEM_CONFIRM_PREFIX}:`);
   }
 
   private static assertEnabled(): void {
-    if (!CREATOR_EMBLEM_ENABLED) {
-      throw new Error(CREATOR_EMBLEM_PANEL_MESSAGES.DISABLED);
-    }
-  }
-
-  private static hasApostlePricing(member: GuildMember): boolean {
-    return member.roles.cache.has(ROLE_IDS.CORE_MEMBER_ROLES.HONMEN) ||
-      member.roles.cache.has(ROLE_IDS.KANRISYA) ||
-      member.roles.cache.has(ROLE_IDS.SABANUSI) ||
-      member.roles.cache.has(ROLE_IDS.GIJUTU_LEADER);
-  }
-
-  private static hasMemberRole(member: GuildMember): boolean {
-    return member.roles.cache.has(ROLE_IDS.CORE_MEMBER_ROLES.JUNJUNHONMEN);
-  }
-
-  private static assertCanUse(member: GuildMember): void {
-    if (!this.hasApostlePricing(member) && !this.hasMemberRole(member)) {
-      throw new Error(CREATOR_EMBLEM_PANEL_MESSAGES.MEMBER_ONLY);
-    }
+    if (!CREATOR_EMBLEM_ENABLED) throw new Error(CREATOR_EMBLEM_PANEL_MESSAGES.DISABLED);
   }
 
   private static isProduct(value: string): value is EmblemProduct {
     return value === "personal" || value === "large";
   }
 
-  private static assertProductEligibility(member: GuildMember, product: EmblemProduct): void {
-    this.assertCanUse(member);
-    if (product === "large" && !this.hasApostlePricing(member)) {
-      throw new Error(CREATOR_EMBLEM_PANEL_MESSAGES.APOSTLE_ONLY);
-    }
+  static getPricingTier(member: GuildMember): EmblemPricingTier {
+    if (member.roles.cache.has(CREATOR_EMBLEM_PRICING_ROLES.noble.id)) return "noble";
+    if (member.roles.cache.has(CREATOR_EMBLEM_PRICING_ROLES.knight.id)) return "knight";
+    throw new Error(CREATOR_EMBLEM_PANEL_MESSAGES.MEMBER_ONLY);
   }
 
   static getPriceForMember(member: GuildMember, product: EmblemProduct): number {
-    this.assertProductEligibility(member, product);
-    return this.hasApostlePricing(member)
-      ? PRODUCTS[product].apostlePrice
-      : PRODUCTS[product].memberPrice!;
-  }
-
-  private static isCreator(member: GuildMember): boolean {
-    return member.roles.cache.has(ROLE_IDS.SHOKUNIN_STAFF) ||
-      member.roles.cache.has(ROLE_IDS.SHOKUNIN_LEADER);
+    const price = PRODUCTS[product].prices[this.getPricingTier(member)];
+    if (price === undefined) throw new Error(CREATOR_EMBLEM_PANEL_MESSAGES.NOBLE_ONLY);
+    return price;
   }
 
   static async showProductSelect(interaction: ButtonInteraction): Promise<void> {
     this.assertEnabled();
-    const member = interaction.member as GuildMember;
-    this.assertCanUse(member);
-
+    const payer = await interaction.guild!.members.fetch({ user: interaction.user.id, force: true });
+    const tier = this.getPricingTier(payer);
+    const products = (Object.keys(PRODUCTS) as EmblemProduct[])
+      .filter((product) => PRODUCTS[product].prices[tier] !== undefined);
     const select = new StringSelectMenuBuilder()
       .setCustomId(CREATOR_EMBLEM_PRODUCT_SELECT_ID)
-      .setPlaceholder("紋章の種類を選択してください")
-      .addOptions(
-        {
-          label: "個人紋章",
-          value: "personal",
-          description: `賢者 100,000${CURRENCY_NAMES} / 貴族 60,000${CURRENCY_NAMES}`,
-        },
-        {
-          label: "デカ紋章",
-          value: "large",
-          description: `貴族 150,000${CURRENCY_NAMES}`,
-        },
-      );
-    const embed = new EmbedBuilder()
-      .setTitle("紋章の種類を選択")
-      .setDescription("購入する紋章の種類を選択してください。")
-      .setColor(COLOR.GREEN);
-
+      .setPlaceholder("購入する商品を選択してください")
+      .addOptions(products.map((product) => ({
+        label: PRODUCTS[product].label,
+        value: product,
+        description: `${CREATOR_EMBLEM_PRICING_ROLES[tier].label}：${PRODUCTS[product].prices[tier]!.toLocaleString()} ${CURRENCY_NAMES}`,
+      })));
     await interaction.editReply({
-      embeds: [embed],
-      components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(select)],
-    });
-  }
-
-  static async showCreatorSelect(interaction: StringSelectMenuInteraction): Promise<void> {
-    this.assertEnabled();
-    const product = interaction.values[0];
-    if (!this.isProduct(product)) {
-      throw new Error("無効な紋章商品です。");
-    }
-    const payer = await interaction.guild!.members.fetch(interaction.user.id);
-    this.assertProductEligibility(payer, product);
-
-    const members = await interaction.guild!.members.fetch();
-    const creators = members
-      .filter((member) => !member.user.bot && this.isCreator(member))
-      .sort((a, b) => a.displayName.localeCompare(b.displayName, "ja"));
-    if (creators.size === 0) {
-      throw new Error(CREATOR_EMBLEM_PANEL_MESSAGES.NO_CREATOR);
-    }
-
-    const select = new StringSelectMenuBuilder()
-      .setCustomId(`${CREATOR_EMBLEM_CREATOR_SELECT_PREFIX}:${product}`)
-      .setPlaceholder("夢印屋さんを選択してください")
-      .addOptions(
-        creators.first(25).map((member) => ({
-          label: member.displayName.slice(0, 100),
-          value: member.id,
-          description: member.roles.cache.has(ROLE_IDS.SHOKUNIN_LEADER)
-            ? "夢印屋さん店長"
-            : "夢印屋さん",
-        })),
-      );
-    const embed = new EmbedBuilder()
-      .setTitle("夢印屋さんを選択")
-      .setDescription("夢印屋さんまたは夢印屋さん店長のみが表示されています。")
-      .setColor(COLOR.GREEN);
-
-    await interaction.update({
-      embeds: [embed],
+      embeds: [new EmbedBuilder().setTitle("商品の選択")
+        .setDescription("支払先はうゆSubです。商品を選択すると支払い確認に進みます。")
+        .setColor(COLOR.GREEN)],
       components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(select)],
     });
   }
 
   static async showConfirmation(interaction: StringSelectMenuInteraction): Promise<void> {
     this.assertEnabled();
-    const [, productValue] = interaction.customId.split(":");
-    const creatorId = interaction.values[0];
-    if (!this.isProduct(productValue)) {
-      throw new Error("無効な紋章商品です。");
-    }
-
-    const payer = await interaction.guild!.members.fetch(interaction.user.id);
-    const creator = await interaction.guild!.members.fetch(creatorId);
-    const price = this.getPriceForMember(payer, productValue);
-    if (!this.isCreator(creator)) {
-      throw new Error(CREATOR_EMBLEM_PANEL_MESSAGES.INVALID_CREATOR);
-    }
-
-    const product = PRODUCTS[productValue];
-    const embed = new EmbedBuilder()
-      .setTitle("支払い内容の確認")
+    const product = interaction.values[0];
+    if (!this.isProduct(product)) throw new Error(CREATOR_EMBLEM_PANEL_MESSAGES.INVALID_PAYMENT);
+    const payer = await interaction.guild!.members.fetch({ user: interaction.user.id, force: true });
+    const price = this.getPriceForMember(payer, product);
+    const tier = this.getPricingTier(payer);
+    const embed = new EmbedBuilder().setTitle("支払い内容の確認")
       .setDescription(
-        `商品: **${product.label}**\n` +
-        `夢印屋さん: <@${creator.id}>\n` +
-        `支払い金額: **${price.toLocaleString()}${CURRENCY_NAMES}**\n\n` +
-        "この内容で送金しますか？",
-      )
-      .setColor(COLOR.YELLOW);
+        `商品：**${PRODUCTS[product].label}**\n` +
+        `適用ロール：**${CREATOR_EMBLEM_PRICING_ROLES[tier].label}**\n` +
+        `支払先：<@${CREATOR_EMBLEM_RECIPIENT_ID}>（うゆSub）\n` +
+        `支払い金額：**${price.toLocaleString()} ${CURRENCY_NAMES}**\n\nこの内容で送金しますか？`,
+      ).setColor(COLOR.YELLOW);
     const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
-        .setCustomId(`${CREATOR_EMBLEM_CONFIRM_PREFIX}:${productValue}:${creator.id}`)
-        .setLabel("確定して支払う")
-        .setStyle(ButtonStyle.Success),
-      new ButtonBuilder()
-        .setCustomId("cancel")
-        .setLabel("キャンセル")
-        .setStyle(ButtonStyle.Danger),
+        .setCustomId(`${CREATOR_EMBLEM_CONFIRM_PREFIX}:${product}:${price}:${payer.id}`)
+        .setLabel("確定して支払う").setStyle(ButtonStyle.Success),
+      new ButtonBuilder().setCustomId(CREATOR_EMBLEM_CANCEL_ID)
+        .setLabel("キャンセル").setStyle(ButtonStyle.Danger),
     );
-
     await interaction.update({ embeds: [embed], components: [row] });
+  }
+
+  /** 同じ確認メッセージの再送・二重押しを、口座ロックと取引履歴で判定する。 */
+  private static async transfer(payment: EmblemPaymentDetails): Promise<boolean> {
+    const connection = await DbService.getConnection();
+    const paymentKey = `スタンプ支払い [確認ID:${payment.confirmationId}]`;
+    const comment = `${paymentKey} ${PRODUCTS[payment.product].label} / 適用ロール:${CREATOR_EMBLEM_PRICING_ROLES[payment.pricingTier].label}`;
+    try {
+      await connection.beginTransaction();
+      const [accounts] = await connection.execute<Account[] & RowDataPacket[]>(
+        "SELECT * FROM accounts WHERE user_id IN (?, ?) ORDER BY user_id FOR UPDATE",
+        [payment.payerId, CREATOR_EMBLEM_RECIPIENT_ID],
+      );
+      const [previous] = await connection.execute<EmblemPaymentActionRow[]>(
+        "SELECT id FROM actions WHERE command_name = ? AND from_user_id = ? AND comment LIKE ? LIMIT 1 FOR UPDATE",
+        [ACTION_TYPES.CREATOR_EMBLEM_PAYMENT, payment.payerId, `${paymentKey}%`],
+      );
+      if (previous.length) {
+        await connection.rollback();
+        return false;
+      }
+      const payer = accounts.find((account) => String(account.user_id) === payment.payerId);
+      const recipient = accounts.find((account) => String(account.user_id) === CREATOR_EMBLEM_RECIPIENT_ID);
+      await SendService.validateSend(payer!, recipient!, payment.amount);
+      await connection.execute("UPDATE accounts SET wallet = wallet - ? WHERE user_id = ?", [payment.amount, payment.payerId]);
+      await connection.execute("UPDATE accounts SET wallet = wallet + ? WHERE user_id = ?", [payment.amount, CREATOR_EMBLEM_RECIPIENT_ID]);
+      await connection.execute(
+        `INSERT INTO actions (command_name, amount, from_user_id, to_user_id, from_after_wallet, to_after_wallet, comment)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [ACTION_TYPES.CREATOR_EMBLEM_PAYMENT, payment.amount, payment.payerId, CREATOR_EMBLEM_RECIPIENT_ID,
+          Number(payer!.wallet) - payment.amount, Number(recipient!.wallet) + payment.amount, comment],
+      );
+      await connection.commit();
+      return true;
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
   }
 
   static async pay(interaction: ButtonInteraction): Promise<void> {
     this.assertEnabled();
-    const [, productValue, creatorId] = interaction.customId.split(":");
-    if (!this.isProduct(productValue) || !creatorId) {
-      throw new Error("無効な支払い内容です。最初からやり直してください。");
+    const [prefix, product, confirmedPrice, payerId, ...rest] = interaction.customId.split(":");
+    if (prefix !== CREATOR_EMBLEM_CONFIRM_PREFIX || !this.isProduct(product) ||
+        payerId !== interaction.user.id || rest.length || !interaction.message.id) {
+      throw new Error(CREATOR_EMBLEM_PANEL_MESSAGES.INVALID_PAYMENT);
     }
-
-    const payer = await interaction.guild!.members.fetch(interaction.user.id);
-    const creator = await interaction.guild!.members.fetch(creatorId);
-    const price = this.getPriceForMember(payer, productValue);
-    if (!this.isCreator(creator)) {
-      throw new Error(CREATOR_EMBLEM_PANEL_MESSAGES.INVALID_CREATOR);
+    const payer = await interaction.guild!.members.fetch({ user: interaction.user.id, force: true });
+    const amount = this.getPriceForMember(payer, product);
+    if (confirmedPrice !== String(amount)) throw new Error(CREATOR_EMBLEM_PANEL_MESSAGES.PRICE_CHANGED);
+    const thread = await interaction.client.channels.fetch(THREAD_IDS.CREATOR_EMBLEM_LOG_THREAD);
+    const bot = await interaction.guild!.members.fetchMe();
+    if (!thread?.isThread() || !thread.isTextBased() || thread.locked ||
+        !thread.permissionsFor(bot)?.has([
+          PermissionsBitField.Flags.ViewChannel,
+          PermissionsBitField.Flags.SendMessagesInThreads,
+          PermissionsBitField.Flags.EmbedLinks,
+        ])) {
+      throw new Error(CREATOR_EMBLEM_PANEL_MESSAGES.LOG_UNAVAILABLE);
     }
-
-    await SendService.executeSend(
-      interaction,
-      interaction.user.id,
-      creator.id,
-      price,
-      `夢印工房送金: ${PRODUCTS[productValue].label}`,
-      PANEL_COMMAND_NAMES.CREATOR_EMBLEM_PAY,
-      "editReply",
-    );
+    await SendService.validateMonthlySendLimit(payer.id, CREATOR_EMBLEM_RECIPIENT_ID, amount, interaction.guild);
+    const payment: EmblemPaymentDetails = {
+      payerId: payer.id, product, amount, pricingTier: this.getPricingTier(payer),
+      roleIds: payer.roles.cache.filter((role) => role.id !== interaction.guildId).map((role) => role.id),
+      confirmationId: interaction.message.id,
+    };
+    const paid = await this.transfer(payment);
+    if (!paid) {
+      await interaction.editReply({ content: CREATOR_EMBLEM_PANEL_MESSAGES.ALREADY_PAID, embeds: [], components: [] });
+      return;
+    }
+    let logFailed = false;
+    try {
+      await thread.send({ embeds: [createCreatorEmblemPaymentLogEmbed(payment)], allowedMentions: { parse: [] } });
+    } catch (error) {
+      logFailed = true;
+      console.error(`[CreatorEmblemPayment] Payment committed but log failed. confirmation=${payment.confirmationId}`, error);
+    }
+    await interaction.editReply({
+      content: `✅ **${PRODUCTS[product].label}** の支払いとして、<@${CREATOR_EMBLEM_RECIPIENT_ID}> に **${amount.toLocaleString()} ${CURRENCY_NAMES}** を送金しました。` +
+        (logFailed ? `\n${CREATOR_EMBLEM_PANEL_MESSAGES.LOG_FAILED_AFTER_PAYMENT}` : ""),
+      embeds: [], components: [],
+    });
   }
 }

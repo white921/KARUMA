@@ -129,7 +129,7 @@ test("diary panel provides the LEVELIA VIP diary flow for 5000 LIA", () => {
   assert.match(DIARY_PANEL_MESSAGES.DESCRIPTION, /こちらのパネルでもう一度作成を行うと日記が再開されます/);
 });
 
-test("creator emblem panel disables payment while accepting orders is stopped", () => {
+test("creator emblem panel enables fixed-recipient stamp payments", () => {
   const buttons = createCreatorEmblemPanelActionRow().toJSON().components;
   const buttonIds = buttons.map((button) => button.custom_id);
 
@@ -137,41 +137,26 @@ test("creator emblem panel disables payment while accepting orders is stopped", 
     PANEL_COMMAND_NAMES.CREATOR_EMBLEM_PAY,
     PANEL_COMMAND_NAMES.VIEW,
   ]);
-  assert.equal(buttons[0].disabled, true);
+  assert.equal(buttons[0].disabled, false);
 });
 
-test("creator emblem pricing treats noble and management roles equally", () => {
-  const apostlePriceRoles = [
-    ROLE_IDS.CORE_MEMBER_ROLES.HONMEN,
-    ROLE_IDS.KANRISYA,
-    ROLE_IDS.SABANUSI,
-    ROLE_IDS.GIJUTU_LEADER,
-  ];
-
-  for (const roleId of apostlePriceRoles) {
-    const member = memberWithRoles([roleId]);
-    assert.equal(CreatorEmblemPaymentService.getPriceForMember(member, "personal"), 60000);
-    assert.equal(CreatorEmblemPaymentService.getPriceForMember(member, "large"), 150000);
-  }
-
-  const congregationMember = memberWithRoles([
-    ROLE_IDS.CORE_MEMBER_ROLES.JUNJUNHONMEN,
-  ]);
-  assert.equal(
-    CreatorEmblemPaymentService.getPriceForMember(congregationMember, "personal"),
-    100000,
-  );
-  assert.throws(
-    () => CreatorEmblemPaymentService.getPriceForMember(congregationMember, "large"),
-    /デカ紋章は貴族のみ利用できます。/,
-  );
+test("creator emblem pricing follows noble and knight prices", () => {
+  const noble = memberWithRoles([ROLE_IDS.CORE_MEMBER_ROLES.HONMEN]);
+  const knight = memberWithRoles([ROLE_IDS.CORE_MEMBER_ROLES.JUNHONMEN]);
+  assert.equal(CreatorEmblemPaymentService.getPriceForMember(noble, "personal"), 60000);
+  assert.equal(CreatorEmblemPaymentService.getPriceForMember(noble, "large"), 200000);
+  assert.equal(CreatorEmblemPaymentService.getPriceForMember(knight, "personal"), 100000);
+  assert.throws(() => CreatorEmblemPaymentService.getPriceForMember(knight, "large"), /貴族のみ/);
+  assert.throws(() => CreatorEmblemPaymentService.getPriceForMember(
+    memberWithRoles([ROLE_IDS.CORE_MEMBER_ROLES.JUNJUNHONMEN]), "personal"), /貴族または騎士/);
 });
 
-test("creator emblem panel explains that accepting orders is stopped", () => {
+test("creator emblem panel explains prices and the fixed recipient", () => {
   const description = CREATOR_EMBLEM_PANEL_MESSAGES.DESCRIPTION;
-
-  assert.match(description, /夢印工房の受付は停止中/);
-  assert.doesNotMatch(description, /送金|料金/);
+  assert.match(description, /貴族：60,000 LIA/);
+  assert.match(description, /騎士：100,000 LIA/);
+  assert.match(description, /貴族のみ：200,000 LIA/);
+  assert.match(description, /1400304116152139837/);
 });
 
 test("hotel and shop panels include their ticket confirmation buttons", () => {

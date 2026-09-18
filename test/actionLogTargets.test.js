@@ -38,23 +38,8 @@ test("server boost reward logs use the salary log thread", () => {
   );
 });
 
-test("creator emblem payments have no log target while orders are stopped", () => {
-  assert.equal(
-    resolveActionLogThreadId(PANEL_COMMAND_NAMES.CREATOR_EMBLEM_PAY),
-    null,
-  );
-  assert.equal(THREAD_IDS.CREATOR_EMBLEM_LOG_THREAD, "");
-});
-
-test("creator emblem payments do not fetch an unconfigured log thread", async () => {
-  await ActionService.createActionLogMessage(
-    { client: { channels: { fetch: async () => { throw new Error("must not fetch"); } } } },
-    PANEL_COMMAND_NAMES.CREATOR_EMBLEM_PAY,
-    5000,
-    "123",
-    "456",
-    "",
-  );
+test("creator emblem payments target the dedicated stamp payment log", () => {
+  assert.equal(resolveActionLogThreadId(PANEL_COMMAND_NAMES.CREATOR_EMBLEM_PAY), "1549981595640008866");
 });
 
 test("standard transfers create only the standard transfer log", async () => {

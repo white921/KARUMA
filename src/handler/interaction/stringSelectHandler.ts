@@ -1,6 +1,5 @@
 import { StringSelectMenuInteraction } from "discord.js";
 import {
-  CREATOR_EMBLEM_CREATOR_SELECT_PREFIX,
   CREATOR_EMBLEM_PRODUCT_SELECT_ID,
 } from "../../constant/market/creatorEmblem";
 
@@ -71,10 +70,6 @@ export async function handleStringSelectMenu(
       return;
     }
     if (customId === CREATOR_EMBLEM_PRODUCT_SELECT_ID) {
-      await CreatorEmblemPaymentService.showCreatorSelect(interaction);
-      return;
-    }
-    if (customId.startsWith(`${CREATOR_EMBLEM_CREATOR_SELECT_PREFIX}:`)) {
       await CreatorEmblemPaymentService.showConfirmation(interaction);
       return;
     }

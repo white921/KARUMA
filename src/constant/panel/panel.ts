@@ -1,6 +1,7 @@
 import { CURRENCY_NAMES } from "../currency/currency";
 import { GAME_PRICE } from "../game/game";
 import { HOTEL_TYPE_NAMES, HOTEL_PRICE } from "../hotel/hotel";
+import { CREATOR_EMBLEM_RECIPIENT_ID, PRODUCTS } from "../market/creatorEmblem";
 import { BOT_ID, TEXT_CHANNEL_IDS } from "../shared/id";
 
 export const PANEL_MESSAGES = {
@@ -132,17 +133,24 @@ export const DARK_SHOP_PANEL_MESSAGES = {
 };
 
 export const CREATOR_EMBLEM_PANEL_MESSAGES = {
-  TITLE: "夢印工房パネル",
+  TITLE: "スタンプ支払いパネル",
   DESCRIPTION:
-    `現在、夢印工房の受付は停止中です。\n再開時期は運営から案内します。`,
-  PAY: "受付停止中",
+    `**${PRODUCTS.personal.label}**\n貴族：${PRODUCTS.personal.prices.noble!.toLocaleString()} ${CURRENCY_NAMES}\n騎士：${PRODUCTS.personal.prices.knight!.toLocaleString()} ${CURRENCY_NAMES}\n\n` +
+    `**${PRODUCTS.large.label}**\n貴族のみ：${PRODUCTS.large.prices.noble!.toLocaleString()} ${CURRENCY_NAMES}\n\n` +
+    "「支払う」から商品を選び、確認画面で確定してください。\n" +
+    `支払先：<@${CREATOR_EMBLEM_RECIPIENT_ID}>（うゆSub）\n` +
+    "貴族と騎士で料金が異なります。確定前に商品と金額をご確認ください。",
+  PAY: "支払う",
   VIEW: "残高確認",
-  DISABLED: "夢印工房の受付は現在停止中です。",
-  ERROR: "夢印工房パネルチャンネルが見つからないか、無効な型です。",
-  MEMBER_ONLY: "賢者または貴族のみ利用できます。",
-  APOSTLE_ONLY: "デカ紋章は貴族のみ利用できます。",
-  NO_CREATOR: "現在、選択できる夢印屋さん・夢印屋さん店長がいません。",
-  INVALID_CREATOR: "選択したユーザーは夢印屋さんまたは夢印屋さん店長ではありません。",
+  DISABLED: "スタンプ支払いの受付は現在停止中です。",
+  ERROR: "スタンプ支払いパネルチャンネルが見つからないか、無効な型です。",
+  MEMBER_ONLY: "貴族または騎士のみ利用できます。",
+  NOBLE_ONLY: "デカ紋章は貴族のみ利用できます。",
+  INVALID_PAYMENT: "無効な支払い内容です。パネルから選び直してください。",
+  PRICE_CHANGED: "ロールまたは料金が変更されました。商品を選び直して金額をご確認ください。",
+  ALREADY_PAID: "この確認画面の支払いは完了しています。重複送金はしていません。",
+  LOG_UNAVAILABLE: "支払いログの投稿先が利用できません。運営に連絡してください。",
+  LOG_FAILED_AFTER_PAYMENT: "支払いは完了しましたが、ログ投稿に失敗しました。再度支払わず、運営に連絡してください。",
 };
 
 export const OMIKUJI_PANEL_MESSAGES = {
