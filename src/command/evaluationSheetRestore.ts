@@ -6,7 +6,7 @@ import {
 
 import { COMMAND_NAMES } from "../constant/command";
 import { EVALUATION_SHEET_MESSAGES } from "../constant/evaluationSheet";
-import { EvaluationService } from "../service/evaluationService";
+import { EvaluationService } from "../service/evaluation/evaluationService";
 import { assertCanManageEvaluationSheetArchive } from "../util/evaluationSheetPermission";
 
 export const data = new SlashCommandBuilder()

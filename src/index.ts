@@ -26,16 +26,16 @@ import { handlePanelButton } from "./handler/panelButtonHandler";
 import { handleSchedule } from "./handler/scheduleHandler";
 import { handleRoleChange } from "./handler/roleHandler";
 
-import { HotelVcService } from "./service/hotelVcService";
+import { HotelVcService } from "./service/hotel/hotelVcService";
 import {
   isTeleportCategory,
   isTeleportTriggerVc,
   TeleportVcService,
-} from "./service/teleportVcService";
-import { AccountService } from "./service/accountService";
-import { VcService } from "./service/vcService";
-import { DiaryService } from "./service/diaryService";
-import { BotHealthMonitor } from "./service/botHealthMonitor";
+} from "./service/vc/teleportVcService";
+import { AccountService } from "./service/account/accountService";
+import { VcService } from "./service/vc/vcService";
+import { DiaryService } from "./service/diary/diaryService";
+import { BotHealthMonitor } from "./service/system/botHealthMonitor";
 import { getEvaluationCommandHandlerTimeoutMs } from "./util/interactionHealth";
 import { shouldDeferButtonUpdate } from "./util/interactionAck";
 

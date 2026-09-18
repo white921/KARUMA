@@ -5,7 +5,7 @@ const {
   OMIKUJI_PRIZES,
   selectOmikujiPrize,
 } = require("../dist/constant/omikuji.js");
-const omikujiService = require("../dist/service/omikujiService.js");
+const omikujiService = require("../dist/service/omikuji/omikujiService.js");
 const { getJapanDate } = omikujiService;
 const {
   assertOmikujiDrawAllowed,
@@ -16,7 +16,7 @@ const {
 const { TEXT_CHANNEL_IDS } = require("../dist/constant/id.js");
 const { PANEL_COMMAND_NAMES } = require("../dist/constant/command.js");
 const { OMIKUJI_PANEL_MESSAGES } = require("../dist/constant/panel.js");
-const { createOmikujiPanelActionRow } = require("../dist/service/omikujiPanelService.js");
+const { createOmikujiPanelActionRow } = require("../dist/service/omikuji/omikujiPanelService.js");
 
 test("omikuji probabilities total 100 percent", () => {
   assert.equal(OMIKUJI_PRIZES.reduce((sum, prize) => sum + prize.probability, 0), 100);

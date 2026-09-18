@@ -6,8 +6,8 @@ import {
 } from "discord.js";
 
 import { isTechnician } from "../util/role";
-import { EvaluationService } from "../service/evaluationService";
-import { InterviewService } from "../service/interviewService";
+import { EvaluationService } from "../service/evaluation/evaluationService";
+import { InterviewService } from "../service/evaluation/interviewService";
 import { COMMAND_NAMES } from "../constant/command";
 import { EVALUATION_SHEET_MESSAGES } from "../constant/evaluationSheet";
 import { ACCOUNT_MESSAGES } from "../constant/account";

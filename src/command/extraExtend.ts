@@ -6,7 +6,7 @@ import {
   User,
 } from "discord.js";
 
-import { EvaluationService } from "../service/evaluationService";
+import { EvaluationService } from "../service/evaluation/evaluationService";
 import { COMMAND_NAMES } from "../constant/command";
 import { MAX_EVALUATION_EXTENSION_DAYS } from "../constant/evaluation";
 import { EVALUATION_SHEET_MESSAGES } from "../constant/evaluationSheet";

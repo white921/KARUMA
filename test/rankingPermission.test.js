@@ -1,7 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
-const { RankingService } = require("../dist/service/ranking.js");
+const { RankingService } = require("../dist/service/currency/ranking.js");
 const { ROLE_IDS } = require("../dist/constant/id.js");
 
 function guildWithRoles(roleIds) {

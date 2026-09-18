@@ -3,8 +3,8 @@ const assert = require("node:assert/strict");
 
 const { PANEL_COMMAND_NAMES } = require("../dist/constant/command.js");
 const { GAME_FREE_TICKET_TYPE } = require("../dist/constant/gameTicket.js");
-const { GameFreeTicketService } = require("../dist/service/gameFreeTicketService.js");
-const { createGamePanelActionRows } = require("../dist/service/gamePanelService.js");
+const { GameFreeTicketService } = require("../dist/service/game/gameFreeTicketService.js");
+const { createGamePanelActionRows } = require("../dist/service/game/gamePanelService.js");
 const { GAME_PANEL_MESSAGES } = require("../dist/constant/panel.js");
 
 test("game ticket is available for creating an individual VC", () => {

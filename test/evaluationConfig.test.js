@@ -1,8 +1,8 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
-const { EvaluationService } = require("../dist/service/evaluationService.js");
-const { InterviewService } = require("../dist/service/interviewService.js");
+const { EvaluationService } = require("../dist/service/evaluation/evaluationService.js");
+const { InterviewService } = require("../dist/service/evaluation/interviewService.js");
 const {
   BASE_EVALUATION_DAYS,
   MAX_EVALUATION_EXTENSION_DAYS,

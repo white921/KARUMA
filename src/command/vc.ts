@@ -1,7 +1,7 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
 
 import { COMMAND_NAMES } from "../constant/command";
-import { VcService } from "../service/vcService";
+import { VcService } from "../service/vc/vcService";
 
 export const data = new SlashCommandBuilder()
   .setName(COMMAND_NAMES.ROOM_NAME_CHANGE)

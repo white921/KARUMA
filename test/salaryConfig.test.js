@@ -10,7 +10,7 @@ const {
   SKIPPED_MONTHLY_SALARY_PAYMENT_DATES,
 } = require("../dist/constant/salary.js");
 const { formatRoleNameForOutput } = require("../dist/util/role.js");
-const { SalaryService } = require("../dist/service/salaryService.js");
+const { SalaryService } = require("../dist/service/currency/salaryService.js");
 
 test("role names omit parenthetical management labels in bot output", () => {
   assert.equal(formatRoleNameForOutput("市場支配人(ショップ)"), "市場支配人");

@@ -1,7 +1,7 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
 
 import { COMMAND_NAMES } from "../constant/command";
-import { InvitePointService } from "../service/invitePointService";
+import { InvitePointService } from "../service/market/invitePointService";
 
 export const data = new SlashCommandBuilder()
   .setName(COMMAND_NAMES.INVITE_POINT_ADD)

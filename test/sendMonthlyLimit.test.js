@@ -1,9 +1,9 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { SendService } = require("../dist/service/sendService.js");
-const { AccountService } = require("../dist/service/accountService.js");
-const { ActionService } = require("../dist/service/actionService.js");
-const { DbService } = require("../dist/service/dbService.js");
+const { SendService } = require("../dist/service/currency/sendService.js");
+const { AccountService } = require("../dist/service/account/accountService.js");
+const { ActionService } = require("../dist/service/currency/actionService.js");
+const { DbService } = require("../dist/service/system/dbService.js");
 const { ROLE_IDS, BOT_ID } = require("../dist/constant/id.js");
 const { PANEL_COMMAND_NAMES } = require("../dist/constant/command.js");
 

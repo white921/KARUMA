@@ -3,7 +3,7 @@ import {
   SlashCommandBuilder,
 } from "discord.js";
 
-import { AdminOpenAccountService } from "../service/adminOpenAccountService";
+import { AdminOpenAccountService } from "../service/account/adminOpenAccountService";
 
 import { COMMAND_NAMES } from "../constant/command";
 import { ADMIN_OPEN_ACCOUNT_MESSAGES } from "../constant/adminOpenAccount";

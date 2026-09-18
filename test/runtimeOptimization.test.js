@@ -13,10 +13,10 @@ const { BOT_ID, ROLE_IDS, TEXT_CHANNEL_IDS } = require("../dist/constant/id.js")
 const {
   resolveMysqlConnectionLimit,
   resolveMysqlSlowAcquireLogMs,
-} = require("../dist/service/dbService.js");
+} = require("../dist/service/system/dbService.js");
 const {
   buildDailyShiftMessagePayloads,
-} = require("../dist/service/interviewShiftService.js");
+} = require("../dist/service/evaluation/interviewShiftService.js");
 
 test("command registration on boot is disabled by default", () => {
   assert.equal(shouldRegisterCommandsOnBoot(undefined), false);

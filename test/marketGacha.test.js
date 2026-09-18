@@ -12,7 +12,7 @@ const {
   createMarketGachaConfirmationRow,
   createMarketGachaPaymentSelectionRow,
   formatMarketGachaDrawLog,
-} = require("../dist/service/marketGachaService.js");
+} = require("../dist/service/market/marketGachaService.js");
 const { ROLE_IDS, TEXT_CHANNEL_IDS, THREAD_IDS } = require("../dist/constant/id.js");
 const { PANEL_COMMAND_NAMES } = require("../dist/constant/command.js");
 
@@ -27,7 +27,7 @@ function prize(key) {
 }
 
 function instructions(key, audioAsset) {
-  const { MarketGachaService } = require("../dist/service/marketGachaService.js");
+  const { MarketGachaService } = require("../dist/service/market/marketGachaService.js");
   return MarketGachaService.getTicketInstructions(prize(key), audioAsset);
 }
 

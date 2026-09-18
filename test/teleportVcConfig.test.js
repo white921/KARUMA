@@ -7,7 +7,7 @@ const {
   isTeleportCategory,
   isTeleportTriggerVc,
   resolveTeleportVcConfig,
-} = require("../dist/service/teleportVcService.js");
+} = require("../dist/service/vc/teleportVcService.js");
 const { CATEGORY_IDS, VC_IDS } = require("../dist/constant/id.js");
 
 test("game teleport stays disabled until its trigger VC is confirmed", () => {

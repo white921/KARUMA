@@ -1,0 +1,357 @@
+import { TextChannel, ThreadChannel } from "discord.js";
+
+import { DbService } from "../system/dbService";
+import { HotelVcService } from "../hotel/hotelVcService";
+
+import { THREAD_IDS, TEXT_CHANNEL_IDS } from "../../constant/id";
+import { COMMAND_NAMES, PANEL_COMMAND_NAMES } from "../../constant/command";
+import { CURRENCY_NAMES } from "../../constant/currency";
+import { CASINO_MESSAGES } from "../../constant/casino";
+import { formatNumber } from "../../util/number";
+import { toActionType } from "../../constant/action";
+
+export function resolveActionLogThreadId(commandName: string): string | null {
+  switch (commandName) {
+    case PANEL_COMMAND_NAMES.SEND:
+      return THREAD_IDS.SEND_LOG_THREAD;
+    case PANEL_COMMAND_NAMES.CREATOR_EMBLEM_PAY:
+      return THREAD_IDS.CREATOR_EMBLEM_LOG_THREAD || null;
+    case PANEL_COMMAND_NAMES.SHOP_SEND:
+      return THREAD_IDS.SHOP_LOG_THREAD;
+    case PANEL_COMMAND_NAMES.COURT_SHOP_SEND:
+      return THREAD_IDS.COURT_SHOP_LOG_THREAD;
+    case PANEL_COMMAND_NAMES.DARK_SHOP_SEND:
+      return THREAD_IDS.DARK_SHOP_LOG_THREAD;
+    case COMMAND_NAMES.PAY_SALARY:
+    case COMMAND_NAMES.SERVER_BOOST:
+      return THREAD_IDS.SHOP_SALARY_LOG_THREAD;
+    case COMMAND_NAMES.CHANGE_NAME:
+      return THREAD_IDS.CHANGE_NAME_LOG_THREAD;
+    case PANEL_COMMAND_NAMES.ADMIN_MINT:
+    case COMMAND_NAMES.ROLE_BASED_SEND:
+      return THREAD_IDS.MINT_LOG_THREAD;
+    case PANEL_COMMAND_NAMES.ADMIN_BURN:
+      return THREAD_IDS.BURN_LOG_THREAD;
+    case PANEL_COMMAND_NAMES.CASINO_GF:
+      return THREAD_IDS.CASINO_GF_LOG_THREAD;
+    case PANEL_COMMAND_NAMES.CASINO_MAJONG:
+      return THREAD_IDS.CASINO_MAJONG_LOG_THREAD;
+    case PANEL_COMMAND_NAMES.CASINO_OTHER:
+      return THREAD_IDS.CASINO_OTHER_LOG_THREAD;
+    default:
+      return null;
+  }
+}
+
+export class ActionService {
+  private static isDiscordMissingAccessError(error: unknown): boolean {
+    return (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      error.code === 50001
+    );
+  }
+
+  /**
+   * actionsテーブルにデータを追加
+   * @param commandName
+   * @param amount
+   * @param fromUserId
+   * @param toUserId
+   * @param fromAfterWallet
+   * @param toAfterWallet
+   * @param comment
+   */
+  static async createActionLog(
+    commandName: string,
+    amount: number,
+    fromUserId: string,
+    toUserId: string,
+    fromAfterWallet: number,
+    toAfterWallet: number,
+    comment: string,
+  ) {
+    const actionType = toActionType(commandName);
+    const connection = await DbService.getConnection();
+    try {
+      await connection.execute(
+        `INSERT INTO actions 
+         (command_name, amount, from_user_id, to_user_id, from_after_wallet, to_after_wallet, comment) 
+         VALUES (?, ?, ?, ?, ?, ?, ?);`,
+        [
+          actionType,
+          amount,
+          fromUserId,
+          toUserId,
+          fromAfterWallet,
+          toAfterWallet,
+          comment,
+        ],
+      );
+    } finally {
+      connection.release();
+    }
+  }
+
+  /**
+   * actionログメッセージの送信
+   * @param interaction
+   * @param commandName
+   * @param amount
+   * @param fromUserId
+   * @param toUserId
+   * @param comment
+   * @returns
+   */
+  static async createActionLogMessage(
+    interaction: any,
+    commandName: string,
+    amount: number,
+    fromUserId: string,
+    toUserId: string,
+    comment: string,
+  ) {
+    try {
+      let channel, thread, channelId, threadId;
+      switch (commandName) {
+        case PANEL_COMMAND_NAMES.SEND:
+        case PANEL_COMMAND_NAMES.CREATOR_EMBLEM_PAY:
+          threadId = resolveActionLogThreadId(commandName);
+          if (!threadId) return;
+          thread = await interaction.client.channels.fetch(threadId);
+          if (thread && thread.isThread() && thread.isTextBased()) {
+            await (thread as ThreadChannel).send(
+              `**${commandName === PANEL_COMMAND_NAMES.CREATOR_EMBLEM_PAY ? "夢印工房送金" : "送金"}**\n<@${fromUserId}>から<@${toUserId}>に${formatNumber(amount)}${CURRENCY_NAMES}送金されました！${
+                comment ? `\n備考: ${comment}` : ""
+              }`,
+            );
+          }
+          break;
+        case PANEL_COMMAND_NAMES.SHOP_SEND:
+        case PANEL_COMMAND_NAMES.COURT_SHOP_SEND:
+        case PANEL_COMMAND_NAMES.DARK_SHOP_SEND:
+          threadId = resolveActionLogThreadId(commandName);
+          thread = await interaction.client.channels.fetch(threadId);
+          if (thread && thread.isThread() && thread.isTextBased()) {
+            await (thread as ThreadChannel).send(
+              `**${commandName === PANEL_COMMAND_NAMES.COURT_SHOP_SEND ? "宮廷市場商品購入" : commandName === PANEL_COMMAND_NAMES.DARK_SHOP_SEND ? "闇市場商品購入" : "市場商品購入"}**\n<@${fromUserId}>が${formatNumber(amount)}${CURRENCY_NAMES}の商品を購入しました！${
+                comment ? `\n備考: ${comment}` : ""
+              }`,
+            );
+          }
+          break;
+        case COMMAND_NAMES.PAY_SALARY:
+          threadId = resolveActionLogThreadId(commandName);
+          thread = await interaction.client.channels.fetch(threadId);
+          if (thread && thread.isThread() && thread.isTextBased()) {
+            await (thread as ThreadChannel).send(
+              `**給与支払い**\n<@${fromUserId}>から<@${toUserId}>に${formatNumber(amount)}${CURRENCY_NAMES}給与を支払いました！${
+                comment ? `\n備考: ${comment}` : ""
+              }`,
+            );
+          }
+          break;
+        case COMMAND_NAMES.SERVER_BOOST:
+          threadId = resolveActionLogThreadId(commandName);
+          thread = await interaction.client.channels.fetch(threadId);
+          if (thread && thread.isThread() && thread.isTextBased()) {
+            await (thread as ThreadChannel).send(
+              `**サーバーブースト報酬**\n<@${toUserId}>に${formatNumber(amount)}${CURRENCY_NAMES}を付与しました！${
+                comment ? `\n備考: ${comment}` : ""
+              }`,
+            );
+          }
+          break;
+        case PANEL_COMMAND_NAMES.ADMIN_MINT:
+        case COMMAND_NAMES.ROLE_BASED_SEND:
+          threadId = resolveActionLogThreadId(commandName);
+          thread = await interaction.client.channels.fetch(threadId);
+          if (thread && thread.isThread() && thread.isTextBased()) {
+            await (thread as ThreadChannel).send(
+              `**付与**\n<@${fromUserId}>が<@${toUserId}>に${formatNumber(amount)}${CURRENCY_NAMES}付与しました！${
+                comment ? `\n備考: ${comment}` : ""
+              }`,
+            );
+          }
+          break;
+        case PANEL_COMMAND_NAMES.ADMIN_BURN:
+          threadId = resolveActionLogThreadId(commandName);
+          thread = await interaction.client.channels.fetch(threadId);
+          if (thread && thread.isThread() && thread.isTextBased()) {
+            await (thread as ThreadChannel).send(
+              `**剥奪**\n<@${toUserId}>が<@${fromUserId}>から${formatNumber(amount)}${CURRENCY_NAMES}剥奪しました！${
+                comment ? `\n備考: ${comment}` : ""
+              }`,
+            );
+          }
+          break;
+        case COMMAND_NAMES.CHANGE_NAME:
+          threadId = resolveActionLogThreadId(commandName);
+          thread = await interaction.client.channels.fetch(threadId);
+          if (thread && thread.isThread() && thread.isTextBased()) {
+            const { oldName, newName } = JSON.parse(comment);
+            await (thread as ThreadChannel).send(
+              `**表示名変更**\n実行者: <@${fromUserId}>\n対象者: <@${toUserId}>\n${oldName} → ${newName}`,
+            );
+          }
+          break;
+        case PANEL_COMMAND_NAMES.HOTEL_VC_NORMAL:
+        case PANEL_COMMAND_NAMES.HOTEL_VC_SECRET:
+        case PANEL_COMMAND_NAMES.HOTEL_VC_SECRETLONG:
+        case PANEL_COMMAND_NAMES.HOTEL_VC_FREEDOM:
+        case PANEL_COMMAND_NAMES.HOTEL_VC_FREEDOMLONG:
+          channelId = TEXT_CHANNEL_IDS.HOTEL_LOG;
+          channel = await interaction.client.channels.fetch(channelId);
+          const hotelVcTypeName =
+            HotelVcService.getHotelVcTypeName(commandName);
+          if (channel && channel.isTextBased()) {
+            await (channel as TextChannel).send(
+              `**ホテルVC作成**\n<@${fromUserId}>が${hotelVcTypeName}VCを作成しました！`,
+            );
+          }
+          break;
+        case PANEL_COMMAND_NAMES.DIARY_PRIVATE:
+          channelId = TEXT_CHANNEL_IDS.DIARY_LOG;
+          channel = await interaction.client.channels.fetch(channelId);
+          if (channel && channel.isTextBased()) {
+            await (channel as TextChannel).send(
+              `**日記作成**\n<@${fromUserId}>が通常日記を購入・更新しました！${
+                comment ? `\n備考: ${comment}` : ""
+              }`,
+            );
+          }
+          break;
+        case PANEL_COMMAND_NAMES.DIARY_PUBLIC:
+          channelId = TEXT_CHANNEL_IDS.DIARY_LOG;
+          channel = await interaction.client.channels.fetch(channelId);
+          if (channel && channel.isTextBased()) {
+            await (channel as TextChannel).send(
+              `**日記作成**\n<@${fromUserId}>がVIP日記を購入・更新しました！${
+                comment ? `\n備考: ${comment}` : ""
+              }`,
+            );
+          }
+          break;
+        case PANEL_COMMAND_NAMES.DIARY_UPDATE:
+          channelId = TEXT_CHANNEL_IDS.DIARY_LOG;
+          channel = await interaction.client.channels.fetch(channelId);
+          if (channel && channel.isTextBased()) {
+            await (channel as TextChannel).send(
+              `**日記更新**\n<@${fromUserId}>が日記をアップグレードしました！${
+                comment ? `\n備考: ${comment}` : ""
+              }`,
+            );
+          }
+          break;
+        case PANEL_COMMAND_NAMES.HAZAMA_ACCESS:
+          channelId = TEXT_CHANNEL_IDS.HAZAMA_LOG;
+          channel = await interaction.client.channels.fetch(channelId);
+          if (channel && channel.isTextBased()) {
+            await (channel as TextChannel).send(
+              `**辺境の狭間 滞在許可証購入**\n<@${fromUserId}>が${formatNumber(amount)}${CURRENCY_NAMES}で滞在許可証を購入しました。`,
+            );
+          }
+          break;
+        case PANEL_COMMAND_NAMES.CASINO_GF:
+          threadId = resolveActionLogThreadId(commandName);
+          thread = await interaction.client.channels.fetch(threadId);
+          if (thread && thread.isThread() && thread.isTextBased()) {
+            await (thread as ThreadChannel).send(
+              `**${
+                CASINO_MESSAGES.SEND_FOR_GF
+              }**\n<@${fromUserId}>から<@${toUserId}>に${formatNumber(amount)}${CURRENCY_NAMES}送金されました！${
+                comment ? `\n備考: ${comment}` : ""
+              }`,
+            );
+          }
+          break;
+        case PANEL_COMMAND_NAMES.CASINO_MAJONG:
+          threadId = resolveActionLogThreadId(commandName);
+          thread = await interaction.client.channels.fetch(threadId);
+          if (thread && thread.isThread() && thread.isTextBased()) {
+            await (thread as ThreadChannel).send(
+              `**${
+                CASINO_MESSAGES.SEND_FOR_MAJONG
+              }**\n<@${fromUserId}>から<@${toUserId}>に${formatNumber(amount)}${CURRENCY_NAMES}送金されました！${
+                comment ? `\n備考: ${comment}` : ""
+              }`,
+            );
+          }
+          break;
+        case PANEL_COMMAND_NAMES.CASINO_OTHER:
+          threadId = resolveActionLogThreadId(commandName);
+          thread = await interaction.client.channels.fetch(threadId);
+          if (thread && thread.isThread() && thread.isTextBased()) {
+            await (thread as ThreadChannel).send(
+              `**${
+                CASINO_MESSAGES.SEND_FOR_OTHER
+              }**\n<@${fromUserId}>から<@${toUserId}>に${formatNumber(amount)}${CURRENCY_NAMES}送金されました！${
+                comment ? `\n備考: ${comment}` : ""
+              }`,
+            );
+          }
+          break;
+        default:
+          break;
+      }
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * アクションログの実行関数
+   * @param interaction
+   * @param commandName
+   * @param amount
+   * @param fromUserId
+   * @param toUserId
+   * @param fromAfterWallet
+   * @param toAfterWallet
+   * @param comment
+   */
+  static async executeActionLog(
+    interaction: any,
+    commandName: string,
+    amount: number,
+    fromUserId: string,
+    toUserId: string,
+    fromAfterWallet: number,
+    toAfterWallet: number,
+    comment: string,
+  ) {
+    try {
+      await this.createActionLog(
+        commandName,
+        amount,
+        fromUserId,
+        toUserId,
+        fromAfterWallet,
+        toAfterWallet,
+        comment,
+      );
+      try {
+        await this.createActionLogMessage(
+          interaction,
+          commandName,
+          amount,
+          fromUserId,
+          toUserId,
+          comment,
+        );
+      } catch (error) {
+        if (this.isDiscordMissingAccessError(error)) {
+          console.warn(
+            `[ActionService] Discord action log message skipped due to missing access. command=${commandName}`,
+            error,
+          );
+          return;
+        }
+        throw error;
+      }
+    } catch (error) {
+      throw error;
+    }
+  }
+}

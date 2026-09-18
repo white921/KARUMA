@@ -5,7 +5,7 @@ import {
   User,
 } from "discord.js";
 
-import { ChangeRoleService } from "../service/changeRoleService";
+import { ChangeRoleService } from "../service/member/changeRoleService";
 
 import { COMMAND_NAMES } from "../constant/command";
 import { ACCOUNT_MESSAGES } from "../constant/account";

@@ -4,8 +4,8 @@ import {
   SlashCommandBuilder,
 } from "discord.js";
 
-import { AccountService } from "../service/accountService";
-import { OpenAccountService } from "../service/openAccountService";
+import { AccountService } from "../service/account/accountService";
+import { OpenAccountService } from "../service/account/openAccountService";
 
 import { COMMAND_NAMES } from "../constant/command";
 import { INITIAL_WALLET } from "../constant/account";

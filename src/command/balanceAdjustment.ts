@@ -2,8 +2,8 @@ import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
 
 import { COMMAND_NAMES } from "../constant/command";
 import { ROLE_IDS } from "../constant/id";
-import { AdminMintService } from "../service/adminMintService";
-import { AdminBurnService } from "../service/adminBurnService";
+import { AdminMintService } from "../service/currency/adminMintService";
+import { AdminBurnService } from "../service/currency/adminBurnService";
 import { hasOperatorRole } from "../util/operatorPermission";
 
 const ALLOWED_ROLE_IDS = [

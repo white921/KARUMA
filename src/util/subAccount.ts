@@ -1,4 +1,4 @@
-import { AccountService } from "../service/accountService";
+import { AccountService } from "../service/account/accountService";
 
 /**
  * サブアカウントのバリデーション

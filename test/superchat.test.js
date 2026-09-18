@@ -13,11 +13,11 @@ const {
   hasSuperchatThread,
   getSuperchatEmbedColor,
   SuperchatService,
-} = require("../dist/service/superchatService.js");
+} = require("../dist/service/market/superchatService.js");
 const { COLOR } = require("../dist/constant/color.js");
 const {
   createSuperchatPanelActionRow,
-} = require("../dist/service/superchatPanelService.js");
+} = require("../dist/service/market/superchatPanelService.js");
 
 function member(id, roleIds = []) {
   return {

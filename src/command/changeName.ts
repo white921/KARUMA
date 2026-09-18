@@ -4,9 +4,9 @@ import {
   User,
 } from "discord.js";
 
-import { ChangeNameService } from "../service/changeNameService";
-import { AccountService } from "../service/accountService";
-import { LinkAccountService } from "../service/linkAccountService";
+import { ChangeNameService } from "../service/account/changeNameService";
+import { AccountService } from "../service/account/accountService";
+import { LinkAccountService } from "../service/account/linkAccountService";
 
 import { COMMAND_NAMES } from "../constant/command";
 import { ACCOUNT_MESSAGES } from "../constant/account";

@@ -4,10 +4,10 @@ const assert = require("node:assert/strict");
 const { HOTEL_FREE_TICKET_TYPE } = require("../dist/constant/hotel.js");
 const { GAME_FREE_TICKET_TYPE } = require("../dist/constant/gameTicket.js");
 const { SHOP_TICKET_TYPE } = require("../dist/constant/shopTicket.js");
-const { HotelFreeTicketService } = require("../dist/service/hotelFreeTicketService.js");
-const { ShopTicketService } = require("../dist/service/shopTicketService.js");
-const { GameFreeTicketService } = require("../dist/service/gameFreeTicketService.js");
-const { TicketViewService } = require("../dist/service/ticketViewService.js");
+const { HotelFreeTicketService } = require("../dist/service/hotel/hotelFreeTicketService.js");
+const { ShopTicketService } = require("../dist/service/market/shopTicketService.js");
+const { GameFreeTicketService } = require("../dist/service/game/gameFreeTicketService.js");
+const { TicketViewService } = require("../dist/service/inventory/ticketViewService.js");
 
 test("ticket confirmation lists every owned ticket type", async () => {
   const originalHotel = HotelFreeTicketService.getTicketQuantities;

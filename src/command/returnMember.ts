@@ -4,7 +4,7 @@ import {
   User,
 } from "discord.js";
 
-import { ReturnMemberService } from "../service/returnMemberService";
+import { ReturnMemberService } from "../service/account/returnMemberService";
 
 import { COMMAND_NAMES } from "../constant/command";
 import { ACCOUNT_MESSAGES } from "../constant/account";

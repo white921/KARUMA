@@ -5,10 +5,10 @@ const { ROLE_IDS, TEXT_CHANNEL_IDS, CATEGORY_IDS } = require("../dist/constant/i
 const { PANEL_COMMAND_NAMES } = require("../dist/constant/command.js");
 const { ACTION_TYPES, toActionType } = require("../dist/constant/action.js");
 const { SOLITARY_CELL } = require("../dist/constant/solitaryCell.js");
-const { SolitaryCellService } = require("../dist/service/solitaryCellService.js");
-const { createSolitaryCellPanelActionRow } = require("../dist/service/solitaryCellPanelService.js");
-const { resolvePanelInstallTarget, PANEL_INSTALL_TARGETS } = require("../dist/service/panelInstallService.js");
-const { HistoryService } = require("../dist/service/historyService.js");
+const { SolitaryCellService } = require("../dist/service/vc/solitaryCellService.js");
+const { createSolitaryCellPanelActionRow } = require("../dist/service/vc/solitaryCellPanelService.js");
+const { resolvePanelInstallTarget, PANEL_INSTALL_TARGETS } = require("../dist/service/panel/panelInstallService.js");
+const { HistoryService } = require("../dist/service/currency/historyService.js");
 
 function memberWithRoles(roleIds) {
   return { roles: { cache: { has: (roleId) => roleIds.includes(roleId) } } };

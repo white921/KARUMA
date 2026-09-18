@@ -1,6 +1,6 @@
 import { VoiceChannel } from "discord.js";
 
-import { DbService } from "../service/dbService";
+import { DbService } from "../service/system/dbService";
 
 /**
  * VCのメンバー数をカウント

@@ -1,37 +1,40 @@
 # Future Separation Notes
 
+現在のサービス配置は [サービスの配置](../../src/service/README.md) を参照してください。
+以下は将来Botプロセスを分離する場合の検討メモであり、現在のフォルダー境界とは異なります。
+
 ## Domain Buckets
 
 ### vc-domain
 
-- `src/service/vcService.ts`
-- `src/service/vcPanelService.ts`
-- `src/service/hotelVcService.ts`
-- `src/service/hotelPanelService.ts`
-- `src/service/teleportVcService.ts`
-- `src/service/changeNameService.ts`
+- `src/service/vc/vcService.ts`
+- `src/service/vc/vcPanelService.ts`
+- `src/service/hotel/hotelVcService.ts`
+- `src/service/hotel/hotelPanelService.ts`
+- `src/service/vc/teleportVcService.ts`
 - 関連する `handler`, `command`, `constant/vc.ts`, `constant/hotel.ts`, `constant/teleport.ts`
 
 このまとまりは「VC 作成、VC 名変更、VC 移動、ホテル系 VC 管理」が責務です。
 
 ### currency-domain
 
-- `src/service/accountService.ts`
-- `src/service/openAccountService.ts`
-- `src/service/adminOpenAccountService.ts`
-- `src/service/sendService.ts`
-- `src/service/salaryService.ts`
-- `src/service/historyService.ts`
-- `src/service/monthlyDebitService.ts`
-- `src/service/adminMintService.ts`
-- `src/service/adminBurnService.ts`
+- `src/service/account/accountService.ts`
+- `src/service/account/openAccountService.ts`
+- `src/service/account/adminOpenAccountService.ts`
+- `src/service/account/changeNameService.ts`
+- `src/service/currency/sendService.ts`
+- `src/service/currency/salaryService.ts`
+- `src/service/currency/historyService.ts`
+- `src/service/currency/monthlyDebitService.ts`
+- `src/service/currency/adminMintService.ts`
+- `src/service/currency/adminBurnService.ts`
 - 関連する `command`, `type/account.ts`, `constant/account.ts`, `constant/currency.ts`, `constant/salary.ts`
 
 このまとまりは「口座、残高、送金、付与、減額、履歴、定期引き落とし」が責務です。
 
 ### shared-domain
 
-- `src/service/dbService.ts`
+- `src/service/system/dbService.ts`
 - `src/util/role.ts`
 - `src/util/channelMessage.ts`
 - `src/constant/id.ts`

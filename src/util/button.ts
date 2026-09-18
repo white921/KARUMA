@@ -10,9 +10,9 @@ import {
   ModalSubmitInteraction,
 } from "discord.js";
 
-import { HotelVcService } from "../service/hotelVcService";
-import { GameService } from "../service/gameService";
-import { HazamaService } from "../service/hazamaService";
+import { HotelVcService } from "../service/hotel/hotelVcService";
+import { GameService } from "../service/game/gameService";
+import { HazamaService } from "../service/vc/hazamaService";
 
 import { PANEL_COMMAND_NAMES } from "../constant/command";
 import {

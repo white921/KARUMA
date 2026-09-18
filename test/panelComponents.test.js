@@ -6,23 +6,23 @@ const { ROLE_IDS, TEXT_CHANNEL_IDS } = require("../dist/constant/id.js");
 const { CURRENCY_NAMES } = require("../dist/constant/currency.js");
 const { HOTEL_MESSAGES, HOTEL_TYPE_NAMES } = require("../dist/constant/hotel.js");
 const { PANEL_COMMAND_NAMES } = require("../dist/constant/command.js");
-const { AccountService } = require("../dist/service/accountService.js");
-const { createBankPanelActionRow } = require("../dist/service/panelService.js");
-const { createAdminPanelActionRow } = require("../dist/service/adminPanelService.js");
-const { createCasinoPanelActionRow } = require("../dist/service/casinoPanel.js");
-const { createDiaryPanelActionRow } = require("../dist/service/diaryPanelService.js");
-const { createGamePanelActionRows } = require("../dist/service/gamePanelService.js");
-const { createHazamaPanelActionRow } = require("../dist/service/hazamaPanelService.js");
-const { createHotelVcPanelActionRows } = require("../dist/service/hotelPanelService.js");
-const { HotelVcService } = require("../dist/service/hotelVcService.js");
-const { createRedeployPanelActionRow } = require("../dist/service/redeployPanelService.js");
+const { AccountService } = require("../dist/service/account/accountService.js");
+const { createBankPanelActionRow } = require("../dist/service/currency/panelService.js");
+const { createAdminPanelActionRow } = require("../dist/service/currency/adminPanelService.js");
+const { createCasinoPanelActionRow } = require("../dist/service/casino/casinoPanel.js");
+const { createDiaryPanelActionRow } = require("../dist/service/diary/diaryPanelService.js");
+const { createGamePanelActionRows } = require("../dist/service/game/gamePanelService.js");
+const { createHazamaPanelActionRow } = require("../dist/service/vc/hazamaPanelService.js");
+const { createHotelVcPanelActionRows } = require("../dist/service/hotel/hotelPanelService.js");
+const { HotelVcService } = require("../dist/service/hotel/hotelVcService.js");
+const { createRedeployPanelActionRow } = require("../dist/service/system/redeployPanelService.js");
 const {
   createDarkShopPanelActionRow,
   createShopPanelActionRow,
-} = require("../dist/service/shopPanelService.js");
-const { createCreatorEmblemPanelActionRow } = require("../dist/service/creatorEmblemPanelService.js");
-const { CreatorEmblemPaymentService } = require("../dist/service/creatorEmblemPaymentService.js");
-const { VcPanelService } = require("../dist/service/vcPanelService.js");
+} = require("../dist/service/market/shopPanelService.js");
+const { createCreatorEmblemPanelActionRow } = require("../dist/service/market/creatorEmblemPanelService.js");
+const { CreatorEmblemPaymentService } = require("../dist/service/market/creatorEmblemPaymentService.js");
+const { VcPanelService } = require("../dist/service/vc/vcPanelService.js");
 const {
   GAME_PANEL_MESSAGES,
   HOTEL_VC_PANEL_MESSAGES,

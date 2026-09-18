@@ -2,8 +2,8 @@ import { Guild, GuildMember } from "discord.js";
 
 import { RoleAction } from "../type/role";
 
-import { DbService } from "../service/dbService";
-import { AccountService } from "../service/accountService";
+import { DbService } from "../service/system/dbService";
+import { AccountService } from "../service/account/accountService";
 
 import { ROLE_MESSAGES } from "../constant/role";
 import { ROLE_IDS } from "../constant/id";

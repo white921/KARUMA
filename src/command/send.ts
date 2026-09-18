@@ -1,6 +1,6 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
 
-import { SendService } from "../service/sendService";
+import { SendService } from "../service/currency/sendService";
 
 import { COMMAND_NAMES } from "../constant/command";
 

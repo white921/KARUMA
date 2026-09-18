@@ -7,7 +7,7 @@ const {
 } = require("../dist/util/role.js");
 const {
   canManageLinkAccount,
-} = require("../dist/service/linkAccountService.js");
+} = require("../dist/service/account/linkAccountService.js");
 const { ROLE_IDS } = require("../dist/constant/id.js");
 
 const GUILD_ID = "guild-id";

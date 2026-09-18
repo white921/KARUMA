@@ -3,8 +3,8 @@ const assert = require("node:assert/strict");
 
 const { HOTEL_TYPE } = require("../dist/constant/hotel.js");
 const { ROLE_IDS } = require("../dist/constant/id.js");
-const { HotelVcService } = require("../dist/service/hotelVcService.js");
-const { DbService } = require("../dist/service/dbService.js");
+const { HotelVcService } = require("../dist/service/hotel/hotelVcService.js");
+const { DbService } = require("../dist/service/system/dbService.js");
 
 const originals = {
   getConnection: DbService.getConnection,

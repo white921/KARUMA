@@ -15,25 +15,25 @@ import {
 } from "../util/modal";
 import { hasRole } from "../util/role";
 
-import { ViewService } from "../service/viewService";
-import { HistoryService } from "../service/historyService";
-import { HotelVcService } from "../service/hotelVcService";
-import { AccountService } from "../service/accountService";
-import { VcService } from "../service/vcService";
-import { GameService } from "../service/gameService";
-import { GameVcService } from "../service/gameVcService";
-import { DiaryService } from "../service/diaryService";
-import { RedeployService } from "../service/redeployService";
-import { RouletteService } from "../service/rouletteService";
-import { MarketGachaService } from "../service/marketGachaService";
-import { HotelFreeTicketService } from "../service/hotelFreeTicketService";
-import { GameFreeTicketService } from "../service/gameFreeTicketService";
-import { TicketViewService } from "../service/ticketViewService";
-import { OmikujiService } from "../service/omikujiService";
-import { CreatorEmblemPaymentService } from "../service/creatorEmblemPaymentService";
-import { HazamaService } from "../service/hazamaService";
-import { SuperchatService } from "../service/superchatService";
-import { SolitaryCellService } from "../service/solitaryCellService";
+import { ViewService } from "../service/currency/viewService";
+import { HistoryService } from "../service/currency/historyService";
+import { HotelVcService } from "../service/hotel/hotelVcService";
+import { AccountService } from "../service/account/accountService";
+import { VcService } from "../service/vc/vcService";
+import { GameService } from "../service/game/gameService";
+import { GameVcService } from "../service/game/gameVcService";
+import { DiaryService } from "../service/diary/diaryService";
+import { RedeployService } from "../service/system/redeployService";
+import { RouletteService } from "../service/casino/rouletteService";
+import { MarketGachaService } from "../service/market/marketGachaService";
+import { HotelFreeTicketService } from "../service/hotel/hotelFreeTicketService";
+import { GameFreeTicketService } from "../service/game/gameFreeTicketService";
+import { TicketViewService } from "../service/inventory/ticketViewService";
+import { OmikujiService } from "../service/omikuji/omikujiService";
+import { CreatorEmblemPaymentService } from "../service/market/creatorEmblemPaymentService";
+import { HazamaService } from "../service/vc/hazamaService";
+import { SuperchatService } from "../service/market/superchatService";
+import { SolitaryCellService } from "../service/vc/solitaryCellService";
 
 import {
   ADMIN_PANEL_MESSAGES,

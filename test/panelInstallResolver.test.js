@@ -4,7 +4,7 @@ const assert = require("node:assert/strict");
 const {
   resolvePanelInstallTarget,
   PANEL_INSTALL_TARGETS,
-} = require("../dist/service/panelInstallService.js");
+} = require("../dist/service/panel/panelInstallService.js");
 const {
   FORUM_IDS,
   TEXT_CHANNEL_IDS,

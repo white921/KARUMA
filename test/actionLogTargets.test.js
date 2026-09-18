@@ -4,7 +4,7 @@ const assert = require("node:assert/strict");
 const {
   ActionService,
   resolveActionLogThreadId,
-} = require("../dist/service/actionService.js");
+} = require("../dist/service/currency/actionService.js");
 const {
   COMMAND_NAMES,
   PANEL_COMMAND_NAMES,

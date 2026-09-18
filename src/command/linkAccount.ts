@@ -11,7 +11,7 @@ import {
 import {
   assertCanManageLinkAccount,
   LinkAccountService,
-} from "../service/linkAccountService";
+} from "../service/account/linkAccountService";
 
 import { ROLE_IDS } from "../constant/id";
 import { COMMAND_NAMES } from "../constant/command";

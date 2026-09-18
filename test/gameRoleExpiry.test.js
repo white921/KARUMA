@@ -4,10 +4,10 @@ const dayjs = require("dayjs");
 
 const {
   calculateGameRoleExpireAt,
-} = require("../dist/service/gameService.js");
+} = require("../dist/service/game/gameService.js");
 const {
   calculateHazamaAccessExpireAt,
-} = require("../dist/service/hazamaService.js");
+} = require("../dist/service/vc/hazamaService.js");
 const { ROLE_IDS } = require("../dist/constant/id.js");
 
 test("game short role expires after six hours", () => {

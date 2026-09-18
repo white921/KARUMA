@@ -6,7 +6,7 @@ import {
 
 import { requireChannel } from "../util/channelGuard";
 
-import { AccountService } from "../service/accountService";
+import { AccountService } from "../service/account/accountService";
 
 import { COMMAND_MESSAGES } from "../constant/command";
 import { TEST_CHANNEL_ID } from "../constant/id";

@@ -1,6 +1,6 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
 
-import { PanelInstallService } from "../service/panelInstallService";
+import { PanelInstallService } from "../service/panel/panelInstallService";
 
 import { COMMAND_NAMES } from "../constant/command";
 

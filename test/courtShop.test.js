@@ -5,15 +5,15 @@ const { PANEL_COMMAND_NAMES } = require("../dist/constant/command.js");
 const { BOT_ID, TEXT_CHANNEL_IDS, THREAD_IDS } = require("../dist/constant/id.js");
 const { COURT_SHOP_PANEL_MESSAGES } = require("../dist/constant/panel.js");
 const { SHOP_TICKET_TYPE, SHOP_TICKET_NONE } = require("../dist/constant/shopTicket.js");
-const { createCourtShopPanelActionRow } = require("../dist/service/shopPanelService.js");
-const { resolvePanelInstallTarget, PANEL_INSTALL_TARGETS } = require("../dist/service/panelInstallService.js");
+const { createCourtShopPanelActionRow } = require("../dist/service/market/shopPanelService.js");
+const { resolvePanelInstallTarget, PANEL_INSTALL_TARGETS } = require("../dist/service/panel/panelInstallService.js");
 const { handlePanelButton } = require("../dist/handler/panelButtonHandler.js");
 const { handleModalSubmit } = require("../dist/handler/modalHandler.js");
-const { AccountService } = require("../dist/service/accountService.js");
-const { ShopPaymentService } = require("../dist/service/shopPaymentService.js");
-const { ShopTicketService } = require("../dist/service/shopTicketService.js");
-const { DbService } = require("../dist/service/dbService.js");
-const { HistoryService } = require("../dist/service/historyService.js");
+const { AccountService } = require("../dist/service/account/accountService.js");
+const { ShopPaymentService } = require("../dist/service/market/shopPaymentService.js");
+const { ShopTicketService } = require("../dist/service/market/shopTicketService.js");
+const { DbService } = require("../dist/service/system/dbService.js");
+const { HistoryService } = require("../dist/service/currency/historyService.js");
 
 const commandName = PANEL_COMMAND_NAMES.COURT_SHOP_SEND;
 

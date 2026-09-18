@@ -8,7 +8,7 @@ import {
   StringSelectMenuInteraction,
 } from "discord.js";
 
-import { AccountService } from "../service/accountService";
+import { AccountService } from "../service/account/accountService";
 
 import { COLOR } from "../constant/color";
 import { SELECT_MESSAGES } from "../constant/select";
@@ -17,7 +17,7 @@ import {
   SHOP_TICKET_NONE,
   SHOP_TICKETS,
 } from "../constant/shopTicket";
-import { ShopTicketService } from "../service/shopTicketService";
+import { ShopTicketService } from "../service/market/shopTicketService";
 
 /**
  * ユーザー選択メニューを表示

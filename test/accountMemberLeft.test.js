@@ -1,12 +1,12 @@
 const assert = require("node:assert/strict");
 const test = require("node:test");
 
-const { AccountService } = require("../dist/service/accountService.js");
-const { DbService } = require("../dist/service/dbService.js");
+const { AccountService } = require("../dist/service/account/accountService.js");
+const { DbService } = require("../dist/service/system/dbService.js");
 const { ROLE_IDS } = require("../dist/constant/id.js");
 const {
   ReturnMemberService,
-} = require("../dist/service/returnMemberService.js");
+} = require("../dist/service/account/returnMemberService.js");
 
 test("サブ垢が脱退したら紐づけだけを削除する", async () => {
   const originalGetConnection = DbService.getConnection;

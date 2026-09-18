@@ -5,9 +5,9 @@ const { ITEM_DEFINITIONS, ITEM_KEY } = require("../dist/constant/item.js");
 const { HOTEL_FREE_TICKET_TYPE } = require("../dist/constant/hotel.js");
 const { SHOP_TICKET_TYPE } = require("../dist/constant/shopTicket.js");
 const { GAME_FREE_TICKET_TYPE } = require("../dist/constant/gameTicket.js");
-const { HotelFreeTicketService } = require("../dist/service/hotelFreeTicketService.js");
-const { ShopTicketService } = require("../dist/service/shopTicketService.js");
-const { GameFreeTicketService } = require("../dist/service/gameFreeTicketService.js");
+const { HotelFreeTicketService } = require("../dist/service/hotel/hotelFreeTicketService.js");
+const { ShopTicketService } = require("../dist/service/market/shopTicketService.js");
+const { GameFreeTicketService } = require("../dist/service/game/gameFreeTicketService.js");
 
 test("all ticket types have registered item definitions", () => {
   assert.deepEqual(

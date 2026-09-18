@@ -3,7 +3,7 @@ import {
   SlashCommandBuilder,
 } from "discord.js";
 
-import { RoleBasedSendService } from "../service/roleBasedSendService";
+import { RoleBasedSendService } from "../service/currency/roleBasedSendService";
 
 import { COMMAND_NAMES } from "../constant/command";
 

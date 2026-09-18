@@ -2,7 +2,7 @@ import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
 
 import { COMMAND_NAMES } from "../constant/command";
 import { RouletteStage } from "../type/roulette";
-import { RouletteService } from "../service/rouletteService";
+import { RouletteService } from "../service/casino/rouletteService";
 
 export const data = new SlashCommandBuilder()
   .setName(COMMAND_NAMES.ROULETTE_OPEN)

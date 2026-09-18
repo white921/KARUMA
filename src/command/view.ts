@@ -1,6 +1,6 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
 
-import { ViewService } from "../service/viewService";
+import { ViewService } from "../service/currency/viewService";
 
 import { COMMAND_NAMES } from "../constant/command";
 

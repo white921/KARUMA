@@ -6,8 +6,8 @@ import {
 } from "discord.js";
 
 import { addRole, deleteRole, isTechnician } from "../util/role";
-import { AccountService } from "../service/accountService";
-import { InterviewService } from "../service/interviewService";
+import { AccountService } from "../service/account/accountService";
+import { InterviewService } from "../service/evaluation/interviewService";
 
 import { ROLE_IDS } from "../constant/id";
 import { INTERVIEW_MESSAGES } from "../constant/interview";

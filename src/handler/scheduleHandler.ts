@@ -2,14 +2,14 @@ import cron from "node-cron";
 
 import { Client, Guild } from "discord.js";
 
-import { SalaryService } from "../service/salaryService";
-// import { ChallengeMarkService } from "../service/challengeMarkService";
-// import { MonthlyDebitService } from "../service/monthlyDebitService";
-import { GameService } from "../service/gameService";
-import { SalesManagementService } from "../service/salesManagementService";
-import { DiaryService } from "../service/diaryService";
-import { RedeployService } from "../service/redeployService";
-import { InterviewShiftService } from "../service/interviewShiftService";
+import { SalaryService } from "../service/currency/salaryService";
+// import { ChallengeMarkService } from "../service/member/challengeMarkService";
+// import { MonthlyDebitService } from "../service/currency/monthlyDebitService";
+import { GameService } from "../service/game/gameService";
+import { SalesManagementService } from "../service/market/salesManagementService";
+import { DiaryService } from "../service/diary/diaryService";
+import { RedeployService } from "../service/system/redeployService";
+import { InterviewShiftService } from "../service/evaluation/interviewShiftService";
 
 /**
  * 定期的な処理を実行するハンドラ

@@ -9,11 +9,11 @@ const { SOLITARY_CELL } = require("../dist/constant/solitaryCell.js");
 const { TELEPORT_TYPE } = require("../dist/constant/vc.js");
 const { CATEGORY_IDS } = require("../dist/constant/id.js");
 const { ChannelType } = require("discord.js");
-const { DbService } = require("../dist/service/dbService.js");
+const { DbService } = require("../dist/service/system/dbService.js");
 const {
   VcService,
   isUserEditableManagedVc,
-} = require("../dist/service/vcService.js");
+} = require("../dist/service/vc/vcService.js");
 
 const originalGetConnection = DbService.getConnection;
 

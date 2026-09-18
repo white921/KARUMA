@@ -3,7 +3,7 @@ import { UserSelectMenuInteraction } from "discord.js";
 import { showAmountModal } from "../util/modal";
 import { showConfirmButton } from "../util/button";
 
-import { AdminViewService } from "../service/adminViewService";
+import { AdminViewService } from "../service/currency/adminViewService";
 
 import { PANEL_MESSAGES } from "../constant/panel";
 import { PANEL_COMMAND_NAMES } from "../constant/command";

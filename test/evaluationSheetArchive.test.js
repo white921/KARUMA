@@ -9,10 +9,10 @@ const {
 } = require("../dist/util/evaluationSheetPermission.js");
 const {
   EvaluationSheetArchiveService,
-} = require("../dist/service/evaluationSheetArchiveService.js");
+} = require("../dist/service/evaluation/evaluationSheetArchiveService.js");
 const {
   EvaluationSheetArchiveStorageService,
-} = require("../dist/service/evaluationSheetArchiveStorageService.js");
+} = require("../dist/service/evaluation/evaluationSheetArchiveStorageService.js");
 const { ROLE_IDS } = require("../dist/constant/id.js");
 
 function memberWithRoles(roleIds) {

@@ -8,7 +8,7 @@ import {
 import { requireChannel } from "../util/channelGuard";
 import { isTechnician } from "../util/role";
 
-import { RankingService } from "../service/ranking";
+import { RankingService } from "../service/currency/ranking";
 
 import { TEST_CHANNEL_ID } from "../constant/id";
 import { COMMAND_MESSAGES, COMMAND_NAMES } from "../constant/command";

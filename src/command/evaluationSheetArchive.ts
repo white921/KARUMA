@@ -6,7 +6,7 @@ import {
 
 import { COMMAND_NAMES } from "../constant/command";
 import { EVALUATION_SHEET_MESSAGES } from "../constant/evaluationSheet";
-import { EvaluationSheetArchiveService } from "../service/evaluationSheetArchiveService";
+import { EvaluationSheetArchiveService } from "../service/evaluation/evaluationSheetArchiveService";
 import {
   assertCanManageEvaluationSheetArchive,
   isDiscordUserId,

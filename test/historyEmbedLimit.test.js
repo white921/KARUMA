@@ -1,7 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
-const { HistoryService } = require("../dist/service/historyService.js");
+const { HistoryService } = require("../dist/service/currency/historyService.js");
 const { COMMAND_NAMES } = require("../dist/constant/command.js");
 
 test("shows VC rewards as a credit in transaction history", () => {

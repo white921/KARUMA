@@ -5,7 +5,7 @@ const {
   calculateRoulettePayout,
   validateRouletteBet,
   getAllowedBetKinds,
-} = require("../dist/service/rouletteRules.js");
+} = require("../dist/service/casino/rouletteRules.js");
 
 test("stage availability limits betting options", () => {
   assert.deepEqual(getAllowedBetKinds(1), ["red", "black", "even", "odd"]);

@@ -4,7 +4,7 @@ const assert = require("node:assert/strict");
 const {
   getServerBoostRewardAmount,
   isNewServerBoost,
-} = require("../dist/service/serverBoostService.js");
+} = require("../dist/service/member/serverBoostService.js");
 
 test("server boost is detected only when boosting starts", () => {
   assert.equal(isNewServerBoost(null, 1720000000000), true);

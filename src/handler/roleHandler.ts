@@ -1,10 +1,10 @@
 import { Client, GuildMember, PartialGuildMember } from "discord.js";
 
-// import { ChallengeMarkService } from "../service/challengeMarkService";
-// import { RemindToMadoromiService } from "../service/remindToMadoromiService";
-// import { EvaluationService } from "../service/evaluationService";
-import { AccountService } from "../service/accountService";
-import { ServerBoostService } from "../service/serverBoostService";
+// import { ChallengeMarkService } from "../service/member/challengeMarkService";
+// import { RemindToMadoromiService } from "../service/member/remindToMadoromiService";
+// import { EvaluationService } from "../service/evaluation/evaluationService";
+import { AccountService } from "../service/account/accountService";
+import { ServerBoostService } from "../service/member/serverBoostService";
 import { addRole, deleteRole } from "../util/role";
 
 import {

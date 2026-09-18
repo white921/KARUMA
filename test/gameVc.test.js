@@ -12,11 +12,11 @@ const {
 } = require("../dist/constant/panel.js");
 const {
   createGameCriminalPanelActionRows,
-} = require("../dist/service/gamePanelService.js");
+} = require("../dist/service/game/gamePanelService.js");
 const {
   PANEL_INSTALL_TARGETS,
   resolvePanelInstallTarget,
-} = require("../dist/service/panelInstallService.js");
+} = require("../dist/service/panel/panelInstallService.js");
 const {
   getGameVcTier,
   canPurchaseGamePass,
@@ -24,7 +24,7 @@ const {
   calculateGameCriminalAccessExpireAt,
   buildGameVcCreateConfirmationDescription,
   createGameVcPermissionOverwrites,
-} = require("../dist/service/gameVcService.js");
+} = require("../dist/service/game/gameVcService.js");
 
 function memberWithRoles(roleIds) {
   return { roles: { cache: { has: (roleId) => roleIds.includes(roleId) } } };

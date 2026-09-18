@@ -1,7 +1,7 @@
 import { ChatInputCommandInteraction, GuildMember, SlashCommandBuilder } from "discord.js";
 
-import { CheckNameService } from "../service/checkNameService";
-import { InterviewService } from "../service/interviewService";
+import { CheckNameService } from "../service/evaluation/checkNameService";
+import { InterviewService } from "../service/evaluation/interviewService";
 
 import { COMMAND_NAMES } from "../constant/command";
 

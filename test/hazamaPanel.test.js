@@ -4,8 +4,8 @@ const assert = require("node:assert/strict");
 const { HAZAMA_PRICE } = require("../dist/constant/hazama.js");
 const { PANEL_COMMAND_NAMES } = require("../dist/constant/command.js");
 const { HAZAMA_PANEL_MESSAGES } = require("../dist/constant/panel.js");
-const { createHazamaPanelActionRow } = require("../dist/service/hazamaPanelService.js");
-const { HazamaService } = require("../dist/service/hazamaService.js");
+const { createHazamaPanelActionRow } = require("../dist/service/vc/hazamaPanelService.js");
+const { HazamaService } = require("../dist/service/vc/hazamaService.js");
 const { ROLE_IDS, TEXT_CHANNEL_IDS } = require("../dist/constant/id.js");
 
 test("hazama panel uses the configured payment channel and access role", () => {

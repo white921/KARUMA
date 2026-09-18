@@ -11,7 +11,7 @@ const {
   recordGatewayDisconnect,
   recordWatchdogTick,
   shouldRestartFromHealthState,
-} = require("../dist/service/botHealthMonitor.js");
+} = require("../dist/service/system/botHealthMonitor.js");
 
 const baseThresholds = {
   ackTimeoutMs: 30_000,

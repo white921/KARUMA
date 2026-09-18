@@ -1,9 +1,9 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
-const { AccountService } = require("../dist/service/accountService.js");
-const { CheckNameService } = require("../dist/service/checkNameService.js");
-const { OpenAccountService } = require("../dist/service/openAccountService.js");
+const { AccountService } = require("../dist/service/account/accountService.js");
+const { CheckNameService } = require("../dist/service/evaluation/checkNameService.js");
+const { OpenAccountService } = require("../dist/service/account/openAccountService.js");
 
 test("名前には文字・数字と許可された記号だけを使用できる", () => {
   assert.doesNotThrow(() => AccountService.validateNameFormat("山田太郎123"));
