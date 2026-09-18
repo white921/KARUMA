@@ -4,7 +4,7 @@ const assert = require("node:assert/strict");
 const {
   OMIKUJI_PRIZES,
   selectOmikujiPrize,
-} = require("../dist/constant/omikuji.js");
+} = require("../dist/constant/omikuji/omikuji.js");
 const omikujiService = require("../dist/service/omikuji/omikujiService.js");
 const { getJapanDate } = omikujiService;
 const {
@@ -13,10 +13,10 @@ const {
   createOmikujiSpecialLogEmbed,
   formatOmikujiDrawReply,
 } = omikujiService;
-const { TEXT_CHANNEL_IDS } = require("../dist/constant/id.js");
-const { PANEL_COMMAND_NAMES } = require("../dist/constant/command.js");
-const { OMIKUJI_PANEL_MESSAGES } = require("../dist/constant/panel.js");
-const { createOmikujiPanelActionRow } = require("../dist/service/omikuji/omikujiPanelService.js");
+const { TEXT_CHANNEL_IDS } = require("../dist/constant/shared/id.js");
+const { PANEL_COMMAND_NAMES } = require("../dist/constant/shared/command.js");
+const { OMIKUJI_PANEL_MESSAGES } = require("../dist/constant/panel/panel.js");
+const { createOmikujiPanelActionRow } = require("../dist/panel/omikuji/omikujiPanelService.js");
 
 test("omikuji probabilities total 100 percent", () => {
   assert.equal(OMIKUJI_PRIZES.reduce((sum, prize) => sum + prize.probability, 0), 100);

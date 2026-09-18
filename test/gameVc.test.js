@@ -3,18 +3,18 @@ const assert = require("node:assert/strict");
 const dayjs = require("dayjs");
 const { PermissionsBitField } = require("discord.js");
 
-const { ROLE_IDS, TEXT_CHANNEL_IDS, THREAD_IDS } = require("../dist/constant/id.js");
-const { PANEL_COMMAND_NAMES } = require("../dist/constant/command.js");
-const { GAME_VC } = require("../dist/constant/game.js");
+const { ROLE_IDS, TEXT_CHANNEL_IDS, THREAD_IDS } = require("../dist/constant/shared/id.js");
+const { PANEL_COMMAND_NAMES } = require("../dist/constant/shared/command.js");
+const { GAME_VC } = require("../dist/constant/game/game.js");
 const {
   GAME_CRIMINAL_PANEL_MESSAGES,
   GAME_PANEL_MESSAGES,
-} = require("../dist/constant/panel.js");
+} = require("../dist/constant/panel/panel.js");
 const {
   createGameCriminalPanelActionRows,
-} = require("../dist/service/game/gamePanelService.js");
-const { PANEL_INSTALL_TARGETS } = require("../dist/constant/panelInstall.js");
-const { resolvePanelInstallTarget } = require("../dist/service/panel/panelInstallService.js");
+} = require("../dist/panel/game/gamePanelService.js");
+const { PANEL_INSTALL_TARGETS } = require("../dist/constant/panel/panelInstall.js");
+const { resolvePanelInstallTarget } = require("../dist/panel/panelInstallService.js");
 const {
   getGameVcTier,
   canPurchaseGamePass,

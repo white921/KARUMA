@@ -6,7 +6,7 @@ const {
   isShopTicketType,
   SHOP_TICKET_MAX_APPLICABLE_AMOUNT,
   SHOP_TICKET_TYPE,
-} = require("../dist/constant/shopTicket.js");
+} = require("../dist/constant/market/shopTicket.js");
 
 test("ショップ割引券は5%・10%の2種類を受け付ける", () => {
   assert.equal(isShopTicketType(SHOP_TICKET_TYPE.DISCOUNT_5), true);

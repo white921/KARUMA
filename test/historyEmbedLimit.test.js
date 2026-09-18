@@ -2,7 +2,7 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 
 const { HistoryService } = require("../dist/service/currency/historyService.js");
-const { COMMAND_NAMES } = require("../dist/constant/command.js");
+const { COMMAND_NAMES } = require("../dist/constant/shared/command.js");
 
 test("shows VC rewards as a credit in transaction history", () => {
   const history = HistoryService.createHistoryString(

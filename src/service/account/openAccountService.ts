@@ -2,7 +2,7 @@ import { GuildMember } from "discord.js";
 
 import { AccountService } from "./accountService";
 
-import { ACCOUNT_MESSAGES } from "../../constant/account";
+import { ACCOUNT_MESSAGES } from "../../constant/account/account";
 
 export class OpenAccountService {
   /**

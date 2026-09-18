@@ -1,19 +1,19 @@
 import { Guild, EmbedBuilder } from "discord.js";
 import { RowDataPacket } from "mysql2";
 
-import { Account } from "../../type/account";
+import { Account } from "../../type/account/account";
 
-import { formatRoleNameForOutput, hasRole } from "../../util/role";
-import { getUserIdsByRoleId } from "../../util/role";
+import { formatRoleNameForOutput, hasRole } from "../../util/member/role";
+import { getUserIdsByRoleId } from "../../util/member/role";
 
 import { DbService } from "../system/dbService";
 import { AccountService } from "../account/accountService";
 
-import { ACCOUNT_MESSAGES } from "../../constant/account";
-import { ROLE_IDS } from "../../constant/id";
-import { RANKING_MESSAGES } from "../../constant/ranking";
-import { CURRENCY_NAMES } from "../../constant/currency";
-import { formatNumber } from "../../util/number";
+import { ACCOUNT_MESSAGES } from "../../constant/account/account";
+import { ROLE_IDS } from "../../constant/shared/id";
+import { RANKING_MESSAGES } from "../../constant/currency/ranking";
+import { CURRENCY_NAMES } from "../../constant/currency/currency";
+import { formatNumber } from "../../util/shared/number";
 
 export class RankingService {
   /**

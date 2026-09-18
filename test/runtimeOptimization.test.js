@@ -8,8 +8,8 @@ const {
   isRuntimeFeatureEnabled,
   normalizePollingIntervalMs,
   normalizePositiveInteger,
-} = require("../dist/util/runtimeConfig.js");
-const { BOT_ID, ROLE_IDS, TEXT_CHANNEL_IDS } = require("../dist/constant/id.js");
+} = require("../dist/util/system/runtimeConfig.js");
+const { BOT_ID, ROLE_IDS, TEXT_CHANNEL_IDS } = require("../dist/constant/shared/id.js");
 const {
   resolveMysqlConnectionLimit,
   resolveMysqlSlowAcquireLogMs,
@@ -84,7 +84,7 @@ test("daily shift payloads use one shared introduction and separate shift option
 
 test("interviewer shift notifications run daily at 00:30 JST", () => {
   const scheduleSource = fs.readFileSync(
-    path.join(__dirname, "../src/handler/scheduleHandler.ts"),
+    path.join(__dirname, "../src/handler/system/scheduleHandler.ts"),
     "utf8",
   );
 
@@ -95,7 +95,7 @@ test("interviewer shift notifications run daily at 00:30 JST", () => {
 
 test("daily core-time announcement is not scheduled", () => {
   const scheduleSource = fs.readFileSync(
-    path.join(__dirname, "../src/handler/scheduleHandler.ts"),
+    path.join(__dirname, "../src/handler/system/scheduleHandler.ts"),
     "utf8",
   );
 
@@ -112,7 +112,7 @@ test("diary moderation and inactivity cleanup are enabled", () => {
     "utf8",
   );
   const scheduleSource = fs.readFileSync(
-    path.join(__dirname, "../src/handler/scheduleHandler.ts"),
+    path.join(__dirname, "../src/handler/system/scheduleHandler.ts"),
     "utf8",
   );
 

@@ -1,10 +1,10 @@
 import { GuildMember } from "discord.js";
-import { MAX_DISPLAY_NAME_LENGTH } from "../../constant/account";
+import { MAX_DISPLAY_NAME_LENGTH } from "../../constant/account/account";
 import {
   LINK_ACCOUNT_MESSAGES,
   LINK_ACCOUNT_OPERATOR_ROLE_IDS,
-} from "../../constant/linkAccount";
-import type { RoleBackedMember } from "../../type/linkAccount";
+} from "../../constant/account/linkAccount";
+import type { RoleBackedMember } from "../../type/account/linkAccount";
 import { DbService } from "../system/dbService";
 import { AccountService } from "./accountService";
 

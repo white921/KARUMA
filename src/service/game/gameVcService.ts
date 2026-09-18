@@ -14,10 +14,10 @@ import {
   ThreadChannel,
 } from "discord.js";
 import type { ResultSetHeader } from "mysql2";
-import { toActionType } from "../../constant/action";
-import { COLOR } from "../../constant/color";
-import { PANEL_COMMAND_NAMES } from "../../constant/command";
-import { CURRENCY_NAMES } from "../../constant/currency";
+import { toActionType } from "../../constant/currency/action";
+import { COLOR } from "../../constant/shared/color";
+import { PANEL_COMMAND_NAMES } from "../../constant/shared/command";
+import { CURRENCY_NAMES } from "../../constant/currency/currency";
 import {
   GAME_MESSAGES,
   GAME_VC,
@@ -25,25 +25,25 @@ import {
   GAME_VC_MESSAGE_PERMISSIONS,
   TRAVELER_OR_ABOVE_ROLE_IDS,
   VC_CONNECT_ROLE_IDS,
-} from "../../constant/game";
-import { GAME_FREE_TICKET_TYPE } from "../../constant/gameTicket";
+} from "../../constant/game/game";
+import { GAME_FREE_TICKET_TYPE } from "../../constant/game/gameTicket";
 import {
   BOT_ID,
   CATEGORY_IDS,
   ROLE_IDS,
   TEXT_CHANNEL_IDS,
   THREAD_IDS,
-} from "../../constant/id";
+} from "../../constant/shared/id";
 import type {
   GamePassPlan,
   GameVcPayment,
   GameVcTier,
   PassRow,
   WalletRow,
-} from "../../type/gameVc";
-import { formatNumber } from "../../util/number";
-import { hasSystemAdminRole } from "../../util/operatorPermission";
-import { addRole } from "../../util/role";
+} from "../../type/game/gameVc";
+import { formatNumber } from "../../util/shared/number";
+import { hasSystemAdminRole } from "../../util/shared/operatorPermission";
+import { addRole } from "../../util/member/role";
 import { ItemService } from "../inventory/itemService";
 import { DbService } from "../system/dbService";
 import { GameFreeTicketService } from "./gameFreeTicketService";

@@ -3,12 +3,12 @@ import { TextChannel, ThreadChannel } from "discord.js";
 import { DbService } from "../system/dbService";
 import { HotelVcService } from "../hotel/hotelVcService";
 
-import { THREAD_IDS, TEXT_CHANNEL_IDS } from "../../constant/id";
-import { COMMAND_NAMES, PANEL_COMMAND_NAMES } from "../../constant/command";
-import { CURRENCY_NAMES } from "../../constant/currency";
-import { CASINO_MESSAGES } from "../../constant/casino";
-import { formatNumber } from "../../util/number";
-import { toActionType } from "../../constant/action";
+import { THREAD_IDS, TEXT_CHANNEL_IDS } from "../../constant/shared/id";
+import { COMMAND_NAMES, PANEL_COMMAND_NAMES } from "../../constant/shared/command";
+import { CURRENCY_NAMES } from "../../constant/currency/currency";
+import { CASINO_MESSAGES } from "../../constant/casino/casino";
+import { formatNumber } from "../../util/shared/number";
+import { toActionType } from "../../constant/currency/action";
 
 export function resolveActionLogThreadId(commandName: string): string | null {
   switch (commandName) {

@@ -6,7 +6,7 @@ import {
   Guild,
 } from "discord.js";
 
-import { Account } from "../../type/account";
+import { Account } from "../../type/account/account";
 
 import { AccountService } from "../account/accountService";
 import { ActionService } from "./actionService";
@@ -16,13 +16,13 @@ import {
   MONTHLY_SEND_LIMIT,
   MONTHLY_SEND_LIMIT_EXEMPT_ROLE_IDS,
   SEND_MESSAGES,
-} from "../../constant/send";
-import { CURRENCY_NAMES } from "../../constant/currency";
-import { PANEL_COMMAND_NAMES } from "../../constant/command";
-import { ACCOUNT_MESSAGES } from "../../constant/account";
-import { BOT_ID } from "../../constant/id";
-import { ACTION_TYPES } from "../../constant/action";
-import { hasOperatorRole } from "../../util/operatorPermission";
+} from "../../constant/currency/send";
+import { CURRENCY_NAMES } from "../../constant/currency/currency";
+import { PANEL_COMMAND_NAMES } from "../../constant/shared/command";
+import { ACCOUNT_MESSAGES } from "../../constant/account/account";
+import { BOT_ID } from "../../constant/shared/id";
+import { ACTION_TYPES } from "../../constant/currency/action";
+import { hasOperatorRole } from "../../util/shared/operatorPermission";
 
 export class SendService {
   /**

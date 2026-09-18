@@ -1,3 +1,4 @@
+import { DEFAULT_PUBLIC_COMMAND } from "./constant/shared/command";
 import {
   Client,
   GatewayIntentBits,
@@ -10,21 +11,21 @@ import {
 
 import { registerCommands } from "./registerCommands";
 
-import { exeCommand } from "./util/exeCommand";
-import { sendEphemeralMessage } from "./util/channelMessage";
-import { validateSelectUserMenu } from "./util/select";
-import { getVcMembersCount } from "./util/vc";
+import { exeCommand } from "./util/interaction/exeCommand";
+import { sendEphemeralMessage } from "./util/shared/channelMessage";
+import { validateSelectUserMenu } from "./util/interaction/select";
+import { getVcMembersCount } from "./util/vc/vc";
 import {
   isRuntimeFeatureEnabled,
   shouldRegisterCommandsOnBoot,
-} from "./util/runtimeConfig";
+} from "./util/system/runtimeConfig";
 
-import { handleUserSelectMenu } from "./handler/userSelectHandler";
-import { handleStringSelectMenu } from "./handler/stringSelectHandler";
-import { handleModalSubmit } from "./handler/modalHandler";
-import { handlePanelButton } from "./handler/panelButtonHandler";
-import { handleSchedule } from "./handler/scheduleHandler";
-import { handleRoleChange } from "./handler/roleHandler";
+import { handleUserSelectMenu } from "./handler/interaction/userSelectHandler";
+import { handleStringSelectMenu } from "./handler/interaction/stringSelectHandler";
+import { handleModalSubmit } from "./handler/interaction/modalHandler";
+import { handlePanelButton } from "./handler/interaction/panelButtonHandler";
+import { handleSchedule } from "./handler/system/scheduleHandler";
+import { handleRoleChange } from "./handler/member/roleHandler";
 
 import { HotelVcService } from "./service/hotel/hotelVcService";
 import {
@@ -36,16 +37,16 @@ import { AccountService } from "./service/account/accountService";
 import { VcService } from "./service/vc/vcService";
 import { DiaryService } from "./service/diary/diaryService";
 import { BotHealthMonitor } from "./service/system/botHealthMonitor";
-import { getEvaluationCommandHandlerTimeoutMs } from "./util/interactionHealth";
-import { shouldDeferButtonUpdate } from "./util/interactionAck";
+import { getEvaluationCommandHandlerTimeoutMs } from "./util/interaction/interactionHealth";
+import { shouldDeferButtonUpdate } from "./util/interaction/interactionAck";
 
-import { COMMAND_NAMES, PANEL_COMMAND_NAMES } from "./constant/command";
+import { COMMAND_NAMES, PANEL_COMMAND_NAMES } from "./constant/shared/command";
 import {
   CATEGORY_IDS,
   FORUM_IDS,
   TEST_CATEGORY_IDS,
   TEST_FORUM_IDS,
-} from "./constant/id";
+} from "./constant/shared/id";
 
 // テスト用
 import dotenv from "dotenv";
@@ -82,25 +83,10 @@ client.once("clientReady", async () => {
         "[Runtime] expired VC checker disabled by ENABLE_EXPIRED_VC_CHECKER",
       );
     }
-    // await RemindToMadoromiService.startRemindToMadoromi(client);
   } catch (error) {
     console.error(error);
   }
 });
-
-// コマンドの実行権限をチェックするための配列
-const DEFAULT_PUBLIC_COMMAND = [
-  COMMAND_NAMES.RETURN_MEMBER,
-  COMMAND_NAMES.INTERVIEW_PASS,
-  COMMAND_NAMES.EVALUATION_SHEET,
-  COMMAND_NAMES.SEND,
-  COMMAND_NAMES.VIEW,
-  COMMAND_NAMES.LINK_ACCOUNT,
-  COMMAND_NAMES.RANKING,
-  COMMAND_NAMES.OPEN_ACCOUNT,
-  COMMAND_NAMES.CHANGE_NAME,
-  COMMAND_NAMES.CHECK_NAME,
-];
 
 client.on("interactionCreate", async (interaction) => {
   const interactionContext = interaction.isChatInputCommand()

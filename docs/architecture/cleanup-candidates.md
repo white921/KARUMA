@@ -1,26 +1,26 @@
-# 削除候補
+# 不要コードの整理結果
 
-2026-09-19時点のソースとテストを確認した候補。以下のファイルは今回削除していない。
-`challengeMarkService.ts` は不要と確認されたため、削除とコメント内の参照除去を反映した。
+2026-09-19に削除後のコードを再確認した。前回の候補は以下のとおり整理済み。
 
-## 実行経路のないファイル
+| 整理したもの | 確認と対応 |
+| --- | --- |
+| 月次引き落とし・まどろみ通知・日次告知サービス | 停止中または呼び出し元なし。削除に合わせて停止中の参照とスケジュールを除去 |
+| 旧評価DB用の招待延長・評価表示・評価終了表示コマンド | 未登録・実行分岐も無効。ファイル削除に合わせてコメントとコマンド名定数を除去 |
+| 旧評価DBの型、未使用の口座開設定数・日時ログ補助 | 有効な参照なし。ユーザーによる削除を反映 |
+| 日次告知・月次引き落としの定数 | 削除された機能だけの定義だったため除去 |
+| `date-holidays`・`timezone`・`utc` | ソースに利用箇所がないため依存から除去。dayjsのタイムゾーン用プラグインは引き続き利用 |
 
-| 候補 | 確認できた根拠 | 削除時に合わせて整理するもの |
-| --- | --- | --- |
-| [`monthlyDebitService.ts`](../../src/service/currency/monthlyDebitService.ts) | 全体がコメントアウトされ、スケジュールとimportも無効 | 未使用の [`constant/monthlyDebit.ts`](../../src/constant/monthlyDebit.ts)、`scheduleHandler.ts` の停止中ブロック、将来分離メモ |
-| [`remindToMadoromiService.ts`](../../src/service/member/remindToMadoromiService.ts) | 全体がコメントアウトされ、有効な呼び出しがない | `roleHandler.ts`・`index.ts` の停止中の参照 |
-| [`dailyMessageService.ts`](../../src/service/member/dailyMessageService.ts) | 有効なimport・定期実行がなく、テストでも日次告知をスケジュールしないことを確認している | このサービスだけが使用する [`constant/daily.ts`](../../src/constant/daily.ts)。面接シフト通知は別機能なので残す |
-| [`constant/openAccount.ts`](../../src/constant/openAccount.ts) | `OPEN_ACCOUNT_MESSAGES` の参照がない | 現在の口座開設処理・管理者向け定数とは別ファイル |
-| [`type/evaluation.ts`](../../src/type/evaluation.ts) | 旧評価DBの `Evaluation` 型に参照がない | 現行の評価シート・アーカイブの型は別ファイルなので残す |
-| [`util/datetime.ts`](../../src/util/datetime.ts) | `showLogMessage` の呼び出し・importがない | 現行の日時処理は各機能からdayjsを直接利用している |
+面接シフト通知、現行の評価シート・アーカイブ、口座開設は別の機能として存続する。
+SQLマイグレーションは履歴として維持する。
 
-## 再開予定を確認してから削除する候補
+## 再発防止
 
-[`command/inviteExtend.ts`](../../src/command/inviteExtend.ts)、
-[`command/showEvaluation.ts`](../../src/command/showEvaluation.ts)、
-[`command/showEvaluationEnd.ts`](../../src/command/showEvaluationEnd.ts) は、
-`registerCommands.ts` の登録と `util/exeCommand.ts` の実行分岐がコメントアウトされている。
-処理本体も停止中メッセージを返すだけだが、旧評価DBを再開したときに戻すTODOが残っている。
-再開予定がなければ、ファイル・停止中の参照・対応するコマンド名定数をまとめて削除できる。
+- ビルド時に `dist` を作り直し、削除・移動前の成果物を残さない。
+- `npm test` は `test/*.test.js` を対象にし、これまで明示リストから漏れていた管理者の付与ログのテストも実行する。
+- 機能ごとの配置先と移動・削除時の確認事項は [ソースコードの配置](../../src/README.md) に集約する。
 
-DBテーブルやSQLマイグレーションはこの削除候補に含めない。
+## 維持した停止中の機能
+
+`command/member/changeRole.ts` は削除前からコマンド登録がコメントアウトされている。
+実行分岐・サービス・権限テストは残っているため、今回も登録を再開せず保持した。
+不要と判断する場合は、この一式を別途削除する。登録対象は24コマンド、実行分岐はこの停止中機能を含め25件。

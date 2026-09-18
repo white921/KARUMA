@@ -6,15 +6,15 @@ const {
   MARKET_GACHA_PRICE,
   MARKET_GACHA_PRIZES,
   selectMarketGachaPrize,
-} = require("../dist/constant/marketGacha.js");
+} = require("../dist/constant/market/marketGacha.js");
 const {
   canBypassMarketGachaDailyLimit,
   createMarketGachaConfirmationRow,
   createMarketGachaPaymentSelectionRow,
   formatMarketGachaDrawLog,
 } = require("../dist/service/market/marketGachaService.js");
-const { ROLE_IDS, TEXT_CHANNEL_IDS, THREAD_IDS } = require("../dist/constant/id.js");
-const { PANEL_COMMAND_NAMES } = require("../dist/constant/command.js");
+const { ROLE_IDS, TEXT_CHANNEL_IDS, THREAD_IDS } = require("../dist/constant/shared/id.js");
+const { PANEL_COMMAND_NAMES } = require("../dist/constant/shared/command.js");
 
 function memberWithRoles(roleIds) {
   return { roles: { cache: { has: (roleId) => roleIds.includes(roleId) } } };

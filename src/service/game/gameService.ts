@@ -16,19 +16,19 @@ import {
   deleteRole,
   setIsDeletedToTrue,
   changeRoleOfSubAccount,
-} from "../../util/role";
+} from "../../util/member/role";
 
 import { AccountService } from "../account/accountService";
 import { ActionService } from "../currency/actionService";
 import { DbService } from "../system/dbService";
 
-import { Account } from "../../type/account";
+import { Account } from "../../type/account/account";
 
-import { GAME_PRICE, GAME_MESSAGES } from "../../constant/game";
-import { PANEL_COMMAND_NAMES } from "../../constant/command";
-import { ROLE_IDS, THREAD_IDS } from "../../constant/id";
-import { COLOR } from "../../constant/color";
-import { BOT_ID } from "../../constant/id";
+import { GAME_PRICE, GAME_MESSAGES } from "../../constant/game/game";
+import { PANEL_COMMAND_NAMES } from "../../constant/shared/command";
+import { ROLE_IDS, THREAD_IDS } from "../../constant/shared/id";
+import { COLOR } from "../../constant/shared/color";
+import { BOT_ID } from "../../constant/shared/id";
 import { GameFreeTicketService } from "./gameFreeTicketService";
 
 dayjs.extend(utc);

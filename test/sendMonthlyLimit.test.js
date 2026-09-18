@@ -4,8 +4,8 @@ const { SendService } = require("../dist/service/currency/sendService.js");
 const { AccountService } = require("../dist/service/account/accountService.js");
 const { ActionService } = require("../dist/service/currency/actionService.js");
 const { DbService } = require("../dist/service/system/dbService.js");
-const { ROLE_IDS, BOT_ID } = require("../dist/constant/id.js");
-const { PANEL_COMMAND_NAMES } = require("../dist/constant/command.js");
+const { ROLE_IDS, BOT_ID } = require("../dist/constant/shared/id.js");
+const { PANEL_COMMAND_NAMES } = require("../dist/constant/shared/command.js");
 
 function fixture(t, senderRoles = [], monthlySent = 500000, wallet = 2000000) {
   t.mock.method(AccountService, "getAccountByUserId", async (id) => [{ user_id: id, wallet }]);

@@ -2,34 +2,31 @@
 import { REST, Routes } from "discord.js";
 import dotenv from "dotenv";
 
-import { data as test } from "./command/test";
-import { data as panel } from "./command/panel";
-import { data as returnMember } from "./command/returnMember";
-import { data as interview } from "./command/interview";
-import { data as evaluationSheet } from "./command/evaluationSheet";
-import { data as evaluationSheetArchive } from "./command/evaluationSheetArchive";
-import { data as evaluationSheetRestore } from "./command/evaluationSheetRestore";
-import { data as send } from "./command/send";
-import { data as balanceAdjustment } from "./command/balanceAdjustment";
-import { data as roleBasedSend } from "./command/roleBasedSend";
-import { data as view } from "./command/view";
-import { data as linkAccount } from "./command/linkAccount";
-import { data as ranking } from "./command/ranking";
-import { data as changeName } from "./command/changeName";
-import { data as openAccount } from "./command/openAccount";
-import { data as adminOpenAccount } from "./command/adminOpenAccount";
-import { data as changeRole } from "./command/changeRole";
-import { data as checkName } from "./command/checkName";
-// import { data as inviteExtend } from "./command/inviteExtend";
-// import { data as showEvaluation } from "./command/showEvaluation";
-import { data as extraExtend } from "./command/extraExtend";
-import { data as roulette } from "./command/roulette";
-import { data as rouletteClose } from "./command/rouletteClose";
-import { data as rouletteBonus } from "./command/rouletteBonus";
-import { data as result } from "./command/result";
-import { data as invitePointAdd } from "./command/invitePointAdd";
-import { data as vc } from "./command/vc";
-// import { data as showEvaluationEnd } from "./command/showEvaluationEnd";
+import { data as test } from "./command/system/test";
+import { data as panel } from "./command/panel/panel";
+import { data as returnMember } from "./command/account/returnMember";
+import { data as interview } from "./command/evaluation/interview";
+import { data as evaluationSheet } from "./command/evaluation/evaluationSheet";
+import { data as evaluationSheetArchive } from "./command/evaluation/evaluationSheetArchive";
+import { data as evaluationSheetRestore } from "./command/evaluation/evaluationSheetRestore";
+import { data as send } from "./command/currency/send";
+import { data as balanceAdjustment } from "./command/currency/balanceAdjustment";
+import { data as roleBasedSend } from "./command/currency/roleBasedSend";
+import { data as view } from "./command/currency/view";
+import { data as linkAccount } from "./command/account/linkAccount";
+import { data as ranking } from "./command/currency/ranking";
+import { data as changeName } from "./command/account/changeName";
+import { data as openAccount } from "./command/account/openAccount";
+import { data as adminOpenAccount } from "./command/account/adminOpenAccount";
+import { data as changeRole } from "./command/member/changeRole";
+import { data as checkName } from "./command/evaluation/checkName";
+import { data as extraExtend } from "./command/evaluation/extraExtend";
+import { data as roulette } from "./command/casino/roulette";
+import { data as rouletteClose } from "./command/casino/rouletteClose";
+import { data as rouletteBonus } from "./command/casino/rouletteBonus";
+import { data as result } from "./command/casino/result";
+import { data as invitePointAdd } from "./command/market/invitePointAdd";
+import { data as vc } from "./command/vc/vc";
 
 dotenv.config();
 
@@ -61,8 +58,6 @@ export async function registerCommands() {
     adminOpenAccount.toJSON(),
     // changeRole.toJSON(),
     checkName.toJSON(),
-    // inviteExtend.toJSON(),
-    // showEvaluation.toJSON(),
     extraExtend.toJSON(),
     roulette.toJSON(),
     rouletteClose.toJSON(),
@@ -70,7 +65,6 @@ export async function registerCommands() {
     result.toJSON(),
     invitePointAdd.toJSON(),
     vc.toJSON(),
-    // showEvaluationEnd.toJSON(),
   ];
 
   const rest = new REST({ version: "10" }).setToken(

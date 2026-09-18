@@ -5,11 +5,11 @@ import timezone from "dayjs/plugin/timezone";
 
 import { AccountService } from "./accountService";
 
-import { ACCOUNT_MESSAGES } from "../../constant/account";
-import { COLOR } from "../../constant/color";
-import { CURRENCY_NAMES } from "../../constant/currency";
-import { RETURN_MEMBER_MESSAGES } from "../../constant/returnMember";
-import { formatNumber } from "../../util/number";
+import { ACCOUNT_MESSAGES } from "../../constant/account/account";
+import { COLOR } from "../../constant/shared/color";
+import { CURRENCY_NAMES } from "../../constant/currency/currency";
+import { RETURN_MEMBER_MESSAGES } from "../../constant/account/returnMember";
+import { formatNumber } from "../../util/shared/number";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);

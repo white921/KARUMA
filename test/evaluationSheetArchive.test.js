@@ -6,14 +6,14 @@ const path = require("node:path");
 const {
   canManageEvaluationSheetArchive,
   isDiscordUserId,
-} = require("../dist/util/evaluationSheetPermission.js");
+} = require("../dist/util/evaluation/evaluationSheetPermission.js");
 const {
   EvaluationSheetArchiveService,
 } = require("../dist/service/evaluation/evaluationSheetArchiveService.js");
 const {
   EvaluationSheetArchiveStorageService,
 } = require("../dist/service/evaluation/evaluationSheetArchiveStorageService.js");
-const { ROLE_IDS } = require("../dist/constant/id.js");
+const { ROLE_IDS } = require("../dist/constant/shared/id.js");
 
 function memberWithRoles(roleIds) {
   return { roles: { cache: { has: (roleId) => roleIds.includes(roleId) } } };

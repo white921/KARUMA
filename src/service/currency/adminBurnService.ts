@@ -1,20 +1,20 @@
 import { ChatInputCommandInteraction, ModalSubmitInteraction, User, MessageFlags } from "discord.js";
 
-import { Account } from "../../type/account";
+import { Account } from "../../type/account/account";
 
-import { isTechnician } from "../../util/role";
-import { hasAdminBankPanelPermission } from "../../util/adminPermission";
+import { isTechnician } from "../../util/member/role";
+import { hasAdminBankPanelPermission } from "../../util/currency/adminPermission";
 
 import { AccountService } from "../account/accountService";
 import { ActionService } from "./actionService";
 import { DbService } from "../system/dbService";
 
-import { CURRENCY_NAMES } from "../../constant/currency";
-import { PANEL_COMMAND_NAMES } from "../../constant/command";
-import { ADMIN_BURN_MESSAGES } from "../../constant/adminBurn";
-import { ADMIN_MESSAGES } from "../../constant/admin";
-import { BOT_ID } from "../../constant/id";
-import { formatNumber } from "../../util/number";
+import { CURRENCY_NAMES } from "../../constant/currency/currency";
+import { PANEL_COMMAND_NAMES } from "../../constant/shared/command";
+import { ADMIN_BURN_MESSAGES } from "../../constant/currency/adminBurn";
+import { ADMIN_MESSAGES } from "../../constant/currency/admin";
+import { BOT_ID } from "../../constant/shared/id";
+import { formatNumber } from "../../util/shared/number";
 
 export class AdminBurnService {
   /**

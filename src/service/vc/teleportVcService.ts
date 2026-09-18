@@ -1,10 +1,10 @@
 import { ChannelType, GuildMember, VoiceChannel } from "discord.js";
-import { TELEPORT_MESSAGE, TELEPORT_VC_CONFIGS } from "../../constant/teleport";
-import { TELEPORT_TYPE } from "../../constant/vc";
-import type { TeleportVcConfig } from "../../type/teleportVc";
-import { getVcMembersCount, updateVcStatus } from "../../util/vc";
+import { TELEPORT_MESSAGE, TELEPORT_VC_CONFIGS } from "../../constant/vc/teleport";
+import { TELEPORT_TYPE } from "../../constant/vc/vc";
+import type { TeleportVcConfig } from "../../type/vc/teleportVc";
+import { getVcMembersCount, updateVcStatus } from "../../util/vc/vc";
 import { DbService } from "../system/dbService";
-import { VcPanelService } from "./vcPanelService";
+import { VcPanelService } from "../../panel/vc/vcPanelService";
 
 export function resolveTeleportVcConfig(
   channelId: string,

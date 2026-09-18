@@ -1,5 +1,5 @@
-import { RAILWAY_GRAPHQL_ENDPOINT } from "../../constant/redeploy";
-import type { DeploymentRedeployResponse, RailwayGraphqlResponse } from "../../type/redeploy";
+import { RAILWAY_GRAPHQL_ENDPOINT } from "../../constant/system/redeploy";
+import type { DeploymentRedeployResponse, RailwayGraphqlResponse } from "../../type/system/redeploy";
 
 export class RedeployService {
   private static getProjectToken() {

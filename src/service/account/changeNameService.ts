@@ -1,16 +1,16 @@
 import { ChatInputCommandInteraction, GuildMember } from "discord.js";
 
-import { hasRole } from "../../util/role";
+import { hasRole } from "../../util/member/role";
 
 import { AccountService } from "./accountService";
 import { ActionService } from "../currency/actionService";
 import { DbService } from "../system/dbService";
 
-import { CHANGE_NAME_MESSAGES } from "../../constant/changeName";
-import { hasSystemAdminRole } from "../../util/operatorPermission";
-import { ACCOUNT_MESSAGES } from "../../constant/account";
-import { COMMAND_NAMES } from "../../constant/command";
-import { ROLE_IDS } from "../../constant/id";
+import { CHANGE_NAME_MESSAGES } from "../../constant/account/changeName";
+import { hasSystemAdminRole } from "../../util/shared/operatorPermission";
+import { ACCOUNT_MESSAGES } from "../../constant/account/account";
+import { COMMAND_NAMES } from "../../constant/shared/command";
+import { ROLE_IDS } from "../../constant/shared/id";
 
 export class ChangeNameService {
   /**

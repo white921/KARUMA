@@ -8,8 +8,8 @@ const {
 const {
   COMMAND_NAMES,
   PANEL_COMMAND_NAMES,
-} = require("../dist/constant/command.js");
-const { THREAD_IDS, TEXT_CHANNEL_IDS } = require("../dist/constant/id.js");
+} = require("../dist/constant/shared/command.js");
+const { THREAD_IDS, TEXT_CHANNEL_IDS } = require("../dist/constant/shared/id.js");
 
 test("admin mint and burn logs use the shared grant and revoke log thread", () => {
   const grantAndRevokeLogThreadId = THREAD_IDS.MINT_LOG_THREAD;

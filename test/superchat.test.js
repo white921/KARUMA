@@ -1,23 +1,23 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
-const { PANEL_COMMAND_NAMES } = require("../dist/constant/command.js");
+const { PANEL_COMMAND_NAMES } = require("../dist/constant/shared/command.js");
 const {
   FORUM_IDS,
   ROLE_IDS,
   SUPERCHAT_STREAMER_THREAD_IDS,
   TEXT_CHANNEL_IDS,
-} = require("../dist/constant/id.js");
+} = require("../dist/constant/shared/id.js");
 const {
   canReceiveSuperchat,
   hasSuperchatThread,
   getSuperchatEmbedColor,
   SuperchatService,
 } = require("../dist/service/market/superchatService.js");
-const { COLOR } = require("../dist/constant/color.js");
+const { COLOR } = require("../dist/constant/shared/color.js");
 const {
   createSuperchatPanelActionRow,
-} = require("../dist/service/market/superchatPanelService.js");
+} = require("../dist/panel/market/superchatPanelService.js");
 
 function member(id, roleIds = []) {
   return {

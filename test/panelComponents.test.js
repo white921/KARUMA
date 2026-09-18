@@ -2,27 +2,27 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const { PermissionsBitField } = require("discord.js");
 
-const { ROLE_IDS, TEXT_CHANNEL_IDS } = require("../dist/constant/id.js");
-const { CURRENCY_NAMES } = require("../dist/constant/currency.js");
-const { HOTEL_MESSAGES, HOTEL_TYPE_NAMES } = require("../dist/constant/hotel.js");
-const { PANEL_COMMAND_NAMES } = require("../dist/constant/command.js");
+const { ROLE_IDS, TEXT_CHANNEL_IDS } = require("../dist/constant/shared/id.js");
+const { CURRENCY_NAMES } = require("../dist/constant/currency/currency.js");
+const { HOTEL_MESSAGES, HOTEL_TYPE_NAMES } = require("../dist/constant/hotel/hotel.js");
+const { PANEL_COMMAND_NAMES } = require("../dist/constant/shared/command.js");
 const { AccountService } = require("../dist/service/account/accountService.js");
-const { createBankPanelActionRow } = require("../dist/service/currency/panelService.js");
-const { createAdminPanelActionRow } = require("../dist/service/currency/adminPanelService.js");
-const { createCasinoPanelActionRow } = require("../dist/service/casino/casinoPanel.js");
-const { createDiaryPanelActionRow } = require("../dist/service/diary/diaryPanelService.js");
-const { createGamePanelActionRows } = require("../dist/service/game/gamePanelService.js");
-const { createHazamaPanelActionRow } = require("../dist/service/vc/hazamaPanelService.js");
-const { createHotelVcPanelActionRows } = require("../dist/service/hotel/hotelPanelService.js");
+const { createBankPanelActionRow } = require("../dist/panel/currency/panelService.js");
+const { createAdminPanelActionRow } = require("../dist/panel/currency/adminPanelService.js");
+const { createCasinoPanelActionRow } = require("../dist/panel/casino/casinoPanel.js");
+const { createDiaryPanelActionRow } = require("../dist/panel/diary/diaryPanelService.js");
+const { createGamePanelActionRows } = require("../dist/panel/game/gamePanelService.js");
+const { createHazamaPanelActionRow } = require("../dist/panel/vc/hazamaPanelService.js");
+const { createHotelVcPanelActionRows } = require("../dist/panel/hotel/hotelPanelService.js");
 const { HotelVcService } = require("../dist/service/hotel/hotelVcService.js");
-const { createRedeployPanelActionRow } = require("../dist/service/system/redeployPanelService.js");
+const { createRedeployPanelActionRow } = require("../dist/panel/system/redeployPanelService.js");
 const {
   createDarkShopPanelActionRow,
   createShopPanelActionRow,
-} = require("../dist/service/market/shopPanelService.js");
-const { createCreatorEmblemPanelActionRow } = require("../dist/service/market/creatorEmblemPanelService.js");
+} = require("../dist/panel/market/shopPanelService.js");
+const { createCreatorEmblemPanelActionRow } = require("../dist/panel/market/creatorEmblemPanelService.js");
 const { CreatorEmblemPaymentService } = require("../dist/service/market/creatorEmblemPaymentService.js");
-const { VcPanelService } = require("../dist/service/vc/vcPanelService.js");
+const { VcPanelService } = require("../dist/panel/vc/vcPanelService.js");
 const {
   GAME_PANEL_MESSAGES,
   HOTEL_VC_PANEL_MESSAGES,
@@ -31,7 +31,7 @@ const {
   CREATOR_EMBLEM_PANEL_MESSAGES,
   DIARY_PANEL_MESSAGES,
   DARK_SHOP_PANEL_MESSAGES,
-} = require("../dist/constant/panel.js");
+} = require("../dist/constant/panel/panel.js");
 
 function memberWithRoles(roleIds) {
   return {
@@ -199,11 +199,11 @@ test("shop panel starts the gacha flow from one button", () => {
 
 test("shop panel links the market gacha product list", () => {
   assert.match(
-    require("../dist/constant/panel.js").SHOP_PANEL_MESSAGES.DESCRIPTION,
+    require("../dist/constant/panel/panel.js").SHOP_PANEL_MESSAGES.DESCRIPTION,
     new RegExp(`<#${TEXT_CHANNEL_IDS.MARKET_INFO}>`),
   );
   assert.doesNotMatch(
-    require("../dist/constant/panel.js").SHOP_PANEL_MESSAGES.DESCRIPTION,
+    require("../dist/constant/panel/panel.js").SHOP_PANEL_MESSAGES.DESCRIPTION,
     /旧市場チケット/,
   );
 });

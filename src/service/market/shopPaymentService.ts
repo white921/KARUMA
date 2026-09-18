@@ -1,15 +1,15 @@
 import { MessageFlags, ModalSubmitInteraction } from "discord.js";
-import { toActionType } from "../../constant/action";
-import { PANEL_COMMAND_NAMES } from "../../constant/command";
-import { CURRENCY_NAMES } from "../../constant/currency";
-import { BOT_ID } from "../../constant/id";
+import { toActionType } from "../../constant/currency/action";
+import { PANEL_COMMAND_NAMES } from "../../constant/shared/command";
+import { CURRENCY_NAMES } from "../../constant/currency/currency";
+import { BOT_ID } from "../../constant/shared/id";
 import {
   getShopTicket,
   SHOP_TICKET_MAX_APPLICABLE_AMOUNT,
   SHOP_TICKET_NONE,
-} from "../../constant/shopTicket";
-import type { ShopPaymentCommandName, WalletRow } from "../../type/shopPayment";
-import type { ShopTicketType } from "../../type/shopTicket";
+} from "../../constant/market/shopTicket";
+import type { ShopPaymentCommandName, WalletRow } from "../../type/market/shopPayment";
+import type { ShopTicketType } from "../../type/market/shopTicket";
 import { ActionService } from "../currency/actionService";
 import { DbService } from "../system/dbService";
 import { ShopTicketService } from "./shopTicketService";

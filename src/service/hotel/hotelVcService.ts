@@ -10,8 +10,8 @@ import {
   UserSelectMenuInteraction,
   VoiceChannel,
 } from "discord.js";
-import { PANEL_COMMAND_NAMES } from "../../constant/command";
-import { CURRENCY_NAMES } from "../../constant/currency";
+import { PANEL_COMMAND_NAMES } from "../../constant/shared/command";
+import { CURRENCY_NAMES } from "../../constant/currency/currency";
 import {
   HOTEL_CHAT_PERMISSION_BITS,
   HOTEL_MESSAGES,
@@ -20,18 +20,18 @@ import {
   HOTEL_PURCHASE_WAY_TYPE,
   HOTEL_TYPE,
   HOTEL_TYPE_NAMES,
-} from "../../constant/hotel";
-import { BOT_ID, ROLE_IDS } from "../../constant/id";
-import { VC_ALL_TYPES } from "../../constant/vc";
-import type { Account } from "../../type/account";
-import { formatNumber } from "../../util/number";
-import { hasRole } from "../../util/role";
-import { normalizePollingIntervalMs } from "../../util/runtimeConfig";
-import { updateVcStatus } from "../../util/vc";
+} from "../../constant/hotel/hotel";
+import { BOT_ID, ROLE_IDS } from "../../constant/shared/id";
+import { VC_ALL_TYPES } from "../../constant/vc/vc";
+import type { Account } from "../../type/account/account";
+import { formatNumber } from "../../util/shared/number";
+import { hasRole } from "../../util/member/role";
+import { normalizePollingIntervalMs } from "../../util/system/runtimeConfig";
+import { updateVcStatus } from "../../util/vc/vc";
 import { AccountService } from "../account/accountService";
 import { ActionService } from "../currency/actionService";
 import { DbService } from "../system/dbService";
-import { VcPanelService } from "../vc/vcPanelService";
+import { VcPanelService } from "../../panel/vc/vcPanelService";
 import { HotelFreeTicketService } from "./hotelFreeTicketService";
 
 export class HotelVcService {

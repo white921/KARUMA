@@ -8,7 +8,7 @@ const {
 const {
   calculateHazamaAccessExpireAt,
 } = require("../dist/service/vc/hazamaService.js");
-const { ROLE_IDS } = require("../dist/constant/id.js");
+const { ROLE_IDS } = require("../dist/constant/shared/id.js");
 
 test("game short role expires after six hours", () => {
   const now = dayjs("2026-07-09T21:58:00+09:00");

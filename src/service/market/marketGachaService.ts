@@ -8,13 +8,13 @@ import {
 } from "discord.js";
 import type { RowDataPacket } from "mysql2";
 import type { PoolConnection, ResultSetHeader } from "mysql2/promise";
-import { ACTION_TYPES } from "../../constant/action";
-import { PANEL_COMMAND_NAMES } from "../../constant/command";
-import { CURRENCY_NAMES } from "../../constant/currency";
-import { GAME_FREE_TICKET_TYPE } from "../../constant/gameTicket";
-import { HOTEL_FREE_TICKET_TYPE } from "../../constant/hotel";
-import { BOT_ID, ROLE_IDS, THREAD_IDS } from "../../constant/id";
-import { INVITE_POINT_GACHA_COST } from "../../constant/invitePoint";
+import { ACTION_TYPES } from "../../constant/currency/action";
+import { PANEL_COMMAND_NAMES } from "../../constant/shared/command";
+import { CURRENCY_NAMES } from "../../constant/currency/currency";
+import { GAME_FREE_TICKET_TYPE } from "../../constant/game/gameTicket";
+import { HOTEL_FREE_TICKET_TYPE } from "../../constant/hotel/hotel";
+import { BOT_ID, ROLE_IDS, THREAD_IDS } from "../../constant/shared/id";
+import { INVITE_POINT_GACHA_COST } from "../../constant/market/invitePoint";
 import {
   AUDIO_PRIZE_PROHIBITION_NOTICE,
   GENERAL_INQUIRY_CHANNEL_MENTION,
@@ -22,10 +22,10 @@ import {
   MARKET_GACHA_PRICE,
   MARKET_TICKET_GUIDANCE,
   selectMarketGachaPrize,
-} from "../../constant/marketGacha";
-import { SHOP_TICKET_TYPE } from "../../constant/shopTicket";
-import type { GameFreeTicketType } from "../../type/gameTicket";
-import type { HotelFreeTicketType } from "../../type/hotel";
+} from "../../constant/market/marketGacha";
+import { SHOP_TICKET_TYPE } from "../../constant/market/shopTicket";
+import type { GameFreeTicketType } from "../../type/game/gameTicket";
+import type { HotelFreeTicketType } from "../../type/hotel/hotel";
 import type {
   AudioAssetRow,
   DailyLockRow,
@@ -34,8 +34,8 @@ import type {
   MarketGachaPaymentSource,
   MarketGachaPrize,
   WalletRow,
-} from "../../type/marketGacha";
-import type { ShopTicketType } from "../../type/shopTicket";
+} from "../../type/market/marketGacha";
+import type { ShopTicketType } from "../../type/market/shopTicket";
 import { GameFreeTicketService } from "../game/gameFreeTicketService";
 import { HotelFreeTicketService } from "../hotel/hotelFreeTicketService";
 import { DbService } from "../system/dbService";

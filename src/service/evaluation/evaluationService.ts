@@ -10,16 +10,16 @@ import {
   TextChannel,
   ThreadChannel,
 } from "discord.js";
-import { EVALUATION_SHEET_EXTEND_DELAY_MS } from "../../constant/evaluationSheet";
+import { EVALUATION_SHEET_EXTEND_DELAY_MS } from "../../constant/evaluation/evaluationSheet";
 
-import { BASE_EVALUATION_DAYS } from "../../constant/evaluation";
+import { BASE_EVALUATION_DAYS } from "../../constant/evaluation/evaluation";
 import {
   EVALUATION_SHEET_FORUM_IDS,
   EVALUATION_SHEET_MESSAGES,
-} from "../../constant/evaluationSheet";
-import { CATEGORY_IDS, ROLE_IDS, TEXT_CHANNEL_IDS } from "../../constant/id";
-import { hasSystemAdminRole } from "../../util/operatorPermission";
-import { hasRole } from "../../util/role";
+} from "../../constant/evaluation/evaluationSheet";
+import { CATEGORY_IDS, ROLE_IDS, TEXT_CHANNEL_IDS } from "../../constant/shared/id";
+import { hasSystemAdminRole } from "../../util/shared/operatorPermission";
+import { hasRole } from "../../util/member/role";
 import { EvaluationSheetArchiveService } from "./evaluationSheetArchiveService";
 
 dayjs.extend(utc);

@@ -2,9 +2,9 @@ import { ButtonInteraction } from "discord.js";
 
 import {
   HOTEL_FREE_TICKET_TYPE,
-} from "../../constant/hotel";
-import { GAME_FREE_TICKET_TYPE } from "../../constant/gameTicket";
-import { SHOP_TICKETS } from "../../constant/shopTicket";
+} from "../../constant/hotel/hotel";
+import { GAME_FREE_TICKET_TYPE } from "../../constant/game/gameTicket";
+import { SHOP_TICKETS } from "../../constant/market/shopTicket";
 import { HotelFreeTicketService } from "../hotel/hotelFreeTicketService";
 import { GameFreeTicketService } from "../game/gameFreeTicketService";
 import { ShopTicketService } from "../market/shopTicketService";

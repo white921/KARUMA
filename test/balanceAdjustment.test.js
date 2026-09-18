@@ -1,16 +1,16 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { MessageFlags } = require("discord.js");
-const { data } = require("../dist/command/balanceAdjustment.js");
-const { exeCommand } = require("../dist/util/exeCommand.js");
+const { data } = require("../dist/command/currency/balanceAdjustment.js");
+const { exeCommand } = require("../dist/util/interaction/exeCommand.js");
 const { AdminMintService } = require("../dist/service/currency/adminMintService.js");
 const { AdminBurnService } = require("../dist/service/currency/adminBurnService.js");
 const { AccountService } = require("../dist/service/account/accountService.js");
 const { ActionService } = require("../dist/service/currency/actionService.js");
 const { DbService } = require("../dist/service/system/dbService.js");
-const { COMMAND_NAMES, PANEL_COMMAND_NAMES } = require("../dist/constant/command.js");
-const { toActionType } = require("../dist/constant/action.js");
-const { ROLE_IDS, BOT_ID, THREAD_IDS } = require("../dist/constant/id.js");
+const { COMMAND_NAMES, PANEL_COMMAND_NAMES } = require("../dist/constant/shared/command.js");
+const { toActionType } = require("../dist/constant/currency/action.js");
+const { ROLE_IDS, BOT_ID, THREAD_IDS } = require("../dist/constant/shared/id.js");
 
 function fixture(t, {
   roles = [ROLE_IDS.GINKOU_STAFF], amount = 1000, wallet = 5000,

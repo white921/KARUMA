@@ -8,7 +8,7 @@ import {
   ThreadChannel,
 } from "discord.js";
 import type { RowDataPacket } from "mysql2/promise";
-import { ACCOUNT_MESSAGES } from "../../constant/account";
+import { ACCOUNT_MESSAGES } from "../../constant/account/account";
 import {
   DIARY_INACTIVE_MS,
   DIARY_MESSAGES,
@@ -16,15 +16,15 @@ import {
   DIARY_PRICE,
   DIARY_TYPE,
   DIARY_TYPE_NAMES,
-} from "../../constant/diary";
-import { BOT_ID, FORUM_IDS, ROLE_IDS } from "../../constant/id";
+} from "../../constant/diary/diary";
+import { BOT_ID, FORUM_IDS, ROLE_IDS } from "../../constant/shared/id";
 import type {
   DiaryExecutionInteraction,
   DiaryRow,
   DiaryType,
   PendingDiaryAction,
-} from "../../type/diary";
-import { hasRole } from "../../util/role";
+} from "../../type/diary/diary";
+import { hasRole } from "../../util/member/role";
 import { AccountService } from "../account/accountService";
 import { ActionService } from "../currency/actionService";
 import { DbService } from "../system/dbService";

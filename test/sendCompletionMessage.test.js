@@ -1,7 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
-const { SEND_MESSAGES } = require("../dist/constant/send.js");
+const { SEND_MESSAGES } = require("../dist/constant/currency/send.js");
 
 test("send completion message includes the entered comment", () => {
   const message = SEND_MESSAGES.SUCCESS_TO_USER(

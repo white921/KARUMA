@@ -4,8 +4,8 @@ import {
   INVITE_POINT_GACHA_COST,
   INVITE_POINT_MESSAGES,
   INVITE_POINT_OPERATOR_ROLE_IDS,
-} from "../../constant/invitePoint";
-import type { AccountRow, InvitePointBalanceRow } from "../../type/invitePoint";
+} from "../../constant/market/invitePoint";
+import type { AccountRow, InvitePointBalanceRow } from "../../type/market/invitePoint";
 import { DbService } from "../system/dbService";
 
 export function canManageInvitePoints(member: unknown): boolean {

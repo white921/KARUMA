@@ -1,8 +1,8 @@
 import { GuildMember } from "discord.js";
 
-import { addRole, deleteRole, hasRole, isTechnician } from "../../util/role";
+import { addRole, deleteRole, hasRole, isTechnician } from "../../util/member/role";
 
-import { CHANGE_ROLE_MESSAGES } from "../../constant/changeRole";
+import { CHANGE_ROLE_MESSAGES } from "../../constant/member/changeRole";
 
 export class ChangeRoleService {
   /**

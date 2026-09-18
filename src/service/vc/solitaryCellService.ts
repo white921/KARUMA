@@ -10,19 +10,19 @@ import {
   PermissionsBitField,
 } from "discord.js";
 import type { ResultSetHeader } from "mysql2";
-import { toActionType } from "../../constant/action";
-import { COLOR } from "../../constant/color";
-import { PANEL_COMMAND_NAMES } from "../../constant/command";
-import { CURRENCY_NAMES } from "../../constant/currency";
-import { BOT_ID, CATEGORY_IDS, ROLE_IDS, TEXT_CHANNEL_IDS } from "../../constant/id";
+import { toActionType } from "../../constant/currency/action";
+import { COLOR } from "../../constant/shared/color";
+import { PANEL_COMMAND_NAMES } from "../../constant/shared/command";
+import { CURRENCY_NAMES } from "../../constant/currency/currency";
+import { BOT_ID, CATEGORY_IDS, ROLE_IDS, TEXT_CHANNEL_IDS } from "../../constant/shared/id";
 import {
   SOLITARY_CELL,
   SOLITARY_CELL_MESSAGES,
   SOLITARY_CELL_PAID_TIERS,
-} from "../../constant/solitaryCell";
-import type { SolitaryCellTier, WalletRow } from "../../type/solitaryCell";
-import { formatNumber } from "../../util/number";
-import { hasSystemAdminRole } from "../../util/operatorPermission";
+} from "../../constant/vc/solitaryCell";
+import type { SolitaryCellTier, WalletRow } from "../../type/vc/solitaryCell";
+import { formatNumber } from "../../util/shared/number";
+import { hasSystemAdminRole } from "../../util/shared/operatorPermission";
 import { DbService } from "../system/dbService";
 
 export class SolitaryCellService {

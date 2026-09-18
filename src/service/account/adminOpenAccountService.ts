@@ -7,13 +7,13 @@ import {
 
 import { AccountService } from "./accountService";
 
-import { hasRole } from "../../util/role";
-import { hasAdminBankPanelPermission } from "../../util/adminPermission";
+import { hasRole } from "../../util/member/role";
+import { hasAdminBankPanelPermission } from "../../util/currency/adminPermission";
 
-import { INITIAL_WALLET } from "../../constant/account";
-import { ADMIN_MESSAGES } from "../../constant/admin";
-import { ADMIN_OPEN_ACCOUNT_MESSAGES } from "../../constant/adminOpenAccount";
-import { ROLE_IDS } from "../../constant/id";
+import { INITIAL_WALLET } from "../../constant/account/account";
+import { ADMIN_MESSAGES } from "../../constant/currency/admin";
+import { ADMIN_OPEN_ACCOUNT_MESSAGES } from "../../constant/account/adminOpenAccount";
+import { ROLE_IDS } from "../../constant/shared/id";
 
 export class AdminOpenAccountService {
   static async validate(

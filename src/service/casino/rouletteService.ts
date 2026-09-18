@@ -14,9 +14,9 @@ import {
   TextInputStyle,
 } from "discord.js";
 import type { ResultSetHeader, RowDataPacket } from "mysql2";
-import { toActionType } from "../../constant/action";
-import { CURRENCY_NAMES } from "../../constant/currency";
-import { BOT_ID } from "../../constant/id";
+import { toActionType } from "../../constant/currency/action";
+import { CURRENCY_NAMES } from "../../constant/currency/currency";
+import { BOT_ID } from "../../constant/shared/id";
 import {
   ROULETTE_ACTION_NAMES,
   ROULETTE_BET_KINDS,
@@ -24,7 +24,7 @@ import {
   ROULETTE_MESSAGES,
   ROULETTE_OPERATOR_ROLE_IDS,
   ROULETTE_PARTICIPATION_BONUS,
-} from "../../constant/roulette";
+} from "../../constant/casino/roulette";
 import type {
   AccountRow,
   RouletteBet,
@@ -34,8 +34,8 @@ import type {
   RouletteRoundRow,
   RouletteSettlement,
   RouletteStage,
-} from "../../type/roulette";
-import { hasOperatorRole } from "../../util/operatorPermission";
+} from "../../type/casino/roulette";
+import { hasOperatorRole } from "../../util/shared/operatorPermission";
 import { DbService } from "../system/dbService";
 import {
   calculateRoulettePayout,

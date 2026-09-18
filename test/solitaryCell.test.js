@@ -1,14 +1,14 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
-const { ROLE_IDS, TEXT_CHANNEL_IDS, CATEGORY_IDS } = require("../dist/constant/id.js");
-const { PANEL_COMMAND_NAMES } = require("../dist/constant/command.js");
-const { ACTION_TYPES, toActionType } = require("../dist/constant/action.js");
-const { SOLITARY_CELL } = require("../dist/constant/solitaryCell.js");
+const { ROLE_IDS, TEXT_CHANNEL_IDS, CATEGORY_IDS } = require("../dist/constant/shared/id.js");
+const { PANEL_COMMAND_NAMES } = require("../dist/constant/shared/command.js");
+const { ACTION_TYPES, toActionType } = require("../dist/constant/currency/action.js");
+const { SOLITARY_CELL } = require("../dist/constant/vc/solitaryCell.js");
 const { SolitaryCellService } = require("../dist/service/vc/solitaryCellService.js");
-const { createSolitaryCellPanelActionRow } = require("../dist/service/vc/solitaryCellPanelService.js");
-const { resolvePanelInstallTarget } = require("../dist/service/panel/panelInstallService.js");
-const { PANEL_INSTALL_TARGETS } = require("../dist/constant/panelInstall.js");
+const { createSolitaryCellPanelActionRow } = require("../dist/panel/vc/solitaryCellPanelService.js");
+const { resolvePanelInstallTarget } = require("../dist/panel/panelInstallService.js");
+const { PANEL_INSTALL_TARGETS } = require("../dist/constant/panel/panelInstall.js");
 const { HistoryService } = require("../dist/service/currency/historyService.js");
 
 function memberWithRoles(roleIds) {
@@ -61,7 +61,7 @@ test("solitary-cell panel and action history use dedicated identifiers", () => {
   assert.equal(buttons[0].emoji, undefined);
   assert.equal(buttons[1].custom_id, PANEL_COMMAND_NAMES.VIEW);
   assert.equal(buttons[1].emoji, undefined);
-  const { SOLITARY_CELL_MESSAGES } = require("../dist/constant/solitaryCell.js");
+  const { SOLITARY_CELL_MESSAGES } = require("../dist/constant/vc/solitaryCell.js");
   assert.match(SOLITARY_CELL_MESSAGES.DESCRIPTION, /召役罪：10,000LIA/);
   assert.match(SOLITARY_CELL_MESSAGES.DESCRIPTION, /従軍罪：20,000LIA/);
   assert.match(SOLITARY_CELL_MESSAGES.DESCRIPTION, /徴兵罪：30,000LIA/);

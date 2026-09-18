@@ -13,18 +13,18 @@ import {
   TextInputStyle,
   ThreadChannel,
 } from "discord.js";
-import { COLOR } from "../../constant/color";
-import { PANEL_COMMAND_NAMES } from "../../constant/command";
-import { CURRENCY_NAMES } from "../../constant/currency";
+import { COLOR } from "../../constant/shared/color";
+import { PANEL_COMMAND_NAMES } from "../../constant/shared/command";
+import { CURRENCY_NAMES } from "../../constant/currency/currency";
 import {
   ROLE_IDS,
   SUPERCHAT_STREAMER_THREAD_IDS,
   SUPERCHAT_TEST_STREAMER_IDS,
   TEXT_CHANNEL_IDS,
-} from "../../constant/id";
-import { SUPERCHAT_PANEL_MESSAGES } from "../../constant/panel";
-import { STAGE_OPTIONS } from "../../constant/superchat";
-import type { SuperchatStage } from "../../type/superchat";
+} from "../../constant/shared/id";
+import { SUPERCHAT_PANEL_MESSAGES } from "../../constant/panel/panel";
+import { STAGE_OPTIONS } from "../../constant/market/superchat";
+import type { SuperchatStage } from "../../type/market/superchat";
 import { AccountService } from "../account/accountService";
 import { ActionService } from "../currency/actionService";
 import { SendService } from "../currency/sendService";

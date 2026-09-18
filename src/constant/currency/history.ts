@@ -1,0 +1,59 @@
+import { toActionType } from "./action";
+import { COMMAND_NAMES, PANEL_COMMAND_NAMES } from "../shared/command";
+import { ROULETTE_ACTION_NAMES } from "../casino/roulette";
+
+const HISTORY_TITLE_BY_COMMAND_NAME = {
+  [PANEL_COMMAND_NAMES.SEND]: "送金",
+  [PANEL_COMMAND_NAMES.SHOP_SEND]: "市場商品購入",
+  [PANEL_COMMAND_NAMES.DARK_SHOP_SEND]: "闇市場商品購入",
+  [PANEL_COMMAND_NAMES.COURT_SHOP_SEND]: "宮廷市場商品購入",
+  [PANEL_COMMAND_NAMES.CREATOR_EMBLEM_PAY]: "夢印工房送金",
+  [PANEL_COMMAND_NAMES.SUPERCHAT_SEND]: "スパチャ",
+  [PANEL_COMMAND_NAMES.MARKET_GACHA_DRAW]: "市場ガチャ",
+  [PANEL_COMMAND_NAMES.OMIKUJI_DRAW]: "おみくじ",
+  [COMMAND_NAMES.ROLE_BASED_SEND]: "ロール別送金",
+  [PANEL_COMMAND_NAMES.ADMIN_MINT]: "付与",
+  [PANEL_COMMAND_NAMES.ADMIN_BURN]: "剥奪",
+  [COMMAND_NAMES.PAY_SALARY]: "給与支払い",
+  [COMMAND_NAMES.SERVER_BOOST]: "サーバーブースト報酬",
+  [COMMAND_NAMES.VC_REWARD]: "VC滞在報酬",
+  [PANEL_COMMAND_NAMES.HOTEL_VC_NORMAL]: "【楽園の館】通常ホテル購入",
+  [PANEL_COMMAND_NAMES.HOTEL_VC_SECRET]: "【楽園の館】VIPホテル (12時間)購入",
+  [PANEL_COMMAND_NAMES.HOTEL_VC_SECRETLONG]: "【楽園の館】VIPホテル (24時間)購入",
+  [PANEL_COMMAND_NAMES.HOTEL_VC_FREEDOM]: "【楽園の館】フリーダム (12時間)購入",
+  [PANEL_COMMAND_NAMES.HOTEL_VC_FREEDOMLONG]: "【楽園の館】フリーダム (24時間)購入",
+  [PANEL_COMMAND_NAMES.SOLITARY_CELL_CREATE]: "【独房】独房作成",
+  [PANEL_COMMAND_NAMES.DIARY_PRIVATE]: "【日記】通常日記購入",
+  [PANEL_COMMAND_NAMES.DIARY_PUBLIC]: "【日記】VIP日記作成",
+  [PANEL_COMMAND_NAMES.CASINO_GF]: "【賭博の間】GF送金",
+  [PANEL_COMMAND_NAMES.CASINO_MAJONG]: "【賭博の間】麻雀送金",
+  [PANEL_COMMAND_NAMES.CASINO_OTHER]: "【賭博の間】その他送金",
+  [PANEL_COMMAND_NAMES.GAME_SHORT]: "【遊戯の間】6時間パック購入",
+  [PANEL_COMMAND_NAMES.GAME_LONG]: "【遊戯の間】12時間パック購入",
+  [PANEL_COMMAND_NAMES.GAME_SHORT_EXTEND]: "【遊戯の間】6時間パック延長",
+  [PANEL_COMMAND_NAMES.GAME_PASS]: "【遊戯の間】ゲームパス購入",
+  [PANEL_COMMAND_NAMES.GAME_VC_CREATE]: "【遊戯の間】VC作成",
+  [PANEL_COMMAND_NAMES.GAME_CRIMINAL_ACCESS_PURCHASE]:
+    "【遊戯の間】罪人用VC接続権限購入",
+  [PANEL_COMMAND_NAMES.GAME_PASS_TWO_WEEKS]: "【遊戯の間】ゲームパス（2週間）購入",
+  [PANEL_COMMAND_NAMES.GAME_PASS_ONE_MONTH]: "【遊戯の間】ゲームパス（1か月）購入",
+  [PANEL_COMMAND_NAMES.MINECRAFT_PASS]: "【遊戯の間】Minecraftパス購入",
+  [PANEL_COMMAND_NAMES.HAZAMA_ACCESS]: "【辺境の狭間】滞在許可証購入",
+  [ROULETTE_ACTION_NAMES.BET]: "【ルーレット】ベット",
+  [ROULETTE_ACTION_NAMES.PAYOUT]: "【ルーレット】配当",
+  [ROULETTE_ACTION_NAMES.BONUS]: "【ルーレット】参加ボーナス",
+};
+
+export const HISTORY_TITLE_MAPPER: Record<string, string> = Object.fromEntries(
+  Object.entries(HISTORY_TITLE_BY_COMMAND_NAME).map(([commandName, title]) => [
+    toActionType(commandName),
+    title,
+  ]),
+);
+
+// Discordのフィールド上限（1,024文字）とEmbed全体上限（6,000文字）より余裕を持たせる。
+export const HISTORY_FIELD_VALUE_MAX_LENGTH = 900;
+
+export const HISTORY_PAGE_CONTENT_MAX_LENGTH = 5_000;
+
+export const HISTORY_PAGE_ITEM_LIMIT = 10;

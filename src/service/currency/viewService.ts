@@ -2,8 +2,8 @@ import { ButtonInteraction } from "discord.js";
 
 import { AccountService } from "../account/accountService";
 
-import { ACCOUNT_MESSAGES } from "../../constant/account";
-import { VIEW_MESSAGES } from "../../constant/view";
+import { ACCOUNT_MESSAGES } from "../../constant/account/account";
+import { VIEW_MESSAGES } from "../../constant/currency/view";
 
 export class ViewService {
   static async createViewMessage(userId: string) {

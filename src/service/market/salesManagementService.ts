@@ -2,16 +2,16 @@ import { RowDataPacket } from "mysql2";
 import dayjs from "dayjs";
 import { Guild, ThreadChannel } from "discord.js";
 
-import { Action } from "../../type/action";
-import { salesData } from "../../type/salesManagement";
+import { Action } from "../../type/currency/action";
+import { salesData } from "../../type/market/salesManagement";
 
 import { DbService } from "../system/dbService";
 import { GameService } from "../game/gameService";
 
-import { SALES_DATA_COMMAND_NAMES } from "../../constant/command";
-import { toActionType } from "../../constant/action";
-import { CURRENCY_NAMES } from "../../constant/currency";
-import { THREAD_IDS } from "../../constant/id";
+import { SALES_DATA_COMMAND_NAMES } from "../../constant/shared/command";
+import { toActionType } from "../../constant/currency/action";
+import { CURRENCY_NAMES } from "../../constant/currency/currency";
+import { THREAD_IDS } from "../../constant/shared/id";
 
 export class SalesManagementService {
   /**

@@ -1,12 +1,12 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { ChannelType } = require("discord.js");
-const { ROLE_IDS, TEXT_CHANNEL_IDS } = require("../dist/constant/id.js");
-const { GAME_VC } = require("../dist/constant/game.js");
-const { hasSystemAdminRole, hasOperatorRole } = require("../dist/util/operatorPermission.js");
-const { hasRole } = require("../dist/util/role.js");
-const { hasAdminBankPanelPermission } = require("../dist/util/adminPermission.js");
-const { canManageEvaluationSheetArchive } = require("../dist/util/evaluationSheetPermission.js");
+const { ROLE_IDS, TEXT_CHANNEL_IDS } = require("../dist/constant/shared/id.js");
+const { GAME_VC } = require("../dist/constant/game/game.js");
+const { hasSystemAdminRole, hasOperatorRole } = require("../dist/util/shared/operatorPermission.js");
+const { hasRole } = require("../dist/util/member/role.js");
+const { hasAdminBankPanelPermission } = require("../dist/util/currency/adminPermission.js");
+const { canManageEvaluationSheetArchive } = require("../dist/util/evaluation/evaluationSheetPermission.js");
 const { canManageLinkAccount } = require("../dist/service/account/linkAccountService.js");
 const { canManageInvitePoints } = require("../dist/service/market/invitePointService.js");
 const { canBypassMarketGachaDailyLimit } = require("../dist/service/market/marketGachaService.js");
@@ -23,7 +23,7 @@ const { VcService } = require("../dist/service/vc/vcService.js");
 const { GameVcService, getGameVcTier, canPurchaseGamePass } = require("../dist/service/game/gameVcService.js");
 const { SolitaryCellService } = require("../dist/service/vc/solitaryCellService.js");
 const { DbService } = require("../dist/service/system/dbService.js");
-const { requireChannel, requireForum } = require("../dist/util/channelGuard.js");
+const { requireChannel, requireForum } = require("../dist/util/shared/channelGuard.js");
 
 const member = (roles = [ROLE_IDS.GIJUTU_LEADER]) => ({ id: "operator", roles: { cache: new Set(roles) } });
 const interaction = (operator = member()) => ({

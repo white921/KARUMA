@@ -1,12 +1,12 @@
+const { LONG_RUNNING_EVALUATION_HANDLER_TIMEOUT_MS } = require("../dist/constant/evaluation/evaluationSheet.js");
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
-const { COMMAND_NAMES } = require("../dist/constant/command.js");
+const { COMMAND_NAMES } = require("../dist/constant/shared/command.js");
 const {
-  LONG_RUNNING_EVALUATION_HANDLER_TIMEOUT_MS,
   getEvaluationCommandHandlerTimeoutMs,
-} = require("../dist/util/interactionHealth.js");
-const { shouldDeferButtonUpdate } = require("../dist/util/interactionAck.js");
+} = require("../dist/util/interaction/interactionHealth.js");
+const { shouldDeferButtonUpdate } = require("../dist/util/interaction/interactionAck.js");
 
 test("遊戯VCのボタンは本人限定応答を開始する", () => {
   assert.equal(shouldDeferButtonUpdate("gameVcCreate"), false);

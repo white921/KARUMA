@@ -2,8 +2,8 @@ import mysql from "mysql2/promise";
 import {
   DEFAULT_MYSQL_CONNECTION_LIMIT,
   DEFAULT_MYSQL_SLOW_ACQUIRE_LOG_MS,
-} from "../../constant/database";
-import { normalizePositiveInteger } from "../../util/runtimeConfig";
+} from "../../constant/system/database";
+import { normalizePositiveInteger } from "../../util/system/runtimeConfig";
 
 export function resolveMysqlConnectionLimit(value?: string): number {
   return normalizePositiveInteger(value, DEFAULT_MYSQL_CONNECTION_LIMIT, 1);

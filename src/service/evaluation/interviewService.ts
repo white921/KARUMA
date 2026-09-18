@@ -4,12 +4,12 @@ import {
   GuildMember,
 } from "discord.js";
 
-import { CATEGORY_IDS, ROLE_IDS } from "../../constant/id";
-import { INTERVIEW_MESSAGES } from "../../constant/interview";
-import { ACCOUNT_MESSAGES } from "../../constant/account";
-import { hasRole } from "../../util/role";
+import { CATEGORY_IDS, ROLE_IDS } from "../../constant/shared/id";
+import { INTERVIEW_MESSAGES } from "../../constant/evaluation/interview";
+import { ACCOUNT_MESSAGES } from "../../constant/account/account";
+import { hasRole } from "../../util/member/role";
 import { AccountService } from "../account/accountService";
-import { hasSystemAdminRole } from "../../util/operatorPermission";
+import { hasSystemAdminRole } from "../../util/shared/operatorPermission";
 
 export class InterviewService {
   static validateCommandCategory(interaction: ChatInputCommandInteraction) {

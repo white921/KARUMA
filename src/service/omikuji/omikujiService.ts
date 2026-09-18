@@ -1,15 +1,15 @@
 import { ButtonInteraction, EmbedBuilder, GuildMember, TextChannel } from "discord.js";
 import type { RowDataPacket } from "mysql2";
-import { ACTION_TYPES } from "../../constant/action";
-import { COLOR } from "../../constant/color";
-import { CURRENCY_NAMES } from "../../constant/currency";
-import { BOT_ID, TEXT_CHANNEL_IDS } from "../../constant/id";
+import { ACTION_TYPES } from "../../constant/currency/action";
+import { COLOR } from "../../constant/shared/color";
+import { CURRENCY_NAMES } from "../../constant/currency/currency";
+import { BOT_ID, TEXT_CHANNEL_IDS } from "../../constant/shared/id";
 import {
   OMIKUJI_FORTUNE_MESSAGES,
   OMIKUJI_MESSAGES,
   selectOmikujiPrize,
-} from "../../constant/omikuji";
-import type { OmikujiPrize, WalletRow } from "../../type/omikuji";
+} from "../../constant/omikuji/omikuji";
+import type { OmikujiPrize, WalletRow } from "../../type/omikuji/omikuji";
 import { AccountService } from "../account/accountService";
 import { DbService } from "../system/dbService";
 

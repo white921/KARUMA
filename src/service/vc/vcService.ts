@@ -7,11 +7,11 @@ import {
   StringSelectMenuInteraction,
   VoiceChannel,
 } from "discord.js";
-import { HOTEL_TYPE } from "../../constant/hotel";
-import { CATEGORY_IDS } from "../../constant/id";
-import { TELEPORT_TYPE, USER_EDITABLE_VC_TYPES, VC_MESSAGES } from "../../constant/vc";
-import type { ManagedVcRow } from "../../type/vc";
-import { hasSystemAdminRole } from "../../util/operatorPermission";
+import { HOTEL_TYPE } from "../../constant/hotel/hotel";
+import { CATEGORY_IDS } from "../../constant/shared/id";
+import { TELEPORT_TYPE, USER_EDITABLE_VC_TYPES, VC_MESSAGES } from "../../constant/vc/vc";
+import type { ManagedVcRow } from "../../type/vc/vc";
+import { hasSystemAdminRole } from "../../util/shared/operatorPermission";
 import { DbService } from "../system/dbService";
 
 export function isUserEditableManagedVc(

@@ -2,8 +2,8 @@ import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import { Client, TextChannel } from "discord.js";
-import { ROLE_IDS, TEXT_CHANNEL_IDS } from "../../constant/id";
-import { SHIFT_OPTIONS, WEEK_DAYS } from "../../constant/interview";
+import { ROLE_IDS, TEXT_CHANNEL_IDS } from "../../constant/shared/id";
+import { SHIFT_OPTIONS, WEEK_DAYS } from "../../constant/evaluation/interview";
 
 dayjs.extend(utc);
 

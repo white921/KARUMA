@@ -1,8 +1,8 @@
 import { ChannelType, GuildMember } from "discord.js";
-import { CHECK_NAME_MESSAGES } from "../../constant/checkName";
-import { ROLE_IDS } from "../../constant/id";
-import type { ValidateVcMemberNamesResult } from "../../type/checkName";
-import { hasRole, isTechnician } from "../../util/role";
+import { CHECK_NAME_MESSAGES } from "../../constant/evaluation/checkName";
+import { ROLE_IDS } from "../../constant/shared/id";
+import type { ValidateVcMemberNamesResult } from "../../type/evaluation/checkName";
+import { hasRole, isTechnician } from "../../util/member/role";
 import { AccountService } from "../account/accountService";
 
 export class CheckNameService {

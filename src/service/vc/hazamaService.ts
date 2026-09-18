@@ -1,11 +1,11 @@
 import { ButtonInteraction, GuildMember } from "discord.js";
 import dayjs, { Dayjs } from "dayjs";
 
-import { HAZAMA_ACCESS_DURATION_HOURS, HAZAMA_MESSAGES, HAZAMA_PRICE } from "../../constant/hazama";
-import { BOT_ID, ROLE_IDS } from "../../constant/id";
-import { PANEL_COMMAND_NAMES } from "../../constant/command";
-import { Account } from "../../type/account";
-import { addRole, hasRole } from "../../util/role";
+import { HAZAMA_ACCESS_DURATION_HOURS, HAZAMA_MESSAGES, HAZAMA_PRICE } from "../../constant/vc/hazama";
+import { BOT_ID, ROLE_IDS } from "../../constant/shared/id";
+import { PANEL_COMMAND_NAMES } from "../../constant/shared/command";
+import { Account } from "../../type/account/account";
+import { addRole, hasRole } from "../../util/member/role";
 import { AccountService } from "../account/accountService";
 import { ActionService } from "../currency/actionService";
 import { DbService } from "../system/dbService";

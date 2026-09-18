@@ -4,8 +4,8 @@ const assert = require("node:assert/strict");
 const {
   canManageInvitePoints,
 } = require("../dist/service/market/invitePointService.js");
-const { INVITE_POINT_GACHA_COST } = require("../dist/constant/invitePoint.js");
-const { ROLE_IDS } = require("../dist/constant/id.js");
+const { INVITE_POINT_GACHA_COST } = require("../dist/constant/market/invitePoint.js");
+const { ROLE_IDS } = require("../dist/constant/shared/id.js");
 
 function memberWithRoles(roleIds) {
   return {

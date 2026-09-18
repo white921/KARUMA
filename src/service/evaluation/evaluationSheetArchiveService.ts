@@ -3,14 +3,14 @@ import type { ResultSetHeader } from "mysql2";
 import {
   EVALUATION_SHEET_FORUM_IDS,
   EVALUATION_SHEET_MESSAGES,
-} from "../../constant/evaluationSheet";
+} from "../../constant/evaluation/evaluationSheet";
 import type {
   ArchiveRow,
   EvaluationSheetArchiveRecord,
   EvaluationSheetThreadRecord,
   SessionRow,
   ThreadRow,
-} from "../../type/evaluationSheetArchive";
+} from "../../type/evaluation/evaluationSheetArchive";
 import { DbService } from "../system/dbService";
 import { EvaluationSheetArchiveStorageService } from "./evaluationSheetArchiveStorageService";
 

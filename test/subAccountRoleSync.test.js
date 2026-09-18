@@ -4,11 +4,11 @@ const assert = require("node:assert/strict");
 const {
   copyRoleFromMainToSub,
   removeRolesExcept,
-} = require("../dist/util/role.js");
+} = require("../dist/util/member/role.js");
 const {
   canManageLinkAccount,
 } = require("../dist/service/account/linkAccountService.js");
-const { ROLE_IDS } = require("../dist/constant/id.js");
+const { ROLE_IDS } = require("../dist/constant/shared/id.js");
 
 const GUILD_ID = "guild-id";
 

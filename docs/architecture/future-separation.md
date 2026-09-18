@@ -8,11 +8,11 @@
 ### vc-domain
 
 - `src/service/vc/vcService.ts`
-- `src/service/vc/vcPanelService.ts`
+- `src/panel/vc/vcPanelService.ts`
 - `src/service/hotel/hotelVcService.ts`
-- `src/service/hotel/hotelPanelService.ts`
+- `src/panel/hotel/hotelPanelService.ts`
 - `src/service/vc/teleportVcService.ts`
-- 関連する `handler`, `command`, `constant/vc.ts`, `constant/hotel.ts`, `constant/teleport.ts`
+- 関連する `handler`, `command`, `constant/vc/vc.ts`, `constant/hotel/hotel.ts`, `constant/vc/teleport.ts`
 
 このまとまりは「VC 作成、VC 名変更、VC 移動、ホテル系 VC 管理」が責務です。
 
@@ -25,19 +25,18 @@
 - `src/service/currency/sendService.ts`
 - `src/service/currency/salaryService.ts`
 - `src/service/currency/historyService.ts`
-- `src/service/currency/monthlyDebitService.ts`
 - `src/service/currency/adminMintService.ts`
 - `src/service/currency/adminBurnService.ts`
-- 関連する `command`, `type/account.ts`, `constant/account.ts`, `constant/currency.ts`, `constant/salary.ts`
+- 関連する `command`, `type/account/account.ts`, `constant/account/account.ts`, `constant/currency/currency.ts`, `constant/currency/salary.ts`
 
-このまとまりは「口座、残高、送金、付与、減額、履歴、定期引き落とし」が責務です。
+このまとまりは「口座、残高、送金、付与、減額、履歴」が責務です。
 
 ### shared-domain
 
 - `src/service/system/dbService.ts`
-- `src/util/role.ts`
-- `src/util/channelMessage.ts`
-- `src/constant/id.ts`
+- `src/util/member/role.ts`
+- `src/util/shared/channelMessage.ts`
+- `src/constant/shared/id.ts`
 - 各種ログ送信、ユーザー照合、ロール判定
 
 ## Split Strategy

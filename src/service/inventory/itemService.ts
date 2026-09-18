@@ -1,5 +1,5 @@
 import type { PoolConnection, ResultSetHeader } from "mysql2/promise";
-import type { ItemInventoryRow, ItemKey, ItemQuantityRow } from "../../type/item";
+import type { ItemInventoryRow, ItemKey, ItemQuantityRow } from "../../type/inventory/item";
 import { DbService } from "../system/dbService";
 
 export class ItemService {

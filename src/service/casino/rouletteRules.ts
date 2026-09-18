@@ -3,8 +3,8 @@ import {
   ROULETTE_BET_LABELS,
   ROULETTE_DOZEN_RANGES,
   STAGE_BET_KINDS,
-} from "../../constant/roulette";
-import type { RouletteBet, RouletteBetKind, RouletteStage } from "../../type/roulette";
+} from "../../constant/casino/roulette";
+import type { RouletteBet, RouletteBetKind, RouletteStage } from "../../type/casino/roulette";
 
 export function isRouletteStage(value: number): value is RouletteStage {
   return value === 1 || value === 2 || value === 3;

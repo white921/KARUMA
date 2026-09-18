@@ -1,0 +1,36 @@
+import {
+  ChatInputCommandInteraction,
+  GuildMember,
+  SlashCommandBuilder,
+} from "discord.js";
+
+import { AccountService } from "../../service/account/accountService";
+import { OpenAccountService } from "../../service/account/openAccountService";
+
+import { COMMAND_NAMES } from "../../constant/shared/command";
+import { INITIAL_WALLET } from "../../constant/account/account";
+import { CURRENCY_NAMES } from "../../constant/currency/currency";
+import { formatNumber } from "../../util/shared/number";
+
+export const data = new SlashCommandBuilder()
+  .setName(COMMAND_NAMES.OPEN_ACCOUNT)
+  .setDescription("口座を開設します");
+
+export async function execute(interaction: ChatInputCommandInteraction) {
+  try {
+    const member = interaction.member as GuildMember;
+    await OpenAccountService.openAccountValidate(member);
+
+    await AccountService.createAccount(
+      member.id,
+      member.displayName,
+      INITIAL_WALLET
+    );
+
+    await interaction.editReply({
+      content: `✅ 口座を開設しました。\n初期残高は ${formatNumber(INITIAL_WALLET)} ${CURRENCY_NAMES} です。`,
+    });
+  } catch (error) {
+    throw error;
+  }
+}

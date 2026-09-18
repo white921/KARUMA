@@ -1,0 +1,35 @@
+import type { ShopTicket, ShopTicketType } from "../../type/market/shopTicket";
+
+export const SHOP_TICKET_TYPE = {
+  DISCOUNT_5: "DISCOUNT_5",
+  DISCOUNT_10: "DISCOUNT_10",
+} as const;
+
+export const SHOP_TICKET_NONE = "none";
+
+export const SHOP_TICKETS: readonly ShopTicket[] = [
+  {
+    type: SHOP_TICKET_TYPE.DISCOUNT_5,
+    label: "市場割引 5%OFF",
+    discountRate: 5,
+  },
+  {
+    type: SHOP_TICKET_TYPE.DISCOUNT_10,
+    label: "市場割引 10%OFF",
+    discountRate: 10,
+  },
+];
+
+export const SHOP_TICKET_MAX_APPLICABLE_AMOUNT = 1_000_000;
+
+export function isShopTicketType(value: string): value is ShopTicketType {
+  return SHOP_TICKETS.some((ticket) => ticket.type === value);
+}
+
+export function getShopTicket(type: ShopTicketType): ShopTicket {
+  const ticket = SHOP_TICKETS.find((candidate) => candidate.type === type);
+  if (!ticket) {
+    throw new Error("無効な市場チケットです。");
+  }
+  return ticket;
+}

@@ -3,7 +3,7 @@ const assert = require("node:assert/strict");
 
 const {
   shouldSkipReturnMemberRoleChange,
-} = require("../dist/handler/roleHandler.js");
+} = require("../dist/handler/member/roleHandler.js");
 
 test("指定ユーザーは出戻り時のロール付け替え対象外", () => {
   assert.equal(shouldSkipReturnMemberRoleChange("1370974678281097327"), true);

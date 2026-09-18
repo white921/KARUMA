@@ -1,13 +1,13 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
-const { data } = require("../dist/command/vc.js");
-const { COMMAND_NAMES } = require("../dist/constant/command.js");
-const { GAME_VC } = require("../dist/constant/game.js");
-const { HOTEL_TYPE } = require("../dist/constant/hotel.js");
-const { SOLITARY_CELL } = require("../dist/constant/solitaryCell.js");
-const { TELEPORT_TYPE } = require("../dist/constant/vc.js");
-const { CATEGORY_IDS } = require("../dist/constant/id.js");
+const { data } = require("../dist/command/vc/vc.js");
+const { COMMAND_NAMES } = require("../dist/constant/shared/command.js");
+const { GAME_VC } = require("../dist/constant/game/game.js");
+const { HOTEL_TYPE } = require("../dist/constant/hotel/hotel.js");
+const { SOLITARY_CELL } = require("../dist/constant/vc/solitaryCell.js");
+const { TELEPORT_TYPE } = require("../dist/constant/vc/vc.js");
+const { CATEGORY_IDS } = require("../dist/constant/shared/id.js");
 const { ChannelType } = require("discord.js");
 const { DbService } = require("../dist/service/system/dbService.js");
 const {

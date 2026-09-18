@@ -6,12 +6,12 @@ const { InterviewService } = require("../dist/service/evaluation/interviewServic
 const {
   BASE_EVALUATION_DAYS,
   MAX_EVALUATION_EXTENSION_DAYS,
-} = require("../dist/constant/evaluation.js");
-const { data: extraExtend } = require("../dist/command/extraExtend.js");
-const { CATEGORY_IDS } = require("../dist/constant/id.js");
+} = require("../dist/constant/evaluation/evaluation.js");
+const { data: extraExtend } = require("../dist/command/evaluation/extraExtend.js");
+const { CATEGORY_IDS } = require("../dist/constant/shared/id.js");
 const {
   EVALUATION_SHEET_MESSAGES,
-} = require("../dist/constant/evaluationSheet.js");
+} = require("../dist/constant/evaluation/evaluationSheet.js");
 
 test("基本評価期間は14日", () => {
   assert.equal(BASE_EVALUATION_DAYS, 14);

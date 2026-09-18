@@ -1,8 +1,8 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
-const { HOTEL_TYPE } = require("../dist/constant/hotel.js");
-const { ROLE_IDS } = require("../dist/constant/id.js");
+const { HOTEL_TYPE } = require("../dist/constant/hotel/hotel.js");
+const { ROLE_IDS } = require("../dist/constant/shared/id.js");
 const { HotelVcService } = require("../dist/service/hotel/hotelVcService.js");
 const { DbService } = require("../dist/service/system/dbService.js");
 

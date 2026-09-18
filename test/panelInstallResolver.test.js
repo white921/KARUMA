@@ -1,13 +1,13 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
-const { resolvePanelInstallTarget } = require("../dist/service/panel/panelInstallService.js");
-const { PANEL_INSTALL_TARGETS } = require("../dist/constant/panelInstall.js");
+const { resolvePanelInstallTarget } = require("../dist/panel/panelInstallService.js");
+const { PANEL_INSTALL_TARGETS } = require("../dist/constant/panel/panelInstall.js");
 const {
   FORUM_IDS,
   TEXT_CHANNEL_IDS,
   THREAD_IDS,
-} = require("../dist/constant/id.js");
+} = require("../dist/constant/shared/id.js");
 
 test("resolves bank panel channel to the bank panel target", () => {
   const target = resolvePanelInstallTarget(TEXT_CHANNEL_IDS.GINKOU_PANEL);

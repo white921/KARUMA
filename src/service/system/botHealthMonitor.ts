@@ -4,7 +4,7 @@ import {
   DEFAULT_HANDLER_TIMEOUT_MS,
   DEFAULT_HEALTH_CHECK_INTERVAL_MS,
   DEFAULT_MAX_CONSECUTIVE_ACK_FAILURES,
-} from "../../constant/botHealth";
+} from "../../constant/system/botHealth";
 import type {
   BotHealthDecision,
   BotHealthState,
@@ -12,8 +12,8 @@ import type {
   InFlightInteraction,
   InteractionHealthOptions,
   PendingInteraction,
-} from "../../type/botHealthMonitor";
-import { normalizePollingIntervalMs, normalizePositiveInteger } from "../../util/runtimeConfig";
+} from "../../type/system/botHealthMonitor";
+import { normalizePollingIntervalMs, normalizePositiveInteger } from "../../util/system/runtimeConfig";
 
 export function createInitialBotHealthState(): BotHealthState {
   return {

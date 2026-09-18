@@ -3,8 +3,8 @@ const assert = require("node:assert/strict");
 
 const {
   hasAdminBankPanelPermission,
-} = require("../dist/util/adminPermission.js");
-const { ROLE_IDS } = require("../dist/constant/id.js");
+} = require("../dist/util/currency/adminPermission.js");
+const { ROLE_IDS } = require("../dist/constant/shared/id.js");
 
 function memberWithRoles(roleIds) {
   return {

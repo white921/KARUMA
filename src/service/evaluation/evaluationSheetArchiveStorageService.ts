@@ -1,5 +1,5 @@
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import type { EvaluationArchiveR2Config } from "../../type/evaluationSheetArchive";
+import type { EvaluationArchiveR2Config } from "../../type/evaluation/evaluationSheetArchive";
 
 export class EvaluationSheetArchiveStorageService {
   private static client: S3Client | null = null;

@@ -1,12 +1,12 @@
 import { User, UserSelectMenuInteraction } from "discord.js";
 
-import { isTechnician } from "../../util/role";
-import { hasAdminBankPanelPermission } from "../../util/adminPermission";
+import { isTechnician } from "../../util/member/role";
+import { hasAdminBankPanelPermission } from "../../util/currency/adminPermission";
 
 import { AccountService } from "../account/accountService";
 
-import { ADMIN_MESSAGES } from "../../constant/admin";
-import { VIEW_MESSAGES } from "../../constant/view";
+import { ADMIN_MESSAGES } from "../../constant/currency/admin";
+import { VIEW_MESSAGES } from "../../constant/currency/view";
 
 export class AdminViewService {
   /**

@@ -9,22 +9,22 @@ import {
   EmbedBuilder,
 } from "discord.js";
 import type { RowDataPacket } from "mysql2";
-import { ACCOUNT_MESSAGES } from "../../constant/account";
-import { ACTION_TYPES, toActionType } from "../../constant/action";
-import { COLOR } from "../../constant/color";
-import { COMMAND_NAMES, PANEL_COMMAND_NAMES } from "../../constant/command";
-import { CURRENCY_NAMES } from "../../constant/currency";
-import { EXTERNALE_MOJI_VIEWS } from "../../constant/emoji";
+import { ACCOUNT_MESSAGES } from "../../constant/account/account";
+import { ACTION_TYPES, toActionType } from "../../constant/currency/action";
+import { COLOR } from "../../constant/shared/color";
+import { COMMAND_NAMES, PANEL_COMMAND_NAMES } from "../../constant/shared/command";
+import { CURRENCY_NAMES } from "../../constant/currency/currency";
+import { EXTERNALE_MOJI_VIEWS } from "../../constant/shared/emoji";
 import {
   HISTORY_FIELD_VALUE_MAX_LENGTH,
   HISTORY_PAGE_CONTENT_MAX_LENGTH,
   HISTORY_PAGE_ITEM_LIMIT,
   HISTORY_TITLE_MAPPER,
-} from "../../constant/history";
-import { BOT_ID } from "../../constant/id";
-import { ROULETTE_ACTION_NAMES } from "../../constant/roulette";
-import type { Action } from "../../type/action";
-import type { EmbedField } from "../../type/embed";
+} from "../../constant/currency/history";
+import { BOT_ID } from "../../constant/shared/id";
+import { ROULETTE_ACTION_NAMES } from "../../constant/casino/roulette";
+import type { Action } from "../../type/currency/action";
+import type { EmbedField } from "../../type/shared/embed";
 import { AccountService } from "../account/accountService";
 import { DbService } from "../system/dbService";
 

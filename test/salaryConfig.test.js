@@ -3,13 +3,13 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 
-const { ROLE_IDS } = require("../dist/constant/id.js");
+const { ROLE_IDS } = require("../dist/constant/shared/id.js");
 const {
   SALARY_PAYMENTS,
   SALARY_ROLE_IDS,
   SKIPPED_MONTHLY_SALARY_PAYMENT_DATES,
-} = require("../dist/constant/salary.js");
-const { formatRoleNameForOutput } = require("../dist/util/role.js");
+} = require("../dist/constant/currency/salary.js");
+const { formatRoleNameForOutput } = require("../dist/util/member/role.js");
 const { SalaryService } = require("../dist/service/currency/salaryService.js");
 
 test("role names omit parenthetical management labels in bot output", () => {
@@ -80,7 +80,7 @@ test("monthly salary follows the provided compensation table", () => {
 
 test("monthly salary job runs at 00:00 Japan time on the first day", () => {
   const scheduleSource = fs.readFileSync(
-    path.join(__dirname, "../src/handler/scheduleHandler.ts"),
+    path.join(__dirname, "../src/handler/system/scheduleHandler.ts"),
     "utf8",
   );
 
@@ -102,7 +102,7 @@ test("9月1日の給与振込だけをJSTで停止し、翌月は再開する", 
 
 test("monthly game sales job runs at 00:30 Japan time on the first day", () => {
   const scheduleSource = fs.readFileSync(
-    path.join(__dirname, "../src/handler/scheduleHandler.ts"),
+    path.join(__dirname, "../src/handler/system/scheduleHandler.ts"),
     "utf8",
   );
 

@@ -1,9 +1,9 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
-const { COMMAND_NAMES, PANEL_COMMAND_NAMES } = require("../dist/constant/command.js");
-const { ROULETTE_ACTION_NAMES } = require("../dist/constant/roulette.js");
-const { ACTION_TYPES, toActionType } = require("../dist/constant/action.js");
+const { COMMAND_NAMES, PANEL_COMMAND_NAMES } = require("../dist/constant/shared/command.js");
+const { ROULETTE_ACTION_NAMES } = require("../dist/constant/casino/roulette.js");
+const { ACTION_TYPES, toActionType } = require("../dist/constant/currency/action.js");
 
 test("every persisted action type uses lowercase snake case", () => {
   for (const actionType of Object.values(ACTION_TYPES)) {

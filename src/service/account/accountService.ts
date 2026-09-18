@@ -3,13 +3,13 @@ import { ResultSetHeader, RowDataPacket } from "mysql2";
 
 import { DbService } from "../system/dbService";
 
-import { Account } from "../../type/account";
-import { ACCOUNT_MESSAGES } from "../../constant/account";
-import { ROLE_IDS } from "../../constant/id";
+import { Account } from "../../type/account/account";
+import { ACCOUNT_MESSAGES } from "../../constant/account/account";
+import { ROLE_IDS } from "../../constant/shared/id";
 import {
   MAX_DISPLAY_NAME_LENGTH,
   SUB_ACCOUNT_SUFFIX_LENGTH,
-} from "../../constant/account";
+} from "../../constant/account/account";
 
 export class AccountService {
   /**

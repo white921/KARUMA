@@ -5,23 +5,20 @@
   "scripts": {
     "start": "node dist/index.js",
     "register": "node dist/registerCommands.js",
-    "build": "tsc",
+    "build": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\" && tsc",
     "check": "npm run build",
-    "test": "npm run build && node --test test/panelInstallResolver.test.js test/runtimeOptimization.test.js test/botHealthMonitor.test.js test/interactionHealth.test.js test/panelComponents.test.js test/currencyName.test.js test/sendCompletionMessage.test.js test/sendMonthlyLimit.test.js test/balanceAdjustment.test.js test/salaryConfig.test.js test/serverBoostService.test.js test/adminBankPermission.test.js test/systemAdminPermission.test.js test/actionLogTargets.test.js test/hotelBonusCleanup.test.js test/teleportVcConfig.test.js test/gameRoleExpiry.test.js test/gameTicket.test.js test/gameVc.test.js test/hazamaPanel.test.js test/item.test.js test/ticketView.test.js test/nameValidation.test.js test/evaluationConfig.test.js test/evaluationSheetArchive.test.js test/returnMemberRoleChange.test.js test/subAccountRoleSync.test.js test/accountMemberLeft.test.js test/rouletteRules.test.js test/historyEmbedLimit.test.js test/rankingPermission.test.js test/marketGacha.test.js test/omikuji.test.js test/shopTicket.test.js test/courtShop.test.js test/invitePoint.test.js test/superchat.test.js test/actionTypes.test.js test/solitaryCell.test.js test/vcCommand.test.js"
+    "test": "npm run build && node --test test/*.test.js"
   },
   "engines": {
     "node": "20.x"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1087.0",
-    "date-holidays": "^3.27.0",
     "dayjs": "^1.11.19",
     "discord.js": "^14.16.3",
     "dotenv": "^17.2.1",
     "mysql2": "^3.9.2",
-    "node-cron": "^4.2.1",
-    "timezone": "^1.0.23",
-    "utc": "^0.1.0"
+    "node-cron": "^4.2.1"
   },
   "devDependencies": {
     "@types/dotenv": "^6.1.1",

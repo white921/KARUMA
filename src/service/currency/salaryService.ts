@@ -1,19 +1,19 @@
 import { Client, Guild } from "discord.js";
 
-import { hasRole, getRoleNameById } from "../../util/role";
-import { validateSubAccount } from "../../util/subAccount";
+import { hasRole, getRoleNameById } from "../../util/member/role";
+import { validateSubAccount } from "../../util/account/subAccount";
 
 import { AccountService } from "../account/accountService";
 import { DbService } from "../system/dbService";
 import { ActionService } from "./actionService";
 
-import { BOT_ID } from "../../constant/id";
+import { BOT_ID } from "../../constant/shared/id";
 import {
   SALARY_PAYMENTS,
   SALARY_ROLE_IDS,
   SKIPPED_MONTHLY_SALARY_PAYMENT_DATES,
-} from "../../constant/salary";
-import { COMMAND_NAMES } from "../../constant/command";
+} from "../../constant/currency/salary";
+import { COMMAND_NAMES } from "../../constant/shared/command";
 
 export class SalaryService {
   /** 指定日（JST）が臨時の給与振込停止日に当たらないか判定する。 */

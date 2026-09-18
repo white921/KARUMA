@@ -1,8 +1,8 @@
 import type { PoolConnection } from "mysql2/promise";
-import { ITEM_KEY } from "../../constant/item";
-import { SHOP_TICKET_TYPE } from "../../constant/shopTicket";
-import type { ItemKey } from "../../type/item";
-import type { OwnedShopTicket, ShopTicketType } from "../../type/shopTicket";
+import { ITEM_KEY } from "../../constant/inventory/item";
+import { SHOP_TICKET_TYPE } from "../../constant/market/shopTicket";
+import type { ItemKey } from "../../type/inventory/item";
+import type { OwnedShopTicket, ShopTicketType } from "../../type/market/shopTicket";
 import { ItemService } from "../inventory/itemService";
 
 export class ShopTicketService {

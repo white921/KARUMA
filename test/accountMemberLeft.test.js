@@ -3,7 +3,7 @@ const test = require("node:test");
 
 const { AccountService } = require("../dist/service/account/accountService.js");
 const { DbService } = require("../dist/service/system/dbService.js");
-const { ROLE_IDS } = require("../dist/constant/id.js");
+const { ROLE_IDS } = require("../dist/constant/shared/id.js");
 const {
   ReturnMemberService,
 } = require("../dist/service/account/returnMemberService.js");
