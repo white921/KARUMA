@@ -157,11 +157,13 @@ function getPassPlanDetail(plan: GamePassPlan) {
         label: "ゲームパス（2週間）",
         price: GAME_VC.PASS_PRICES.TWO_WEEKS,
         commandName: PANEL_COMMAND_NAMES.GAME_PASS_TWO_WEEKS,
+        confirmCommandName: PANEL_COMMAND_NAMES.GAME_PASS_TWO_WEEKS_CONFIRM,
       }
     : {
         label: "ゲームパス（1か月）",
         price: GAME_VC.PASS_PRICES.ONE_MONTH,
         commandName: PANEL_COMMAND_NAMES.GAME_PASS_ONE_MONTH,
+        confirmCommandName: PANEL_COMMAND_NAMES.GAME_PASS_ONE_MONTH_CONFIRM,
       };
 }
 
@@ -290,6 +292,44 @@ export class GameVcService {
       content:
         `✅ 遊戯VCを作成しました。\n<#${voiceChannel.id}>\n` +
         `${this.paymentLabel(payment)}\n有効期限：${expiryText}`,
+    });
+  }
+
+  static async showPassConfirmation(
+    interaction: ButtonInteraction,
+    plan: GamePassPlan,
+  ): Promise<void> {
+    const member = interaction.member as GuildMember;
+    this.assertRegularPanel(interaction, member);
+    if (!canPurchaseGamePass(member)) {
+      throw new Error(GAME_MESSAGES.PASS_PURCHASE_REQUIRES_TRAVELER);
+    }
+
+    const detail = getPassPlanDetail(plan);
+    await interaction.editReply({
+      content: "",
+      embeds: [
+        new EmbedBuilder()
+          .setTitle(`${detail.label}を購入しますか？`)
+          .setDescription(
+            `料金：**${formatNumber(detail.price)}${CURRENCY_NAMES}**\n` +
+              "所持中は無料で遊戯VCを作成できます。\n" +
+              "有効なゲームパスを所持している場合は、現在の有効期限から延長されます。",
+          )
+          .setColor(COLOR.YELLOW),
+      ],
+      components: [
+        new ActionRowBuilder<ButtonBuilder>().addComponents(
+          new ButtonBuilder()
+            .setCustomId(detail.confirmCommandName)
+            .setLabel("購入を確定")
+            .setStyle(ButtonStyle.Success),
+          new ButtonBuilder()
+            .setCustomId(PANEL_COMMAND_NAMES.GAME_PASS_CANCEL)
+            .setLabel("キャンセル")
+            .setStyle(ButtonStyle.Secondary),
+        ),
+      ],
     });
   }
 

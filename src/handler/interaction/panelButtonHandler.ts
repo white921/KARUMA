@@ -386,10 +386,23 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
         await GameVcService.purchaseCriminalAccess(interaction);
         break;
       case PANEL_COMMAND_NAMES.GAME_PASS_TWO_WEEKS:
-        await GameVcService.purchasePass(interaction, "twoWeeks");
+        await GameVcService.showPassConfirmation(interaction, "twoWeeks");
         break;
       case PANEL_COMMAND_NAMES.GAME_PASS_ONE_MONTH:
+        await GameVcService.showPassConfirmation(interaction, "oneMonth");
+        break;
+      case PANEL_COMMAND_NAMES.GAME_PASS_TWO_WEEKS_CONFIRM:
+        await GameVcService.purchasePass(interaction, "twoWeeks");
+        break;
+      case PANEL_COMMAND_NAMES.GAME_PASS_ONE_MONTH_CONFIRM:
         await GameVcService.purchasePass(interaction, "oneMonth");
+        break;
+      case PANEL_COMMAND_NAMES.GAME_PASS_CANCEL:
+        await interaction.editReply({
+          content: "ゲームパスの購入をキャンセルしました。",
+          embeds: [],
+          components: [],
+        });
         break;
       case PANEL_COMMAND_NAMES.HAZAMA_ACCESS:
         if (await HazamaService.isFree(interaction.member as GuildMember)) {
