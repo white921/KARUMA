@@ -65,8 +65,8 @@ const SPECIAL_HOTEL_GUIDANCE = [
 
 export const HOTEL_VC_PANEL_MESSAGES = {
   TITLE: "ホテルVCパネル",
-  DESCRIPTION: `ボタンを押してホテルを選択してください。\n\n**【ホテル案内】**\n**・ ${HOTEL_TYPE_NAMES.NORMAL}**\n${NORMAL_HOTEL_PRICE_GUIDANCE}\n通常ツーショットVC\n\n${SPECIAL_HOTEL_GUIDANCE}`,
-  NORMAL_DESCRIPTION: `\nボタンを押してホテルを選択してください。\n\n**【ホテル案内】**\n**・ ${HOTEL_TYPE_NAMES.NORMAL}**\n${NORMAL_HOTEL_PRICE_GUIDANCE}\n通常ツーショットVC\n\n`,
+  DESCRIPTION: `ボタンを押してホテルを選択してください。\n\n**【ホテル案内】**\n**・ ${HOTEL_TYPE_NAMES.NORMAL}**\n通常ツーショットVC\n${NORMAL_HOTEL_PRICE_GUIDANCE}\n\n${SPECIAL_HOTEL_GUIDANCE}`,
+  NORMAL_DESCRIPTION: `\nボタンを押してホテルを選択してください。\n\n**【ホテル案内】**\n**・ ${HOTEL_TYPE_NAMES.NORMAL}**\n通常ツーショットVC\n${NORMAL_HOTEL_PRICE_GUIDANCE}\n\n`,
   SPECIAL_DISCRIPTION: `\nボタンを押してホテルを選択してください。\n\n**【ホテル案内】**\n${SPECIAL_HOTEL_GUIDANCE}`,
   ERROR: "ホテルVCパネルチャンネルが見つからないか、無効な型です。",
   CANCEL: "❌ キャンセルしました。",
