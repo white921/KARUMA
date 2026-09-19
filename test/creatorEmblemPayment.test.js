@@ -15,6 +15,10 @@ function fixture(t, { tier = "noble", product = "personal", balance = 500000, pr
     [CREATOR_EMBLEM_PRICING_ROLES[tier].id, { id: CREATOR_EMBLEM_PRICING_ROLES[tier].id }],
     ["guild", { id: "guild" }],
   ]) } };
+  member.displayAvatarURL = options => {
+    assert.deepEqual(options, { size: 256 });
+    return `https://cdn.discordapp.com/guilds/1534636292153807039/users/${payerId}/avatars/server-avatar.png`;
+  };
   const amount = price ?? (product === "large" ? 200000 : tier === "noble" ? 60000 : 100000);
   let accounts = [{ user_id: payerId, wallet: balance }];
   if (recipientExists) accounts.push({ user_id: CREATOR_EMBLEM_RECIPIENT_ID, wallet: 1234 });
@@ -117,6 +121,7 @@ for (const [tier, product, amount] of [["noble", "personal", 60000], ["knight", 
     assert.deepEqual(f.calls, ["begin", "debit", "credit", "history", "commit", "release"]);
     assert.equal(f.logs.length, 1);
     const embed = f.logs[0].embeds[0].toJSON();
+    assert.equal(embed.thumbnail.url, f.member.displayAvatarURL({ size: 256 }));
     assert.match(embed.fields.find(x => x.name === "購入者").value, new RegExp(f.interaction.user.id));
     assert.equal(embed.fields.find(x => x.name === "商品").value, product === "large" ? "デカ紋章" : "個人紋章");
     assert.match(embed.fields.find(x => x.name === "適用ロール").value, new RegExp(CREATOR_EMBLEM_PRICING_ROLES[tier].id));

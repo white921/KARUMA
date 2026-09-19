@@ -10,6 +10,7 @@ export type EmblemProductDefinition = {
 
 export type EmblemPaymentDetails = {
   payerId: string;
+  avatarUrl: string;
   product: EmblemProduct;
   amount: number;
   pricingTier: EmblemPricingTier;

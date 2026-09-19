@@ -45,6 +45,7 @@ export function createCreatorEmblemPaymentLogEmbed(payment: EmblemPaymentDetails
   return new EmbedBuilder()
     .setTitle("スタンプ支払い完了")
     .setColor(COLOR.GREEN)
+    .setThumbnail(payment.avatarUrl)
     .addFields(
       { name: "購入者", value: `<@${payment.payerId}>\nID: ${payment.payerId}` },
       { name: "商品", value: PRODUCTS[payment.product].label, inline: true },
@@ -190,6 +191,7 @@ export class CreatorEmblemPaymentService {
     await SendService.validateMonthlySendLimit(payer.id, CREATOR_EMBLEM_RECIPIENT_ID, amount, interaction.guild);
     const payment: EmblemPaymentDetails = {
       payerId: payer.id, product, amount, pricingTier: this.getPricingTier(payer),
+      avatarUrl: payer.displayAvatarURL({ size: 256 }),
       roleIds: payer.roles.cache.filter((role) => role.id !== interaction.guildId).map((role) => role.id),
       confirmationId: interaction.message.id,
     };
