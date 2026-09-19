@@ -25,7 +25,7 @@ test('指定スレッドに換金者・券種・枚数・受取額をメンシ�
   assert.deepEqual(calls[0], ['fetch', THREAD_IDS.TICKET_EXCHANGE_LOG_THREAD]);
   const payload = calls[1][1];
   assert.deepEqual(payload.embeds[0].toJSON().fields, [
-    { name: '換金した人', value: '<@1001>\nユーザーID: 1001' },
+    { name: '換金した人', value: '<@1001>' },
     { name: 'チケット', value: result.label },
     { name: '換金枚数', value: '10枚', inline: true },
     { name: '受取額', value: '30,000 LIA', inline: true },

@@ -17,7 +17,7 @@ export class TicketExchangeLogService {
           .setTitle("チケット換金")
           .setColor(COLOR.LIGFT_PINK)
           .addFields(
-            { name: "換金した人", value: `<@${userId}>\nユーザーID: ${userId}` },
+            { name: "換金した人", value: `<@${userId}>` },
             { name: "チケット", value: result.label },
             { name: "換金枚数", value: `${result.quantity.toLocaleString()}枚`, inline: true },
             { name: "受取額", value: `${result.amount.toLocaleString()} LIA`, inline: true },
