@@ -6,7 +6,7 @@ import type { ItemInventoryRow } from "../../type/inventory/item";
 import { DbService } from "../system/dbService";
 import { ItemService } from "./itemService";
 
-import type { ExchangeRequest } from "../../type/inventory/ticketExchange";
+import type { ExchangeRequest, TicketExchangeResult } from "../../type/inventory/ticketExchange";
 
 export class TicketExchangeService {
   static async createRequest(requestId: string, userId: string, itemKey: string, quantity: number) {
@@ -42,7 +42,7 @@ export class TicketExchangeService {
     }
   }
 
-  static async redeem(requestId: string, userId: string) {
+  static async redeem(requestId: string, userId: string): Promise<TicketExchangeResult> {
     const connection = await DbService.getConnection();
     try {
       await connection.beginTransaction();

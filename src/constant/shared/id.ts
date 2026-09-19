@@ -177,6 +177,7 @@ export const TEST_FORUM_IDS = {
 
 // スレッドID（送金ログ用など）
 export const THREAD_IDS = {
+  TICKET_EXCHANGE_LOG_THREAD: "1550824492194857071", // 通貨ログ > チケット換金ログ
   SEND_LOG_THREAD: "1536708796121088084", // 通貨ログ > 送金ログ
   CREATOR_EMBLEM_LOG_THREAD: "1549981595640008866", // スタンプ支払いログ
   MINT_LOG_THREAD: "1536708801225433160", // 通貨ログ > 増減ログ

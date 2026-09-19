@@ -12,6 +12,7 @@ const { handleModalSubmit } = require('../dist/handler/interaction/modalHandler'
 const { AccountService } = require('../dist/service/account/accountService');
 const { ItemService } = require('../dist/service/inventory/itemService');
 const { TicketExchangeService } = require('../dist/service/inventory/ticketExchangeService');
+const { TicketExchangeLogService } = require('../dist/service/inventory/ticketExchangeLogService');
 const { HistoryService } = require('../dist/service/currency/historyService');
 const channel = { channelId: TEXT_CHANNEL_IDS.TICKET_EXCHANGE_PANEL, guildId: 'guild', user: { id: '1001' } };
 
@@ -53,12 +54,15 @@ test('所持数5枚以上の種類だけ表示し、選択→枚数→確認→�
   await handleModalSubmit({ ...channel, id: requestId, customId: modal.custom_id, fields: { getTextInputValue: () => '10' }, deferReply: async () => { deferred = true; }, editReply });
   assert.equal(deferred, true);
   assert.match(response.content, /30,000 LIA/);
+  const log = t.mock.method(TicketExchangeLogService, 'send', async () => {});
   const confirmId = response.components[0].toJSON().components[0].custom_id;
   t.mock.method(TicketExchangeService, 'redeem', async (id, user) => {
     assert.deepEqual([id, user], [requestId, '1001']);
     return { label: 'VIPホテル無料券', quantity: 10, amount: 30000, afterWallet: 31000, afterQuantity: 2, alreadyCompleted: false };
   });
   await handlePanelButton({ ...channel, customId: confirmId, editReply });
+  assert.equal(log.mock.callCount(), 1);
+  assert.deepEqual(log.mock.calls[0].arguments.slice(1, 4), ['guild', '1001', requestId]);
   assert.match(response.content, /31,000 LIA/);
   assert.deepEqual(response.components, []);
 });

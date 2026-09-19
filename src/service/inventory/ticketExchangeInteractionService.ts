@@ -9,6 +9,7 @@ import {
 import { TEXT_CHANNEL_IDS } from "../../constant/shared/id";
 import { ItemService } from "./itemService";
 import { TicketExchangeService } from "./ticketExchangeService";
+import { TicketExchangeLogService } from "./ticketExchangeLogService";
 
 function assertChannel(interaction: { channelId: string | null; guildId: string | null }) {
   if (!interaction.guildId || interaction.channelId !== TEXT_CHANNEL_IDS.TICKET_EXCHANGE_PANEL) {
@@ -44,6 +45,8 @@ export async function handleTicketExchangeButton(interaction: ButtonInteraction)
   }
   if (action !== "confirm") throw new Error("換金操作が不正です。");
   const result = await TicketExchangeService.redeem(requestId, interaction.user.id);
+  // 利用者への応答に失敗しても、確定した換金のログを先に記録する。
+  await TicketExchangeLogService.send(interaction.client, interaction.guildId!, interaction.user.id, requestId, result);
   await interaction.editReply({
     content: [result.alreadyCompleted ? "✅ この換金は既に完了しています。追加の消費・入金はしていません。" : "✅ チケットを換金しました。",
       `${result.label}: ${result.quantity.toLocaleString()}枚 → **${result.amount.toLocaleString()} LIA**`,

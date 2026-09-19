@@ -1,5 +1,14 @@
 import type { RowDataPacket } from "mysql2/promise";
 
+export interface TicketExchangeResult {
+  label: string;
+  quantity: number;
+  amount: number;
+  afterWallet: number;
+  afterQuantity: number;
+  alreadyCompleted: boolean;
+}
+
 export interface ExchangeRequest extends RowDataPacket {
   user_id: string;
   item_key: string;
@@ -10,4 +19,3 @@ export interface ExchangeRequest extends RowDataPacket {
   after_quantity: number | null;
   expired: number;
 }
-
