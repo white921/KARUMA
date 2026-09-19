@@ -36,6 +36,7 @@ export const GAME_MESSAGES = {
   HAS_NOT_TICKET: "遊戯チケットがありません。",
   NO_ELIGIBLE_ROLE: "遊戯VCを作成できるロールではありません。",
   PASS_PURCHASE_REQUIRES_TRAVELER: "ゲームパスを購入できるロールではありません。",
+  PASS_ALREADY_ACTIVE: "ゲームパスをすでに所持しているため、購入できません。",
   CRIMINAL_PANEL_ONLY: "罪人は罪人用の遊戯パネルをご利用ください。",
   CRIMINAL_ROLE_REQUIRED: "罪人用の遊戯パネルです。",
   CRIMINAL_ACCESS_ALREADY_ACTIVE: "遊戯VC接続権限はすでに有効です。",

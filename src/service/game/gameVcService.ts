@@ -301,6 +301,14 @@ export class GameVcService {
   ): Promise<void> {
     const member = interaction.member as GuildMember;
     this.assertRegularPanel(interaction, member);
+    if (member.roles.cache.has(ROLE_IDS.GAME_PASS)) {
+      await interaction.editReply({
+        content: GAME_MESSAGES.PASS_ALREADY_ACTIVE,
+        embeds: [],
+        components: [],
+      });
+      return;
+    }
     if (!canPurchaseGamePass(member)) {
       throw new Error(GAME_MESSAGES.PASS_PURCHASE_REQUIRES_TRAVELER);
     }
@@ -313,8 +321,7 @@ export class GameVcService {
           .setTitle(`${detail.label}を購入しますか？`)
           .setDescription(
             `料金：**${formatNumber(detail.price)}${CURRENCY_NAMES}**\n` +
-              "所持中は無料で遊戯VCを作成できます。\n" +
-              "有効なゲームパスを所持している場合は、現在の有効期限から延長されます。",
+              "所持中は無料で遊戯VCを作成できます。",
           )
           .setColor(COLOR.YELLOW),
       ],
@@ -339,6 +346,14 @@ export class GameVcService {
   ): Promise<void> {
     const member = interaction.member as GuildMember;
     this.assertRegularPanel(interaction, member);
+    if (member.roles.cache.has(ROLE_IDS.GAME_PASS)) {
+      await interaction.editReply({
+        content: GAME_MESSAGES.PASS_ALREADY_ACTIVE,
+        embeds: [],
+        components: [],
+      });
+      return;
+    }
     if (!canPurchaseGamePass(member)) {
       throw new Error(GAME_MESSAGES.PASS_PURCHASE_REQUIRES_TRAVELER);
     }
@@ -585,11 +600,10 @@ export class GameVcService {
       );
       const previousPass = passRows[0];
       const now = dayjs();
-      const activeExpiry =
-        previousPass && !previousPass.is_deleted && previousPass.expire_at && dayjs(previousPass.expire_at).isAfter(now)
-          ? dayjs(previousPass.expire_at)
-          : now;
-      const expireAt = calculateGamePassExpireAt(plan, activeExpiry).toDate();
+      if (previousPass && !previousPass.is_deleted && previousPass.expire_at && dayjs(previousPass.expire_at).isAfter(now)) {
+        throw new Error(GAME_MESSAGES.PASS_ALREADY_ACTIVE);
+      }
+      const expireAt = calculateGamePassExpireAt(plan, now).toDate();
       const afterWallet = account.wallet - detail.price;
 
       await connection.execute("UPDATE accounts SET wallet = ? WHERE user_id = ?", [afterWallet, userId]);
