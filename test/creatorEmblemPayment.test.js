@@ -1,7 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { Collection } = require("discord.js");
-const { CreatorEmblemPaymentService, createCreatorEmblemPaymentLogEmbed } = require("../dist/service/market/creatorEmblemPaymentService.js");
+const { CreatorEmblemPaymentService } = require("../dist/service/market/creatorEmblemPaymentService.js");
 const { DbService } = require("../dist/service/system/dbService.js");
 const { SendService } = require("../dist/service/currency/sendService.js");
 const { CREATOR_EMBLEM_RECIPIENT_ID, CREATOR_EMBLEM_PRICING_ROLES, CREATOR_EMBLEM_CONFIRM_PREFIX, CREATOR_EMBLEM_CANCEL_ID } = require("../dist/constant/market/creatorEmblem.js");
@@ -62,13 +62,34 @@ function fixture(t, { tier = "noble", product = "personal", balance = 500000, pr
     accounts: () => accounts, actions: () => actions };
 }
 
-test("only the two configured roles qualify, with noble precedence", () => {
-  for (const role of [ROLE_IDS.KANRISYA, ROLE_IDS.SABANUSI, ROLE_IDS.GIJUTU_LEADER, ROLE_IDS.CORE_MEMBER_ROLES.JUNJUNHONMEN]) {
+test("unrelated roles do not qualify, with noble precedence", () => {
+  for (const role of [ROLE_IDS.GIJUTU_LEADER, ROLE_IDS.CORE_MEMBER_ROLES.JUNJUNHONMEN]) {
     assert.throws(() => CreatorEmblemPaymentService.getPricingTier({ roles: { cache: new Collection([[role, {}]]) } }), /貴族または騎士/);
   }
   const member = { roles: { cache: new Collection(Object.values(CREATOR_EMBLEM_PRICING_ROLES).map(r => [r.id, {}])) } };
   assert.equal(CreatorEmblemPaymentService.getPriceForMember(member, "personal"), 60000);
 });
+
+for (const [roleId, label] of [[ROLE_IDS.KANRISYA, "英傑"], [ROLE_IDS.SABANUSI, "皇帝"]]) {
+  for (const [product, amount] of [["personal", 60000], ["large", 200000]]) {
+    test(`${label} can select and pay for ${product} at noble prices without a noble role`, async t => {
+      const f = fixture(t, { product });
+      f.member.roles.cache = new Collection([[roleId, { id: roleId }]]);
+      await CreatorEmblemPaymentService.showProductSelect(f.interaction);
+      assert.deepEqual(f.edits[0].components[0].toJSON().components[0].options.map(o => o.value), ["personal", "large"]);
+      await CreatorEmblemPaymentService.showConfirmation(f.interaction);
+      assert.match(f.edits[1].embeds[0].toJSON().description, new RegExp(label));
+      await CreatorEmblemPaymentService.pay(f.interaction);
+      assert.equal(f.accounts()[0].wallet, 500000 - amount);
+      assert.equal(f.actions()[0].amount, amount);
+      assert.match(f.actions()[0].comment, new RegExp(label));
+      const roleField = f.logs[0].embeds[0].toJSON().fields.find(field => field.name === "適用ロール");
+      assert.equal(roleField.value, `<@&${roleId}>（${label}）`);
+      f.member.roles.cache.set(CREATOR_EMBLEM_PRICING_ROLES.knight.id, { id: CREATOR_EMBLEM_PRICING_ROLES.knight.id });
+      assert.equal(CreatorEmblemPaymentService.getPriceForMember(f.member, "personal"), 60000);
+    });
+  }
+}
 
 test("knights see only personal emblems and confirmation follows product selection directly", async t => {
   const f = fixture(t, { tier: "knight" });
@@ -99,7 +120,7 @@ for (const [tier, product, amount] of [["noble", "personal", 60000], ["knight", 
     assert.match(embed.fields.find(x => x.name === "購入者").value, new RegExp(f.interaction.user.id));
     assert.equal(embed.fields.find(x => x.name === "商品").value, product === "large" ? "デカ紋章" : "個人紋章");
     assert.match(embed.fields.find(x => x.name === "適用ロール").value, new RegExp(CREATOR_EMBLEM_PRICING_ROLES[tier].id));
-    assert.doesNotMatch(embed.fields.find(x => x.name === "所持ロール").value, /guild/);
+    assert.equal(embed.fields.some(x => x.name === "所持ロール"), false);
     assert.deepEqual(f.logs[0].allowedMentions, { parse: [] });
     assert.deepEqual(f.edits[0].components, []);
   });
@@ -181,15 +202,4 @@ test("post-commit Discord failure reports completed payment and remains replay-s
 test("confirmation and cancellation update the existing private message", () => {
   assert.equal(shouldDeferButtonUpdate(`${CREATOR_EMBLEM_CONFIRM_PREFIX}:personal:60000:123`), true);
   assert.equal(shouldDeferButtonUpdate(CREATOR_EMBLEM_CANCEL_ID), true);
-});
-
-test("many purchaser roles stay within Discord embed field limits", () => {
-  const embed = createCreatorEmblemPaymentLogEmbed({
-    payerId: "111111111111111111", product: "personal", amount: 60000,
-    pricingTier: "noble", confirmationId: "222222222222222222",
-    roleIds: Array.from({ length: 100 }, (_, i) => String(1534637518656377000n + BigInt(i))),
-  }).toJSON();
-  const roles = embed.fields.find(field => field.name === "所持ロール").value;
-  assert.ok(roles.length <= 1024);
-  assert.match(roles, /ほか65件/);
 });

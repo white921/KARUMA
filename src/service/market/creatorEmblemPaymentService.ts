@@ -16,7 +16,7 @@ import {
   CREATOR_EMBLEM_CANCEL_ID,
   CREATOR_EMBLEM_CONFIRM_PREFIX,
   CREATOR_EMBLEM_ENABLED,
-  CREATOR_EMBLEM_LOG_ROLE_LIMIT,
+  CREATOR_EMBLEM_NOBLE_PRICING_ROLES,
   CREATOR_EMBLEM_PRICING_ROLES,
   CREATOR_EMBLEM_PRODUCT_SELECT_ID,
   CREATOR_EMBLEM_RECIPIENT_ID,
@@ -35,11 +35,13 @@ import type {
 import { SendService } from "../currency/sendService";
 import { DbService } from "../system/dbService";
 
+function getPricingRole(roleIds: string[], tier: EmblemPricingTier) {
+  return (tier === "noble" && CREATOR_EMBLEM_NOBLE_PRICING_ROLES.find((role) => roleIds.includes(role.id))) ||
+    CREATOR_EMBLEM_PRICING_ROLES[tier];
+}
+
 export function createCreatorEmblemPaymentLogEmbed(payment: EmblemPaymentDetails) {
-  const role = CREATOR_EMBLEM_PRICING_ROLES[payment.pricingTier];
-  const roleMentions = payment.roleIds.slice(0, CREATOR_EMBLEM_LOG_ROLE_LIMIT)
-    .map((id) => `<@&${id}>`).join(" ");
-  const remainingRoles = payment.roleIds.length - CREATOR_EMBLEM_LOG_ROLE_LIMIT;
+  const role = getPricingRole(payment.roleIds, payment.pricingTier);
   return new EmbedBuilder()
     .setTitle("スタンプ支払い完了")
     .setColor(COLOR.GREEN)
@@ -48,7 +50,6 @@ export function createCreatorEmblemPaymentLogEmbed(payment: EmblemPaymentDetails
       { name: "商品", value: PRODUCTS[payment.product].label, inline: true },
       { name: "送金額", value: `${payment.amount.toLocaleString()} ${CURRENCY_NAMES}`, inline: true },
       { name: "適用ロール", value: `<@&${role.id}>（${role.label}）`, inline: true },
-      { name: "所持ロール", value: (roleMentions || "なし") + (remainingRoles > 0 ? ` ほか${remainingRoles}件` : "") },
       { name: "支払先", value: `<@${CREATOR_EMBLEM_RECIPIENT_ID}>（うゆSub）` },
     )
     .setFooter({ text: `確認ID: ${payment.confirmationId}` })
@@ -69,7 +70,7 @@ export class CreatorEmblemPaymentService {
   }
 
   static getPricingTier(member: GuildMember): EmblemPricingTier {
-    if (member.roles.cache.has(CREATOR_EMBLEM_PRICING_ROLES.noble.id)) return "noble";
+    if (CREATOR_EMBLEM_NOBLE_PRICING_ROLES.some((role) => member.roles.cache.has(role.id))) return "noble";
     if (member.roles.cache.has(CREATOR_EMBLEM_PRICING_ROLES.knight.id)) return "knight";
     throw new Error(CREATOR_EMBLEM_PANEL_MESSAGES.MEMBER_ONLY);
   }
@@ -112,7 +113,7 @@ export class CreatorEmblemPaymentService {
     const embed = new EmbedBuilder().setTitle("支払い内容の確認")
       .setDescription(
         `商品：**${PRODUCTS[product].label}**\n` +
-        `適用ロール：**${CREATOR_EMBLEM_PRICING_ROLES[tier].label}**\n` +
+        `適用ロール：**${getPricingRole([...payer.roles.cache.keys()], tier).label}**\n` +
         `支払先：<@${CREATOR_EMBLEM_RECIPIENT_ID}>（うゆSub）\n` +
         `支払い金額：**${price.toLocaleString()} ${CURRENCY_NAMES}**\n\nこの内容で送金しますか？`,
       ).setColor(COLOR.YELLOW);
@@ -130,7 +131,7 @@ export class CreatorEmblemPaymentService {
   private static async transfer(payment: EmblemPaymentDetails): Promise<boolean> {
     const connection = await DbService.getConnection();
     const paymentKey = `スタンプ支払い [確認ID:${payment.confirmationId}]`;
-    const comment = `${paymentKey} ${PRODUCTS[payment.product].label} / 適用ロール:${CREATOR_EMBLEM_PRICING_ROLES[payment.pricingTier].label}`;
+    const comment = `${paymentKey} ${PRODUCTS[payment.product].label} / 適用ロール:${getPricingRole(payment.roleIds, payment.pricingTier).label}`;
     try {
       await connection.beginTransaction();
       const [accounts] = await connection.execute<Account[] & RowDataPacket[]>(
