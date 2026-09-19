@@ -63,10 +63,22 @@ const SPECIAL_HOTEL_GUIDANCE = [
   `12時間：${HOTEL_PRICE.FREEDOM.toLocaleString("ja-JP")}${CURRENCY_NAMES} ／ 24時間：${HOTEL_PRICE.FREEDOMLONG.toLocaleString("ja-JP")}${CURRENCY_NAMES}`,
 ].join("\n");
 
+const NORMAL_HOTEL_GUIDANCE = [
+  "「通常ホテル」ボタンを押してVCを作成してください。",
+  "",
+  "**【ホテル案内】**",
+  `**・ ${HOTEL_TYPE_NAMES.NORMAL}**`,
+  "通常ツーショットVC",
+  NORMAL_HOTEL_PRICE_GUIDANCE,
+  "",
+  `**・ 残高確認**：現在の${CURRENCY_NAMES}残高を確認できます。`,
+  "**・ チケット確認**：所持しているチケットと枚数を確認できます。",
+].join("\n");
+
 export const HOTEL_VC_PANEL_MESSAGES = {
   TITLE: "ホテルVCパネル",
-  DESCRIPTION: `ボタンを押してホテルを選択してください。\n\n**【ホテル案内】**\n**・ ${HOTEL_TYPE_NAMES.NORMAL}**\n通常ツーショットVC\n${NORMAL_HOTEL_PRICE_GUIDANCE}\n\n${SPECIAL_HOTEL_GUIDANCE}`,
-  NORMAL_DESCRIPTION: `\nボタンを押してホテルを選択してください。\n\n**【ホテル案内】**\n**・ ${HOTEL_TYPE_NAMES.NORMAL}**\n通常ツーショットVC\n${NORMAL_HOTEL_PRICE_GUIDANCE}\n\n`,
+  DESCRIPTION: NORMAL_HOTEL_GUIDANCE,
+  NORMAL_DESCRIPTION: NORMAL_HOTEL_GUIDANCE,
   SPECIAL_DISCRIPTION: `\nボタンを押してホテルを選択してください。\n\n**【ホテル案内】**\n${SPECIAL_HOTEL_GUIDANCE}`,
   ERROR: "ホテルVCパネルチャンネルが見つからないか、無効な型です。",
   CANCEL: "❌ キャンセルしました。",

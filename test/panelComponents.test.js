@@ -240,15 +240,15 @@ test("game panel copy uses LEVELIA's play category name", () => {
   assert.doesNotMatch(GAME_PANEL_MESSAGES.DESCRIPTION, /戯境/);
 });
 
-test("unified hotel panel description does not repeat shared guidance", () => {
+test("normal hotel panel description does not repeat shared guidance", () => {
   const description = HOTEL_VC_PANEL_MESSAGES.DESCRIPTION;
 
   assert.equal(typeof description, "string");
-  assert.equal((description.match(/ボタンを押してホテルを選択してください。/g) ?? []).length, 1);
+  assert.equal((description.match(/「通常ホテル」ボタンを押してVCを作成してください。/g) ?? []).length, 1);
   assert.equal((description.match(/【ホテル案内】/g) ?? []).length, 1);
 });
 
-test("unified hotel panel description has no unintended leading spaces", () => {
+test("normal hotel panel description has no unintended leading spaces", () => {
   const description = HOTEL_VC_PANEL_MESSAGES.DESCRIPTION;
 
   assert.equal(typeof description, "string");
@@ -275,8 +275,9 @@ test("hotel panel duration labels match hour-based expiration", () => {
   assert.match(description, /旅人：10000LIA\/12時間/);
   assert.match(description, /賢者：5000LIA\/12時間/);
   assert.doesNotMatch(description, /\\n/);
-  assert.match(description, /12時間：30,000LIA ／ 24時間：50,000LIA/);
-  assert.match(description, /12時間：50,000LIA ／ 24時間：90,000LIA/);
+  assert.doesNotMatch(description, /VIP|フリーダム|24時間/);
+  assert.match(HOTEL_VC_PANEL_MESSAGES.SPECIAL_DISCRIPTION, /12時間：30,000LIA ／ 24時間：50,000LIA/);
+  assert.match(HOTEL_VC_PANEL_MESSAGES.SPECIAL_DISCRIPTION, /12時間：50,000LIA ／ 24時間：90,000LIA/);
   assert.doesNotMatch(description, /1分|2分/);
 });
 

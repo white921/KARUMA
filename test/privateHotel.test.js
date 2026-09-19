@@ -69,11 +69,11 @@ function fakeDb(t, { quantity = 2, wallet = 100000, failInsert = false, failCons
   return { state: () => state, calls };
 }
 
-test('new panel has two entry buttons; legacy panel and install destinations remain intact', () => {
+test('new panel has two hotel entries and original panel offers only normal hotel and inventory', () => {
   const buttons = createPrivateHotelPanelPayload().components[0].toJSON().components;
   assert.deepEqual(buttons.map(b => b.custom_id), ['privateHotel:vip', 'privateHotel:freedom']);
   assert.deepEqual(createHotelVcPanelActionRows()[0].toJSON().components.map(b => b.custom_id),
-    ['NORMAL', 'SECRET', 'SECRETLONG', 'FREEDOM', 'FREEDOMLONG']);
+    ['NORMAL', 'view', 'hotelTicketView']);
   assert.equal(resolvePanelInstallTarget('1534649600760086658'), 'hotel');
   assert.equal(resolvePanelInstallTarget('1550777133087854602'), 'private_hotel');
   assert.equal(TEXT_CHANNEL_IDS.HOTEL_LOG, '1534649699263578414');

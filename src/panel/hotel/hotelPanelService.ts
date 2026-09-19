@@ -23,25 +23,6 @@ export function createHotelVcPanelActionRows() {
       .setLabel(HOTEL_TYPE_NAMES.NORMAL)
       .setStyle(ButtonStyle.Primary),
     new ButtonBuilder()
-      .setCustomId(PANEL_COMMAND_NAMES.HOTEL_VC_SECRET)
-      .setLabel(HOTEL_TYPE_NAMES.SECRET)
-      .setStyle(ButtonStyle.Success),
-    new ButtonBuilder()
-      .setCustomId(PANEL_COMMAND_NAMES.HOTEL_VC_SECRETLONG)
-      .setLabel(HOTEL_TYPE_NAMES.SECRETLONG)
-      .setStyle(ButtonStyle.Secondary),
-    new ButtonBuilder()
-      .setCustomId(PANEL_COMMAND_NAMES.HOTEL_VC_FREEDOM)
-      .setLabel(HOTEL_TYPE_NAMES.FREEDOM)
-      .setStyle(ButtonStyle.Secondary),
-    new ButtonBuilder()
-      .setCustomId(PANEL_COMMAND_NAMES.HOTEL_VC_FREEDOMLONG)
-      .setLabel(HOTEL_TYPE_NAMES.FREEDOMLONG)
-      .setStyle(ButtonStyle.Secondary)
-  );
-
-  const row2 = new ActionRowBuilder<ButtonBuilder>().addComponents(
-    new ButtonBuilder()
       .setCustomId(PANEL_COMMAND_NAMES.VIEW)
       .setLabel(PANEL_MESSAGES.VIEW)
       .setStyle(ButtonStyle.Primary),
@@ -51,13 +32,13 @@ export function createHotelVcPanelActionRows() {
       .setStyle(ButtonStyle.Secondary),
   );
 
-  return [row1, row2];
+  return [row1];
 }
 
 export class HotelVcPanelService {
   /**
    * ホテルVCパネルを作成
-   * 1つのチャンネルで通常ホテルと特殊ホテルをまとめて案内する
+   * 元の設置先では通常ホテル・残高確認・チケット確認のみ案内する
    * @param client クライアント
    */
   static async createHotelVcPanel(client: Client) {
@@ -79,13 +60,13 @@ export class HotelVcPanelService {
           "https://cdn.discordapp.com/attachments/1434882309089132706/1440341250296512533/ChatGPT_Image_20251118_20_58_59.png?ex=691dcdd2&is=691c7c52&hm=54f9ed0bc5486c1aa1727e5584426ae021412249de0badec12ff90e2afbcd9cc&"
         );
 
-      const [row1, row2] = createHotelVcPanelActionRows();
+      const components = createHotelVcPanelActionRows();
 
       await deletePanelMessage(channel, client, HOTEL_VC_PANEL_MESSAGES.TITLE);
 
       await channel.send({
         embeds: [embed],
-        components: [row1, row2],
+        components,
       });
     } catch (error) {
       throw error;
@@ -99,50 +80,7 @@ export class HotelVcPanelService {
    * @param client クライアント
    */
   static async createNormalHotelVcPanel(client: Client) {
-    try {
-      const channel = await client.channels.fetch(
-        TEXT_CHANNEL_IDS.NORMAL_HOTEL_VC_PANEL
-      );
-
-      if (!channel || channel.type !== ChannelType.GuildText) {
-        console.error(HOTEL_VC_PANEL_MESSAGES.ERROR);
-        return;
-      }
-
-      // パネルメッセージを作成
-      const embed = new EmbedBuilder()
-        .setTitle(HOTEL_VC_PANEL_MESSAGES.TITLE)
-        .setDescription(HOTEL_VC_PANEL_MESSAGES.NORMAL_DESCRIPTION)
-        .setColor(COLOR.MAGENTA)
-        .setThumbnail(
-          "https://cdn.discordapp.com/attachments/1434882309089132706/1440341250296512533/ChatGPT_Image_20251118_20_58_59.png?ex=691dcdd2&is=691c7c52&hm=54f9ed0bc5486c1aa1727e5584426ae021412249de0badec12ff90e2afbcd9cc&"
-        );
-      // コマンドボタンを作成
-      const row1 = new ActionRowBuilder<ButtonBuilder>().addComponents(
-        new ButtonBuilder()
-          .setCustomId(PANEL_COMMAND_NAMES.HOTEL_VC_NORMAL)
-          .setLabel(HOTEL_TYPE_NAMES.NORMAL)
-          .setStyle(ButtonStyle.Primary),
-        new ButtonBuilder()
-          .setCustomId(PANEL_COMMAND_NAMES.VIEW)
-          .setLabel(PANEL_MESSAGES.VIEW)
-          .setStyle(ButtonStyle.Primary),
-        new ButtonBuilder()
-          .setCustomId(PANEL_COMMAND_NAMES.HOTEL_TICKET_VIEW)
-          .setLabel(HOTEL_VC_PANEL_MESSAGES.TICKET_VIEW)
-          .setStyle(ButtonStyle.Secondary),
-      );
-
-      await deletePanelMessage(channel, client, HOTEL_VC_PANEL_MESSAGES.TITLE);
-
-      // 新しい管理者パネルメッセージを送信
-      await channel.send({
-        embeds: [embed],
-        components: [row1],
-      });
-    } catch (error) {
-      throw error;
-    }
+    await this.createHotelVcPanel(client);
   }
 
   /**
