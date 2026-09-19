@@ -1,4 +1,6 @@
 import { TICKET_EXCHANGE_PREFIX } from "../../constant/inventory/ticketExchange";
+import { PAYMENT_CONFIRMATION_PREFIX } from "../../constant/currency/paymentConfirmation";
+import { PaymentConfirmationService } from "../../service/currency/paymentConfirmationService";
 import { handleTicketExchangeButton } from "../../service/inventory/ticketExchangeInteractionService";
 import { PrivateHotelService } from "../../service/hotel/privateHotelService";
 import { PRIVATE_HOTEL_PREFIX } from "../../constant/hotel/privateHotel";
@@ -70,6 +72,10 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
   }
 
   try {
+    if (customId.startsWith(`${PAYMENT_CONFIRMATION_PREFIX}:`)) {
+      await PaymentConfirmationService.handleButton(interaction);
+      return;
+    }
     if (customId.startsWith(`${TICKET_EXCHANGE_PREFIX}:`)) {
       await handleTicketExchangeButton(interaction);
       return;

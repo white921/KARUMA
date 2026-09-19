@@ -6,10 +6,8 @@ import { SHOP_TICKET_NONE, isShopTicketType } from "../../constant/market/shopTi
 import { RouletteService } from "../../service/casino/rouletteService";
 import { AdminBurnService } from "../../service/currency/adminBurnService";
 import { AdminMintService } from "../../service/currency/adminMintService";
-import { SendService } from "../../service/currency/sendService";
+import { PaymentConfirmationService } from "../../service/currency/paymentConfirmationService";
 import { DiaryService } from "../../service/diary/diaryService";
-import { ShopPaymentService } from "../../service/market/shopPaymentService";
-import { SuperchatService } from "../../service/market/superchatService";
 import { VcService } from "../../service/vc/vcService";
 import type { DiaryType } from "../../type/diary/diary";
 import { showConfirmButton } from "../../util/interaction/button";
@@ -46,7 +44,11 @@ export async function handleModalSubmit(interaction: ModalSubmitInteraction) {
     if (customId.startsWith(`${PANEL_COMMAND_NAMES.SUPERCHAT_SEND}:`)) {
       const amount = Number(getModalFieldValue(interaction, "amount"));
       const comment = getModalFieldValue(interaction, "comment");
-      await SuperchatService.send(interaction, amount, comment);
+      const [, streamerId, stage] = customId.split(":");
+      if (stage !== "singer" && stage !== "voice") throw new Error("無効なステージです。");
+      await PaymentConfirmationService.show(interaction, {
+        kind: "superchat", amount, comment, streamerId, stage,
+      });
       return;
     }
     if (customId.startsWith("rouletteBetModal_")) {
@@ -112,25 +114,18 @@ export async function handleModalSubmit(interaction: ModalSubmitInteraction) {
         if (ticketType !== SHOP_TICKET_NONE && !isShopTicketType(ticketType)) {
           throw new Error("無効な市場チケットです。");
         }
-        await ShopPaymentService.pay(
-          interaction,
-          amount,
-          comment,
-          ticketType,
-        );
+        await PaymentConfirmationService.show(interaction, {
+          kind: "shop", amount, comment, ticketType, commandName: commandId,
+        });
         break;
       }
       case PANEL_COMMAND_NAMES.COURT_SHOP_SEND:
       case PANEL_COMMAND_NAMES.DARK_SHOP_SEND: {
         const amount = Number(getModalFieldValue(interaction, "amount"));
         const comment = getModalFieldValue(interaction, "comment");
-        await ShopPaymentService.pay(
-          interaction,
-          amount,
-          comment,
-          SHOP_TICKET_NONE,
-          commandId,
-        );
+        await PaymentConfirmationService.show(interaction, {
+          kind: "shop", amount, comment, ticketType: SHOP_TICKET_NONE, commandName: commandId,
+        });
         break;
       }
       default: {
@@ -144,14 +139,10 @@ export async function handleModalSubmit(interaction: ModalSubmitInteraction) {
         } else if (commandId == PANEL_COMMAND_NAMES.ADMIN_BURN) {
           await AdminBurnService.burn(interaction, toUserId, amount, comment);
         } else {
-          await SendService.send(
-            interaction,
-            fromUserId,
-            toUserId,
-            amount,
-            comment,
-            commandId,
-          );
+          if (fromUserId !== interaction.user.id) throw new Error("無効な送金元です。");
+          await PaymentConfirmationService.show(interaction, {
+            kind: "send", amount, comment, toUserId, commandName: commandId,
+          });
         }
         break;
       }

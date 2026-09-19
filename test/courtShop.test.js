@@ -64,9 +64,15 @@ function paymentFixture(t, wallet = 10000, failCredit = false) {
   return { interaction, calls, ticket };
 }
 
-test("宮廷市場のモーダル送信でBotへ全額送金し、履歴と指定スレッドに商品を記録する", async (t) => {
+test("宮廷市場は確認ボタンでBotへ全額送金し、履歴と指定スレッドに商品を記録する", async (t) => {
   const { interaction, calls, ticket } = paymentFixture(t);
   await handleModalSubmit(interaction);
+  assert.equal(calls.filter(([sql]) => sql.startsWith("UPDATE")).length, 0);
+  const confirmation = calls.find(([op]) => op === "reply")[1];
+  assert.match(confirmation.embeds[0].toJSON().title, /宮廷市場で購入/);
+  const customId = confirmation.components[0].toJSON().components[0].custom_id;
+  t.mock.method(AccountService, "hasAccount", async () => true);
+  await handlePanelButton({ ...interaction, customId, deferred: true });
   const updates = calls.filter(([sql]) => sql.startsWith("UPDATE"));
   assert.deepEqual(updates.map(([, params]) => params), [[5000, "buyer"], [25000, BOT_ID]]);
   const action = calls.find(([sql]) => sql.startsWith("INSERT INTO actions"))[1];

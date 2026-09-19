@@ -1,4 +1,4 @@
-import { MessageFlags, ModalSubmitInteraction } from "discord.js";
+import { ButtonInteraction, MessageFlags, ModalSubmitInteraction } from "discord.js";
 import { toActionType } from "../../constant/currency/action";
 import { PANEL_COMMAND_NAMES } from "../../constant/shared/command";
 import { CURRENCY_NAMES } from "../../constant/currency/currency";
@@ -35,7 +35,7 @@ export class ShopPaymentService {
   }
 
   static async pay(
-    interaction: ModalSubmitInteraction,
+    interaction: ModalSubmitInteraction | ButtonInteraction,
     amount: number,
     productName: string,
     ticketType: ShopTicketType | typeof SHOP_TICKET_NONE,
@@ -59,7 +59,9 @@ export class ShopPaymentService {
       throw new Error("市場割引券は100万LIA以上の商品には使用できません。");
     }
 
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    if (!interaction.deferred && !interaction.replied) {
+      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    }
 
     const connection = await DbService.getConnection();
     let afterWallet = 0;
@@ -128,6 +130,8 @@ export class ShopPaymentService {
     }
 
     await interaction.editReply({
+      embeds: [],
+      components: [],
       content:
         `✅ ${shopName}で ${amount.toLocaleString()}${CURRENCY_NAMES}の商品を購入しました！\n` +
         `商品名: ${productName.trim()}\n` +

@@ -174,22 +174,23 @@ export class SuperchatService {
   }
 
   static async send(
-    interaction: ModalSubmitInteraction,
+    interaction: ModalSubmitInteraction | ButtonInteraction,
     amount: number,
     comment: string,
+    streamerId: string,
+    stageValue: SuperchatStage,
   ): Promise<void> {
     if (!interaction.guild) {
       throw new Error("この操作はサーバー内でのみ使用できます。");
     }
 
-    const [, streamerId, stageValue] = interaction.customId.split(":");
     if (!streamerId || !isSuperchatStage(stageValue)) {
       throw new Error(SUPERCHAT_PANEL_MESSAGES.INVALID_STAGE);
     }
 
     const [sender, streamer] = await Promise.all([
-      interaction.guild.members.fetch(interaction.user.id),
-      interaction.guild.members.fetch(streamerId).catch(() => null),
+      interaction.guild.members.fetch({ user: interaction.user.id, force: true }),
+      interaction.guild.members.fetch({ user: streamerId, force: true }).catch(() => null),
     ]);
     if (!streamer || !canReceiveSuperchat(streamer) || !hasSuperchatThread(streamerId)) {
       throw new Error(SUPERCHAT_PANEL_MESSAGES.INVALID_STREAMER);
@@ -208,7 +209,9 @@ export class SuperchatService {
       throw new Error("スパチャログ用スレッドが見つかりません。");
     }
 
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    if (!interaction.deferred && !interaction.replied) {
+      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    }
 
     const fromAfterWallet = fromAccount.wallet - amount;
     const toAfterWallet = toAccount.wallet + amount;
@@ -242,6 +245,7 @@ export class SuperchatService {
 
     await interaction.editReply({
       content: `<@${streamerId}> に ${amount.toLocaleString()}${CURRENCY_NAMES} のスパチャを送りました。`,
+      embeds: [],
       components: [],
     });
   }
