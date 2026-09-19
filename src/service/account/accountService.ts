@@ -1,4 +1,5 @@
-import { GuildMember, PartialGuildMember } from "discord.js";
+import { DiscordAPIError, RESTJSONErrorCodes } from "discord.js";
+import type { Guild, GuildMember, PartialGuildMember } from "discord.js";
 import { ResultSetHeader, RowDataPacket } from "mysql2";
 
 import { DbService } from "../system/dbService";
@@ -287,18 +288,31 @@ export class AccountService {
   }
 
   /**
-   * 名前のバリデーション
+   * 在籍中の口座だけを対象に名前の重複を確認する。
    * @param name ユーザー名
    */
-  static async validateName(name: string, ignoreUserId?: string) {
+  static async validateName(name: string, guild: Guild, ignoreUserId?: string) {
     try {
       this.validateNameFormat(name);
 
-      // 既存の名前と被っていないかどうか
       const existingAccounts = ignoreUserId
         ? await this.getAccountsByNameExceptUserId(name, ignoreUserId)
         : await this.getAccountByName(name);
-      if (existingAccounts.length > 0) {
+      for (const account of existingAccounts) {
+        try {
+          // キャッシュや脱退履歴ではなく現在の在籍を確認する。
+          // 再参加した口座は次の判定から自動的に重複対象へ戻る。
+          await guild.members.fetch({ user: account.user_id, force: true });
+        } catch (error) {
+          if (
+            error instanceof DiscordAPIError &&
+            error.code === RESTJSONErrorCodes.UnknownMember
+          ) {
+            continue;
+          }
+          // 通信・権限エラーを退出扱いにはしない。
+          throw error;
+        }
         throw new Error(ACCOUNT_MESSAGES.ACCOUNT_NAME_SAME);
       }
     } catch (error) {

@@ -16,7 +16,7 @@ export class OpenAccountService {
         throw new Error(ACCOUNT_MESSAGES.ACCOUNT_EXISTS);
       }
 
-      await AccountService.validateName(member.displayName);
+      await AccountService.validateName(member.displayName, member.guild);
     } catch (error) {
       throw error;
     }

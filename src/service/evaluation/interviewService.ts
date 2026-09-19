@@ -83,6 +83,6 @@ export class InterviewService {
       throw new Error(ACCOUNT_MESSAGES.ACCOUNT_EXISTS);
     }
 
-    await AccountService.validateName(targetMember.displayName);
+    await AccountService.validateName(targetMember.displayName, targetMember.guild);
   }
 }

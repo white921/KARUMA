@@ -103,7 +103,7 @@ export class ChangeNameService {
         throw new Error(CHANGE_NAME_MESSAGES.REQUIRED_ROLE_NOT_FOUND);
       }
 
-      await AccountService.validateName(newName, member.id);
+      await AccountService.validateName(newName, member.guild, member.id);
     } catch (error) {
       throw error;
     }

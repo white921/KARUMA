@@ -62,7 +62,7 @@ export class AdminOpenAccountService {
         continue;
       }
 
-      await AccountService.validateName(member.displayName);
+      await AccountService.validateName(member.displayName, member.guild);
       await AccountService.createAccount(
         member.id,
         member.displayName,

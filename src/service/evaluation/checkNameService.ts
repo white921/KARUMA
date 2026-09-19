@@ -27,7 +27,7 @@ export class CheckNameService {
    */
   static async validateCheckName(member: GuildMember, user: GuildMember) {
     await this.validateOperator(user);
-    await AccountService.validateName(member.displayName, member.id);
+    await AccountService.validateName(member.displayName, member.guild, member.id);
   }
 
   /**
