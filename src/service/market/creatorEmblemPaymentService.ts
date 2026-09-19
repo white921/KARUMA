@@ -98,7 +98,7 @@ export class CreatorEmblemPaymentService {
       })));
     await interaction.editReply({
       embeds: [new EmbedBuilder().setTitle("商品の選択")
-        .setDescription("支払先はうゆSubです。商品を選択すると支払い確認に進みます。")
+        .setDescription("商品を選択すると支払い確認に進みます。")
         .setColor(COLOR.GREEN)],
       components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(select)],
     });
