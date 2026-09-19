@@ -1,3 +1,5 @@
+import { TICKET_EXCHANGE_PREFIX } from "../../constant/inventory/ticketExchange";
+import { showTicketExchangeModal } from "../../service/inventory/ticketExchangeInteractionService";
 import { StringSelectMenuInteraction } from "discord.js";
 import {
   CREATOR_EMBLEM_PRODUCT_SELECT_ID,
@@ -28,6 +30,10 @@ export async function handleStringSelectMenu(
 ) {
   try {
     const customId = interaction.customId;
+    if (customId === `${TICKET_EXCHANGE_PREFIX}:select`) {
+      await showTicketExchangeModal(interaction);
+      return;
+    }
     if (customId === PANEL_COMMAND_NAMES.SUPERCHAT_STREAMER_SELECT) {
       await SuperchatService.showStageSelect(interaction);
       return;

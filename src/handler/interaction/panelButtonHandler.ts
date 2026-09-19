@@ -1,3 +1,5 @@
+import { TICKET_EXCHANGE_PREFIX } from "../../constant/inventory/ticketExchange";
+import { handleTicketExchangeButton } from "../../service/inventory/ticketExchangeInteractionService";
 import { PrivateHotelService } from "../../service/hotel/privateHotelService";
 import { PRIVATE_HOTEL_PREFIX } from "../../constant/hotel/privateHotel";
 import { CREATOR_EMBLEM_CANCEL_ID } from "../../constant/market/creatorEmblem";
@@ -68,6 +70,10 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
   }
 
   try {
+    if (customId.startsWith(`${TICKET_EXCHANGE_PREFIX}:`)) {
+      await handleTicketExchangeButton(interaction);
+      return;
+    }
     if (customId.startsWith(PRIVATE_HOTEL_PREFIX)) {
       await PrivateHotelService.handleButton(interaction);
       return;

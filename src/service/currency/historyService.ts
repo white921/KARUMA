@@ -103,6 +103,7 @@ export class HistoryService {
   static convertActiontoHistoryObject(action: Action, userId: string) {
     const isFromUser = action.from_user_id === userId;
     const historyObject = {
+      [ACTION_TYPES.TICKET_EXCHANGE]: `+${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.to_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
       [PANEL_COMMAND_NAMES.SEND]: isFromUser
         ? `<@${
             action.to_user_id

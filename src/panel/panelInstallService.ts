@@ -1,3 +1,4 @@
+import { TicketExchangePanelService } from "./inventory/ticketExchangePanelService";
 import { PrivateHotelPanelService } from "./hotel/privateHotelPanelService";
 import { ChatInputCommandInteraction, Client, GuildMember } from "discord.js";
 import { getRoulettePanelChannelId, ROLE_IDS } from "../constant/shared/id";
@@ -81,6 +82,9 @@ async function installTargetPanel(
       return;
     case PANEL_INSTALL_TARGETS.SHOP:
       await ShopPanelService.createShopPanel(client);
+      return;
+    case PANEL_INSTALL_TARGETS.TICKET_EXCHANGE:
+      await TicketExchangePanelService.createPanel(client);
       return;
     case PANEL_INSTALL_TARGETS.COURT_SHOP:
       await ShopPanelService.createCourtShopPanel(client);

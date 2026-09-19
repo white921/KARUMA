@@ -1,3 +1,5 @@
+import { TICKET_EXCHANGE_PREFIX } from "../../constant/inventory/ticketExchange";
+import { confirmTicketExchangeModal } from "../../service/inventory/ticketExchangeInteractionService";
 import { GuildMember, ModalSubmitInteraction } from "discord.js";
 import { PANEL_COMMAND_NAMES } from "../../constant/shared/command";
 import { SHOP_TICKET_NONE, isShopTicketType } from "../../constant/market/shopTicket";
@@ -37,6 +39,10 @@ export async function handleModalSubmit(interaction: ModalSubmitInteraction) {
   const commandId = customId.includes("_") ? customId.split("_")[0] : customId;
 
   try {
+    if (customId.startsWith(`${TICKET_EXCHANGE_PREFIX}:quantity:`)) {
+      await confirmTicketExchangeModal(interaction);
+      return;
+    }
     if (customId.startsWith(`${PANEL_COMMAND_NAMES.SUPERCHAT_SEND}:`)) {
       const amount = Number(getModalFieldValue(interaction, "amount"));
       const comment = getModalFieldValue(interaction, "comment");
