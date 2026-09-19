@@ -1,6 +1,7 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, Client, EmbedBuilder } from "discord.js";
 import { PRIVATE_HOTEL_PREFIX, PRIVATE_HOTEL_TITLE } from "../../constant/hotel/privateHotel";
-import { HOTEL_VC_PANEL_MESSAGES } from "../../constant/panel/panel";
+import { HOTEL_VC_PANEL_MESSAGES, PANEL_MESSAGES } from "../../constant/panel/panel";
+import { PANEL_COMMAND_NAMES } from "../../constant/shared/command";
 import { TEXT_CHANNEL_IDS } from "../../constant/shared/id";
 import { COLOR } from "../../constant/shared/color";
 import { deletePanelMessage } from "../../util/shared/channelMessage";
@@ -17,6 +18,9 @@ export function createPrivateHotelPanelPayload() {
     components: [new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder().setCustomId(`${PRIVATE_HOTEL_PREFIX}vip`).setLabel("VIPホテル").setStyle(ButtonStyle.Success),
       new ButtonBuilder().setCustomId(`${PRIVATE_HOTEL_PREFIX}freedom`).setLabel("フリーダムホテル").setStyle(ButtonStyle.Primary),
+    ), new ActionRowBuilder<ButtonBuilder>().addComponents(
+      new ButtonBuilder().setCustomId(PANEL_COMMAND_NAMES.VIEW).setLabel(PANEL_MESSAGES.VIEW).setStyle(ButtonStyle.Primary),
+      new ButtonBuilder().setCustomId(PANEL_COMMAND_NAMES.HOTEL_TICKET_VIEW).setLabel(HOTEL_VC_PANEL_MESSAGES.TICKET_VIEW).setStyle(ButtonStyle.Secondary),
     )],
   };
 }
