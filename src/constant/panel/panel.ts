@@ -53,11 +53,21 @@ const NORMAL_HOTEL_PRICE_GUIDANCE = [
   `賢者：${HOTEL_PRICE.NORMAL / 2}${CURRENCY_NAMES}/12時間`,
   "騎士以上：無料",
 ].join("\n");
+const SPECIAL_HOTEL_GUIDANCE = [
+  "**・ VIPホテル**",
+  "管理者以外に見えないツーショットVC",
+  `12時間：${HOTEL_PRICE.SECRET.toLocaleString("ja-JP")}${CURRENCY_NAMES} ／ 24時間：${HOTEL_PRICE.SECRETLONG.toLocaleString("ja-JP")}${CURRENCY_NAMES}`,
+  "",
+  "**・ フリーダム**",
+  "大人数で自由に利用できるVC",
+  `12時間：${HOTEL_PRICE.FREEDOM.toLocaleString("ja-JP")}${CURRENCY_NAMES} ／ 24時間：${HOTEL_PRICE.FREEDOMLONG.toLocaleString("ja-JP")}${CURRENCY_NAMES}`,
+].join("\n");
+
 export const HOTEL_VC_PANEL_MESSAGES = {
   TITLE: "ホテルVCパネル",
-  DESCRIPTION: `ボタンを押してホテルを選択してください。\n\n**【ホテル案内】**\n**・ ${HOTEL_TYPE_NAMES.NORMAL}**\n${NORMAL_HOTEL_PRICE_GUIDANCE}\n通常ツーショットVC\n\n**・ ${HOTEL_TYPE_NAMES.SECRET}**\n${HOTEL_PRICE.SECRET}${CURRENCY_NAMES}/12時間\n管理者以外に見えないツーショットVC\n\n**・ ${HOTEL_TYPE_NAMES.SECRETLONG}**\n${HOTEL_PRICE.SECRETLONG}${CURRENCY_NAMES}/24時間\n管理者以外に見えないツーショットVC\n\n**・ ${HOTEL_TYPE_NAMES.FREEDOM}**\n${HOTEL_PRICE.FREEDOM}${CURRENCY_NAMES}/12時間\n大人数で自由に利用できるVC\n\n**・ ${HOTEL_TYPE_NAMES.FREEDOMLONG}**\n${HOTEL_PRICE.FREEDOMLONG}${CURRENCY_NAMES}/24時間\n大人数で自由に利用できるVC`,
+  DESCRIPTION: `ボタンを押してホテルを選択してください。\n\n**【ホテル案内】**\n**・ ${HOTEL_TYPE_NAMES.NORMAL}**\n${NORMAL_HOTEL_PRICE_GUIDANCE}\n通常ツーショットVC\n\n${SPECIAL_HOTEL_GUIDANCE}`,
   NORMAL_DESCRIPTION: `\nボタンを押してホテルを選択してください。\n\n**【ホテル案内】**\n**・ ${HOTEL_TYPE_NAMES.NORMAL}**\n${NORMAL_HOTEL_PRICE_GUIDANCE}\n通常ツーショットVC\n\n`,
-  SPECIAL_DISCRIPTION: `\nボタンを押してホテルを選択してください。\n\n**【ホテル案内】**\n**・ ${HOTEL_TYPE_NAMES.SECRET}**\n${HOTEL_PRICE.SECRET}${CURRENCY_NAMES}/12時間\n管理者以外に見えないツーショットVC\n\n**・ ${HOTEL_TYPE_NAMES.SECRETLONG}**\n${HOTEL_PRICE.SECRETLONG}${CURRENCY_NAMES}/24時間\n管理者以外に見えないツーショットVC\n\n**・ ${HOTEL_TYPE_NAMES.FREEDOM}**\n${HOTEL_PRICE.FREEDOM}${CURRENCY_NAMES}/12時間\n大人数で自由に利用できるVC\n\n**・ ${HOTEL_TYPE_NAMES.FREEDOMLONG}**\n${HOTEL_PRICE.FREEDOMLONG}${CURRENCY_NAMES}/24時間\n大人数で自由に利用できるVC`,
+  SPECIAL_DISCRIPTION: `\nボタンを押してホテルを選択してください。\n\n**【ホテル案内】**\n${SPECIAL_HOTEL_GUIDANCE}`,
   ERROR: "ホテルVCパネルチャンネルが見つからないか、無効な型です。",
   CANCEL: "❌ キャンセルしました。",
   NORMAL: HOTEL_TYPE_NAMES.NORMAL,
