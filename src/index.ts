@@ -1,3 +1,4 @@
+import { PRIVATE_HOTEL_PREFIX } from "./constant/hotel/privateHotel";
 import { DEFAULT_PUBLIC_COMMAND } from "./constant/shared/command";
 import {
   Client,
@@ -213,6 +214,9 @@ client.on("interactionCreate", async (interaction) => {
     }
   } else if (interaction.isUserSelectMenu()) {
     try {
+      if (interaction.customId.startsWith(PRIVATE_HOTEL_PREFIX)) {
+        await interaction.deferUpdate();
+      }
       await validateSelectUserMenu(interaction);
       await handleUserSelectMenu(interaction);
       BotHealthMonitor.recordAckSuccess(`${interactionContext}:handler`);

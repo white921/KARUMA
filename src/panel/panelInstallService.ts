@@ -1,3 +1,4 @@
+import { PrivateHotelPanelService } from "./hotel/privateHotelPanelService";
 import { ChatInputCommandInteraction, Client, GuildMember } from "discord.js";
 import { getRoulettePanelChannelId, ROLE_IDS } from "../constant/shared/id";
 import {
@@ -56,6 +57,9 @@ async function installTargetPanel(
       return;
     case PANEL_INSTALL_TARGETS.ADMIN_BANK:
       await AdminPanelService.createAdminPanel(client);
+      return;
+    case PANEL_INSTALL_TARGETS.PRIVATE_HOTEL:
+      await PrivateHotelPanelService.createPanel(client);
       return;
     case PANEL_INSTALL_TARGETS.HOTEL:
       await HotelVcPanelService.createHotelVcPanel(client);

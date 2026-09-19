@@ -254,6 +254,7 @@ export class HotelVcService {
     hotelVcTypeName: string,
     isBonus: boolean,
     selectedUserId?: string,
+    notifySuccess = true,
   ) {
     try {
       const guild = interaction.guild;
@@ -580,6 +581,9 @@ export class HotelVcService {
         default:
           throw new Error(HOTEL_MESSAGES.UNDEFINED_TYPE_OF_HOTEL);
       }
+
+      // 新パネルでは支払い・DB登録の完了後に呼び出し元から通知する。
+      if (!notifySuccess) return voiceChannel!.id;
 
       // 成功メッセージ
       if (interaction.deferred) {

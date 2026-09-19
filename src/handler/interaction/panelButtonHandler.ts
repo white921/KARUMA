@@ -1,3 +1,5 @@
+import { PrivateHotelService } from "../../service/hotel/privateHotelService";
+import { PRIVATE_HOTEL_PREFIX } from "../../constant/hotel/privateHotel";
 import { CREATOR_EMBLEM_CANCEL_ID } from "../../constant/market/creatorEmblem";
 import { ButtonInteraction, GuildMember } from "discord.js";
 
@@ -66,6 +68,10 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
   }
 
   try {
+    if (customId.startsWith(PRIVATE_HOTEL_PREFIX)) {
+      await PrivateHotelService.handleButton(interaction);
+      return;
+    }
     if (customId.startsWith("rouletteBetStart_")) {
       const stage = Number(customId.split("_")[1]);
       if (stage !== 1 && stage !== 2 && stage !== 3) {

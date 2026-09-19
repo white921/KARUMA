@@ -1,3 +1,5 @@
+import { PrivateHotelService } from "../../service/hotel/privateHotelService";
+import { PRIVATE_HOTEL_PREFIX } from "../../constant/hotel/privateHotel";
 import { UserSelectMenuInteraction } from "discord.js";
 
 import { showAmountModal } from "../../util/interaction/modal";
@@ -19,6 +21,10 @@ export async function handleUserSelectMenu(
   interaction: UserSelectMenuInteraction
 ) {
   const customId = interaction.customId;
+  if (customId.startsWith(PRIVATE_HOTEL_PREFIX)) {
+    await PrivateHotelService.handleUserSelect(interaction);
+    return;
+  }
   const customIdParts = customId.split("_");
   const commandId = customIdParts[0]; // NORMAL, SECRET, SECRETLONG, FREEDOM, FREEDOMLONG
   const selectedHotelPurchaseWay =
