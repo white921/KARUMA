@@ -189,6 +189,22 @@ export class AccountService {
     }
   }
 
+  /** 指定された本垢に登録されているサブ垢を、件数制限なしで取得する。 */
+  static async getSubUserIdsByMainUserIds(mainUserIds: readonly string[]): Promise<string[]> {
+    if (mainUserIds.length === 0) return [];
+    const connection = await DbService.getConnection();
+    try {
+      const [rows] = await connection.execute<RowDataPacket[]>(
+        `SELECT DISTINCT CAST(sub_user_id AS CHAR) AS sub_user_id FROM sub_accounts
+         WHERE main_user_id IN (${mainUserIds.map(() => "?").join(", ")})`,
+        [...mainUserIds],
+      );
+      return rows.map(row => String(row.sub_user_id));
+    } finally {
+      connection.release();
+    }
+  }
+
   /**
    * 本垢と紐づくサブ垢の組み合わせかどうか
    * @param fromUserId 送金元ユーザーID

@@ -1,3 +1,4 @@
+import { createSecretHotelPermissionOverwrites } from "../../util/vc/secretHotelPermissions";
 import type { Channel } from "discord.js";
 import {
   ButtonInteraction,
@@ -260,11 +261,10 @@ export class HotelVcService {
       const guild = interaction.guild;
       const member = interaction.member as GuildMember;
 
-      const subUserId = await AccountService.getSubUserIdByMainUserId(member.id);
+      const isSecret = hotelVcTypeName === HOTEL_TYPE_NAMES.SECRET || hotelVcTypeName === HOTEL_TYPE_NAMES.SECRETLONG;
+      const subUserId = isSecret ? undefined : await AccountService.getSubUserIdByMainUserId(member.id);
       const subMember = subUserId ? await interaction.guild?.members.fetch(subUserId) : null;
 
-      const selectedSubUserId = selectedUserId ? await AccountService.getSubUserIdByMainUserId(selectedUserId) : null;
-      const selectedSubMember = selectedSubUserId ? await interaction.guild?.members.fetch(selectedSubUserId) : null;
       let channelName, voiceChannel;
 
       //パネルが所属しているカテゴリー内にVCを作成(parentIdはカテゴリーID)
@@ -352,90 +352,22 @@ export class HotelVcService {
           const selectedMember = await guild?.members.fetch(selectedUserId);
           channelName = `VIP - ${member.displayName} & ${selectedMember?.displayName}`;
 
-          // カテゴリーの権限を取得
-          const secretPermissionOverwrites = this.copyCategoryPermissionOverwrites(
-            categoryPermissions,
-          );
-
-          secretPermissionOverwrites.push({
-            id: interaction.user.id,
-            type: OverwriteType.Member,
-            allow: HOTEL_PARTICIPANT_PERMISSIONS,
-            deny: [
-              PermissionsBitField.Flags.UseExternalEmojis,
-              PermissionsBitField.Flags.UseExternalStickers,
-              PermissionsBitField.Flags.UseExternalSounds,
-            ],
-          });
-
-          if (subMember) {
-            secretPermissionOverwrites.push({
-              id: subMember.id,
-              type: OverwriteType.Member,
-              allow: HOTEL_PARTICIPANT_PERMISSIONS,
-              deny: [
-                PermissionsBitField.Flags.UseExternalEmojis,
-                PermissionsBitField.Flags.UseExternalStickers,
-                PermissionsBitField.Flags.UseExternalSounds,
-              ],
-            });
+          const subUserIds = await AccountService.getSubUserIdsByMainUserIds([interaction.user.id, selectedUserId]);
+          const participantIds = [interaction.user.id, selectedUserId];
+          for (const subId of subUserIds) {
+            try {
+              const sub = await guild!.members.fetch(subId);
+              participantIds.push(sub.id);
+            } catch (error) {
+              // 退会したサブ垢だけを除外し、通信障害・権限エラーは握りつぶさない。
+              if (!(error && typeof error === "object" && "code" in error && error.code === 10007)) throw error;
+            }
           }
-
-          secretPermissionOverwrites.push({
-            id: selectedUserId,
-            type: OverwriteType.Member,
-            allow: HOTEL_PARTICIPANT_PERMISSIONS,
-            deny: [
-              PermissionsBitField.Flags.UseExternalEmojis,
-              PermissionsBitField.Flags.UseExternalStickers,
-              PermissionsBitField.Flags.UseExternalSounds,
-            ],
-          });
-
-          if (selectedSubMember) {
-            secretPermissionOverwrites.push({
-              id: selectedSubMember.id,
-              type: OverwriteType.Member,
-              allow: HOTEL_PARTICIPANT_PERMISSIONS,
-              deny: [
-                PermissionsBitField.Flags.UseExternalEmojis,
-                PermissionsBitField.Flags.UseExternalStickers,
-                PermissionsBitField.Flags.UseExternalSounds,
-              ],
-            });
-          }
-
-          secretPermissionOverwrites.push(
-            {
-              id: ROLE_IDS.CORE_MEMBER_ROLES.HONMEN,
-              type: OverwriteType.Role,
-              deny: [PermissionsBitField.Flags.ViewChannel],
-            },
-            {
-              id: ROLE_IDS.CORE_MEMBER_ROLES.JUNJUNHONMEN,
-              type: OverwriteType.Role,
-              deny: [PermissionsBitField.Flags.ViewChannel],
-            },
-            {
-              id: ROLE_IDS.CORE_MEMBER_ROLES.JUNHONMEN,
-              type: OverwriteType.Role,
-              deny: [PermissionsBitField.Flags.ViewChannel],
-            },
-            {
-              id: ROLE_IDS.CORE_MEMBER_ROLES.KARIMEN,
-              type: OverwriteType.Role,
-              deny: [PermissionsBitField.Flags.ViewChannel],
-            },
-            {
-              id: ROLE_IDS.CORE_MEMBER_ROLES.HANTEIZUMI,
-              type: OverwriteType.Role,
-              deny: [PermissionsBitField.Flags.ViewChannel],
-            },
-            {
-              id: ROLE_IDS.CORE_MEMBER_ROLES.MENSETUMATI,
-              type: OverwriteType.Role,
-              deny: [PermissionsBitField.Flags.ViewChannel],
-            },
+          const secretPermissionOverwrites = createSecretHotelPermissionOverwrites(
+            guild!.id,
+            interaction.client?.user?.id ?? BOT_ID,
+            participantIds,
+            categoryPermissions?.values() ?? [],
           );
 
           voiceChannel = await guild?.channels.create({
