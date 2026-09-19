@@ -136,7 +136,8 @@ export const CREATOR_EMBLEM_PANEL_MESSAGES = {
   TITLE: "スタンプ支払いパネル",
   DESCRIPTION:
     `**${PRODUCTS.personal.label}**\n貴族：${PRODUCTS.personal.prices.noble!.toLocaleString()} ${CURRENCY_NAMES}\n騎士：${PRODUCTS.personal.prices.knight!.toLocaleString()} ${CURRENCY_NAMES}\n\n` +
-    `**${PRODUCTS.large.label}**\n貴族のみ：${PRODUCTS.large.prices.noble!.toLocaleString()} ${CURRENCY_NAMES}`,
+    `**${PRODUCTS.large.label}**\n貴族のみ：${PRODUCTS.large.prices.noble!.toLocaleString()} ${CURRENCY_NAMES}\n\n` +
+    "⚠️ **注意事項**\n**夢印屋さんからの指示があるまではパネル操作をしないでください！**",
   PAY: "支払う",
   VIEW: "残高確認",
   DISABLED: "スタンプ支払いの受付は現在停止中です。",
