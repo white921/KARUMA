@@ -133,7 +133,7 @@ TC `1549981844664229898` のパネルで商品を選択し、内容を確認し�
 - サプボ・歌みた：R2の公開URLと録音者をDBから選び、当選案内とDMで実際の録音者をメンションしてURLを渡す。Discordの添付容量上限を受けない
 - 音源テーブルと配信履歴により、誰のどのファイルを渡したかを抽選ごとに記録する
 
-既存DBに導入する場合は、デプロイ前に `src/sql/20260713_market_gacha.sql`、`src/sql/20260714_market_gacha_audio.sql`、`src/sql/20260718_shop_tickets.sql`、`src/sql/20260716_invite_points.sql`、`src/sql/20260716_market_gacha_audio_correction.sql`、`src/sql/20260727_game_free_tickets.sql`、`src/sql/20260727_item_inventory.sql`、`src/sql/20260901_game_vc.sql`、`src/sql/20260902_market_gacha_update.sql`、`src/sql/20260906_market_gacha_scarlet_mention.sql`、`src/sql/20260911_market_gacha_killer_audio.sql`、`src/sql/20260913_market_gacha_superchat_audio.sql`、`src/sql/20260913_market_gacha_tsuyogari_audio_correction.sql` をこの順で適用してください。新規DBでは `src/sql/createTable.sql` に含まれています。既存の3券種テーブルは移行確認のため残し、Botは `items` と `item_users` を参照します。適用後、技術統括が市場パネルのチャンネルで `/panel` を実行してパネルを更新してください。
+既存DBに導入する場合は、デプロイ前に `src/sql/20260713_market_gacha.sql`、`src/sql/20260714_market_gacha_audio.sql`、`src/sql/20260718_shop_tickets.sql`、`src/sql/20260716_invite_points.sql`、`src/sql/20260716_market_gacha_audio_correction.sql`、`src/sql/20260727_game_free_tickets.sql`、`src/sql/20260727_item_inventory.sql`、`src/sql/20260901_game_vc.sql`、`src/sql/20260902_market_gacha_update.sql`、`src/sql/20260906_market_gacha_scarlet_mention.sql`、`src/sql/20260911_market_gacha_killer_audio.sql`、`src/sql/20260913_market_gacha_superchat_audio.sql`、`src/sql/20260913_market_gacha_tsuyogari_audio_correction.sql`、`src/sql/20260919_market_gacha_audio.sql` をこの順で適用してください。新規DBでは `src/sql/createTable.sql` に含まれています。既存の3券種テーブルは移行確認のため残し、Botは `items` と `item_users` を参照します。適用後、技術統括が市場パネルのチャンネルで `/panel` を実行してパネルを更新してください。
 
 ## 転送VC（2026-08-18）
 
