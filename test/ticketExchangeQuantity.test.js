@@ -13,6 +13,11 @@ let sequence = 1550829000000000000n;
 const nextId = () => String(++sequence);
 const key = 'HOTEL_SECRET_FREE';
 
+function displayText(payload) {
+  const embed = payload.embeds?.[0]?.toJSON();
+  return [payload.content, embed?.description, ...(embed?.fields ?? []).map(f => `${f.name}: ${f.value}`)].filter(Boolean).join('\n');
+}
+
 async function open(t, owned = 103) {
   const reads = t.mock.method(ItemService, 'getQuantities', async () => new Map([[key, owned]]));
   const accountChecks = t.mock.method(AccountService, 'hasAccount', async () => assert.fail('枚数調整で口座照会しない'));
@@ -36,15 +41,19 @@ async function open(t, owned = 103) {
 
 test('種類選択後は5枚から開始し、＋−は5枚ずつ同じ画面を更新する', async t => {
   const f = await open(t);
-  assert.match(f.response().content, /換金枚数: \*\*5枚\*\*/);
+  assert.equal(f.response().content, '');
+  const embed = f.response().embeds[0].toJSON();
+  assert.equal(embed.title, 'チケット換金');
+  assert.deepEqual(embed.fields.map(field => field.name), ['所持数', '換金枚数', '受取額']);
+  assert.match(displayText(f.response()), /換金枚数: \*\*5枚\*\*/);
   assert.equal(f.button('minus').disabled, true);
   assert.equal(shouldDeferButtonUpdate(f.button('plus').custom_id), true);
   await f.press('plus');
-  assert.match(f.response().content, /換金枚数: \*\*10枚\*\*/);
-  assert.match(f.response().content, /受取額: \*\*30,000 LIA\*\*/);
+  assert.match(displayText(f.response()), /換金枚数: \*\*10枚\*\*/);
+  assert.match(displayText(f.response()), /受取額: \*\*30,000 LIA\*\*/);
   await f.press('minus');
   await f.press('minus');
-  assert.match(f.response().content, /換金枚数: \*\*5枚\*\*/);
+  assert.match(displayText(f.response()), /換金枚数: \*\*5枚\*\*/);
   assert.equal(f.reads.mock.callCount(), 1);
   assert.equal(f.accountChecks.mock.callCount(), 0);
   assert.equal(f.creates.mock.callCount(), 0);
@@ -54,17 +63,17 @@ test('種類選択後は5枚から開始し、＋−は5枚ずつ同じ画面を
 test('所持数の端数を除く最大枚数まで増やせるが上限を超えない', async t => {
   const f = await open(t, 12);
   await f.press('max');
-  assert.match(f.response().content, /換金枚数: \*\*10枚\*\*/);
+  assert.match(displayText(f.response()), /換金枚数: \*\*10枚\*\*/);
   assert.equal(f.button('plus').disabled, true);
   assert.equal(f.button('max').disabled, true);
   await f.press('plus');
-  assert.match(f.response().content, /換金枚数: \*\*10枚\*\*/);
+  assert.match(displayText(f.response()), /換金枚数: \*\*10枚\*\*/);
 });
 
 test('大量所持でも最大100,000枚に制限する', async t => {
   const f = await open(t, 100007);
   await f.press('max');
-  assert.match(f.response().content, /換金枚数: \*\*100,000枚\*\*/);
+  assert.match(displayText(f.response()), /換金枚数: \*\*100,000枚\*\*/);
 });
 
 test('連打は同じ古いボタンからでも加算され、画面更新は重ならない', async t => {
@@ -74,7 +83,7 @@ test('連打は同じ古いボタンからでも加算され、画面更新は�
   const quantities = [];
   const editReply = async p => {
     active++; peak = Math.max(peak, active);
-    quantities.push(Number(p.content.match(/換金枚数: \*\*(\d+)枚/)[1]));
+    quantities.push(Number(displayText(p).match(/換金枚数: \*\*(\d+)枚/)[1]));
     await new Promise(resolve => setImmediate(resolve));
     await f.editReply(p); active--;
   };
@@ -89,7 +98,7 @@ test('同一イベントの再送では増加を重複させず、別ユーザ�
   const customId = f.button('plus').custom_id;
   const id = nextId();
   await Promise.all([f.press('plus', { customId, id }), f.press('plus', { customId, id })]);
-  assert.match(f.response().content, /換金枚数: \*\*10枚\*\*/);
+  assert.match(displayText(f.response()), /換金枚数: \*\*10枚\*\*/);
   await assert.rejects(f.press('plus', { user: { id: '1002' } }), /操作できません/);
 });
 
@@ -97,8 +106,8 @@ test('増減と確定の連打は古い表示で決済せず、新しい表示�
   const f = await open(t);
   const oldSubmit = f.button('submit').custom_id;
   await Promise.all([f.press('plus'), f.press('submit', { customId: oldSubmit })]);
-  assert.match(f.response().content, /もう一度確定/);
-  assert.match(f.response().content, /10枚/);
+  assert.match(displayText(f.response()), /もう一度確定/);
+  assert.match(displayText(f.response()), /10枚/);
   assert.equal(f.creates.mock.callCount(), 0);
   const submit = f.button('submit').custom_id;
   await Promise.all([f.press('submit', { customId: submit }), f.press('submit', { customId: submit })]);
@@ -114,7 +123,8 @@ test('確定前のキャンセルはDBを変更せず、後続の＋も復活さ
   const plus = f.button('plus').custom_id;
   await f.press('dismiss');
   await handlePanelButton({ ...f.base, id: nextId(), customId: plus, editReply: f.editReply });
-  assert.match(f.response().content, /キャンセルしました/);
+  assert.match(displayText(f.response()), /キャンセルしました/);
+  assert.deepEqual(f.response().embeds, []);
   assert.equal(f.creates.mock.callCount(), 0);
   assert.equal(f.cancels.mock.callCount(), 0);
   assert.equal(f.redeems.mock.callCount(), 0);
@@ -125,10 +135,11 @@ test('期限切れや再起動で失われた下書きは確定しない', async
   const time = Date.now();
   t.mock.method(Date, 'now', () => time + TICKET_EXCHANGE_DRAFT_TTL_MS + 1);
   await f.press('submit');
-  assert.match(f.response().content, /有効期限/);
+  assert.match(displayText(f.response()), /有効期限/);
+  assert.deepEqual(f.response().embeds, []);
   assert.equal(f.creates.mock.callCount(), 0);
   await handlePanelButton({ ...f.base, id: nextId(), customId: 'ticketExchange:step:submit:999999999999999999:0', editReply: f.editReply });
-  assert.match(f.response().content, /やり直してください/);
+  assert.match(displayText(f.response()), /やり直してください/);
 });
 
 test('確認作成後の再試行は同じ換金IDを使い、枚数を変更しない', async t => {
@@ -138,8 +149,8 @@ test('確認作成後の再試行は同じ換金IDを使い、枚数を変更し
   f.redeems.mock.mockImplementation(async () => { if (++attempts === 1) throw new Error('temporary failure'); return expected; });
   await assert.rejects(f.press('submit'), /temporary failure/);
   await f.press('plus');
-  assert.match(f.response().content, /枚数は変更できません/);
-  assert.match(f.response().content, /換金枚数: \*\*5枚\*\*/);
+  assert.match(displayText(f.response()), /枚数は変更できません/);
+  assert.match(displayText(f.response()), /換金枚数: \*\*5枚\*\*/);
   await f.press('submit');
   assert.equal(f.creates.mock.callCount(), 1);
   assert.equal(f.redeems.mock.callCount(), 2);
@@ -148,5 +159,5 @@ test('確認作成後の再試行は同じ換金IDを使い、枚数を変更し
 test('所持数が5枚未満なら調整画面を出さない', async t => {
   const f = await open(t, 4);
   assert.deepEqual(f.response().components, []);
-  assert.match(f.response().content, /不足/);
+  assert.match(displayText(f.response()), /不足/);
 });

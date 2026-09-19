@@ -1,11 +1,12 @@
 import {
-  ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, MessageFlags,
+  ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, EmbedBuilder, MessageFlags,
   ModalSubmitInteraction, StringSelectMenuBuilder, StringSelectMenuInteraction,
 } from "discord.js";
 import {
   getTicketExchangeRate, parseTicketExchangeQuantity, TICKET_EXCHANGE_PREFIX, TICKET_EXCHANGE_RATES,
   TICKET_EXCHANGE_STEP_PREFIX, TICKET_EXCHANGE_DRAFT_TTL_MS, TICKET_EXCHANGE_BATCH_SIZE, TICKET_EXCHANGE_MAX_QUANTITY,
 } from "../../constant/inventory/ticketExchange";
+import { COLOR } from "../../constant/shared/color";
 import { TEXT_CHANNEL_IDS } from "../../constant/shared/id";
 import { ItemService } from "./itemService";
 import { TicketExchangeService } from "./ticketExchangeService";
@@ -31,7 +32,7 @@ export async function handleTicketExchangeButton(interaction: ButtonInteraction)
     const quantities = await ItemService.getQuantities(interaction.user.id, TICKET_EXCHANGE_RATES.map((rate) => rate.itemKey));
     const eligible = TICKET_EXCHANGE_RATES.filter((rate) => (quantities.get(rate.itemKey) ?? 0) >= 5);
     if (!eligible.length) {
-      await interaction.editReply({ content: "換金できるチケットがありません。同じ種類を5枚以上集めてください。", components: [] });
+      await interaction.editReply({ content: "換金できるチケットがありません。同じ種類を5枚以上集めてください。", embeds: [], components: [] });
       return;
     }
     await interaction.editReply({
@@ -72,13 +73,17 @@ function quantityPayload(draft: TicketExchangeDraft, notice?: string) {
     .setCustomId(`${TICKET_EXCHANGE_STEP_PREFIX}${action}:${draft.id}:${draft.revision}`)
     .setLabel(label).setStyle(style).setDisabled(disabled);
   return {
-    content: [notice, "**チケット換金**", draft.label,
-      `所持数: ${draft.owned.toLocaleString()}枚`,
-      `換金枚数: **${draft.quantity.toLocaleString()}枚**`,
-      `受取額: **${(draft.quantity * draft.unitPrice).toLocaleString()} LIA**`,
-      "「−5枚」「＋5枚」で調整できます。確定するとチケットは戻せません。",
-      "操作の有効期限は10分です。"].filter(Boolean).join("\n"),
-    embeds: [],
+    content: "",
+    embeds: [new EmbedBuilder()
+      .setTitle("チケット換金")
+      .setColor(COLOR.LIGFT_PINK)
+      .setDescription([notice, `**${draft.label}**`, "「−5枚」「＋5枚」で調整できます。", "確定するとチケットは戻せません。"].filter(Boolean).join("\n"))
+      .addFields(
+        { name: "所持数", value: `${draft.owned.toLocaleString()}枚`, inline: true },
+        { name: "換金枚数", value: `**${draft.quantity.toLocaleString()}枚**`, inline: true },
+        { name: "受取額", value: `**${(draft.quantity * draft.unitPrice).toLocaleString()} LIA**`, inline: true },
+      )
+      .setFooter({ text: "操作の有効期限は10分です。" })],
     components: [
       new ActionRowBuilder<ButtonBuilder>().addComponents(
         button("minus", "−5枚", ButtonStyle.Secondary, draft.requestCreated || draft.quantity <= TICKET_EXCHANGE_BATCH_SIZE),
@@ -99,7 +104,7 @@ export async function showTicketExchangeQuantity(interaction: StringSelectMenuIn
   await interaction.deferUpdate();
   const owned = (await ItemService.getQuantities(interaction.user.id, [rate.itemKey])).get(rate.itemKey) ?? 0;
   if (owned < TICKET_EXCHANGE_BATCH_SIZE) {
-    await interaction.editReply({ content: "チケットが不足しています。同じ種類を5枚以上集めてください。", components: [] });
+    await interaction.editReply({ content: "チケットが不足しています。同じ種類を5枚以上集めてください。", embeds: [], components: [] });
     return;
   }
   const draft: TicketExchangeDraft = {
@@ -122,7 +127,7 @@ async function handleQuantityButton(interaction: ButtonInteraction) {
   }
   const draft = drafts.get(draftId);
   if (!draft || draft.expiresAt <= Date.now()) {
-    await interaction.editReply({ content: "操作の有効期限が切れたか、Botが再起動しました。換金パネルからやり直してください。", components: [] });
+    await interaction.editReply({ content: "操作の有効期限が切れたか、Botが再起動しました。換金パネルからやり直してください。", embeds: [], components: [] });
     return;
   }
   if (draft.userId !== interaction.user.id) throw new Error("この換金画面は操作できません。");
@@ -130,7 +135,7 @@ async function handleQuantityButton(interaction: ButtonInteraction) {
   // DB照会を挟まず、同じ下書きへの操作と画面更新を受信順に処理する。
   const operation = draft.tail.catch(() => {}).then(async () => {
     if (draft.expiresAt <= Date.now()) {
-      await interaction.editReply({ content: "操作の有効期限が切れました。換金パネルからやり直してください。", components: [] });
+      await interaction.editReply({ content: "操作の有効期限が切れました。換金パネルからやり直してください。", embeds: [], components: [] });
       return;
     }
     if (draft.result) {
@@ -138,14 +143,14 @@ async function handleQuantityButton(interaction: ButtonInteraction) {
       return;
     }
     if (draft.cancelled) {
-      await interaction.editReply({ content: "換金をキャンセルしました。チケットは消費していません。", components: [] });
+      await interaction.editReply({ content: "換金をキャンセルしました。チケットは消費していません。", embeds: [], components: [] });
       return;
     }
     if (draft.seenInteractions.has(interaction.id)) return;
     if (action === "dismiss") {
       if (draft.requestCreated) await TicketExchangeService.cancel(draft.id, draft.userId);
       draft.cancelled = true;
-      await interaction.editReply({ content: "換金をキャンセルしました。チケットは消費していません。", components: [] });
+      await interaction.editReply({ content: "換金をキャンセルしました。チケットは消費していません。", embeds: [], components: [] });
       return;
     }
     if (action === "submit") {
