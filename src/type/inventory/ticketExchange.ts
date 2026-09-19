@@ -1,4 +1,23 @@
 import type { RowDataPacket } from "mysql2/promise";
+import type { ItemKey } from "./item";
+
+export interface TicketExchangeDraft {
+  id: string;
+  userId: string;
+  itemKey: ItemKey;
+  label: string;
+  unitPrice: number;
+  owned: number;
+  quantity: number;
+  maximum: number;
+  revision: number;
+  expiresAt: number;
+  requestCreated: boolean;
+  cancelled: boolean;
+  result?: TicketExchangeResult;
+  seenInteractions: Set<string>;
+  tail: Promise<void>;
+}
 
 export interface TicketExchangeResult {
   label: string;

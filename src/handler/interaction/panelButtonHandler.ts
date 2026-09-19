@@ -1,4 +1,4 @@
-import { TICKET_EXCHANGE_PREFIX } from "../../constant/inventory/ticketExchange";
+import { TICKET_EXCHANGE_PREFIX, TICKET_EXCHANGE_STEP_PREFIX } from "../../constant/inventory/ticketExchange";
 import { PAYMENT_CONFIRMATION_PREFIX } from "../../constant/currency/paymentConfirmation";
 import { PaymentConfirmationService } from "../../service/currency/paymentConfirmationService";
 import { handleTicketExchangeButton } from "../../service/inventory/ticketExchangeInteractionService";
@@ -65,6 +65,12 @@ import { DIARY_MESSAGES } from "../../constant/diary/diary";
  */
 export async function handlePanelButton(interaction: ButtonInteraction) {
   const customId = interaction.customId;
+
+  // 枚数調整は本人の下書きを検証し、DB照会を省く。確定時はサービス側で口座を再確認する。
+  if (customId.startsWith(TICKET_EXCHANGE_STEP_PREFIX)) {
+    await handleTicketExchangeButton(interaction);
+    return;
+  }
 
   // 口座が存在しない場合はエラーを返す
   if (!(await AccountService.hasAccount(interaction.user.id))) {

@@ -1,15 +1,18 @@
 import {
   ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, MessageFlags,
-  ModalBuilder, ModalSubmitInteraction, StringSelectMenuBuilder, StringSelectMenuInteraction,
-  TextInputBuilder, TextInputStyle,
+  ModalSubmitInteraction, StringSelectMenuBuilder, StringSelectMenuInteraction,
 } from "discord.js";
 import {
   getTicketExchangeRate, parseTicketExchangeQuantity, TICKET_EXCHANGE_PREFIX, TICKET_EXCHANGE_RATES,
+  TICKET_EXCHANGE_STEP_PREFIX, TICKET_EXCHANGE_DRAFT_TTL_MS, TICKET_EXCHANGE_BATCH_SIZE, TICKET_EXCHANGE_MAX_QUANTITY,
 } from "../../constant/inventory/ticketExchange";
 import { TEXT_CHANNEL_IDS } from "../../constant/shared/id";
 import { ItemService } from "./itemService";
 import { TicketExchangeService } from "./ticketExchangeService";
 import { TicketExchangeLogService } from "./ticketExchangeLogService";
+import type { TicketExchangeDraft, TicketExchangeResult } from "../../type/inventory/ticketExchange";
+
+const drafts = new Map<string, TicketExchangeDraft>();
 
 function assertChannel(interaction: { channelId: string | null; guildId: string | null }) {
   if (!interaction.guildId || interaction.channelId !== TEXT_CHANNEL_IDS.TICKET_EXCHANGE_PANEL) {
@@ -19,6 +22,10 @@ function assertChannel(interaction: { channelId: string | null; guildId: string 
 
 export async function handleTicketExchangeButton(interaction: ButtonInteraction) {
   assertChannel(interaction);
+  if (interaction.customId.startsWith(TICKET_EXCHANGE_STEP_PREFIX)) {
+    await handleQuantityButton(interaction);
+    return;
+  }
   const [, action, requestId] = interaction.customId.split(":");
   if (action === "start") {
     const quantities = await ItemService.getQuantities(interaction.user.id, TICKET_EXCHANGE_RATES.map((rate) => rate.itemKey));
@@ -47,6 +54,10 @@ export async function handleTicketExchangeButton(interaction: ButtonInteraction)
   const result = await TicketExchangeService.redeem(requestId, interaction.user.id);
   // 利用者への応答に失敗しても、確定した換金のログを先に記録する。
   await TicketExchangeLogService.send(interaction.client, interaction.guildId!, interaction.user.id, requestId, result);
+  await showExchangeResult(interaction, result);
+}
+
+async function showExchangeResult(interaction: ButtonInteraction, result: TicketExchangeResult) {
   await interaction.editReply({
     content: [result.alreadyCompleted ? "✅ この換金は既に完了しています。追加の消費・入金はしていません。" : "✅ チケットを換金しました。",
       `${result.label}: ${result.quantity.toLocaleString()}枚 → **${result.amount.toLocaleString()} LIA**`,
@@ -56,15 +67,125 @@ export async function handleTicketExchangeButton(interaction: ButtonInteraction)
   });
 }
 
-export async function showTicketExchangeModal(interaction: StringSelectMenuInteraction) {
+function quantityPayload(draft: TicketExchangeDraft, notice?: string) {
+  const button = (action: string, label: string, style: ButtonStyle, disabled = false) => new ButtonBuilder()
+    .setCustomId(`${TICKET_EXCHANGE_STEP_PREFIX}${action}:${draft.id}:${draft.revision}`)
+    .setLabel(label).setStyle(style).setDisabled(disabled);
+  return {
+    content: [notice, "**チケット換金**", draft.label,
+      `所持数: ${draft.owned.toLocaleString()}枚`,
+      `換金枚数: **${draft.quantity.toLocaleString()}枚**`,
+      `受取額: **${(draft.quantity * draft.unitPrice).toLocaleString()} LIA**`,
+      "「−5枚」「＋5枚」で調整できます。確定するとチケットは戻せません。",
+      "操作の有効期限は10分です。"].filter(Boolean).join("\n"),
+    embeds: [],
+    components: [
+      new ActionRowBuilder<ButtonBuilder>().addComponents(
+        button("minus", "−5枚", ButtonStyle.Secondary, draft.requestCreated || draft.quantity <= TICKET_EXCHANGE_BATCH_SIZE),
+        button("plus", "＋5枚", ButtonStyle.Primary, draft.requestCreated || draft.quantity >= draft.maximum),
+        button("max", "最大枚数", ButtonStyle.Secondary, draft.requestCreated || draft.quantity >= draft.maximum),
+      ),
+      new ActionRowBuilder<ButtonBuilder>().addComponents(
+        button("submit", "換金を確定", ButtonStyle.Success),
+        button("dismiss", "キャンセル", ButtonStyle.Secondary),
+      ),
+    ],
+  };
+}
+
+export async function showTicketExchangeQuantity(interaction: StringSelectMenuInteraction) {
   assertChannel(interaction);
   const rate = getTicketExchangeRate(interaction.values[0]);
-  await interaction.showModal(new ModalBuilder()
-    .setCustomId(`${TICKET_EXCHANGE_PREFIX}:quantity:${rate.itemKey}`).setTitle("チケット換金枚数")
-    .addComponents(new ActionRowBuilder<TextInputBuilder>().addComponents(
-      new TextInputBuilder().setCustomId("quantity").setLabel("換金する枚数（5枚単位）")
-        .setPlaceholder("例: 5、10、15").setValue("5").setStyle(TextInputStyle.Short).setRequired(true).setMaxLength(6),
-    )));
+  await interaction.deferUpdate();
+  const owned = (await ItemService.getQuantities(interaction.user.id, [rate.itemKey])).get(rate.itemKey) ?? 0;
+  if (owned < TICKET_EXCHANGE_BATCH_SIZE) {
+    await interaction.editReply({ content: "チケットが不足しています。同じ種類を5枚以上集めてください。", components: [] });
+    return;
+  }
+  const draft: TicketExchangeDraft = {
+    id: interaction.id, userId: interaction.user.id, itemKey: rate.itemKey, label: rate.label,
+    unitPrice: rate.unitPrice, owned, quantity: TICKET_EXCHANGE_BATCH_SIZE,
+    maximum: Math.min(TICKET_EXCHANGE_MAX_QUANTITY, Math.floor(owned / TICKET_EXCHANGE_BATCH_SIZE) * TICKET_EXCHANGE_BATCH_SIZE),
+    revision: 0, expiresAt: Date.now() + TICKET_EXCHANGE_DRAFT_TTL_MS,
+    requestCreated: false, cancelled: false, seenInteractions: new Set(), tail: Promise.resolve(),
+  };
+  drafts.set(draft.id, draft);
+  // 再起動後の下書きは失効させる。確定した換金の重複防止は引き続きDBで行う。
+  setTimeout(() => drafts.delete(draft.id), TICKET_EXCHANGE_DRAFT_TTL_MS).unref();
+  await interaction.editReply(quantityPayload(draft));
+}
+
+async function handleQuantityButton(interaction: ButtonInteraction) {
+  const [action, draftId, revisionText, ...extra] = interaction.customId.slice(TICKET_EXCHANGE_STEP_PREFIX.length).split(":");
+  if (extra.length || !["plus", "minus", "max", "submit", "dismiss"].includes(action) || !/^\d+$/.test(revisionText ?? "")) {
+    throw new Error("換金操作が不正です。");
+  }
+  const draft = drafts.get(draftId);
+  if (!draft || draft.expiresAt <= Date.now()) {
+    await interaction.editReply({ content: "操作の有効期限が切れたか、Botが再起動しました。換金パネルからやり直してください。", components: [] });
+    return;
+  }
+  if (draft.userId !== interaction.user.id) throw new Error("この換金画面は操作できません。");
+
+  // DB照会を挟まず、同じ下書きへの操作と画面更新を受信順に処理する。
+  const operation = draft.tail.catch(() => {}).then(async () => {
+    if (draft.expiresAt <= Date.now()) {
+      await interaction.editReply({ content: "操作の有効期限が切れました。換金パネルからやり直してください。", components: [] });
+      return;
+    }
+    if (draft.result) {
+      await showExchangeResult(interaction, { ...draft.result, alreadyCompleted: true });
+      return;
+    }
+    if (draft.cancelled) {
+      await interaction.editReply({ content: "換金をキャンセルしました。チケットは消費していません。", components: [] });
+      return;
+    }
+    if (draft.seenInteractions.has(interaction.id)) return;
+    if (action === "dismiss") {
+      if (draft.requestCreated) await TicketExchangeService.cancel(draft.id, draft.userId);
+      draft.cancelled = true;
+      await interaction.editReply({ content: "換金をキャンセルしました。チケットは消費していません。", components: [] });
+      return;
+    }
+    if (action === "submit") {
+      // 連打による未表示の増減を、古い確定ボタンで承認したことにしない。
+      if (Number(revisionText) !== draft.revision) {
+        await interaction.editReply(quantityPayload(draft, "枚数が更新されています。現在の枚数と受取額を確認して、もう一度確定してください。"));
+        return;
+      }
+      if (!draft.requestCreated) {
+        const request = await TicketExchangeService.createRequest(draft.id, draft.userId, draft.itemKey, draft.quantity);
+        draft.requestCreated = true;
+        // デプロイをまたいだ料金変更などで表示額と確定額が違えば、新しい額を再確認する。
+        if (request.rate.unitPrice !== draft.unitPrice) {
+          draft.unitPrice = request.rate.unitPrice;
+          draft.revision += 1;
+          await interaction.editReply(quantityPayload(draft, "換金レートが更新されました。受取額を確認して、もう一度確定してください。"));
+          return;
+        }
+      }
+      const result = await TicketExchangeService.redeem(draft.id, draft.userId);
+      draft.result = result;
+      await TicketExchangeLogService.send(interaction.client, interaction.guildId!, draft.userId, draft.id, result);
+      await showExchangeResult(interaction, result);
+      return;
+    }
+    if (draft.requestCreated) {
+      await interaction.editReply(quantityPayload(draft, "確定処理を開始したため、枚数は変更できません。再度確定するかキャンセルしてください。"));
+      return;
+    }
+    draft.seenInteractions.add(interaction.id);
+    const next = action === "max" ? draft.maximum : draft.quantity + (action === "plus" ? TICKET_EXCHANGE_BATCH_SIZE : -TICKET_EXCHANGE_BATCH_SIZE);
+    const quantity = Math.max(TICKET_EXCHANGE_BATCH_SIZE, Math.min(draft.maximum, next));
+    if (quantity !== draft.quantity) {
+      draft.quantity = quantity;
+      draft.revision += 1;
+    }
+    await interaction.editReply(quantityPayload(draft));
+  });
+  draft.tail = operation.catch(() => {});
+  await operation;
 }
 
 export async function confirmTicketExchangeModal(interaction: ModalSubmitInteraction) {

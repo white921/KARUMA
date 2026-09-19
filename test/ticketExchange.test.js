@@ -36,22 +36,20 @@ test('指定チャンネルで設置でき、パネルにレート・条件・�
   assert.equal(shouldDeferButtonUpdate('ticketExchange:cancel:1234567890123456789'), true);
 });
 
-test('所持数5枚以上の種類だけ表示し、選択→枚数→確認→確定をルーティングする', async t => {
+test('所持数5枚以上の種類だけ表示し、旧モーダルの確認・確定も処理する', async t => {
   t.mock.method(AccountService, 'hasAccount', async () => true);
   t.mock.method(ItemService, 'getQuantities', async () => new Map([[ITEM_KEY.HOTEL_SECRET_FREE, 12], [ITEM_KEY.SHOP_DISCOUNT_5, 4]]));
-  let response, modal;
+  let response;
   const editReply = async p => { response = p; };
   await handlePanelButton({ ...channel, customId: 'ticketExchange:start', editReply });
   assert.deepEqual(response.components[0].toJSON().components[0].options.map(o => o.value), [ITEM_KEY.HOTEL_SECRET_FREE]);
-  await handleStringSelectMenu({ ...channel, customId: 'ticketExchange:select', values: [ITEM_KEY.HOTEL_SECRET_FREE], showModal: async m => { modal = m.toJSON(); } });
-  assert.equal(modal.custom_id, 'ticketExchange:quantity:HOTEL_SECRET_FREE');
   const requestId = '1234567890123456789';
   t.mock.method(TicketExchangeService, 'createRequest', async (id, user, key, q) => {
     assert.deepEqual([id, user, key, q], [requestId, '1001', ITEM_KEY.HOTEL_SECRET_FREE, 10]);
     return { rate: getTicketExchangeRate(key), quantity: q, amount: 30000, owned: 12 };
   });
   let deferred = false;
-  await handleModalSubmit({ ...channel, id: requestId, customId: modal.custom_id, fields: { getTextInputValue: () => '10' }, deferReply: async () => { deferred = true; }, editReply });
+  await handleModalSubmit({ ...channel, id: requestId, customId: 'ticketExchange:quantity:HOTEL_SECRET_FREE', fields: { getTextInputValue: () => '10' }, deferReply: async () => { deferred = true; }, editReply });
   assert.equal(deferred, true);
   assert.match(response.content, /30,000 LIA/);
   const log = t.mock.method(TicketExchangeLogService, 'send', async () => {});

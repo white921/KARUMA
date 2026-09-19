@@ -2,6 +2,8 @@ import { ITEM_KEY } from "./item";
 import type { ItemKey } from "../../type/inventory/item";
 
 export const TICKET_EXCHANGE_PREFIX = "ticketExchange";
+export const TICKET_EXCHANGE_STEP_PREFIX = `${TICKET_EXCHANGE_PREFIX}:step:`;
+export const TICKET_EXCHANGE_DRAFT_TTL_MS = 10 * 60 * 1_000;
 export const TICKET_EXCHANGE_BATCH_SIZE = 5;
 export const TICKET_EXCHANGE_MAX_QUANTITY = 100_000;
 export const TICKET_EXCHANGE_TITLE = "チケット換金パネル";
