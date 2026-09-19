@@ -334,16 +334,30 @@ test("normal hotel costs 5000 LIA for sages and 10000 LIA otherwise", async () =
   );
 });
 
-test("freedom hotels initially hide the channel from believers", async () => {
+test("freedom hotels explicitly hide restricted roles while preserving owner and sub access", async () => {
   const originalGetSubUserId = AccountService.getSubUserIdByMainUserId;
   const createdChannelOptions = [];
+  const hiddenRoleIds = [
+    ROLE_IDS.CORE_MEMBER_ROLES.JUNMEN,
+    ROLE_IDS.CORE_MEMBER_ROLES.HYOKAOTI,
+    ROLE_IDS.DETENTION_ROLES.SUMMONED_CRIME,
+  ];
+  const categoryOverwrites = new Map(hiddenRoleIds.slice(0, 2).map((id) => [id, {
+    id,
+    type: 0,
+    allow: new PermissionsBitField([
+      PermissionsBitField.Flags.ViewChannel,
+      PermissionsBitField.Flags.Speak,
+    ]),
+    deny: new PermissionsBitField([PermissionsBitField.Flags.Stream]),
+  }]));
 
-  AccountService.getSubUserIdByMainUserId = async () => null;
+  AccountService.getSubUserIdByMainUserId = async () => "creator-sub";
 
   try {
     const guild = {
       channels: {
-        fetch: async () => ({ permissionOverwrites: { cache: new Map() } }),
+        fetch: async () => ({ permissionOverwrites: { cache: categoryOverwrites } }),
         create: async (options) => {
           createdChannelOptions.push(options);
           return { id: `freedom-${createdChannelOptions.length}`, send: async () => {} };
@@ -377,5 +391,23 @@ test("freedom hotels initially hide the channel from believers", async () => {
     );
 
     assert.deepEqual(believerOverwrite.deny, [PermissionsBitField.Flags.ViewChannel]);
+    for (const roleId of hiddenRoleIds) {
+      const matches = options.permissionOverwrites.filter((overwrite) => overwrite.id === roleId);
+      assert.equal(matches.length, 1);
+      const allow = new PermissionsBitField(matches[0].allow);
+      const deny = new PermissionsBitField(matches[0].deny);
+      assert.equal(allow.has(PermissionsBitField.Flags.ViewChannel), false);
+      assert.equal(deny.has(PermissionsBitField.Flags.ViewChannel), true);
+      if (categoryOverwrites.has(roleId)) {
+        assert.equal(allow.has(PermissionsBitField.Flags.Speak), true);
+        assert.equal(deny.has(PermissionsBitField.Flags.Stream), true);
+      }
+    }
+    for (const userId of ["creator", "creator-sub"]) {
+      const overwrite = options.permissionOverwrites.find((entry) => entry.id === userId);
+      const allow = new PermissionsBitField(overwrite.allow);
+      assert.equal(allow.has(PermissionsBitField.Flags.ViewChannel), true);
+      assert.equal(allow.has(PermissionsBitField.Flags.ManageChannels), true);
+    }
   }
 });

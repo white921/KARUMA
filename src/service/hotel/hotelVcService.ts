@@ -443,6 +443,33 @@ export class HotelVcService {
             },
           );
 
+          // 空位者・罪人・召役罪は、カテゴリに閲覧許可があっても明示的に拒否する。
+          for (const roleId of [
+            ROLE_IDS.CORE_MEMBER_ROLES.JUNMEN,
+            ROLE_IDS.CORE_MEMBER_ROLES.HYOKAOTI,
+            ROLE_IDS.DETENTION_ROLES.SUMMONED_CRIME,
+          ]) {
+            const existingIndex = freedomPermissionOverwrites.findIndex(
+              (overwrite) => overwrite.id === roleId,
+            );
+            const existing = freedomPermissionOverwrites[existingIndex];
+            const overwrite = {
+              id: roleId,
+              type: OverwriteType.Role,
+              allow:
+                PermissionsBitField.resolve(existing?.allow ?? 0n) &
+                ~PermissionsBitField.Flags.ViewChannel,
+              deny:
+                PermissionsBitField.resolve(existing?.deny ?? 0n) |
+                PermissionsBitField.Flags.ViewChannel,
+            };
+            if (existingIndex === -1) {
+              freedomPermissionOverwrites.push(overwrite);
+            } else {
+              freedomPermissionOverwrites[existingIndex] = overwrite;
+            }
+          }
+
           // 作成者に管理者権限を追加（既存の権限設定を上書き）
           freedomPermissionOverwrites.push({
             id: interaction.user.id,
