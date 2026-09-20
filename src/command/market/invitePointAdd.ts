@@ -2,6 +2,7 @@ import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
 
 import { COMMAND_NAMES } from "../../constant/shared/command";
 import { InvitePointService } from "../../service/market/invitePointService";
+import { InvitePointLogService } from "../../service/market/invitePointLogService";
 
 export const data = new SlashCommandBuilder()
   .setName(COMMAND_NAMES.INVITE_POINT_ADD)
@@ -30,6 +31,14 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     amount,
     interaction.user.id,
   );
+
+  await InvitePointLogService.send(interaction.client, interaction.guildId!, {
+    targetUserId: targetUser.id,
+    operatorUserId: interaction.user.id,
+    amount,
+    afterPoints,
+    interactionId: interaction.id,
+  });
 
   await interaction.editReply({
     content: `✅ <@${targetUser.id}> に招待ポイントを ${amount}pt 追加しました。現在の招待ポイント: ${afterPoints}pt`,
