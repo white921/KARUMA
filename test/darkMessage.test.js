@@ -156,7 +156,7 @@ test('音声を再アップロードし、元URLと元ファイル名を受取�
 test('不正音声・退出済み受取人はパネルを消費しない', async t => {
   const { i, events } = setup(t, 'whisper');
   i.fields.getUploadedFiles = () => new Collection([['audio', { ...audio(), size: DARK_MESSAGE_MAX_AUDIO_BYTES + 1 }]]);
-  await assert.rejects(DarkMessageService.submit(i), /10MiB/);
+  await assert.rejects(DarkMessageService.submit(i), /10MB/);
   assert.equal(events.length, 0);
   i.guild.members.fetch = async () => { throw new Error('unknown member'); };
   await assert.rejects(DarkMessageService.submit(i), /サーバーにいません/);

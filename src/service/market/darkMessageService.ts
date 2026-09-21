@@ -54,7 +54,7 @@ export function createDarkMessageModal(kind: DarkMessageKind, requestId: string,
         .setStyle(TextInputStyle.Paragraph).setRequired(true).setMaxLength(4000)));
   } else {
     modal.addLabelComponents(new LabelBuilder().setLabel("送信する音声ファイル")
-      .setDescription("音声1個・10MiBまで。MP3 / M4A / OGG / WAV / WEBM / FLAC / AAC")
+      .setDescription("音声1個・10MBまで。MP3 / M4A / OGG / WAV / WEBM / FLAC / AAC")
       .setFileUploadComponent(new FileUploadBuilder().setCustomId("audio")
         .setMinValues(1).setMaxValues(1).setRequired(true)));
   }
@@ -70,7 +70,7 @@ export function anonymousAudioName(attachment: Pick<Attachment, "name" | "conten
     throw new Error("対応する音声ファイルを1個添付してください。");
   }
   if (attachment.size <= 0 || attachment.size > DARK_MESSAGE_MAX_AUDIO_BYTES)
-    throw new Error("音声ファイルは10MiB以下にしてください。");
+    throw new Error("音声ファイルは10MB以下にしてください。");
   const url = new URL(attachment.url);
   if (url.protocol !== "https:" || url.hostname !== "cdn.discordapp.com" ||
       !/^\/(?:ephemeral-)?attachments\//.test(url.pathname)) throw new Error("音声の添付URLが無効です。");
@@ -89,7 +89,7 @@ async function downloadAudio(attachment: Attachment): Promise<{ attachment: Buff
       const chunk = await reader.read();
       if (chunk.done) break;
       size += chunk.value.byteLength;
-      if (size > DARK_MESSAGE_MAX_AUDIO_BYTES) throw new Error("音声ファイルは10MiB以下にしてください。");
+      if (size > DARK_MESSAGE_MAX_AUDIO_BYTES) throw new Error("音声ファイルは10MB以下にしてください。");
       chunks.push(chunk.value);
     }
   } finally { await reader.cancel(); }
