@@ -1,11 +1,22 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, EmbedBuilder } from "discord.js";
-import { GACHA_COIN_PREFIX, getGachaCoinReward } from "../../constant/market/gachaCoin";
+import { GACHA_COIN_PREFIX, GACHA_COIN_REWARDS, getGachaCoinReward } from "../../constant/market/gachaCoin";
 import { COLOR } from "../../constant/shared/color";
 import { GachaCoinService } from "./gachaCoinService";
 
 export async function handleGachaCoinButton(interaction: ButtonInteraction): Promise<void> {
   const [, action, value] = interaction.customId.split(":");
-  if (action === "balance") {
+  if (action === "start") {
+    const balance = await GachaCoinService.getBalance(interaction.user.id);
+    await interaction.editReply({
+      content: "",
+      embeds: [new EmbedBuilder().setTitle("交換するチケットを選択").setColor(COLOR.LIGFT_PINK)
+        .setDescription(`ガチャコインの所持数: **${balance}枚**\n交換したいチケットを選んでください。`)],
+      components: [new ActionRowBuilder<ButtonBuilder>().addComponents(...GACHA_COIN_REWARDS.map(reward =>
+        new ButtonBuilder().setCustomId(`${GACHA_COIN_PREFIX}:select:${reward.key}`)
+          .setLabel(`${reward.label}（${reward.cost}枚）`).setStyle(ButtonStyle.Success),
+      ))],
+    });
+  } else if (action === "balance") {
     await interaction.editReply({ content: `ガチャコインの所持数: **${await GachaCoinService.getBalance(interaction.user.id)}枚**`, embeds: [], components: [] });
   } else if (action === "select") {
     const reward = getGachaCoinReward(value);
