@@ -198,8 +198,7 @@ test("dark market panel links the LEVELIA dark market product list", () => {
     DARK_SHOP_PANEL_MESSAGES.DESCRIPTION,
     /\[闇市商品一覧\]\(https:\/\/discord\.com\/channels\/1534636292153807039\/1534644437328728164\)/,
   );
-  assert.match(DARK_SHOP_PANEL_MESSAGES.DESCRIPTION, /各20,000 LIA（購入対象：全員）/);
-  assert.match(DARK_SHOP_PANEL_MESSAGES.DESCRIPTION, /匿名で相手専用のTC/);
+  assert.doesNotMatch(DARK_SHOP_PANEL_MESSAGES.DESCRIPTION, /闇手紙|悪魔の囁き|外部Bot/);
   assert.doesNotMatch(DARK_SHOP_PANEL_MESSAGES.DESCRIPTION, /準備中/);
   assert.match(DARK_SHOP_PANEL_MESSAGES.DESCRIPTION, /市場割引券は使用できません/);
 });
