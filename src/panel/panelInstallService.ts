@@ -1,3 +1,4 @@
+import { GachaCoinPanelService } from "./market/gachaCoinPanelService";
 import { TicketExchangePanelService } from "./inventory/ticketExchangePanelService";
 import { PrivateHotelPanelService } from "./hotel/privateHotelPanelService";
 import { ChatInputCommandInteraction, Client, GuildMember } from "discord.js";
@@ -82,6 +83,9 @@ async function installTargetPanel(
       return;
     case PANEL_INSTALL_TARGETS.SHOP:
       await ShopPanelService.createShopPanel(client);
+      return;
+    case PANEL_INSTALL_TARGETS.GACHA_COIN:
+      await GachaCoinPanelService.createPanel(client);
       return;
     case PANEL_INSTALL_TARGETS.TICKET_EXCHANGE:
       await TicketExchangePanelService.createPanel(client);

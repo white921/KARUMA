@@ -1,3 +1,4 @@
+import { GACHA_COIN_PREFIX } from "../../constant/market/gachaCoin";
 import { TICKET_EXCHANGE_PREFIX, TICKET_EXCHANGE_STEP_PREFIX } from "../../constant/inventory/ticketExchange";
 import { PRIVATE_HOTEL_PREFIX } from "../../constant/hotel/privateHotel";
 import { CREATOR_EMBLEM_CANCEL_ID, CREATOR_EMBLEM_CONFIRM_PREFIX } from "../../constant/market/creatorEmblem";
@@ -7,6 +8,8 @@ import { PAYMENT_CONFIRMATION_PREFIX } from "../../constant/currency/paymentConf
 /** ボタンが付いているメッセージを更新して応答するかどうかを判定する。 */
 export function shouldDeferButtonUpdate(customId: string): boolean {
   return (
+    customId.startsWith(`${GACHA_COIN_PREFIX}:confirm:`) ||
+    customId.startsWith(`${GACHA_COIN_PREFIX}:cancel:`) ||
     customId.startsWith(TICKET_EXCHANGE_STEP_PREFIX) ||
     customId.startsWith(`${PAYMENT_CONFIRMATION_PREFIX}:`) ||
     customId.startsWith(`${TICKET_EXCHANGE_PREFIX}:confirm:`) ||

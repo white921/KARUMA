@@ -1,3 +1,5 @@
+import { execute as gachaCoinGrant } from "../../command/market/gachaCoinGrant";
+import { execute as gachaCoinDeduct } from "../../command/market/gachaCoinDeduct";
 import { ChatInputCommandInteraction } from "discord.js";
 
 import { execute as test } from "../../command/system/test";
@@ -102,6 +104,12 @@ export async function exeCommand(
         break;
       case COMMAND_NAMES.ROULETTE_BONUS:
         await rouletteBonus(interaction);
+        break;
+      case COMMAND_NAMES.GACHA_COIN_GRANT:
+        await gachaCoinGrant(interaction);
+        break;
+      case COMMAND_NAMES.GACHA_COIN_DEDUCT:
+        await gachaCoinDeduct(interaction);
         break;
       case COMMAND_NAMES.INVITE_POINT_ADD:
         await invitePointAdd(interaction);

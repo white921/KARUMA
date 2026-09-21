@@ -1,3 +1,5 @@
+import { GACHA_COIN_PREFIX } from "../../constant/market/gachaCoin";
+import { handleGachaCoinButton } from "../../service/market/gachaCoinInteractionService";
 import { TICKET_EXCHANGE_PREFIX, TICKET_EXCHANGE_STEP_PREFIX } from "../../constant/inventory/ticketExchange";
 import { PAYMENT_CONFIRMATION_PREFIX } from "../../constant/currency/paymentConfirmation";
 import { PaymentConfirmationService } from "../../service/currency/paymentConfirmationService";
@@ -78,6 +80,10 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
   }
 
   try {
+    if (customId.startsWith(`${GACHA_COIN_PREFIX}:`)) {
+      await handleGachaCoinButton(interaction);
+      return;
+    }
     if (customId.startsWith(`${PAYMENT_CONFIRMATION_PREFIX}:`)) {
       await PaymentConfirmationService.handleButton(interaction);
       return;

@@ -36,6 +36,8 @@ export const COMMAND_NAMES = {
   ROULETTE_CLOSE: "賭け終了",
   ROULETTE_RESULT: "結果",
   ROULETTE_BONUS: "ボーナス付与",
+  GACHA_COIN_GRANT: "ガチャコイン付与",
+  GACHA_COIN_DEDUCT: "ガチャコイン減算",
   INVITE_POINT_ADD: "招待ポイント追加",
   ROOM_NAME_CHANGE: "部屋名変更",
 };

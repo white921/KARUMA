@@ -1,3 +1,5 @@
+import { data as gachaCoinGrant } from "./command/market/gachaCoinGrant";
+import { data as gachaCoinDeduct } from "./command/market/gachaCoinDeduct";
 // src/registerCommands.ts
 import { REST, Routes } from "discord.js";
 import dotenv from "dotenv";
@@ -64,6 +66,8 @@ export async function registerCommands() {
     rouletteBonus.toJSON(),
     result.toJSON(),
     invitePointAdd.toJSON(),
+    gachaCoinGrant.toJSON(),
+    gachaCoinDeduct.toJSON(),
     vc.toJSON(),
   ];
 
