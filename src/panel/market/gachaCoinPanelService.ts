@@ -10,7 +10,7 @@ export function createGachaCoinPanelPayload() {
       .setDescription("ガチャコインをアイテムと交換できます。「交換する」を押してチケットを選び、内容を確認して確定してください。")
       .addFields(
         { name: "パネルで交換", value: GACHA_COIN_REWARDS.map(r => `${r.label}：**${r.cost}枚**`).join("\n") },
-        { name: "チケット内で従業員が対応", value: "通行証：**30枚**\n評価延長3：**30枚**\n評価延長5：**50枚**\n再評価券：**75枚**\nオリジナルロール：**150枚**\nご希望の方はショップのチケット内で従業員にお申し付けください。" },
+        { name: "チケット内で従業員が対応", value: "通行証（1ヶ月）：**30枚**\n評価延長3：**30枚**\n評価延長5：**50枚**\n再評価券：**75枚**\nオリジナルロール（1週間）：**150枚**\nご希望の方はショップのチケット内で従業員にお申し付けください。" },
       )],
     components: [
       new ActionRowBuilder<ButtonBuilder>().addComponents(
