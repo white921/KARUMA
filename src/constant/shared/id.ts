@@ -177,6 +177,7 @@ export const TEST_FORUM_IDS = {
 
 // スレッドID（送金ログ用など）
 export const THREAD_IDS = {
+  GACHA_COIN_LOG_THREAD: "1551487122236506183", // コマンドによるガチャコイン増減ログ
   INVITE_POINT_LOG_THREAD: "1551228490374971532", // ガチャポイント付与ログ
   TICKET_EXCHANGE_LOG_THREAD: "1550824492194857071", // 通貨ログ > チケット換金ログ
   SEND_LOG_THREAD: "1536708796121088084", // 通貨ログ > 送金ログ

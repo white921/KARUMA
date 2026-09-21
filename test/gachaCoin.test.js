@@ -1,6 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { canManageGachaCoins, GachaCoinService } = require('../dist/service/market/gachaCoinService');
+const { GachaCoinLogService } = require('../dist/service/market/gachaCoinLogService');
 const { ROLE_IDS, TEXT_CHANNEL_IDS } = require('../dist/constant/shared/id');
 const { GACHA_COIN_REWARDS, GACHA_COIN_MAX } = require('../dist/constant/market/gachaCoin');
 const { createGachaCoinPanelPayload } = require('../dist/panel/market/gachaCoinPanelService');
@@ -34,6 +35,7 @@ test('権限は最新のメンバーを取得し、権限のない操作では�
 });
 
 test('コマンドは付与・減算を分け、正の整数と理由を受け付ける', async t => {
+  t.mock.method(GachaCoinLogService, 'send', async () => {});
   t.mock.method(GachaCoinService, 'assertOperator', async () => {});
   const amounts = [];
   t.mock.method(GachaCoinService, 'adjust', async (...args) => { amounts.push(args); return 30; });
