@@ -18,7 +18,7 @@ test("role names omit parenthetical management labels in bot output", () => {
   assert.equal(formatRoleNameForOutput("侍従"), "侍従");
 });
 
-test("monthly salary config includes only the 21 requested roles", () => {
+test("monthly salary config includes only the 22 requested roles", () => {
   assert.deepEqual(SALARY_ROLE_IDS, {
     SABANUSI: ROLE_IDS.SABANUSI,
     KANRISYA: ROLE_IDS.KANRISYA,
@@ -34,6 +34,7 @@ test("monthly salary config includes only the 21 requested roles", () => {
     HAZAMA_LEADER: ROLE_IDS.HAZAMA_LEADER,
     MONSTER_LEADER: ROLE_IDS.MONSTER_LEADER,
     GIJUTU_LEADER: ROLE_IDS.GIJUTU_LEADER,
+    SYSTEM_ASSISTANT: ROLE_IDS.SYSTEM_ASSISTANT,
     GINKOU_STAFF: ROLE_IDS.GINKOU_STAFF,
     SHOP_STAFF: ROLE_IDS.SHOP_STAFF,
     PRODUCER: ROLE_IDS.PRODUCER,
@@ -68,6 +69,7 @@ test("monthly salary follows the provided compensation table", () => {
     [ROLE_IDS.HAZAMA_LEADER]: 170000,
     [ROLE_IDS.MONSTER_LEADER]: 180000,
     [ROLE_IDS.GIJUTU_LEADER]: 300000,
+    [ROLE_IDS.SYSTEM_ASSISTANT]: 100000,
     [ROLE_IDS.GINKOU_STAFF]: 80000,
     [ROLE_IDS.SHOP_STAFF]: 50000,
     [ROLE_IDS.PRODUCER]: 30000,

@@ -4,7 +4,7 @@ export const SERVER_BOOST_FIRST_REWARD = 30000;
 export const SERVER_BOOST_AFTER_REWARD = 5000;
 export const SERVER_BOOST_HIGH_REWARD_COUNT = 2;
 
-// 月ごとの給与額。ここに記載した21ロールのみを支給対象とします。
+// 月ごとの給与額。ここに記載した22ロールのみを支給対象とします。
 export const SALARY_PAYMENTS: Record<string, number> = {
   // 運営
   [ROLE_IDS.SABANUSI]: 2000000,
@@ -25,6 +25,7 @@ export const SALARY_PAYMENTS: Record<string, number> = {
   [ROLE_IDS.GIJUTU_LEADER]: 300000,
 
   // 各カテゴリの従業員
+  [ROLE_IDS.SYSTEM_ASSISTANT]: 100000,
   [ROLE_IDS.GINKOU_STAFF]: 80000,
   [ROLE_IDS.SHOP_STAFF]: 50000,
   [ROLE_IDS.PRODUCER]: 30000,
@@ -54,6 +55,7 @@ export const SALARY_ROLE_IDS: Record<string, string> = {
   MONSTER_LEADER: ROLE_IDS.MONSTER_LEADER,
   GIJUTU_LEADER: ROLE_IDS.GIJUTU_LEADER,
 
+  SYSTEM_ASSISTANT: ROLE_IDS.SYSTEM_ASSISTANT,
   GINKOU_STAFF: ROLE_IDS.GINKOU_STAFF,
   SHOP_STAFF: ROLE_IDS.SHOP_STAFF,
   PRODUCER: ROLE_IDS.PRODUCER,
