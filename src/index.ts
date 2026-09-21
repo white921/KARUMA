@@ -1,3 +1,4 @@
+import { DARK_MESSAGE_PREFIX } from "./constant/market/darkMessage";
 import { PRIVATE_HOTEL_PREFIX } from "./constant/hotel/privateHotel";
 import { DEFAULT_PUBLIC_COMMAND } from "./constant/shared/command";
 import {
@@ -217,7 +218,9 @@ client.on("interactionCreate", async (interaction) => {
       if (interaction.customId.startsWith(PRIVATE_HOTEL_PREFIX)) {
         await interaction.deferUpdate();
       }
-      await validateSelectUserMenu(interaction);
+      if (!interaction.customId.startsWith(`${DARK_MESSAGE_PREFIX}:`)) {
+        await validateSelectUserMenu(interaction);
+      }
       await handleUserSelectMenu(interaction);
       BotHealthMonitor.recordAckSuccess(`${interactionContext}:handler`);
     } catch (error: any) {

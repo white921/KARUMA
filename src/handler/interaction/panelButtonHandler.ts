@@ -1,3 +1,5 @@
+import { DARK_MESSAGE_PREFIX } from "../../constant/market/darkMessage";
+import { DarkMessageService } from "../../service/market/darkMessageService";
 import { GACHA_COIN_PREFIX } from "../../constant/market/gachaCoin";
 import { handleGachaCoinButton } from "../../service/market/gachaCoinInteractionService";
 import { TICKET_EXCHANGE_PREFIX, TICKET_EXCHANGE_STEP_PREFIX } from "../../constant/inventory/ticketExchange";
@@ -67,6 +69,10 @@ import { DIARY_MESSAGES } from "../../constant/diary/diary";
  */
 export async function handlePanelButton(interaction: ButtonInteraction) {
   const customId = interaction.customId;
+  if (customId.startsWith(`${DARK_MESSAGE_PREFIX}:`)) {
+    await DarkMessageService.start(interaction);
+    return;
+  }
 
   // 枚数調整は本人の下書きを検証し、DB照会を省く。確定時はサービス側で口座を再確認する。
   if (customId.startsWith(TICKET_EXCHANGE_STEP_PREFIX)) {

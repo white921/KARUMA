@@ -1,3 +1,4 @@
+import { letterData, whisperData } from "./command/market/darkMessagePanel";
 import { data as gachaCoinGrant } from "./command/market/gachaCoinGrant";
 import { data as gachaCoinDeduct } from "./command/market/gachaCoinDeduct";
 // src/registerCommands.ts
@@ -42,6 +43,8 @@ function getRequiredEnv(name: "DISCORD_TOKEN" | "CLIENT_ID" | "GUILD_ID") {
 
 export async function registerCommands() {
   const commands = [
+    letterData.toJSON(),
+    whisperData.toJSON(),
     test.toJSON(),
     panel.toJSON(),
     returnMember.toJSON(),

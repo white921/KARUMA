@@ -1,3 +1,5 @@
+import { DARK_MESSAGE_PREFIX } from "../../constant/market/darkMessage";
+import { DarkMessageService } from "../../service/market/darkMessageService";
 import { PrivateHotelService } from "../../service/hotel/privateHotelService";
 import { PRIVATE_HOTEL_PREFIX } from "../../constant/hotel/privateHotel";
 import { UserSelectMenuInteraction } from "discord.js";
@@ -21,6 +23,10 @@ export async function handleUserSelectMenu(
   interaction: UserSelectMenuInteraction
 ) {
   const customId = interaction.customId;
+  if (customId.startsWith(`${DARK_MESSAGE_PREFIX}:`)) {
+    await DarkMessageService.select(interaction);
+    return;
+  }
   if (customId.startsWith(PRIVATE_HOTEL_PREFIX)) {
     await PrivateHotelService.handleUserSelect(interaction);
     return;

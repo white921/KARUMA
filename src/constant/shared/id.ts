@@ -327,6 +327,7 @@ export const TEST_VC_IDS = {
 
 // カテゴリーID
 export const CATEGORY_IDS = {
+  DARK_MARKET: "1534637917400596490", // 闇市の街
   INTERVIEW: "1534638743619637465", // 説明会
   HOTEL: "1534649101696897114", // 楽園の館
   SPECIAL_HOTEL: "1550776798122352690", // 楽園の館～プレミアム～（VIP・フリーダム）

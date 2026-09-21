@@ -1,3 +1,5 @@
+import { DARK_MESSAGE_PREFIX } from "../../constant/market/darkMessage";
+import { DarkMessageService } from "../../service/market/darkMessageService";
 import { TICKET_EXCHANGE_PREFIX } from "../../constant/inventory/ticketExchange";
 import { confirmTicketExchangeModal } from "../../service/inventory/ticketExchangeInteractionService";
 import { GuildMember, ModalSubmitInteraction } from "discord.js";
@@ -34,6 +36,10 @@ function getModalFieldValue(
  */
 export async function handleModalSubmit(interaction: ModalSubmitInteraction) {
   const customId = interaction.customId;
+  if (customId.startsWith(`${DARK_MESSAGE_PREFIX}:`)) {
+    await DarkMessageService.submit(interaction);
+    return;
+  }
   const commandId = customId.includes("_") ? customId.split("_")[0] : customId;
 
   try {

@@ -1,3 +1,5 @@
+import { execute as darkMessagePanel } from "../../command/market/darkMessagePanel";
+import { DARK_MESSAGE_PRODUCTS } from "../../constant/market/darkMessage";
 import { execute as gachaCoinGrant } from "../../command/market/gachaCoinGrant";
 import { execute as gachaCoinDeduct } from "../../command/market/gachaCoinDeduct";
 import { ChatInputCommandInteraction } from "discord.js";
@@ -36,6 +38,10 @@ export async function exeCommand(
 ) {
   try {
     switch (command) {
+      case DARK_MESSAGE_PRODUCTS.letter.command:
+      case DARK_MESSAGE_PRODUCTS.whisper.command:
+        await darkMessagePanel(interaction);
+        break;
       case COMMAND_NAMES.TEST:
         await test(interaction);
         break;
