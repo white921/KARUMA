@@ -3,6 +3,7 @@ import { ROULETTE_ACTION_NAMES } from "../casino/roulette";
 
 /** actions.command_name に保存する内部識別子。英小文字とスネークケースで統一する。 */
 export const ACTION_TYPES = {
+  CAST_PAYMENT: "cast_payment",
   TRANSFER: "transfer",
   TICKET_EXCHANGE: "ticket_exchange",
   SHOP_PURCHASE: "shop_purchase",

@@ -1,3 +1,5 @@
+import { CastPaymentService } from "../../service/cast/castPaymentService";
+import { CAST_PAYMENT_PREFIX } from "../../constant/cast/castPayment";
 import { DARK_MESSAGE_PREFIX } from "../../constant/market/darkMessage";
 import { DarkMessageService } from "../../service/market/darkMessageService";
 import { TICKET_EXCHANGE_PREFIX } from "../../constant/inventory/ticketExchange";
@@ -36,6 +38,10 @@ function getModalFieldValue(
  */
 export async function handleModalSubmit(interaction: ModalSubmitInteraction) {
   const customId = interaction.customId;
+  if (customId.startsWith(`${CAST_PAYMENT_PREFIX}:`)) {
+    await CastPaymentService.handle(interaction);
+    return;
+  }
   if (customId.startsWith(`${DARK_MESSAGE_PREFIX}:`)) {
     await DarkMessageService.submit(interaction);
     return;

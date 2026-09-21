@@ -1,3 +1,5 @@
+import { CastPaymentService } from "../../service/cast/castPaymentService";
+import { CAST_PAYMENT_PREFIX } from "../../constant/cast/castPayment";
 import { DARK_DISCLOSURE_PREFIX, DARK_MESSAGE_PREFIX } from "../../constant/market/darkMessage";
 import { DarkDisclosureService } from "../../service/market/darkDisclosureService";
 import { DarkMessageService } from "../../service/market/darkMessageService";
@@ -70,6 +72,10 @@ import { DIARY_MESSAGES } from "../../constant/diary/diary";
  */
 export async function handlePanelButton(interaction: ButtonInteraction) {
   const customId = interaction.customId;
+  if (customId.startsWith(`${CAST_PAYMENT_PREFIX}:`)) {
+    await CastPaymentService.handle(interaction);
+    return;
+  }
   if (customId.startsWith(`${DARK_DISCLOSURE_PREFIX}:`)) {
     await DarkDisclosureService.handleButton(interaction);
     return;

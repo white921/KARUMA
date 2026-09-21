@@ -1,3 +1,5 @@
+import { CastPaymentService } from "../../service/cast/castPaymentService";
+import { CAST_PAYMENT_PREFIX } from "../../constant/cast/castPayment";
 import { GACHA_COIN_PREFIX } from "../../constant/market/gachaCoin";
 import { handleGachaCoinSelect } from "../../service/market/gachaCoinInteractionService";
 import { TICKET_EXCHANGE_PREFIX } from "../../constant/inventory/ticketExchange";
@@ -32,6 +34,10 @@ export async function handleStringSelectMenu(
 ) {
   try {
     const customId = interaction.customId;
+    if (customId.startsWith(`${CAST_PAYMENT_PREFIX}:`)) {
+      await CastPaymentService.handle(interaction);
+      return;
+    }
     if (customId === `${GACHA_COIN_PREFIX}:select`) {
       await handleGachaCoinSelect(interaction);
       return;

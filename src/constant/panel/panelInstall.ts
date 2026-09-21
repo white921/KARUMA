@@ -2,6 +2,7 @@ import type { PanelInstallTarget } from "../../type/panel/panelInstall";
 import { TEXT_CHANNEL_IDS, THREAD_IDS } from "../shared/id";
 
 export const PANEL_INSTALL_TARGETS = {
+  CAST_PAYMENT: "cast_payment",
   BANK: "bank",
   ADMIN_BANK: "admin_bank",
   HOTEL: "hotel",
@@ -27,6 +28,7 @@ export const PANEL_INSTALL_TARGETS = {
 } as const;
 
 export const PANEL_INSTALL_TARGET_LABELS: Record<PanelInstallTarget, string> = {
+  [PANEL_INSTALL_TARGETS.CAST_PAYMENT]: "執事・メイド支払いパネル",
   [PANEL_INSTALL_TARGETS.BANK]: "銀行パネル",
   [PANEL_INSTALL_TARGETS.ADMIN_BANK]: "管理者銀行パネル",
   [PANEL_INSTALL_TARGETS.HOTEL]: "ホテルVCパネル",
@@ -53,6 +55,7 @@ export const PANEL_INSTALL_TARGET_LABELS: Record<PanelInstallTarget, string> = {
 
 export const PANEL_INSTALL_CHANNEL_MAP = new Map<string, PanelInstallTarget>(
   [
+    [TEXT_CHANNEL_IDS.CAST_PAYMENT_PANEL, PANEL_INSTALL_TARGETS.CAST_PAYMENT],
     [TEXT_CHANNEL_IDS.GINKOU_PANEL, PANEL_INSTALL_TARGETS.BANK],
     [THREAD_IDS.ADMIN_PANEL_THREAD, PANEL_INSTALL_TARGETS.ADMIN_BANK],
     [TEXT_CHANNEL_IDS.NORMAL_HOTEL_VC_PANEL, PANEL_INSTALL_TARGETS.HOTEL],

@@ -3,6 +3,7 @@ import { COMMAND_NAMES, PANEL_COMMAND_NAMES } from "../shared/command";
 import { ROULETTE_ACTION_NAMES } from "../casino/roulette";
 
 const HISTORY_TITLE_BY_COMMAND_NAME = {
+  [ACTION_TYPES.CAST_PAYMENT]: "執事・メイド支払い",
   [ACTION_TYPES.TICKET_EXCHANGE]: "チケット換金",
   [PANEL_COMMAND_NAMES.SEND]: "送金",
   [PANEL_COMMAND_NAMES.SHOP_SEND]: "市場商品購入",
