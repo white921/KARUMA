@@ -1,3 +1,5 @@
+import { GACHA_COIN_PREFIX } from "../../constant/market/gachaCoin";
+import { handleGachaCoinSelect } from "../../service/market/gachaCoinInteractionService";
 import { TICKET_EXCHANGE_PREFIX } from "../../constant/inventory/ticketExchange";
 import { showTicketExchangeQuantity } from "../../service/inventory/ticketExchangeInteractionService";
 import { StringSelectMenuInteraction } from "discord.js";
@@ -30,6 +32,10 @@ export async function handleStringSelectMenu(
 ) {
   try {
     const customId = interaction.customId;
+    if (customId === `${GACHA_COIN_PREFIX}:select`) {
+      await handleGachaCoinSelect(interaction);
+      return;
+    }
     if (customId === `${TICKET_EXCHANGE_PREFIX}:select`) {
       await showTicketExchangeQuantity(interaction);
       return;

@@ -5,6 +5,7 @@ const { ROLE_IDS, TEXT_CHANNEL_IDS } = require('../dist/constant/shared/id');
 const { GACHA_COIN_REWARDS, GACHA_COIN_MAX } = require('../dist/constant/market/gachaCoin');
 const { createGachaCoinPanelPayload } = require('../dist/panel/market/gachaCoinPanelService');
 const { handleGachaCoinButton } = require('../dist/service/market/gachaCoinInteractionService');
+const { handleStringSelectMenu } = require('../dist/handler/interaction/stringSelectHandler');
 const { shouldDeferButtonUpdate } = require('../dist/util/interaction/interactionAck');
 const { resolvePanelInstallTarget } = require('../dist/panel/panelInstallService');
 const grant = require('../dist/command/market/gachaCoinGrant');
@@ -76,13 +77,20 @@ test('選択は確認画面だけを作り、確定・キャンセルは本人�
   const interaction = { id: '123456789012345678', user: { id: '1001' }, customId: 'gachaCoin:start', editReply: async p => replies.push(p) };
   await handleGachaCoinButton(interaction);
   assert.deepEqual(calls, []);
-  assert.deepEqual(replies[0].components[0].components.map(button => button.data.custom_id),
-    ['gachaCoin:select:game', 'gachaCoin:select:secret', 'gachaCoin:select:freedom']);
+  const menu = replies[0].components[0].components[0].toJSON();
+  assert.equal(menu.type, 3);
+  assert.equal(menu.custom_id, 'gachaCoin:select');
+  assert.deepEqual(menu.options.map(option => option.value), ['game', 'secret', 'freedom']);
+  assert.deepEqual(menu.options.map(option => option.description), ['10コインで1枚と交換', '20コインで1枚と交換', '25コインで1枚と交換']);
   assert.match(replies[0].embeds[0].data.description, /50枚/);
   assert.equal(shouldDeferButtonUpdate('gachaCoin:start'), false);
   replies.length = 0;
-  interaction.customId = 'gachaCoin:select:game';
-  await handleGachaCoinButton(interaction);
+  interaction.customId = 'gachaCoin:select';
+  interaction.values = ['game'];
+  let acknowledged = false;
+  interaction.deferUpdate = async () => { acknowledged = true; };
+  await handleStringSelectMenu(interaction);
+  assert.equal(acknowledged, true);
   assert.deepEqual(calls, [['request', interaction.id, '1001', 'game']]);
   assert.equal(replies[0].components[0].components[0].data.custom_id, `gachaCoin:confirm:${interaction.id}`);
   for (const action of ['confirm', 'cancel']) {

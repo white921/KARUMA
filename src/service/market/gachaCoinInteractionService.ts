@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, EmbedBuilder } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, EmbedBuilder, StringSelectMenuBuilder, StringSelectMenuInteraction } from "discord.js";
 import { GACHA_COIN_PREFIX, GACHA_COIN_REWARDS, getGachaCoinReward } from "../../constant/market/gachaCoin";
 import { COLOR } from "../../constant/shared/color";
 import { GachaCoinService } from "./gachaCoinService";
@@ -11,25 +11,18 @@ export async function handleGachaCoinButton(interaction: ButtonInteraction): Pro
       content: "",
       embeds: [new EmbedBuilder().setTitle("交換するチケットを選択").setColor(COLOR.LIGFT_PINK)
         .setDescription(`ガチャコインの所持数: **${balance}枚**\n交換したいチケットを選んでください。`)],
-      components: [new ActionRowBuilder<ButtonBuilder>().addComponents(...GACHA_COIN_REWARDS.map(reward =>
-        new ButtonBuilder().setCustomId(`${GACHA_COIN_PREFIX}:select:${reward.key}`)
-          .setLabel(`${reward.label}（${reward.cost}枚）`).setStyle(ButtonStyle.Success),
-      ))],
+      components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+        new StringSelectMenuBuilder().setCustomId(`${GACHA_COIN_PREFIX}:select`)
+          .setPlaceholder("交換するチケットを選択").setMinValues(1).setMaxValues(1)
+          .addOptions(GACHA_COIN_REWARDS.map(reward => ({
+            label: reward.label, value: reward.key, description: `${reward.cost}コインで1枚と交換`,
+          }))),
+      )],
     });
   } else if (action === "balance") {
     await interaction.editReply({ content: `ガチャコインの所持数: **${await GachaCoinService.getBalance(interaction.user.id)}枚**`, embeds: [], components: [] });
   } else if (action === "select") {
-    const reward = getGachaCoinReward(value);
-    const balance = await GachaCoinService.createRequest(interaction.id, interaction.user.id, reward.key);
-    await interaction.editReply({
-      content: "",
-      embeds: [new EmbedBuilder().setTitle("アイテム交換の確認").setColor(COLOR.LIGFT_PINK)
-        .setDescription(`**${reward.label} × 1枚**と交換します。\n消費: **${reward.cost}コイン**\n所持: ${balance}枚 → ${balance - reward.cost}枚\n\n交換したチケットは所持チケットに追加されます。確認の有効期限は10分です。`)],
-      components: [new ActionRowBuilder<ButtonBuilder>().addComponents(
-        new ButtonBuilder().setCustomId(`${GACHA_COIN_PREFIX}:confirm:${interaction.id}`).setLabel("交換を確定").setStyle(ButtonStyle.Success),
-        new ButtonBuilder().setCustomId(`${GACHA_COIN_PREFIX}:cancel:${interaction.id}`).setLabel("キャンセル").setStyle(ButtonStyle.Secondary),
-      )],
-    });
+    await showGachaCoinConfirmation(interaction, value);
   } else if (action === "confirm") {
     const result = await GachaCoinService.redeem(value, interaction.user.id);
     await interaction.editReply({ content: result.alreadyCompleted
@@ -39,4 +32,26 @@ export async function handleGachaCoinButton(interaction: ButtonInteraction): Pro
     await GachaCoinService.cancel(value, interaction.user.id);
     await interaction.editReply({ content: "交換をキャンセルしました。", embeds: [], components: [] });
   } else { throw new Error("不明な操作です。"); }
+}
+
+export async function handleGachaCoinSelect(interaction: StringSelectMenuInteraction): Promise<void> {
+  await interaction.deferUpdate();
+  await showGachaCoinConfirmation(interaction, interaction.values[0]);
+}
+
+async function showGachaCoinConfirmation(
+  interaction: ButtonInteraction | StringSelectMenuInteraction,
+  rewardKey: string,
+): Promise<void> {
+  const reward = getGachaCoinReward(rewardKey);
+  const balance = await GachaCoinService.createRequest(interaction.id, interaction.user.id, reward.key);
+  await interaction.editReply({
+    content: "",
+    embeds: [new EmbedBuilder().setTitle("アイテム交換の確認").setColor(COLOR.LIGFT_PINK)
+      .setDescription(`**${reward.label} × 1枚**と交換します。\n消費: **${reward.cost}コイン**\n所持: ${balance}枚 → ${balance - reward.cost}枚\n\n交換したチケットは所持チケットに追加されます。確認の有効期限は10分です。`)],
+    components: [new ActionRowBuilder<ButtonBuilder>().addComponents(
+      new ButtonBuilder().setCustomId(`${GACHA_COIN_PREFIX}:confirm:${interaction.id}`).setLabel("交換を確定").setStyle(ButtonStyle.Success),
+      new ButtonBuilder().setCustomId(`${GACHA_COIN_PREFIX}:cancel:${interaction.id}`).setLabel("キャンセル").setStyle(ButtonStyle.Secondary),
+    )],
+  });
 }
