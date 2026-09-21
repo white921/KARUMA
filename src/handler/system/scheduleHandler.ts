@@ -1,3 +1,4 @@
+import { GachaCoinActivationService } from "../../service/market/gachaCoinActivationService";
 import cron from "node-cron";
 
 import { Client, Guild } from "discord.js";
@@ -16,6 +17,10 @@ export async function handleSchedule(client: Client) {
   const guild: Guild | undefined = client.guilds.cache.get(
     process.env.GUILD_ID!,
   );
+
+  // 毎分00秒に日時を判定。開始前は無変更、失敗・再起動時も未完了分だけ再試行する。
+  cron.schedule("0 * * * * *", () => GachaCoinActivationService.runScheduledActivation(), { timezone: "Asia/Tokyo" });
+  await GachaCoinActivationService.runScheduledActivation();
 
   cron.schedule(
     "30 0 1 * *",

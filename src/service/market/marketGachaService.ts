@@ -1,3 +1,4 @@
+import { GachaCoinActivationService } from "./gachaCoinActivationService";
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -320,9 +321,13 @@ export class MarketGachaService {
     let afterWallet = 0;
     let afterInvitePoints: number | undefined;
     let awardedInvitePoints: number | undefined;
+    let afterGachaCoins: number | undefined;
     let audioAsset: MarketGachaAudioAsset | undefined;
     try {
       await connection.beginTransaction();
+      await GachaCoinActivationService.lockDrawGate(connection);
+      // 付与・交換・過去分集計とロック順を統一する。招待ポイント払いでも口座を先にロックする。
+      await connection.execute("SELECT user_id FROM accounts WHERE user_id = ? FOR UPDATE", [interaction.user.id]);
 
       const [drawRows] = await connection.execute<RowDataPacket[]>(
         `SELECT id
@@ -458,6 +463,7 @@ export class MarketGachaService {
         );
       }
 
+      afterGachaCoins = await GachaCoinActivationService.grantForDraw(connection, interaction.user.id, drawResult.insertId);
       await connection.commit();
       remainingDraws = MARKET_GACHA_DAILY_LIMIT - drawRows.length - 1;
     } catch (error) {
@@ -475,6 +481,7 @@ export class MarketGachaService {
       content:
         "🎉 **市場ガチャ当選！**\n" +
         `景品：**${prize.label}**\n` +
+        (afterGachaCoins === undefined ? "" : `ガチャコイン：+1枚／所持：${afterGachaCoins}枚\n`) +
         (paymentSource === "invite_point"
           ? `消費：${INVITE_POINT_GACHA_COST}招待ポイント／残り：${afterInvitePoints}pt\n`
           : "") +
