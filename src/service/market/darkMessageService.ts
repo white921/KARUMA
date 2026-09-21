@@ -13,6 +13,7 @@ import {
 import { CATEGORY_IDS } from "../../constant/shared/id";
 import { hasOperatorRole } from "../../util/shared/operatorPermission";
 import { DarkMessageStore, type DarkMessageRequest } from "./darkMessageStore";
+import { createDisclosureOffer } from "../../panel/market/darkDisclosurePanel";
 
 type BuyerInteraction = ButtonInteraction | UserSelectMenuInteraction | ModalSubmitInteraction;
 
@@ -97,10 +98,12 @@ async function downloadAudio(attachment: Attachment): Promise<{ attachment: Buff
   return { attachment: Buffer.concat(chunks), name };
 }
 
-export function createDarkMessagePayload(kind: DarkMessageKind, body?: string, file?: { attachment: Buffer; name: string }) {
+export function createDarkMessagePayload(kind: DarkMessageKind, body?: string, file?: { attachment: Buffer; name: string }, requestId?: string) {
   const embed = new EmbedBuilder().setTitle(DARK_MESSAGE_PRODUCTS[kind].title).setColor(0x392247);
   if (kind === "letter") embed.setDescription(body!);
-  return { embeds: [embed], files: file ? [file] : [], allowedMentions: { parse: [] as never[] } };
+  const offer = requestId ? createDisclosureOffer(requestId) : undefined;
+  return { embeds: offer ? [embed, offer.embed] : [embed], components: offer ? [offer.row] : [],
+    files: file ? [file] : [], allowedMentions: { parse: [] as never[] } };
 }
 
 export class DarkMessageService {
@@ -121,7 +124,7 @@ export class DarkMessageService {
     try {
       await channel.send({
         embeds: [new EmbedBuilder().setTitle(`${DARK_MESSAGE_PRODUCTS[kind].title} 送信パネル`)
-          .setDescription(`入金確認済み（${DARK_MESSAGE_PRICE.toLocaleString("ja-JP")} LIA）。指定された購入者本人だけが1回送信できます。\n宛先と内容を入力すると、相手専用のTCに匿名で届きます。\n送信者情報は運営が記録します。`)
+          .setDescription(`入金確認済み（${DARK_MESSAGE_PRICE.toLocaleString("ja-JP")} LIA）。指定された購入者本人だけが1回送信できます。\n宛先と内容を入力すると、相手専用のTCに匿名で届きます。\n送信者情報は運営が記録します。受取人は35,000 LIAで送信者を開示できます。`)
           .setColor(0x392247)],
         components: [new ActionRowBuilder<ButtonBuilder>().addComponents(new ButtonBuilder()
           .setCustomId(`${DARK_MESSAGE_PREFIX}:start:${interaction.id}`).setLabel("宛先を選んで送信する").setStyle(ButtonStyle.Secondary))],
@@ -202,7 +205,7 @@ export class DarkMessageService {
       });
       deliveryChannelId = channel.id;
       await DarkMessageStore.recordChannel(request.request_id, channel.id);
-      const message = await channel.send(createDarkMessagePayload(request.product, body, file));
+      const message = await channel.send(createDarkMessagePayload(request.product, body, file, request.request_id));
       deliveryMessageId = message.id;
       await DarkMessageStore.recordMessage(request.request_id, message.id);
       await channel.permissionOverwrites.edit(recipientId, {

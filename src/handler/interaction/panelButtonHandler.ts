@@ -1,4 +1,5 @@
-import { DARK_MESSAGE_PREFIX } from "../../constant/market/darkMessage";
+import { DARK_DISCLOSURE_PREFIX, DARK_MESSAGE_PREFIX } from "../../constant/market/darkMessage";
+import { DarkDisclosureService } from "../../service/market/darkDisclosureService";
 import { DarkMessageService } from "../../service/market/darkMessageService";
 import { GACHA_COIN_PREFIX } from "../../constant/market/gachaCoin";
 import { handleGachaCoinButton } from "../../service/market/gachaCoinInteractionService";
@@ -69,6 +70,10 @@ import { DIARY_MESSAGES } from "../../constant/diary/diary";
  */
 export async function handlePanelButton(interaction: ButtonInteraction) {
   const customId = interaction.customId;
+  if (customId.startsWith(`${DARK_DISCLOSURE_PREFIX}:`)) {
+    await DarkDisclosureService.handleButton(interaction);
+    return;
+  }
   if (customId.startsWith(`${DARK_MESSAGE_PREFIX}:`)) {
     await DarkMessageService.start(interaction);
     return;
