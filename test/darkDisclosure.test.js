@@ -6,7 +6,7 @@ const { DarkDisclosureService } = require('../dist/service/market/darkDisclosure
 const { DarkMessageStore } = require('../dist/service/market/darkMessageStore');
 const { DbService } = require('../dist/service/system/dbService');
 const { createDisclosureOffer, createDisclosureConfirmation } = require('../dist/panel/market/darkDisclosurePanel');
-const { createDarkMessagePayload } = require('../dist/service/market/darkMessageService');
+const { createDarkMessagePayloads } = require('../dist/service/market/darkMessageService');
 const { handlePanelButton } = require('../dist/handler/interaction/panelButtonHandler');
 const { shouldDeferButtonUpdate } = require('../dist/util/interaction/interactionAck');
 const { BOT_ID } = require('../dist/constant/shared/id');
@@ -111,9 +111,11 @@ test('購入済みなら残高不足・凍結・口座削除後でも再課金�
 });
 
 test('公開パネルと確認画面は価格・残高を表示し、送信元は含まない', () => {
-  const payload = createDarkMessagePayload('letter', 'body', undefined, requestId);
-  assert.equal(payload.embeds[0].data.description, 'body');
-  assert.match(payload.embeds[1].data.description, /35,000 LIA/);
+  const [header, text, payload] = createDarkMessagePayloads('letter', 'body', undefined, requestId);
+  assert.equal(header.embeds[0].data.description, undefined);
+  assert.equal(text.content, 'body');
+  assert.equal(payload.embeds[0].data.description, '35000LIAで送信者を開示しますか？');
+  assert.equal(payload.components[0].components[0].data.style, 3);
   assert.equal(payload.components[0].components[0].data.custom_id, `darkDisclosure:show:${requestId}`);
   const confirm = createDisclosureConfirmation(requestId, confirmationId, 'letter', 50000);
   assert.match(confirm.embeds[0].data.description, /15,000 LIA/);
@@ -124,7 +126,7 @@ test('公開パネルと確認画面は価格・残高を表示し、送信元�
 
 function ui(t, action = 'show') {
   const events = [];
-  const originalEmbed = new EmbedBuilder().setTitle('闇手紙').setDescription('body');
+  const originalEmbed = new EmbedBuilder().setTitle('匿名開示').setDescription('35000LIAで送信者を開示しますか？');
   const message = { author: { id: 'bot' }, embeds: [originalEmbed], edit: async p => events.push(['public', p]) };
   t.mock.method(DarkMessageStore, 'get', async () => request());
   t.mock.method(DarkDisclosureStore, 'get', async () => undefined);
@@ -150,8 +152,9 @@ test('確定後だけ開示。元の本文と音声添付を保持し送信者�
   await handlePanelButton(i);
   assert.deepEqual(events.map(e => e[0]), ['purchase', 'public', 'private']);
   const p = events[1][1];
-  assert.equal(p.embeds[0].data.description, 'body');
-  assert.match(p.embeds[1].data.description, /secret-sender/);
+  assert.equal(p.embeds.length, 1);
+  assert.match(p.embeds[0].data.description, /secret-sender/);
+  assert.equal(p.content, undefined);
   assert.equal(p.attachments, undefined);
   assert.equal(p.files, undefined);
   assert.deepEqual(p.allowedMentions.parse, []);

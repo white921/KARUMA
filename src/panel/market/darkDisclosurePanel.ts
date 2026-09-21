@@ -4,10 +4,10 @@ import { DARK_DISCLOSURE_PREFIX, DARK_DISCLOSURE_PRICE, DARK_MESSAGE_PRODUCTS, t
 export function createDisclosureOffer(requestId: string) {
   return {
     embed: new EmbedBuilder().setTitle("匿名開示")
-      .setDescription(`**${DARK_DISCLOSURE_PRICE.toLocaleString("ja-JP")} LIA**で送信者を開示しますか？\n受取人本人だけが購入できます。次の確認画面で確定するまで支払いは発生しません。`)
+      .setDescription(`${DARK_DISCLOSURE_PRICE}LIAで送信者を開示しますか？`)
       .setColor(0x392247),
     row: new ActionRowBuilder<ButtonBuilder>().addComponents(new ButtonBuilder()
-      .setCustomId(`${DARK_DISCLOSURE_PREFIX}:show:${requestId}`).setLabel("35,000 LIAで開示する").setStyle(ButtonStyle.Secondary)),
+      .setCustomId(`${DARK_DISCLOSURE_PREFIX}:show:${requestId}`).setLabel("35,000 LIAで開示する").setStyle(ButtonStyle.Success)),
   };
 }
 

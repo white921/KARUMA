@@ -2,7 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { ChannelType, Collection, PermissionFlagsBits: P, PermissionsBitField, OverwriteType } = require('discord.js');
 const { DarkMessageService, canIssueDarkMessage, assertDarkMessageBuyer, createDarkMessageOverwrites,
-  createDarkMessageModal, anonymousAudioName, createDarkMessagePayload } = require('../dist/service/market/darkMessageService');
+  createDarkMessageModal, anonymousAudioName, createDarkMessagePayloads } = require('../dist/service/market/darkMessageService');
 const { DarkMessageStore } = require('../dist/service/market/darkMessageStore');
 const { DbService } = require('../dist/service/system/dbService');
 const { DARK_MESSAGE_OPERATOR_ROLES, DARK_MESSAGE_MAX_AUDIO_BYTES } = require('../dist/constant/market/darkMessage');
@@ -73,11 +73,17 @@ test('元ファイル名を隠し、不正URL・形式・サイズを拒否', ()
 });
 
 test('配送内容は商品名と本文/音声のみ。作者・元URL・送信元は付けない', () => {
-  const payload = createDarkMessagePayload('letter', '@everyone hello');
-  assert.deepEqual(payload.embeds[0].toJSON(), { title: '闇手紙', color: 0x392247, description: '@everyone hello' });
+  const [payload, text] = createDarkMessagePayloads('letter', '@everyone hello');
+  assert.deepEqual(payload.embeds[0].toJSON(), { title: '闇手紙', color: 0x392247 });
   assert.deepEqual(payload.allowedMentions.parse, []);
-  assert.equal(payload.content, undefined);
-  assert.deepEqual(createDarkMessagePayload('whisper', undefined, { attachment: Buffer.from('test'), name: 'voice-message.mp3' }).embeds[0].toJSON(),
+  assert.equal(text.content, '@everyone hello');
+  assert.equal(text.embeds, undefined);
+  assert.deepEqual(text.allowedMentions.parse, []);
+  const longBody = 'あ'.repeat(1999) + '💌' + 'い'.repeat(1999);
+  const parts = createDarkMessagePayloads('letter', longBody).slice(1);
+  assert.equal(parts.map(p => p.content).join(''), longBody);
+  assert.ok(parts.every(p => p.content.length <= 2000));
+  assert.deepEqual(createDarkMessagePayloads('whisper', undefined, { attachment: Buffer.from('test'), name: 'voice-message.mp3' })[0].embeds[0].toJSON(),
     { title: '悪魔の囁き', color: 0x392247 });
 });
 
@@ -107,7 +113,7 @@ function setup(t, kind = 'letter') {
 test('記録→投稿→メッセージ記録の後に受取人へ公開。二重送信を拒否', async t => {
   const { i, events } = setup(t);
   await handleModalSubmit(i);
-  assert.deepEqual(events.map(e => e[0]), ['claim', 'create', 'recordChannel', 'send', 'recordMessage', 'grant', 'complete', 'reply']);
+  assert.deepEqual(events.map(e => e[0]), ['claim', 'create', 'recordChannel', 'send', 'send', 'send', 'recordMessage', 'grant', 'complete', 'reply']);
   assert.deepEqual(events[0].slice(1), [id, 'buyer', 'guild', 'ticket', recipientId]);
   assert.equal(events[1][1].parent, CATEGORY_IDS.DARK_MARKET);
   assert.equal(events[1][1].permissionOverwrites.some(o => o.id === recipientId || o.id === 'buyer'), false);
@@ -121,10 +127,10 @@ test('同時送信はDBのclaimに勝った1件だけを配送', async t => {
   const { i, events } = setup(t);
   const results = await Promise.allSettled([DarkMessageService.submit(i), DarkMessageService.submit(i)]);
   assert.equal(results.filter(r => r.status === 'fulfilled').length, 1);
-  assert.equal(events.filter(e => e[0] === 'send').length, 1);
+  assert.equal(events.filter(e => e[0] === 'send').length, 3);
 });
 
-for (const failing of ['recordChannel', 'send', 'recordMessage', 'grant', 'complete']) {
+for (const failing of ['recordChannel', 'send', 'send', 'send', 'recordMessage', 'grant', 'complete']) {
   test(`配送の${failing}失敗時は再送可能に戻さず記録し、内部エラーや送信元を表示しない`, async t => {
     const { i, events, channel } = setup(t);
     const target = failing === 'send' ? channel : failing === 'grant' ? channel.permissionOverwrites : DarkMessageStore;
@@ -132,7 +138,7 @@ for (const failing of ['recordChannel', 'send', 'recordMessage', 'grant', 'compl
     t.mock.method(console, 'error', () => {});
     await assert.rejects(DarkMessageService.submit(i), /^Error: 送信の完了を確認できませんでした/);
     assert.equal(events.filter(e => e[0] === 'fail').length, 1);
-    if (['recordChannel', 'send', 'recordMessage'].includes(failing))
+    if (['recordChannel', 'send', 'send', 'send', 'recordMessage'].includes(failing))
       assert.equal(events.some(e => e[0] === 'grant'), false);
   });
 }

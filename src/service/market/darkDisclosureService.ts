@@ -20,7 +20,9 @@ export class DarkDisclosureService {
     try {
       const message = await this.deliveryMessage(interaction, request);
       // 元の本文・音声添付を保持し、開示パネルだけを結果に置き換える。
-      await message.edit({ embeds: [EmbedBuilder.from(message.embeds[0]), createDisclosureResult(request.buyer_id)],
+      const preserved = ["闇手紙", "悪魔の囁き"].includes(message.embeds[0].title ?? "")
+        ? [EmbedBuilder.from(message.embeds[0])] : [];
+      await message.edit({ embeds: [...preserved, createDisclosureResult(request.buyer_id)],
         components: [], allowedMentions: { parse: [] } });
       displayed = true;
     } catch {

@@ -4,11 +4,11 @@ import {
   FileUploadBuilder, LabelBuilder, MessageFlags, ModalBuilder, OverwriteType,
   PermissionFlagsBits, TextInputBuilder, TextInputStyle, UserSelectMenuBuilder,
   type Attachment, type ButtonInteraction, type ChatInputCommandInteraction,
-  type ModalSubmitInteraction, type OverwriteData, type UserSelectMenuInteraction,
+  type MessageCreateOptions, type ModalSubmitInteraction, type OverwriteData, type UserSelectMenuInteraction,
 } from "discord.js";
 import {
   DARK_MESSAGE_MAX_AUDIO_BYTES, DARK_MESSAGE_OPERATOR_ROLES, DARK_MESSAGE_PREFIX,
-  DARK_MESSAGE_PRICE, DARK_MESSAGE_PRODUCTS, type DarkMessageKind,
+  DARK_MESSAGE_PRODUCTS, type DarkMessageKind,
 } from "../../constant/market/darkMessage";
 import { CATEGORY_IDS } from "../../constant/shared/id";
 import { hasOperatorRole } from "../../util/shared/operatorPermission";
@@ -98,12 +98,24 @@ async function downloadAudio(attachment: Attachment): Promise<{ attachment: Buff
   return { attachment: Buffer.concat(chunks), name };
 }
 
-export function createDarkMessagePayload(kind: DarkMessageKind, body?: string, file?: { attachment: Buffer; name: string }, requestId?: string) {
+export function createDarkMessagePayloads(kind: DarkMessageKind, body?: string, file?: { attachment: Buffer; name: string }, requestId?: string): MessageCreateOptions[] {
   const embed = new EmbedBuilder().setTitle(DARK_MESSAGE_PRODUCTS[kind].title).setColor(0x392247);
-  if (kind === "letter") embed.setDescription(body!);
-  const offer = requestId ? createDisclosureOffer(requestId) : undefined;
-  return { embeds: offer ? [embed, offer.embed] : [embed], components: offer ? [offer.row] : [],
-    files: file ? [file] : [], allowedMentions: { parse: [] as never[] } };
+  const payloads: MessageCreateOptions[] = [{ embeds: [embed], files: file ? [file] : [], allowedMentions: { parse: [] } }];
+  // 通常メッセージの上限に合わせて分割し、従来の4,000文字入力を維持する。
+  if (kind === "letter") {
+    let remaining = body ?? "";
+    while (remaining.length) {
+      let length = Math.min(2000, remaining.length);
+      if (length < remaining.length && /[\uD800-\uDBFF]/.test(remaining[length - 1])) length--;
+      payloads.push({ content: remaining.slice(0, length), allowedMentions: { parse: [] }, flags: MessageFlags.SuppressEmbeds });
+      remaining = remaining.slice(length);
+    }
+  }
+  if (requestId) {
+    const offer = createDisclosureOffer(requestId);
+    payloads.push({ embeds: [offer.embed], components: [offer.row], allowedMentions: { parse: [] } });
+  }
+  return payloads;
 }
 
 export class DarkMessageService {
@@ -124,7 +136,7 @@ export class DarkMessageService {
     try {
       await channel.send({
         embeds: [new EmbedBuilder().setTitle(`${DARK_MESSAGE_PRODUCTS[kind].title} 送信パネル`)
-          .setDescription(`入金確認済み（${DARK_MESSAGE_PRICE.toLocaleString("ja-JP")} LIA）。指定された購入者本人だけが1回送信できます。\n宛先と内容を入力すると、相手専用のTCに匿名で届きます。\n送信者情報は運営が記録します。受取人は35,000 LIAで送信者を開示できます。`)
+          .setDescription("宛先と内容を入力すると、匿名でメッセージが届きます。")
           .setColor(0x392247)],
         components: [new ActionRowBuilder<ButtonBuilder>().addComponents(new ButtonBuilder()
           .setCustomId(`${DARK_MESSAGE_PREFIX}:start:${interaction.id}`).setLabel("宛先を選んで送信する").setStyle(ButtonStyle.Secondary))],
@@ -205,9 +217,12 @@ export class DarkMessageService {
       });
       deliveryChannelId = channel.id;
       await DarkMessageStore.recordChannel(request.request_id, channel.id);
-      const message = await channel.send(createDarkMessagePayload(request.product, body, file, request.request_id));
-      deliveryMessageId = message.id;
-      await DarkMessageStore.recordMessage(request.request_id, message.id);
+      for (const payload of createDarkMessagePayloads(request.product, body, file, request.request_id)) {
+        const message = await channel.send(payload);
+        deliveryMessageId = message.id;
+      }
+      // 最後の匿名開示パネルを保存。開示時も別投稿の本文・音声は変更しない。
+      await DarkMessageStore.recordMessage(request.request_id, deliveryMessageId!);
       await channel.permissionOverwrites.edit(recipientId, {
         ViewChannel: true, ReadMessageHistory: true, SendMessages: true, AttachFiles: true,
       }, { type: OverwriteType.Member, reason: "闇市場商品の受取人" });
