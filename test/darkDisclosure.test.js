@@ -112,7 +112,7 @@ test('購入済みなら残高不足・凍結・口座削除後でも再課金�
 
 test('公開パネルと確認画面は価格・残高を表示し、送信元は含まない', () => {
   const [header, text, payload] = createDarkMessagePayloads('letter', 'body', undefined, requestId);
-  assert.equal(header.embeds[0].data.description, undefined);
+  assert.equal(header.embeds[0].data.description, '匿名のメッセージが届きました。');
   assert.equal(text.content, 'body');
   assert.equal(payload.embeds[0].data.description, '35000LIAで送信者を開示しますか？');
   assert.equal(payload.components[0].components[0].data.style, 3);

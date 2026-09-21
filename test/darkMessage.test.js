@@ -74,7 +74,7 @@ test('元ファイル名を隠し、不正URL・形式・サイズを拒否', ()
 
 test('配送内容は商品名と本文/音声のみ。作者・元URL・送信元は付けない', () => {
   const [payload, text] = createDarkMessagePayloads('letter', '@everyone hello');
-  assert.deepEqual(payload.embeds[0].toJSON(), { title: '闇手紙', color: 0x392247 });
+  assert.deepEqual(payload.embeds[0].toJSON(), { title: '闇手紙', color: 0x392247, description: '匿名のメッセージが届きました。' });
   assert.deepEqual(payload.allowedMentions.parse, []);
   assert.equal(text.content, '@everyone hello');
   assert.equal(text.embeds, undefined);
