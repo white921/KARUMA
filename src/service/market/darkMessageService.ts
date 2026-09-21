@@ -101,7 +101,8 @@ async function downloadAudio(attachment: Attachment): Promise<{ attachment: Buff
 export function createDarkMessagePayloads(kind: DarkMessageKind, body?: string, file?: { attachment: Buffer; name: string }, requestId?: string): MessageCreateOptions[] {
   const embed = new EmbedBuilder().setTitle(DARK_MESSAGE_PRODUCTS[kind].title).setColor(0x392247);
   if (kind === "letter") embed.setDescription("匿名のメッセージが届きました。");
-  const payloads: MessageCreateOptions[] = [{ embeds: [embed], files: file ? [file] : [], allowedMentions: { parse: [] } }];
+  const payloads: MessageCreateOptions[] = [{ embeds: [embed], allowedMentions: { parse: [] } }];
+  if (kind === "whisper" && file) payloads.push({ files: [file], allowedMentions: { parse: [] } });
   // 通常メッセージの上限に合わせて分割し、従来の4,000文字入力を維持する。
   if (kind === "letter") {
     let remaining = body ?? "";

@@ -138,7 +138,7 @@ for (const failing of ['recordChannel', 'send', 'send', 'send', 'recordMessage',
     t.mock.method(console, 'error', () => {});
     await assert.rejects(DarkMessageService.submit(i), /^Error: 送信の完了を確認できませんでした/);
     assert.equal(events.filter(e => e[0] === 'fail').length, 1);
-    if (['recordChannel', 'send', 'send', 'send', 'recordMessage'].includes(failing))
+    if (['recordChannel', 'send', 'recordMessage'].includes(failing))
       assert.equal(events.some(e => e[0] === 'grant'), false);
   });
 }
@@ -147,7 +147,11 @@ test('音声を再アップロードし、元URLと元ファイル名を受取�
   const { i, events } = setup(t, 'whisper');
   t.mock.method(globalThis, 'fetch', async () => new Response(Buffer.from('test')));
   await DarkMessageService.submit(i);
-  const payload = events.find(e => e[0] === 'send')[1];
+  const [header, payload, panel] = events.filter(e => e[0] === 'send').map(e => e[1]);
+  assert.equal(header.embeds[0].data.title, '悪魔の囁き');
+  assert.equal(header.files, undefined);
+  assert.equal(payload.embeds, undefined);
+  assert.equal(panel.embeds[0].data.title, '匿名開示');
   assert.equal(payload.files[0].name, 'voice-message.mp3');
   assert.deepEqual(payload.files[0].attachment, Buffer.from('test'));
   assert.equal(JSON.stringify(payload).includes('sender-name'), false);
