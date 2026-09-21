@@ -154,7 +154,7 @@ client.on("interactionCreate", async (interaction) => {
     try {
       // モーダルを表示するボタンの場合はdeferReplyをスキップ
       if (
-        !interaction.customId.startsWith(`${CAST_PAYMENT_PREFIX}:`) &&
+        !interaction.customId.startsWith(`${CAST_PAYMENT_PREFIX}:option:`) &&
         interaction.customId !== PANEL_COMMAND_NAMES.SHOP_SEND &&
         interaction.customId !== PANEL_COMMAND_NAMES.DARK_SHOP_SEND &&
         interaction.customId !== PANEL_COMMAND_NAMES.COURT_SHOP_SEND &&

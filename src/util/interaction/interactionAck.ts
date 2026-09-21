@@ -1,3 +1,4 @@
+import { CAST_PAYMENT_PREFIX } from "../../constant/cast/castPayment";
 import { GACHA_COIN_PREFIX } from "../../constant/market/gachaCoin";
 import { DARK_DISCLOSURE_PREFIX } from "../../constant/market/darkMessage";
 import { TICKET_EXCHANGE_PREFIX, TICKET_EXCHANGE_STEP_PREFIX } from "../../constant/inventory/ticketExchange";
@@ -9,6 +10,9 @@ import { PAYMENT_CONFIRMATION_PREFIX } from "../../constant/currency/paymentConf
 /** ボタンが付いているメッセージを更新して応答するかどうかを判定する。 */
 export function shouldDeferButtonUpdate(customId: string): boolean {
   return (
+    (customId.startsWith(`${CAST_PAYMENT_PREFIX}:`) &&
+      !customId.startsWith(`${CAST_PAYMENT_PREFIX}:start:`) &&
+      !customId.startsWith(`${CAST_PAYMENT_PREFIX}:option:`)) ||
     customId.startsWith(`${DARK_DISCLOSURE_PREFIX}:confirm:`) ||
     customId.startsWith(`${DARK_DISCLOSURE_PREFIX}:cancel:`) ||
     customId.startsWith(`${GACHA_COIN_PREFIX}:confirm:`) ||

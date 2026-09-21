@@ -67,7 +67,7 @@ export class CastPaymentService {
     if (!interaction.isButton() || !interaction.guild || interaction.channelId !== TEXT_CHANNEL_IDS.CAST_PAYMENT_PANEL || !isCastMenu(menu)) {
       throw new Error("指定の支払いパネルから操作してください。");
     }
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    if (!interaction.deferred) await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     const members = await interaction.guild.members.fetch();
     const candidates = members.filter(m => isEligibleCast(m, menu))
       .sort((a, b) => a.displayName.localeCompare(b.displayName, "ja"))
@@ -162,7 +162,7 @@ export class CastPaymentService {
           await this.render(interaction, s);
           return;
         }
-        await interaction.deferUpdate();
+        if (!interaction.deferred) await interaction.deferUpdate();
         if (s.menu !== "group") s.stage = "time";
       } else if (action === "details" && s.stage === "option" && interaction.isModalSubmit()) {
         const rawAmount = interaction.fields.getTextInputValue("amount").trim();
@@ -170,14 +170,14 @@ export class CastPaymentService {
         if (!/^[0-9]+$/.test(rawAmount) || !option || option.length > 500) throw new Error("送金額は整数、オプション内容は1〜500文字で入力してください。");
         const amount = calculateCastAmount(s.menu, s.castIds.length, 1, Number(rawAmount));
         if (!interaction.isFromMessage()) throw new Error("パネルから入力し直してください。");
-        await interaction.deferUpdate();
+        if (!interaction.deferred) await interaction.deferUpdate();
         s.amount = amount; s.option = option; s.stage = "confirm"; s.revision++;
       } else if (interaction.isButton()) {
         if (action === "option" && s.stage === "option") {
           await this.showOptionModal(interaction, s);
           return;
         }
-        await interaction.deferUpdate();
+        if (!interaction.deferred) await interaction.deferUpdate();
         if (action === "cancel") {
           this.sessions.delete(s.id);
           await interaction.editReply({ content: "キャンセルしました。支払いは発生していません。", embeds: [], components: [] });
