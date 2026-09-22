@@ -31,7 +31,7 @@ import { DbService } from "../system/dbService";
 
 import {
   emptyHistoryFilters, HISTORY_FILTER_GROUPS, historyActionType, historyCustomId,
-  historyEffect, matchesHistoryFilters, parseHistoryCustomId,
+  historyEffect, matchesHistoryFilters, normalizeHistoryFilters, parseHistoryCustomId,
   type HistoryFilters, type HistoryControl,
 } from "./historyFilter";
 
@@ -160,6 +160,7 @@ export class HistoryService {
   }
 
   static createFilterComponents(userId: string, filters: HistoryFilters, actions: Action[], page: number, totalPages: number) {
+    filters = normalizeHistoryFilters(filters);
     const id = (control: HistoryControl, targetPage = 1) => historyCustomId(userId, filters, control, targetPage);
     const counterparty = new UserSelectMenuBuilder()
       .setCustomId(id("counterparty"))
@@ -237,8 +238,7 @@ export class HistoryService {
     page = 1,
     filters = emptyHistoryFilters(),
   ): Promise<void> {
-    // Drop retired conditions from already-open history messages as well.
-    filters = { ...filters, groups: filters.groups.filter(group => !HISTORY_FILTER_GROUPS[group]?.hidden) };
+    filters = normalizeHistoryFilters(filters);
     const userId = interaction.user.id;
     if (!(await AccountService.hasAccount(userId))) {
       throw new Error(ACCOUNT_MESSAGES.ACCOUNT_NOT_FOUND);

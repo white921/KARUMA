@@ -89,7 +89,8 @@ test("宮廷市場は確認ボタンでBotへ全額送金し、履歴と指定�
   assert.match(log, /<@buyer>が5,000LIA/);
   assert.match(log, /王冠/);
   const history = HistoryService.createHistoryString({ id: 1, command_name: action[0], amount: 5000, from_user_id: "buyer", to_user_id: BOT_ID, from_after_wallet: 5000, to_after_wallet: 25000, comment: action[6], created_at: new Date() }, "buyer");
-  assert.match(history, /宮廷市場商品購入/);
+  assert.match(history, /市場商品購入/);
+  assert.doesNotMatch(history, /宮廷/);
   assert.match(history, /-5,000LIA/);
 });
 

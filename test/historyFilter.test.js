@@ -169,3 +169,24 @@ test('empty history has valid disabled options; full history respects Discord co
     assert.ok(fields.reduce((sum, field) => sum + field.name.length + field.value.length, 0) + conditionLength < 6000);
   }
 });
+
+
+test('market combines all four purchase types and migrates old market selections without exposing retired labels', async t => {
+  const types = [A.SHOP_PURCHASE, A.DARK_SHOP_PURCHASE, A.COURT_SHOP_PURCHASE, A.MARKET_GACHA_DRAW];
+  const market = groups.findIndex(group => group.label === '市場' && !group.hidden);
+  const rows = types.map((type, i) => action(i + 1, type, { from_user_id: user, to_user_id: BOT_ID }));
+  rows.push(action(5, A.CASINO_GF));
+  const events = await withHistory(t, rows);
+  for (const oldGroup of [market, 3, 4, 8]) {
+    const i = interaction('button', historyCustomId(user, filters({ groups: [oldGroup] }), 'page'), events);
+    await handlePanelButton(i);
+    assert.match(i.payload.embeds[0].data.description, /種類：市場/);
+    assert.match(i.payload.embeds[0].data.description, /該当4件/);
+    const options = components(i)[1].components[0].options;
+    assert.deepEqual(options.map(option => option.label), ['カジノ（GF・麻雀・その他）', '市場']);
+    assert.doesNotMatch(JSON.stringify(i.payload.embeds.map(embed => embed.toJSON())), /宮廷/);
+    assert.deepEqual(parseHistoryCustomId(components(i)[1].components[0].custom_id, user).filters.groups, [market]);
+  }
+  const onlyCourt = HistoryService.createFilterComponents(user, filters(), [rows[2]], 1, 1).map(row => row.toJSON());
+  assert.deepEqual(onlyCourt[1].components[0].options.map(option => option.label), ['市場']);
+});

@@ -5,16 +5,16 @@ import type { Action } from "../../type/currency/action";
 export const HISTORY_FILTER_PREFIX = "history:v1:";
 
 // The order is encoded in component IDs. Append new groups; change the version to reorder.
-export const HISTORY_FILTER_GROUPS: { label: string; types: string[]; hidden?: boolean }[] = [
+export const HISTORY_FILTER_GROUPS: { label: string; types: string[]; hidden?: boolean; replacement?: number }[] = [
   { label: "送金", types: [A.TRANSFER] },
   { label: "カジノ（GF・麻雀・その他）", types: [A.CASINO_GF, A.CASINO_MAHJONG, A.CASINO_OTHER] },
-  { label: "市場商品購入", types: [A.SHOP_PURCHASE] },
-  { label: "闇市場商品購入", types: [A.DARK_SHOP_PURCHASE] },
-  { label: "宮廷市場商品購入", types: [A.COURT_SHOP_PURCHASE], hidden: true },
+  { label: "市場", types: [A.SHOP_PURCHASE, A.DARK_SHOP_PURCHASE, A.COURT_SHOP_PURCHASE, A.MARKET_GACHA_DRAW] },
+  { label: "市場", types: [], hidden: true, replacement: 2 },
+  { label: "市場", types: [], hidden: true, replacement: 2 },
   { label: "スタンプ支払い", types: [A.CREATOR_EMBLEM_PAYMENT] },
   { label: "スパチャ", types: [A.SUPERCHAT] },
   { label: "執事・メイド支払い", types: [A.CAST_PAYMENT] },
-  { label: "市場ガチャ", types: [A.MARKET_GACHA_DRAW] },
+  { label: "市場", types: [], hidden: true, replacement: 2 },
   { label: "おみくじ", types: [A.OMIKUJI_DRAW] },
   { label: "チケット換金", types: [A.TICKET_EXCHANGE] },
   { label: "給与支払い", types: [A.SALARY_PAYMENT] },
@@ -40,6 +40,15 @@ export interface HistoryFilters {
 
 export function emptyHistoryFilters(): HistoryFilters {
   return { groups: [], direction: "all" };
+}
+
+/** Preserve old component IDs while merging retired market choices into the market group. */
+export function normalizeHistoryFilters(filters: HistoryFilters): HistoryFilters {
+  return {
+    ...filters,
+    groups: [...new Set(filters.groups.map(index => HISTORY_FILTER_GROUPS[index]?.replacement ?? index))]
+      .filter(index => HISTORY_FILTER_GROUPS[index] && !HISTORY_FILTER_GROUPS[index].hidden),
+  };
 }
 
 export function historyActionType(action: Action): string {
@@ -75,6 +84,7 @@ export function historyEffect(action: Action, userId: string) {
 }
 
 export function matchesHistoryFilters(action: Action, userId: string, filters: HistoryFilters): boolean {
+  filters = normalizeHistoryFilters(filters);
   const effect = historyEffect(action, userId);
   if (!effect) return false;
   if (filters.counterparty && filters.counterparty !== effect.counterparty) return false;
