@@ -1,3 +1,4 @@
+import { HISTORY_FILTER_PREFIX } from "../../service/currency/historyFilter";
 import { CastPaymentService } from "../../service/cast/castPaymentService";
 import { CAST_PAYMENT_PREFIX } from "../../constant/cast/castPayment";
 import { DARK_DISCLOSURE_PREFIX, DARK_MESSAGE_PREFIX, DARK_MESSAGE_CLOSE_PREFIX } from "../../constant/market/darkMessage";
@@ -73,6 +74,10 @@ import { DIARY_MESSAGES } from "../../constant/diary/diary";
  */
 export async function handlePanelButton(interaction: ButtonInteraction) {
   const customId = interaction.customId;
+  if (customId.startsWith(HISTORY_FILTER_PREFIX)) {
+    await HistoryService.handleFilter(interaction);
+    return;
+  }
   if (customId.startsWith(`${DARK_MESSAGE_CLOSE_PREFIX}:`)) {
     await DarkMessageCloseService.handleButton(interaction);
     return;

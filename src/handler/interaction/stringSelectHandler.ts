@@ -1,3 +1,5 @@
+import { HistoryService } from "../../service/currency/historyService";
+import { HISTORY_FILTER_PREFIX } from "../../service/currency/historyFilter";
 import { CastPaymentService } from "../../service/cast/castPaymentService";
 import { CAST_PAYMENT_PREFIX } from "../../constant/cast/castPayment";
 import { GACHA_COIN_PREFIX } from "../../constant/market/gachaCoin";
@@ -34,6 +36,10 @@ export async function handleStringSelectMenu(
 ) {
   try {
     const customId = interaction.customId;
+    if (customId.startsWith(HISTORY_FILTER_PREFIX)) {
+      await HistoryService.handleFilter(interaction);
+      return;
+    }
     if (customId.startsWith(`${CAST_PAYMENT_PREFIX}:`)) {
       await CastPaymentService.handle(interaction);
       return;

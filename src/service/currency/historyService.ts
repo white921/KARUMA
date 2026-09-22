@@ -7,12 +7,15 @@ import {
   ButtonInteraction,
   ButtonStyle,
   EmbedBuilder,
+  StringSelectMenuBuilder,
+  StringSelectMenuInteraction,
+  UserSelectMenuBuilder,
+  UserSelectMenuInteraction,
 } from "discord.js";
 import type { RowDataPacket } from "mysql2";
 import { ACCOUNT_MESSAGES } from "../../constant/account/account";
-import { ACTION_TYPES, toActionType } from "../../constant/currency/action";
+import { ACTION_TYPES } from "../../constant/currency/action";
 import { COLOR } from "../../constant/shared/color";
-import { COMMAND_NAMES, PANEL_COMMAND_NAMES } from "../../constant/shared/command";
 import { CURRENCY_NAMES } from "../../constant/currency/currency";
 import { EXTERNALE_MOJI_VIEWS } from "../../constant/shared/emoji";
 import {
@@ -21,12 +24,18 @@ import {
   HISTORY_PAGE_ITEM_LIMIT,
   HISTORY_TITLE_MAPPER,
 } from "../../constant/currency/history";
-import { BOT_ID } from "../../constant/shared/id";
-import { ROULETTE_ACTION_NAMES } from "../../constant/casino/roulette";
 import type { Action } from "../../type/currency/action";
 import type { EmbedField } from "../../type/shared/embed";
 import { AccountService } from "../account/accountService";
 import { DbService } from "../system/dbService";
+
+import {
+  emptyHistoryFilters, HISTORY_FILTER_GROUPS, historyActionType, historyCustomId,
+  historyEffect, matchesHistoryFilters, parseHistoryCustomId,
+  type HistoryFilters, type HistoryControl,
+} from "./historyFilter";
+
+type HistoryInteraction = ButtonInteraction | StringSelectMenuInteraction | UserSelectMenuInteraction;
 
 dayjs.extend(utc);
 
@@ -54,142 +63,9 @@ export class HistoryService {
     }
   }
 
-  /**
-   * 取引履歴をフィルタリング
-   * @param actions 取引履歴の配列
-   * @param userId ユーザーID
-   * @returns フィルタリングされた取引履歴の配列
-   */
-  static filterActions(actions: Action[], userId: string): Action[] {
-    // 管理者コマンドと名前変更の実行者側の履歴は除外
-    const filteredActions = actions.filter((action) => {
-      if (
-        action.command_name === PANEL_COMMAND_NAMES.ADMIN_BURN &&
-        action.to_user_id === userId
-      ) {
-        return false;
-      }
-      if (
-        action.command_name === PANEL_COMMAND_NAMES.ADMIN_MINT &&
-        action.from_user_id === userId
-      ) {
-        return false;
-      }
-      if (
-        action.command_name === COMMAND_NAMES.ROLE_BASED_SEND &&
-        action.from_user_id === userId
-      ) {
-        return false;
-      }
-      // if (
-      //   action.command_name === COMMAND_NAMES.CHANGE_NAME &&
-      //   action.from_user_id !== userId &&
-      //   action.to_user_id !== action.from_user_id
-      // ) {
-      //   return false;
-      // }
-      return true;
-    });
-    // 新しい順（降順）でソート
-    return filteredActions.sort((a, b) => b.id - a.id);
-  }
-
-  /**
-   * 取引履歴を取引履歴のオブジェクトに変換
-   * @param action 取引履歴
-   * @param userId ユーザーID
-   * @returns 取引履歴のオブジェクト
-   */
-  static convertActiontoHistoryObject(action: Action, userId: string) {
-    const isFromUser = action.from_user_id === userId;
-    const historyObject = {
-      [ACTION_TYPES.CAST_PAYMENT]: isFromUser
-        ? `<@${BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`
-        : `<@${action.from_user_id}> から\n+${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.to_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [ACTION_TYPES.TICKET_EXCHANGE]: `+${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.to_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [PANEL_COMMAND_NAMES.SEND]: isFromUser
-        ? `<@${
-            action.to_user_id
-          }> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`
-        : `<@${
-            action.from_user_id
-          }> から\n+${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.to_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [PANEL_COMMAND_NAMES.SHOP_SEND]: `<@${BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [PANEL_COMMAND_NAMES.DARK_SHOP_SEND]: `<@${BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [PANEL_COMMAND_NAMES.COURT_SHOP_SEND]: `<@${BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [PANEL_COMMAND_NAMES.CREATOR_EMBLEM_PAY]: isFromUser
-        ? `<@${action.to_user_id}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`
-        : `<@${action.from_user_id}> から\n+${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.to_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [PANEL_COMMAND_NAMES.SUPERCHAT_SEND]: isFromUser
-        ? `<@${action.to_user_id}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`
-        : `<@${action.from_user_id}> から\n+${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.to_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [PANEL_COMMAND_NAMES.MARKET_GACHA_DRAW]: `<@${BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [PANEL_COMMAND_NAMES.OMIKUJI_DRAW]: `<@${BOT_ID}> から\n${
-        action.amount > 0 ? "+" : "-"
-      }${Math.abs(action.amount).toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.to_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [COMMAND_NAMES.ROLE_BASED_SEND]: `<@${BOT_ID}> から\n+${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.to_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [PANEL_COMMAND_NAMES.ADMIN_MINT]: `<@${BOT_ID}> から\n+${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.to_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [PANEL_COMMAND_NAMES.ADMIN_BURN]: `<@${BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [COMMAND_NAMES.PAY_SALARY]: `<@${BOT_ID}> から\n+${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.to_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [COMMAND_NAMES.VC_REWARD]: `<@${BOT_ID}> から\n+${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.to_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [COMMAND_NAMES.CHANGE_NAME]: `<@${BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [PANEL_COMMAND_NAMES.HOTEL_VC_NORMAL]: `<@${BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [PANEL_COMMAND_NAMES.HOTEL_VC_SECRET]: `<@${BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [PANEL_COMMAND_NAMES.HOTEL_VC_SECRETLONG]: `<@${BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [PANEL_COMMAND_NAMES.HOTEL_VC_FREEDOM]: `<@${BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [PANEL_COMMAND_NAMES.HOTEL_VC_FREEDOMLONG]: `<@${BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [ACTION_TYPES.SOLITARY_CELL]: `<@${BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [PANEL_COMMAND_NAMES.DIARY_PRIVATE]: `<@${BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [PANEL_COMMAND_NAMES.DIARY_PUBLIC]: `<@${BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [PANEL_COMMAND_NAMES.DIARY_UPDATE]: `<@${BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [PANEL_COMMAND_NAMES.CASINO_GF]: isFromUser
-        ? `<@${
-            action.to_user_id
-          }> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`
-        : `<@${
-            action.from_user_id
-          }> から\n+${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.to_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [PANEL_COMMAND_NAMES.CASINO_MAJONG]: isFromUser
-        ? `<@${
-            action.to_user_id
-          }> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`
-        : `<@${
-            action.from_user_id
-          }> から\n+${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.to_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [PANEL_COMMAND_NAMES.CASINO_OTHER]: isFromUser
-        ? `<@${
-            action.to_user_id
-          }> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`
-        : `<@${
-            action.from_user_id
-          }> から\n+${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.to_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [PANEL_COMMAND_NAMES.GAME_SHORT]: `<@${
-        action.from_user_id
-      }> から\n+${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [PANEL_COMMAND_NAMES.GAME_LONG]: `<@${
-        action.from_user_id
-      }> から\n+${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [PANEL_COMMAND_NAMES.GAME_SHORT_EXTEND]: `<@${
-        action.from_user_id
-      }> から\n+${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [PANEL_COMMAND_NAMES.GAME_PASS]: `<@${
-        action.from_user_id
-      }> から\n+${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [PANEL_COMMAND_NAMES.GAME_CRIMINAL_ACCESS_PURCHASE]: `<@${BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [PANEL_COMMAND_NAMES.MINECRAFT_PASS]: `<@${
-        action.from_user_id
-      }> から\n+${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [ROULETTE_ACTION_NAMES.BET]: `<@${BOT_ID}> へ\n-${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.from_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [ROULETTE_ACTION_NAMES.PAYOUT]: `<@${BOT_ID}> から\n+${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.to_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-      [ROULETTE_ACTION_NAMES.BONUS]: `<@${BOT_ID}> から\n+${action.amount.toLocaleString()}${CURRENCY_NAMES}　　　残高: ${action.to_after_wallet.toLocaleString()}${CURRENCY_NAMES}`,
-    };
-
-    return Object.fromEntries(
-      Object.entries(historyObject).map(([commandName, value]) => [
-        toActionType(commandName),
-        value,
-      ]),
-    ) as Record<string, string>;
+  static filterActions(actions: Action[], userId: string, filters = emptyHistoryFilters()): Action[] {
+    return actions.filter(action => matchesHistoryFilters(action, userId, filters))
+      .sort((a, b) => b.id - a.id);
   }
 
   /** 1件の取引履歴を表示用文字列に変換する。 */
@@ -197,13 +73,15 @@ export class HistoryService {
     const date = dayjs(action.created_at)
       .tz("Asia/Tokyo")
       .format("MM/DD HH:mm");
-    const titleText = HISTORY_TITLE_MAPPER[action.command_name] || "不明な取引";
-    const historyObject = this.convertActiontoHistoryObject(action, userId);
-    let value = historyObject[action.command_name];
-    if (!value) return null;
+    const type = historyActionType(action);
+    const effect = historyEffect(action, userId);
+    if (!effect) return null;
+    const titleText = HISTORY_TITLE_MAPPER[type] || "不明な取引";
+    const sign = effect.delta > 0 ? "+" : effect.delta < 0 ? "-" : "";
+    let value = `<@${effect.counterparty}> ${effect.delta < 0 ? "へ" : "から"}\n${sign}${Math.abs(effect.delta).toLocaleString()}${CURRENCY_NAMES}　　　残高: ${effect.wallet.toLocaleString()}${CURRENCY_NAMES}`;
 
     if (action.comment) {
-      if (action.command_name === COMMAND_NAMES.CHANGE_NAME) {
+      if (type === ACTION_TYPES.DISPLAY_NAME_CHANGE) {
         const [oldName, newName] = action.comment.split("_");
         value += `\n${oldName}から${newName}に変更`;
       } else {
@@ -281,101 +159,114 @@ export class HistoryService {
     return fields;
   }
 
-  /**
-   * 取引履歴をEmbed形式で表示
-   * @param interaction インタラクション
-   * @param page ページ番号（デフォルト: 1）
-   */
-  static async viewHistory(
-    interaction: ButtonInteraction,
-    page: number = 1,
-  ): Promise<void> {
-    try {
-      const userId = interaction.user.id;
+  static createFilterComponents(userId: string, filters: HistoryFilters, actions: Action[], page: number, totalPages: number) {
+    const id = (control: HistoryControl, targetPage = 1) => historyCustomId(userId, filters, control, targetPage);
+    const counterparty = new UserSelectMenuBuilder()
+      .setCustomId(id("counterparty"))
+      .setPlaceholder("取引相手：すべて（選択解除で全員）")
+      .setMinValues(0).setMaxValues(1);
+    if (filters.counterparty) counterparty.setDefaultUsers(filters.counterparty);
 
-      // 口座が存在するか確認
-      if (!(await AccountService.hasAccount(userId))) {
-        throw new Error(ACCOUNT_MESSAGES.ACCOUNT_NOT_FOUND);
+    // Base options on all visible history, so combining filters never removes a selected option.
+    const availableTypes = new Set(actions.map(historyActionType));
+    let options = HISTORY_FILTER_GROUPS.flatMap((group, index) =>
+      group.types.some(type => availableTypes.has(type)) || filters.groups.includes(index)
+        ? [{ label: group.label, value: String(index), default: filters.groups.includes(index) }]
+        : [],
+    );
+    const noOptions = options.length === 0;
+    if (noOptions) options = [{ label: "アクションの履歴がありません", value: "none", default: false }];
+    const groups = new StringSelectMenuBuilder()
+      .setCustomId(id("groups"))
+      .setPlaceholder("アクションの種類：すべて（複数選択可）")
+      .setMinValues(0).setMaxValues(options.length).setDisabled(noOptions)
+      .addOptions(options);
+    const direction = new StringSelectMenuBuilder()
+      .setCustomId(id("direction"))
+      .setPlaceholder("収入／支出")
+      .addOptions([
+        { label: "収入・支出すべて", value: "all", default: filters.direction === "all" },
+        { label: "収入のみ", value: "income", default: filters.direction === "income" },
+        { label: "支出のみ", value: "expense", default: filters.direction === "expense" },
+      ]);
+    const buttons = new ActionRowBuilder<ButtonBuilder>().addComponents(
+      new ButtonBuilder().setCustomId(id("page", Math.max(1, page - 1)))
+        .setLabel("前へ").setStyle(ButtonStyle.Primary).setEmoji(EXTERNALE_MOJI_VIEWS.PREVIOUS).setDisabled(page <= 1),
+      new ButtonBuilder().setCustomId(id("page", page + 1))
+        .setLabel("次へ").setStyle(ButtonStyle.Primary).setEmoji(EXTERNALE_MOJI_VIEWS.NEXT).setDisabled(page >= totalPages),
+      new ButtonBuilder().setCustomId(id("reset"))
+        .setLabel("条件をすべて解除").setStyle(ButtonStyle.Secondary)
+        .setDisabled(!filters.counterparty && filters.groups.length === 0 && filters.direction === "all"),
+    );
+    return [
+      new ActionRowBuilder<UserSelectMenuBuilder>().addComponents(counterparty),
+      new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(groups),
+      new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(direction),
+      buttons,
+    ];
+  }
+
+  static async handleFilter(interaction: HistoryInteraction): Promise<void> {
+    // Acknowledge before querying accounts/history. Button interactions may already be deferred.
+    if (!interaction.deferred && !interaction.replied) await interaction.deferUpdate();
+    const state = parseHistoryCustomId(interaction.customId, interaction.user.id);
+    let { filters } = state;
+    if (interaction.isUserSelectMenu() && state.control === "counterparty") {
+      const selected = interaction.values[0];
+      if (selected && !/^\d{17,20}$/.test(selected)) throw new Error("取引相手が無効です。");
+      filters.counterparty = selected;
+    } else if (interaction.isStringSelectMenu() && state.control === "groups") {
+      if (interaction.values.some(value => !/^\d+$/.test(value) || !HISTORY_FILTER_GROUPS[Number(value)])) {
+        throw new Error("アクションの種類が無効です。");
       }
-
-      // 総件数と取引履歴を取得
-      const actions = await this.getActionsByUserId(userId);
-      const filteredActions = this.filterActions(actions, userId);
-      const historyStrings = filteredActions
-        .map((action) => this.createHistoryString(action, userId))
-        .filter((value): value is string => value !== null);
-      const totalCount = historyStrings.length;
-
-      if (totalCount === 0) {
-        await interaction.editReply({
-          content: "取引履歴がありません。",
-        });
-        return;
-      }
-
-      const historyPages = this.createHistoryPages(historyStrings);
-      const currentPage = Math.min(Math.max(page, 1), historyPages.length);
-      const pagedHistoryStrings = historyPages[currentPage - 1];
-      const displayedBeforeCount = historyPages
-        .slice(0, currentPage - 1)
-        .reduce((count, historyPage) => count + historyPage.length, 0);
-      const totalPages = historyPages.length;
-
-      // Embedを作成
-      const embed = new EmbedBuilder()
-        .setTitle("取引履歴")
-        .setColor(COLOR.LIGFT_PINK)
-        .setDescription(
-          `全${totalCount}件中、${displayedBeforeCount + 1}〜${
-            displayedBeforeCount + pagedHistoryStrings.length
-          }件目を表示しています。\nページ ${currentPage}/${totalPages}`,
-        )
-        .setTimestamp();
-
-      // 取引履歴をフィールドに追加
-      const fields = this.createHistoryEmbedFields(pagedHistoryStrings);
-
-      // フィールドを追加
-      embed.addFields(fields);
-
-      // ページネーションボタンを作成
-      const components: ActionRowBuilder<ButtonBuilder>[] = [];
-      if (totalPages > 1) {
-        const row = new ActionRowBuilder<ButtonBuilder>();
-
-        // 前へボタン
-        if (currentPage > 1) {
-          row.addComponents(
-            new ButtonBuilder()
-              .setCustomId(`history_page_${currentPage - 1}`)
-              .setLabel("前へ")
-              .setStyle(ButtonStyle.Primary)
-              .setEmoji(EXTERNALE_MOJI_VIEWS.PREVIOUS),
-          );
-        }
-
-        // 次へボタン
-        if (currentPage < totalPages) {
-          row.addComponents(
-            new ButtonBuilder()
-              .setCustomId(`history_page_${currentPage + 1}`)
-              .setLabel("次へ")
-              .setStyle(ButtonStyle.Primary)
-              .setEmoji(EXTERNALE_MOJI_VIEWS.NEXT),
-          );
-        }
-
-        if (row.components.length > 0) {
-          components.push(row);
-        }
-      }
-
-      await interaction.editReply({
-        embeds: [embed],
-        components: components,
-      });
-    } catch (error: any) {
-      throw error;
+      filters.groups = [...new Set(interaction.values.map(Number))];
+    } else if (interaction.isStringSelectMenu() && state.control === "direction") {
+      const selected = interaction.values[0];
+      if (!["all", "income", "expense"].includes(selected)) throw new Error("収入／支出の条件が無効です。");
+      filters.direction = selected as HistoryFilters["direction"];
+    } else if (interaction.isButton() && state.control === "reset") {
+      filters = emptyHistoryFilters();
+    } else if (!interaction.isButton() || state.control !== "page") {
+      throw new Error("履歴の操作が無効です。");
     }
+    await this.viewHistory(interaction, state.control === "page" ? state.page : 1, filters);
+  }
+
+  static async viewHistory(
+    interaction: HistoryInteraction,
+    page = 1,
+    filters = emptyHistoryFilters(),
+  ): Promise<void> {
+    const userId = interaction.user.id;
+    if (!(await AccountService.hasAccount(userId))) {
+      throw new Error(ACCOUNT_MESSAGES.ACCOUNT_NOT_FOUND);
+    }
+    const actions = this.filterActions(await this.getActionsByUserId(userId), userId);
+    const historyStrings = this.filterActions(actions, userId, filters)
+      .map(action => this.createHistoryString(action, userId))
+      .filter((value): value is string => value !== null);
+    const historyPages = this.createHistoryPages(historyStrings);
+    const totalPages = Math.max(1, historyPages.length);
+    const currentPage = Math.min(Math.max(page, 1), totalPages);
+    const pagedHistoryStrings = historyPages[currentPage - 1] || [];
+    const displayedBeforeCount = historyPages.slice(0, currentPage - 1)
+      .reduce((count, historyPage) => count + historyPage.length, 0);
+    const conditions = [
+      `取引相手：${filters.counterparty ? `<@${filters.counterparty}>` : "すべて"}`,
+      `種類：${filters.groups.length ? filters.groups.map(group => HISTORY_FILTER_GROUPS[group].label).join("・") : "すべて"}`,
+      `収入／支出：${{ all: "すべて", income: "収入のみ", expense: "支出のみ" }[filters.direction]}`,
+    ];
+    const countText = historyStrings.length
+      ? `該当${historyStrings.length}件中、${displayedBeforeCount + 1}〜${displayedBeforeCount + pagedHistoryStrings.length}件目を表示しています。\nページ ${currentPage}/${totalPages}`
+      : actions.length ? "条件に一致する取引履歴がありません。" : "取引履歴がありません。";
+    const embed = new EmbedBuilder().setTitle("取引履歴").setColor(COLOR.LIGFT_PINK)
+      .setDescription(`${conditions.join("\n")}\n\n${countText}`)
+      .addFields(this.createHistoryEmbedFields(pagedHistoryStrings)).setTimestamp();
+    await interaction.editReply({
+      content: "",
+      embeds: [embed],
+      components: this.createFilterComponents(userId, filters, actions, currentPage, totalPages),
+      allowedMentions: { parse: [] },
+    });
   }
 }

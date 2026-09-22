@@ -1,3 +1,5 @@
+import { HistoryService } from "../../service/currency/historyService";
+import { HISTORY_FILTER_PREFIX } from "../../service/currency/historyFilter";
 import { DARK_MESSAGE_PREFIX } from "../../constant/market/darkMessage";
 import { DarkMessageService } from "../../service/market/darkMessageService";
 import { PrivateHotelService } from "../../service/hotel/privateHotelService";
@@ -23,6 +25,10 @@ export async function handleUserSelectMenu(
   interaction: UserSelectMenuInteraction
 ) {
   const customId = interaction.customId;
+  if (customId.startsWith(HISTORY_FILTER_PREFIX)) {
+    await HistoryService.handleFilter(interaction);
+    return;
+  }
   if (customId.startsWith(`${DARK_MESSAGE_PREFIX}:`)) {
     await DarkMessageService.select(interaction);
     return;

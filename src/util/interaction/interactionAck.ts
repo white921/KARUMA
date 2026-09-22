@@ -1,3 +1,4 @@
+import { HISTORY_FILTER_PREFIX } from "../../service/currency/historyFilter";
 import { CAST_PAYMENT_PREFIX } from "../../constant/cast/castPayment";
 import { GACHA_COIN_PREFIX } from "../../constant/market/gachaCoin";
 import { DARK_DISCLOSURE_PREFIX, DARK_MESSAGE_CLOSE_PREFIX } from "../../constant/market/darkMessage";
@@ -25,6 +26,7 @@ export function shouldDeferButtonUpdate(customId: string): boolean {
     customId.startsWith(`${TICKET_EXCHANGE_PREFIX}:cancel:`) ||
     (customId.startsWith(PRIVATE_HOTEL_PREFIX) && customId.split(":").length > 2) ||
     customId.startsWith("history_page_") ||
+    customId.startsWith(HISTORY_FILTER_PREFIX) ||
     customId.startsWith(`${CREATOR_EMBLEM_CONFIRM_PREFIX}:`) ||
     customId === CREATOR_EMBLEM_CANCEL_ID ||
     customId === PANEL_COMMAND_NAMES.GAME_PASS_TWO_WEEKS_CONFIRM ||

@@ -1,3 +1,4 @@
+import { HISTORY_FILTER_PREFIX } from "./service/currency/historyFilter";
 import { CAST_PAYMENT_PREFIX } from "./constant/cast/castPayment";
 import { DARK_MESSAGE_PREFIX } from "./constant/market/darkMessage";
 import { PRIVATE_HOTEL_PREFIX } from "./constant/hotel/privateHotel";
@@ -220,10 +221,17 @@ client.on("interactionCreate", async (interaction) => {
     }
   } else if (interaction.isUserSelectMenu()) {
     try {
+      if (interaction.customId.startsWith(HISTORY_FILTER_PREFIX)) {
+        await interaction.deferUpdate();
+        BotHealthMonitor.recordAckSuccess(`${interactionContext}:deferUpdate`);
+      }
       if (interaction.customId.startsWith(PRIVATE_HOTEL_PREFIX)) {
         await interaction.deferUpdate();
       }
-      if (!interaction.customId.startsWith(`${DARK_MESSAGE_PREFIX}:`)) {
+      if (
+        !interaction.customId.startsWith(`${DARK_MESSAGE_PREFIX}:`) &&
+        !interaction.customId.startsWith(HISTORY_FILTER_PREFIX)
+      ) {
         await validateSelectUserMenu(interaction);
       }
       await handleUserSelectMenu(interaction);
@@ -251,6 +259,10 @@ client.on("interactionCreate", async (interaction) => {
     }
   } else if (interaction.isStringSelectMenu()) {
     try {
+      if (interaction.customId.startsWith(HISTORY_FILTER_PREFIX)) {
+        await interaction.deferUpdate();
+        BotHealthMonitor.recordAckSuccess(`${interactionContext}:deferUpdate`);
+      }
       await handleStringSelectMenu(interaction);
       BotHealthMonitor.recordAckSuccess(`${interactionContext}:handler`);
     } catch (error: any) {
