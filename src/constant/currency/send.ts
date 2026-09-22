@@ -3,6 +3,8 @@ import { CURRENCY_NAMES } from "./currency";
 import { ROLE_IDS } from "../shared/id";
 
 export const MONTHLY_SEND_LIMIT = 500000;
+// DM通知の試験運用。通常送金の受取人がこのIDの場合だけ通知する。
+export const SEND_DM_TEST_RECIPIENT_ID = "649438093996195851";
 export const MONTHLY_SEND_LIMIT_EXEMPT_ROLE_IDS = [
   ROLE_IDS.SABANUSI,
   ROLE_IDS.KANRISYA,

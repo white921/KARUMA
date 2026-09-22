@@ -4,6 +4,7 @@ import {
   ModalSubmitInteraction,
   ButtonInteraction,
   Guild,
+  EmbedBuilder,
 } from "discord.js";
 
 import { Account } from "../../type/account/account";
@@ -16,6 +17,7 @@ import {
   MONTHLY_SEND_LIMIT,
   MONTHLY_SEND_LIMIT_EXEMPT_ROLE_IDS,
   SEND_MESSAGES,
+  SEND_DM_TEST_RECIPIENT_ID,
 } from "../../constant/currency/send";
 import { CURRENCY_NAMES } from "../../constant/currency/currency";
 import { PANEL_COMMAND_NAMES } from "../../constant/shared/command";
@@ -23,6 +25,7 @@ import { ACCOUNT_MESSAGES } from "../../constant/account/account";
 import { BOT_ID } from "../../constant/shared/id";
 import { ACTION_TYPES } from "../../constant/currency/action";
 import { hasOperatorRole } from "../../util/shared/operatorPermission";
+import { COLOR } from "../../constant/shared/color";
 
 export class SendService {
   /**
@@ -108,6 +111,43 @@ export class SendService {
       toUserAmount,
       comment,
     );
+
+    await this.sendReceiptDm(interaction, fromUserId, toUserId, amount, comment, toUserAmount, commandName);
+  }
+
+  /** 確定済みの通常送金だけ通知する。通知失敗によって送金の再試行を促さない。 */
+  private static async sendReceiptDm(
+    interaction: ModalSubmitInteraction | ChatInputCommandInteraction | ButtonInteraction,
+    fromUserId: string,
+    toUserId: string,
+    amount: number,
+    comment: string,
+    afterWallet: number,
+    commandName: string,
+  ): Promise<void> {
+    if (toUserId !== SEND_DM_TEST_RECIPIENT_ID || commandName !== PANEL_COMMAND_NAMES.SEND) return;
+
+    try {
+      const member = await interaction.guild?.members.fetch(fromUserId).catch(() => null);
+      const sender = member?.user ?? await interaction.client.users.fetch(fromUserId);
+      const avatarUrl = member?.displayAvatarURL({ extension: "png" })
+        ?? sender.displayAvatarURL({ extension: "png" });
+      const embed = new EmbedBuilder()
+        .setColor(COLOR.GREEN)
+        .setAuthor({ name: member?.displayName ?? sender.displayName, iconURL: avatarUrl })
+        .setThumbnail(avatarUrl)
+        .setTitle("💸 送金を受け取りました")
+        .setDescription(`<@${fromUserId}> さんから **${amount.toLocaleString("ja-JP")} ${CURRENCY_NAMES}** が届きました。`)
+        .setFooter({ text: `受取後の残高：${afterWallet.toLocaleString("ja-JP")} ${CURRENCY_NAMES}` })
+        .setTimestamp();
+      if (comment.trim()) {
+        embed.addFields({ name: "備考", value: comment.length > 1024 ? `${comment.slice(0, 1023)}…` : comment });
+      }
+      const recipient = await interaction.client.users.fetch(toUserId);
+      await recipient.send({ embeds: [embed], allowedMentions: { parse: [] } });
+    } catch (error) {
+      console.error("[SendService] Transfer completed but receipt DM failed", { fromUserId, toUserId, error });
+    }
   }
 
   /**
