@@ -1,3 +1,4 @@
+const { GachaCoinExchangeLogService } = require('../dist/service/market/gachaCoinExchangeLogService');
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { canManageGachaCoins, GachaCoinService } = require('../dist/service/market/gachaCoinService');
@@ -70,6 +71,7 @@ test('パネルは3券種の時間とレート、手動交換の全景品、残�
 });
 
 test('選択は確認画面だけを作り、確定・キャンセルは本人と確認IDを渡す', async t => {
+  t.mock.method(GachaCoinExchangeLogService, 'send', async () => {});
   const calls = [];
   t.mock.method(GachaCoinService, 'getBalance', async () => 50);
   t.mock.method(GachaCoinService, 'createRequest', async (...args) => { calls.push(['request', ...args]); return 50; });

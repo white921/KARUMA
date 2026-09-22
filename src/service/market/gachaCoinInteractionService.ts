@@ -1,3 +1,4 @@
+import { GachaCoinExchangeLogService } from "./gachaCoinExchangeLogService";
 import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, EmbedBuilder, StringSelectMenuBuilder, StringSelectMenuInteraction } from "discord.js";
 import { GACHA_COIN_PREFIX, GACHA_COIN_REWARDS, getGachaCoinReward } from "../../constant/market/gachaCoin";
 import { COLOR } from "../../constant/shared/color";
@@ -25,6 +26,7 @@ export async function handleGachaCoinButton(interaction: ButtonInteraction): Pro
     await showGachaCoinConfirmation(interaction, value);
   } else if (action === "confirm") {
     const result = await GachaCoinService.redeem(value, interaction.user.id);
+    await GachaCoinExchangeLogService.send(interaction.client, interaction.guildId!, interaction.user.id, value, result);
     await interaction.editReply({ content: result.alreadyCompleted
       ? `この交換はすでに完了しています。ガチャコインの所持数: ${result.balance}枚`
       : `✅ ${result.reward.label}を1枚受け取りました。\nガチャコインの残り: **${result.balance}枚**`, embeds: [], components: [] });
