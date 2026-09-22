@@ -1,4 +1,4 @@
-import { EmbedBuilder } from "discord.js";
+import { EmbedBuilder, escapeMarkdown } from "discord.js";
 import { ACTION_TYPES } from "../../constant/currency/action";
 import { CURRENCY_NAMES } from "../../constant/currency/currency";
 import { RECEIPT_DM_DEFINITIONS, RECEIPT_DM_TEST_RECIPIENT_ID } from "../../constant/currency/receiptDm";
@@ -22,12 +22,13 @@ export class ReceiptDmService {
       const sender = member?.user ?? (senderId === BOT_ID ? context.client.user : null)
         ?? await context.client.users.fetch(senderId);
       const avatarUrl = member?.displayAvatarURL({ extension: "png" }) ?? sender.displayAvatarURL({ extension: "png" });
+      const senderName = definition.humanSender ? member?.displayName ?? sender.displayName : "LEVELIA BOT";
       const embed = new EmbedBuilder()
         .setColor(isDeduction || omikujiLoss ? COLOR.RED : COLOR.GREEN)
-        .setAuthor({ name: definition.humanSender ? member?.displayName ?? sender.displayName : "LEVELIA BOT", iconURL: avatarUrl })
+        .setAuthor({ name: senderName, iconURL: avatarUrl })
         .setThumbnail(avatarUrl)
         .setTitle(omikujiLoss ? "⛩️ おみくじによる減額のお知らせ" : definition.title)
-        .setDescription(`${definition.humanSender ? `<@${senderId}> さんから ` : ""}**${Math.abs(receipt.amount).toLocaleString("ja-JP")} ${CURRENCY_NAMES}**${omikujiLoss ? "が差し引かれました。" : definition.verb}`)
+        .setDescription(`${definition.humanSender ? `${escapeMarkdown(senderName)} さんから ` : ""}**${Math.abs(receipt.amount).toLocaleString("ja-JP")} ${CURRENCY_NAMES}**${omikujiLoss ? "が差し引かれました。" : definition.verb}`)
         .setFooter({ text: `${omikujiLoss ? "減額後" : definition.balanceLabel}の残高：${receipt.afterWallet.toLocaleString("ja-JP")} ${CURRENCY_NAMES}` })
         .setTimestamp();
       const fields = [...(receipt.fields ?? [])];

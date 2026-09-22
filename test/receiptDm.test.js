@@ -49,6 +49,7 @@ for (const [actionType, title, human] of patterns) {
     assert.equal(embed.author.name, human ? '送金者名' : 'LEVELIA BOT');
     assert.equal(embed.author.icon_url, human ? f.avatar : f.botAvatar);
     assert.match(embed.description, /1,000 LIA/);
+    if (human) assert.match(embed.description, /^送金者名 さんから /);
     assert.match(embed.footer.text, /21,000 LIA/);
     if (!human) assert.doesNotMatch(JSON.stringify(embed), /operator|実行者|送金者名/);
   });

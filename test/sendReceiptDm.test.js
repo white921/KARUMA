@@ -46,7 +46,8 @@ for (const entry of ["command", "panel"]) {
     assert.equal(embed.author.name, "サーバー表示名");
     assert.equal(embed.author.icon_url, f.avatar);
     assert.equal(embed.thumbnail.url, f.avatar);
-    assert.match(embed.description, /<@sender>.*10,000 LIA/);
+    assert.match(embed.description, /^サーバー表示名 さんから \*\*10,000 LIA/);
+    assert.doesNotMatch(embed.description, /<@sender>/);
     assert.equal(embed.footer.text, "受取後の残高：110,000 LIA");
     assert.deepEqual(embed.fields, [{ name: "備考", value: "ありがとう！" }]);
     assert.deepEqual(payload.allowedMentions, { parse: [] });
@@ -85,7 +86,24 @@ test("空の備考は省略し、メンバー取得失敗時はユーザーの�
   const embed = f.payloads[0].embeds[0].toJSON();
   assert.equal(embed.author.name, "送金者");
   assert.equal(embed.author.icon_url, f.avatar);
+  assert.match(embed.description, /^送金者 さんから /);
   assert.equal(embed.fields, undefined);
+});
+
+test("サーバー専用アイコンを使い、本文のニックネームのMarkdownをエスケープする", async (t) => {
+  const f = fixture(t);
+  const guildAvatar = "https://cdn.discordapp.com/embed/avatars/2.png";
+  f.interaction.guild.members.fetch = async () => ({
+    user: f.interaction.user,
+    displayName: "**サーバー名**",
+    displayAvatarURL: () => guildAvatar,
+  });
+  await SendService.sendByCommand(f.interaction, "sender", RECEIPT_DM_TEST_RECIPIENT_ID, 1, "");
+  const embed = f.payloads[0].embeds[0].toJSON();
+  assert.equal(embed.author.name, "**サーバー名**");
+  assert.equal(embed.author.icon_url, guildAvatar);
+  assert.equal(embed.thumbnail.url, guildAvatar);
+  assert.equal(embed.description, "\\*\\*サーバー名\\*\\* さんから **1 LIA**が届きました。");
 });
 
 test("長い備考でもEmbedの上限を超えない", async (t) => {
