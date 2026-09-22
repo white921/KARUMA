@@ -170,7 +170,7 @@ export class HistoryService {
     // Base options on all visible history, so combining filters never removes a selected option.
     const availableTypes = new Set(actions.map(historyActionType));
     let options = HISTORY_FILTER_GROUPS.flatMap((group, index) =>
-      group.types.some(type => availableTypes.has(type)) || filters.groups.includes(index)
+      !group.hidden && (group.types.some(type => availableTypes.has(type)) || filters.groups.includes(index))
         ? [{ label: group.label, value: String(index), default: filters.groups.includes(index) }]
         : [],
     );
@@ -237,6 +237,8 @@ export class HistoryService {
     page = 1,
     filters = emptyHistoryFilters(),
   ): Promise<void> {
+    // Drop retired conditions from already-open history messages as well.
+    filters = { ...filters, groups: filters.groups.filter(group => !HISTORY_FILTER_GROUPS[group]?.hidden) };
     const userId = interaction.user.id;
     if (!(await AccountService.hasAccount(userId))) {
       throw new Error(ACCOUNT_MESSAGES.ACCOUNT_NOT_FOUND);

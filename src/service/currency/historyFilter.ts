@@ -5,12 +5,12 @@ import type { Action } from "../../type/currency/action";
 export const HISTORY_FILTER_PREFIX = "history:v1:";
 
 // The order is encoded in component IDs. Append new groups; change the version to reorder.
-export const HISTORY_FILTER_GROUPS: { label: string; types: string[] }[] = [
+export const HISTORY_FILTER_GROUPS: { label: string; types: string[]; hidden?: boolean }[] = [
   { label: "送金", types: [A.TRANSFER] },
   { label: "カジノ（GF・麻雀・その他）", types: [A.CASINO_GF, A.CASINO_MAHJONG, A.CASINO_OTHER] },
   { label: "市場商品購入", types: [A.SHOP_PURCHASE] },
   { label: "闇市場商品購入", types: [A.DARK_SHOP_PURCHASE] },
-  { label: "宮廷市場商品購入", types: [A.COURT_SHOP_PURCHASE] },
+  { label: "宮廷市場商品購入", types: [A.COURT_SHOP_PURCHASE], hidden: true },
   { label: "スタンプ支払い", types: [A.CREATOR_EMBLEM_PAYMENT] },
   { label: "スパチャ", types: [A.SUPERCHAT] },
   { label: "執事・メイド支払い", types: [A.CAST_PAYMENT] },
