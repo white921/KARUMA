@@ -81,8 +81,8 @@ test('4枚の期限不一致・欠落・親フォーラム相違・古いシー�
 
 test('指定の本文・実メンション、片方0人・両方0人', () => {
   assert.deepEqual(buildReminderPages('2026-09-22', { twoDays: ['111'], oneDay: ['222'] }), [{
-    content: `<@&${ROLE_IDS.EVALUATION_JUDGE}>\n9月22日 期限直前旅人一覧\n\n2日前\n<@111>\n\n1日前\n<@222>`,
-    users: ['111', '222'], roles: [ROLE_IDS.EVALUATION_JUDGE],
+    content: `<@&${ROLE_IDS.EVALUATION_JUDGE}>\n<@&${ROLE_IDS.EVALUATION_SUPPORT}>\n9月22日 期限直前旅人一覧\n\n2日前\n<@111>\n\n1日前\n<@222>`,
+    users: ['111', '222'], roles: [ROLE_IDS.EVALUATION_JUDGE, ROLE_IDS.EVALUATION_SUPPORT],
   }]);
   assert.match(buildReminderPages('2026-09-22', { twoDays: [], oneDay: ['222'] })[0].content, /2日前\n該当者なし/);
   assert.deepEqual(buildReminderPages('2026-09-22', { twoDays: [], oneDay: [] }), []);
@@ -94,7 +94,7 @@ test('2000文字を超えた場合も全員を1回だけ掲載し、ロール通
   assert.ok(pages.length > 1);
   assert.ok(pages.every(p => p.content.length <= 2000 && p.users.length <= 100));
   assert.deepEqual(pages.flatMap(p => p.users), users);
-  assert.equal(pages.flatMap(p => p.roles).length, 1);
+  assert.deepEqual(pages.flatMap(p => p.roles), [ROLE_IDS.EVALUATION_JUDGE, ROLE_IDS.EVALUATION_SUPPORT]);
   assert.ok(pages.every(p => /[12]日前/.test(p.content)));
 });
 
@@ -154,7 +154,9 @@ test('送信記録により再実行・再起動しても当日の通知は1回�
   assert.equal(f.state().sends, 1);
   assert.equal(f.state().stored.completed, 1);
   assert.ok(f.state().released && f.state().unlocked);
-  assert.deepEqual(f.published[0].payload.allowedMentions, { parse: [], users: ['111', '222'], roles: [ROLE_IDS.EVALUATION_JUDGE] });
+  assert.deepEqual(f.published[0].payload.allowedMentions, {
+    parse: [], users: ['111', '222'], roles: [ROLE_IDS.EVALUATION_JUDGE, ROLE_IDS.EVALUATION_SUPPORT],
+  });
   assert.equal(f.published[0].payload.enforceNonce, true);
   assert.ok(f.published[0].payload.nonce.length <= 25);
 });

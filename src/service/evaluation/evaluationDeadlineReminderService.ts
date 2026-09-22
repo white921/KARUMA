@@ -82,10 +82,11 @@ export function selectReminderTargets(
 export function buildReminderPages(date: string, targets: ReminderTargets): ReminderPage[] {
   if (!targets.twoDays.length && !targets.oneDay.length) return [];
   const label = `${dayjs.tz(date, TZ).format("M月D日")} 期限直前旅人一覧`;
+  const notificationRoles = [ROLE_IDS.EVALUATION_JUDGE, ROLE_IDS.EVALUATION_SUPPORT];
   const pages: ReminderPage[] = [];
   let page: ReminderPage = {
-    content: `<@&${ROLE_IDS.EVALUATION_JUDGE}>\n${label}`,
-    users: [], roles: [ROLE_IDS.EVALUATION_JUDGE],
+    content: `${notificationRoles.map(roleId => `<@&${roleId}>`).join("\n")}\n${label}`,
+    users: [], roles: notificationRoles,
   };
   for (const [heading, users] of [["2日前", targets.twoDays], ["1日前", targets.oneDay]] as const) {
     const lines = users.length ? users : [null];
@@ -165,10 +166,12 @@ export class EvaluationDeadlineReminderService {
     await channel.guild.roles.fetch();
     const me = await channel.guild.members.fetchMe({ force: true });
     const permissions = channel.permissionsFor(me);
-    const role = channel.guild.roles.cache.get(ROLE_IDS.EVALUATION_JUDGE);
-    if (!role || !permissions?.has([PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory]) ||
-      (!role.mentionable && !permissions.has(PermissionFlagsBits.MentionEveryone))) {
-      throw new Error("評価期限通知の送信・履歴取得・判定官メンション権限が不足しています");
+    const notificationRoles = [ROLE_IDS.EVALUATION_JUDGE, ROLE_IDS.EVALUATION_SUPPORT]
+      .map(roleId => channel.guild.roles.cache.get(roleId));
+    if (!permissions?.has([PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory]) ||
+      notificationRoles.some(role => !role) ||
+      (notificationRoles.some(role => !role!.mentionable) && !permissions.has(PermissionFlagsBits.MentionEveryone))) {
+      throw new Error("評価期限通知の送信・履歴取得・判定官・侍従メンション権限が不足しています");
     }
     return channel;
   }
