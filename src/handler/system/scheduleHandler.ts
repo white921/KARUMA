@@ -1,5 +1,6 @@
 import { GachaCoinActivationService } from "../../service/market/gachaCoinActivationService";
 import cron from "node-cron";
+import { EVALUATION_REMINDER_CRON, EvaluationDeadlineReminderService } from "../../service/evaluation/evaluationDeadlineReminderService";
 
 import { Client, Guild } from "discord.js";
 
@@ -17,6 +18,10 @@ export async function handleSchedule(client: Client) {
   const guild: Guild | undefined = client.guilds.cache.get(
     process.env.GUILD_ID!,
   );
+
+  // 23:00に通知。23時台は5分ごとに未完了分だけ再試行し、起動時にも確認する。
+  cron.schedule(EVALUATION_REMINDER_CRON, () => EvaluationDeadlineReminderService.runScheduled(client), { timezone: "Asia/Tokyo" });
+  void EvaluationDeadlineReminderService.runScheduled(client);
 
   // 毎分00秒に日時を判定。開始前は無変更、失敗・再起動時も未完了分だけ再試行する。
   cron.schedule("0 * * * * *", () => GachaCoinActivationService.runScheduledActivation(), { timezone: "Asia/Tokyo" });
