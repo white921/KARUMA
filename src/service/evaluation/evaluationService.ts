@@ -251,7 +251,7 @@ export class EvaluationService {
     title: string,
     today: dayjs.Dayjs,
   ): { base: string; endDate: dayjs.Dayjs } | null {
-    const match = title.match(/^(.*〜\s*)(\d{1,2})\/(\d{1,2})\s*$/);
+    const match = title.match(/^(.*[〜～]\s*)(\d{1,2})\/(\d{1,2})\s*$/);
     if (!match) {
       return null;
     }
@@ -259,9 +259,10 @@ export class EvaluationService {
     const month = Number(mm);
     const day = Number(dd);
 
-    const candidates = [today.year() - 1, today.year(), today.year() + 1].map(
-      (year) => today.year(year).month(month - 1).date(day).startOf("day"),
-    );
+    const candidates = [today.year() - 1, today.year(), today.year() + 1]
+      .map((year) => today.date(1).year(year).month(month - 1).date(day).startOf("day"))
+      .filter((candidate) => candidate.month() === month - 1 && candidate.date() === day);
+    if (!candidates.length) return null;
     const endDate = candidates.reduce((best, cur) =>
       Math.abs(cur.diff(today, "day")) < Math.abs(best.diff(today, "day"))
         ? cur
@@ -311,6 +312,68 @@ export class EvaluationService {
     return lines.join("\n");
   }
 
+  /** 更新中にアーカイブ順が変わっても漏れないよう、変更前に全ページを読み切る。 */
+  static async fetchAllEvaluationThreads(forum: ForumChannel): Promise<ThreadChannel[]> {
+    const threads = new Map<string, ThreadChannel>();
+    const active = await forum.threads.fetchActive();
+    for (const thread of active.threads.values()) {
+      if (thread.parentId === forum.id) threads.set(thread.id, thread);
+    }
+    let before: Date | undefined;
+    while (true) {
+      const archived = await forum.threads.fetchArchived({ type: "public", limit: 100, before });
+      for (const thread of archived.threads.values()) {
+        if (thread.parentId === forum.id) threads.set(thread.id, thread);
+      }
+      if (!archived.hasMore) break;
+      const timestamp = archived.threads.last()?.archiveTimestamp;
+      if (!timestamp || (before && timestamp >= before.getTime())) {
+        throw new Error("アーカイブ一覧を最後まで取得できませんでした");
+      }
+      before = new Date(timestamp);
+    }
+    return [...threads.values()];
+  }
+
+  /** ロックは変更しない。管理権限で一時的に開き、失敗時もアーカイブ状態を戻す。 */
+  static async applyEvaluationExtension(
+    thread: ThreadChannel, newTitle: string, newEndDate: string, log: string,
+  ): Promise<void> {
+    const wasArchived = thread.archived === true;
+    const errors: string[] = [];
+    let titleUpdated = false;
+    let bodyUpdated = false;
+    let restoreArchive = false;
+    try {
+      const starter = await thread.fetchStarterMessage();
+      if (!starter || !/(^|\n)終了日:\s*\d{1,2}\/\d{1,2}(?=\s*(?:\n|$))/.test(starter.content)) {
+        throw new Error("最初の投稿の終了日を取得できません");
+      }
+      if (starter.author.id !== thread.client.user?.id) throw new Error("最初の投稿をBotが編集できません");
+      if (wasArchived) {
+        restoreArchive = true;
+        await thread.setArchived(false, "評価期間の変更のため一時的に開く");
+      }
+      if (!starter.editable) throw new Error("最初の投稿をBotが編集できません");
+      await thread.setName(newTitle);
+      titleUpdated = true;
+      const content = starter.content.replace(
+        /(^|\n)終了日:\s*\d{1,2}\/\d{1,2}(?=\s*(?:\n|$))/, `$1終了日: ${newEndDate}`,
+      );
+      await starter.edit({ content });
+      bodyUpdated = true;
+      await thread.send({ content: log, allowedMentions: { parse: [] } });
+    } catch (error: any) {
+      errors.push(`${error?.message ?? String(error)}（タイトル${titleUpdated ? "更新済み" : "未更新"}・本文${bodyUpdated ? "更新済み" : "未更新"}）`);
+    } finally {
+      if (restoreArchive) {
+        try { await thread.setArchived(true, "評価期間の変更後、元のアーカイブ状態に戻す"); }
+        catch (error: any) { errors.push(`元のアーカイブ状態への復帰に失敗: ${error?.message ?? String(error)}`); }
+      }
+    }
+    if (errors.length) throw new Error(errors.join(" / "));
+  }
+
   static async extendAllEvaluationSheets(
     client: import("discord.js").Client,
     days: number,
@@ -320,9 +383,6 @@ export class EvaluationService {
     const { targetMember, reason } = options;
     const forumIds = this.getEvaluationForumIds();
     const today = dayjs().tz("Asia/Tokyo");
-    const targetPrefix = targetMember
-      ? `${targetMember.displayName}〜`
-      : null;
     const sleep = (ms: number) =>
       new Promise<void>((resolve) => setTimeout(resolve, ms));
 
@@ -330,35 +390,50 @@ export class EvaluationService {
     const skipped: { thread: string; reason: string }[] = [];
     const failed: { thread: string; url: string; reason: string }[] = [];
 
-    for (const forumId of forumIds) {
+    // 各フォーラム内は順番に処理し、4フォーラムを並行して待ち時間を抑える。
+    // 実際のAPIレート制限はdiscord.jsに任せ、各フォーラムの処理間隔も維持する。
+    await Promise.all(forumIds.map(async (forumId) => {
       let forum;
       try {
-        forum = await client.channels.fetch(forumId);
+        forum = await client.channels.fetch(forumId, { force: true });
       } catch (error: any) {
         failed.push({
           thread: `(forum:${forumId})`,
           url: "",
           reason: `フォーラム取得失敗: ${error.message}`,
         });
-        continue;
+        return;
       }
       if (!forum || forum.type !== ChannelType.GuildForum) {
-        continue;
+        failed.push({ thread: `(forum:${forumId})`, url: "", reason: "評価フォーラムが見つかりません" });
+        return;
       }
 
-      let active;
+      let threads: ThreadChannel[];
       try {
-        active = await (forum as ForumChannel).threads.fetchActive();
+        threads = await this.fetchAllEvaluationThreads(forum as ForumChannel);
       } catch (error: any) {
         failed.push({
           thread: `(forum:${forumId})`,
           url: "",
           reason: `スレッド一覧取得失敗: ${error.message}`,
         });
-        continue;
+        return;
       }
 
-      for (const thread of active.threads.values()) {
+      for (const candidate of threads) {
+        if (targetMember) {
+          const candidateDate = this.parseTitleEndDate(candidate.name, today);
+          if (candidateDate?.base.replace(/[〜～]\s*$/, "").trimEnd() !== targetMember.displayName) continue;
+        }
+        let thread: ThreadChannel;
+        try {
+          // 収集中のアーカイブ・改名を反映した状態を保存してから更新する。
+          thread = await candidate.fetch(true);
+        } catch (error: any) {
+          failed.push({ thread: candidate.name, url: candidate.url, reason: `スレッド再取得失敗: ${error.message}` });
+          continue;
+        }
         const parsed = this.parseTitleEndDate(thread.name, today);
         if (!parsed) {
           skipped.push({
@@ -368,7 +443,7 @@ export class EvaluationService {
           continue;
         }
 
-        if (targetPrefix && parsed.base.trimEnd() !== targetPrefix) {
+        if (targetMember && parsed.base.replace(/[〜～]\s*$/, "").trimEnd() !== targetMember.displayName) {
           continue;
         }
 
@@ -377,12 +452,8 @@ export class EvaluationService {
         const threadUrl = `https://discord.com/channels/${thread.guildId}/${thread.id}`;
 
         try {
-          await thread.setName(newTitle);
-          await this.updateStarterMessageEndDate(
-            thread,
-            newEnd.format("MM/DD"),
-          );
-          await thread.send(
+          await this.applyEvaluationExtension(
+            thread, newTitle, newEnd.format("MM/DD"),
             this.createEvaluationExtensionLog(
               days,
               parsed.endDate.format("MM/DD"),
@@ -402,7 +473,7 @@ export class EvaluationService {
 
         await sleep(EVALUATION_SHEET_EXTEND_DELAY_MS);
       }
-    }
+    }));
 
     return { extendedCount, skipped, failed };
   }

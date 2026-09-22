@@ -34,6 +34,7 @@ test("長時間になり得る評価シート操作だけ15分のhandler監視�
     LONG_RUNNING_EVALUATION_HANDLER_TIMEOUT_MS,
   );
   assert.equal(
-    getEvaluationCommandHandlerTimeoutMs(COMMAND_NAMES.EXTRA_EXTEND, true), undefined);
+    getEvaluationCommandHandlerTimeoutMs(COMMAND_NAMES.EXTRA_EXTEND, true),
+    LONG_RUNNING_EVALUATION_HANDLER_TIMEOUT_MS);
   assert.equal(getEvaluationCommandHandlerTimeoutMs(COMMAND_NAMES.VIEW, false), undefined);
 });

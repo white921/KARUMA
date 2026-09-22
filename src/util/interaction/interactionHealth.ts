@@ -4,13 +4,13 @@ import { LONG_RUNNING_EVALUATION_HANDLER_TIMEOUT_MS } from "../../constant/evalu
 
 export function getEvaluationCommandHandlerTimeoutMs(
   commandName: string,
-  hasTargetUser: boolean,
+  _hasTargetUser: boolean,
 ): number | undefined {
   if (
     commandName === COMMAND_NAMES.EVALUATION_SHEET ||
     commandName === COMMAND_NAMES.EVALUATION_SHEET_ARCHIVE ||
     commandName === COMMAND_NAMES.EVALUATION_SHEET_RESTORE ||
-    (commandName === COMMAND_NAMES.EXTRA_EXTEND && !hasTargetUser)
+    commandName === COMMAND_NAMES.EXTRA_EXTEND
   ) {
     return LONG_RUNNING_EVALUATION_HANDLER_TIMEOUT_MS;
   }
