@@ -6,24 +6,24 @@ export const HISTORY_FILTER_PREFIX = "history:v1:";
 
 // The order is encoded in component IDs. Append new groups; change the version to reorder.
 export const HISTORY_FILTER_GROUPS: { label: string; types: string[]; hidden?: boolean; replacement?: number }[] = [
-  { label: "送金", types: [A.TRANSFER] },
+  { label: "送金", types: [A.TRANSFER, A.SUPERCHAT] },
   { label: "カジノ（GF・麻雀・その他）", types: [A.CASINO_GF, A.CASINO_MAHJONG, A.CASINO_OTHER] },
-  { label: "市場", types: [A.SHOP_PURCHASE, A.DARK_SHOP_PURCHASE, A.COURT_SHOP_PURCHASE, A.MARKET_GACHA_DRAW] },
-  { label: "市場", types: [], hidden: true, replacement: 2 },
-  { label: "市場", types: [], hidden: true, replacement: 2 },
-  { label: "スタンプ支払い", types: [A.CREATOR_EMBLEM_PAYMENT] },
-  { label: "スパチャ", types: [A.SUPERCHAT] },
+  { label: "市場・夢印", types: [A.SHOP_PURCHASE, A.DARK_SHOP_PURCHASE, A.COURT_SHOP_PURCHASE, A.MARKET_GACHA_DRAW, A.CREATOR_EMBLEM_PAYMENT, A.TICKET_EXCHANGE, A.DISPLAY_NAME_CHANGE] },
+  { label: "市場・夢印", types: [], hidden: true, replacement: 2 },
+  { label: "市場・夢印", types: [], hidden: true, replacement: 2 },
+  { label: "市場・夢印", types: [], hidden: true, replacement: 2 },
+  { label: "送金", types: [], hidden: true, replacement: 0 },
   { label: "執事・メイド支払い", types: [A.CAST_PAYMENT] },
-  { label: "市場", types: [], hidden: true, replacement: 2 },
+  { label: "市場・夢印", types: [], hidden: true, replacement: 2 },
   { label: "おみくじ", types: [A.OMIKUJI_DRAW] },
-  { label: "チケット換金", types: [A.TICKET_EXCHANGE] },
+  { label: "市場・夢印", types: [], hidden: true, replacement: 2 },
   { label: "給与支払い", types: [A.SALARY_PAYMENT] },
   { label: "VC滞在報酬", types: [A.VC_REWARD] },
   { label: "サーバーブースト報酬", types: [A.SERVER_BOOST_REWARD] },
-  { label: "ロール別送金", types: [A.ROLE_BASED_GRANT] },
-  { label: "付与", types: [A.ADMIN_MINT] },
-  { label: "剥奪", types: [A.ADMIN_BURN] },
-  { label: "名前変更", types: [A.DISPLAY_NAME_CHANGE] },
+  { label: "付与・剥奪", types: [], hidden: true, replacement: 15 },
+  { label: "付与・剥奪", types: [A.ROLE_BASED_GRANT, A.ADMIN_MINT, A.ADMIN_BURN] },
+  { label: "付与・剥奪", types: [], hidden: true, replacement: 15 },
+  { label: "市場・夢印", types: [], hidden: true, replacement: 2 },
   { label: "ホテル", types: [A.HOTEL_NORMAL, A.HOTEL_SECRET, A.HOTEL_SECRET_LONG, A.HOTEL_FREEDOM, A.HOTEL_FREEDOM_LONG] },
   { label: "独房", types: [A.SOLITARY_CELL] },
   { label: "日記", types: [A.DIARY_PRIVATE, A.DIARY_PUBLIC, A.DIARY_UPDATE] },
@@ -42,7 +42,7 @@ export function emptyHistoryFilters(): HistoryFilters {
   return { groups: [], direction: "all" };
 }
 
-/** Preserve old component IDs while merging retired market choices into the market group. */
+/** Preserve old component IDs while merging retired choices into their current groups. */
 export function normalizeHistoryFilters(filters: HistoryFilters): HistoryFilters {
   return {
     ...filters,

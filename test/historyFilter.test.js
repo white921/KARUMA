@@ -171,22 +171,45 @@ test('empty history has valid disabled options; full history respects Discord co
 });
 
 
-test('market combines all four purchase types and migrates old market selections without exposing retired labels', async t => {
-  const types = [A.SHOP_PURCHASE, A.DARK_SHOP_PURCHASE, A.COURT_SHOP_PURCHASE, A.MARKET_GACHA_DRAW];
-  const market = groups.findIndex(group => group.label === '市場' && !group.hidden);
-  const rows = types.map((type, i) => action(i + 1, type, { from_user_id: user, to_user_id: BOT_ID }));
-  rows.push(action(5, A.CASINO_GF));
+test('market combines purchases, stamps, ticket exchange and name changes and migrates old selections', async t => {
+  const types = [A.SHOP_PURCHASE, A.DARK_SHOP_PURCHASE, A.COURT_SHOP_PURCHASE, A.MARKET_GACHA_DRAW, A.CREATOR_EMBLEM_PAYMENT, A.TICKET_EXCHANGE, A.DISPLAY_NAME_CHANGE];
+  const market = groups.findIndex(group => group.label === '市場・夢印' && !group.hidden);
+  const rows = types.map((type, i) => action(i + 1, type, type === A.TICKET_EXCHANGE
+    ? { from_user_id: BOT_ID, to_user_id: user } : { from_user_id: user, to_user_id: BOT_ID }));
+  rows.push(action(8, A.CASINO_GF));
   const events = await withHistory(t, rows);
-  for (const oldGroup of [market, 3, 4, 8]) {
+  for (const oldGroup of [market, 3, 4, 5, 8, 10, 17]) {
     const i = interaction('button', historyCustomId(user, filters({ groups: [oldGroup] }), 'page'), events);
     await handlePanelButton(i);
-    assert.match(i.payload.embeds[0].data.description, /種類：市場/);
-    assert.match(i.payload.embeds[0].data.description, /該当4件/);
+    assert.match(i.payload.embeds[0].data.description, /種類：市場・夢印/);
+    assert.match(i.payload.embeds[0].data.description, /該当7件/);
     const options = components(i)[1].components[0].options;
-    assert.deepEqual(options.map(option => option.label), ['カジノ（GF・麻雀・その他）', '市場']);
+    assert.deepEqual(options.map(option => option.label), ['カジノ（GF・麻雀・その他）', '市場・夢印']);
     assert.doesNotMatch(JSON.stringify(i.payload.embeds.map(embed => embed.toJSON())), /宮廷/);
     assert.deepEqual(parseHistoryCustomId(components(i)[1].components[0].custom_id, user).filters.groups, [market]);
   }
   const onlyCourt = HistoryService.createFilterComponents(user, filters(), [rows[2]], 1, 1).map(row => row.toJSON());
-  assert.deepEqual(onlyCourt[1].components[0].options.map(option => option.label), ['市場']);
+  assert.deepEqual(onlyCourt[1].components[0].options.map(option => option.label), ['市場・夢印']);
+});
+
+
+test('merged transfer and adjustment groups preserve income/expense and old selections', async t => {
+  const rows = [action(1, A.TRANSFER), action(2, A.SUPERCHAT),
+    action(3, A.ROLE_BASED_GRANT), action(4, A.ADMIN_MINT),
+    action(5, A.ADMIN_BURN, { from_user_id: user, to_user_id: other }),
+    action(6, A.CASINO_GF)];
+  const events = await withHistory(t, rows);
+  for (const [oldGroup, currentGroup, label, income, expense] of [
+    [0, 0, '送金', [2, 1], []], [6, 0, '送金', [2, 1], []],
+    [14, 15, '付与・剥奪', [4, 3], [5]], [15, 15, '付与・剥奪', [4, 3], [5]],
+    [16, 15, '付与・剥奪', [4, 3], [5]],
+  ]) {
+    assert.deepEqual(HistoryService.filterActions(rows, user, filters({ groups: [oldGroup], direction: 'income' })).map(row => row.id), income);
+    assert.deepEqual(HistoryService.filterActions(rows, user, filters({ groups: [oldGroup], direction: 'expense' })).map(row => row.id), expense);
+    const i = interaction('button', historyCustomId(user, filters({ groups: [oldGroup] }), 'page'), events);
+    await handlePanelButton(i);
+    assert.ok(i.payload.embeds[0].data.description.includes(`種類：${label}`));
+    assert.deepEqual(parseHistoryCustomId(components(i)[1].components[0].custom_id, user).filters.groups, [currentGroup]);
+  }
+  assert.equal(groups.filter(group => !group.hidden).length, 15);
 });
