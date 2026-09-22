@@ -1,7 +1,7 @@
 import { EmbedBuilder, escapeMarkdown } from "discord.js";
 import { ACTION_TYPES } from "../../constant/currency/action";
 import { CURRENCY_NAMES } from "../../constant/currency/currency";
-import { RECEIPT_DM_DEFINITIONS, RECEIPT_DM_TEST_RECIPIENT_ID } from "../../constant/currency/receiptDm";
+import { RECEIPT_DM_DEFINITIONS } from "../../constant/currency/receiptDm";
 import { COLOR } from "../../constant/shared/color";
 import { BOT_ID } from "../../constant/shared/id";
 import type { CurrencyReceipt, ReceiptDmContext } from "../../type/currency/receiptDm";
@@ -10,7 +10,7 @@ export class ReceiptDmService {
   /** 残高・履歴の確定後に呼ぶ。DM失敗は金銭処理へ伝播させず、再送もしない。 */
   static async send(context: ReceiptDmContext, receipt: CurrencyReceipt): Promise<void> {
     const definition = RECEIPT_DM_DEFINITIONS[receipt.actionType];
-    if (receipt.recipientId !== RECEIPT_DM_TEST_RECIPIENT_ID || !definition) return;
+    if (!definition) return;
     try {
       const isDeduction = receipt.actionType === ACTION_TYPES.ADMIN_BURN
         || (receipt.actionType === ACTION_TYPES.OMIKUJI_DRAW && receipt.amount < 0);

@@ -1,7 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { ReceiptDmService } = require('../dist/service/currency/receiptDmService');
-const { RECEIPT_DM_TEST_RECIPIENT_ID: target } = require('../dist/constant/currency/receiptDm');
+const target = 'recipient-a';
 const { ACTION_TYPES: A } = require('../dist/constant/currency/action');
 const { PANEL_COMMAND_NAMES: P, COMMAND_NAMES: C } = require('../dist/constant/shared/command');
 const { BOT_ID, TEXT_CHANNEL_IDS } = require('../dist/constant/shared/id');
@@ -39,11 +39,11 @@ for (const [actionType, title, human] of patterns) {
   test(`${actionType}: 通知対象・名前・アイコン・金額を正しく分ける`, async () => {
     const f = context();
     const receipt = { actionType, recipientId: target, senderId: 'operator', amount: 1000, afterWallet: 21000 };
-    await ReceiptDmService.send(f.ctx, { ...receipt, recipientId: 'other' });
-    assert.deepEqual(f.fetched, []);
+    await ReceiptDmService.send(f.ctx, { ...receipt, recipientId: '649438093996195851' });
+    await ReceiptDmService.send(f.ctx, { ...receipt, recipientId: 'recipient-b' });
     await ReceiptDmService.send(f.ctx, receipt);
-    assert.equal(f.messages.length, 1);
-    const { id, embed } = f.messages[0];
+    assert.deepEqual(f.messages.map(m => m.id), ['649438093996195851', 'recipient-b', target]);
+    const { id, embed } = f.messages[2];
     assert.equal(id, target);
     assert.match(embed.title, title);
     assert.equal(embed.author.name, human ? '送金者名' : 'LEVELIA BOT');
@@ -99,7 +99,7 @@ test('付与と剥奪の実処理から対象本人へ通知し、剥奪の操�
   assert.equal(f.log.mock.calls[1].arguments[3], 'operator');
   f.ctx.user.id = target;
   await AdminBurnService.burn(f.ctx, 'other', 1000, '');
-  assert.equal(f.messages.length, 2);
+  assert.deepEqual(f.messages.map(m => m.id), [target, target, 'other']);
 });
 
 test('給与の実処理からロール・支給月と確定残高をBOT名義で通知する', async t => {
@@ -171,17 +171,45 @@ for (const failCommit of [false, true]) {
   });
 }
 
-test('ロール別一括付与は対象IDの本人だけにBOT名義・対象ロール付きで通知する', async t => {
+test('ロール別一括付与は受取人全員にBOT名義・対象ロール付きで通知する', async t => {
   const { RoleBasedSendService } = require('../dist/service/currency/roleBasedSendService');
   const f = moneyFixture(t);
   await RoleBasedSendService.sendToTargets(f.ctx, 'operator', 50000, [
     { member: { id: target }, account: { wallet: 10000 } },
     { member: { id: 'other' }, account: { wallet: 10000 } },
   ], 1000, 'イベント', '貴族');
-  assert.equal(f.messages.length, 1);
-  assert.equal(f.messages[0].embed.author.name, 'LEVELIA BOT');
-  assert.deepEqual(f.messages[0].embed.fields[0], { name: '対象ロール', value: '貴族' });
+  assert.deepEqual(f.messages.map(m => m.id), [target, 'other']);
+  for (const { embed } of f.messages) {
+    assert.equal(embed.author.name, 'LEVELIA BOT');
+    assert.deepEqual(embed.fields[0], { name: '対象ロール', value: '貴族' });
+  }
   assert.equal(f.writes.length, 2);
+});
+
+test('一括付与で1人がDM拒否しても後続の受取人への通知と付与を続ける', async t => {
+  const { RoleBasedSendService } = require('../dist/service/currency/roleBasedSendService');
+  const f = moneyFixture(t);
+  const fetchUser = f.ctx.client.users.fetch;
+  const attempts = [];
+  f.ctx.client.users.fetch = async id => {
+    const user = await fetchUser(id);
+    const send = user.send;
+    user.send = async payload => {
+      attempts.push(id);
+      if (id === target) throw Object.assign(new Error('Cannot send messages to this user'), { code: 50007 });
+      await send(payload);
+    };
+    return user;
+  };
+  t.mock.method(console, 'error', () => {});
+  await RoleBasedSendService.sendToTargets(f.ctx, 'operator', 50000, [
+    { member: { id: target }, account: { wallet: 10000 } },
+    { member: { id: 'other' }, account: { wallet: 10000 } },
+  ], 1000, 'イベント', '貴族');
+  assert.deepEqual(attempts, [target, 'other']);
+  assert.deepEqual(f.messages.map(m => m.id), ['other']);
+  assert.equal(f.writes.length, 2);
+  assert.equal(f.log.mock.callCount(), 2);
 });
 
 test('ブーストの新規報酬だけ確定残高で通知し、重複検知では通知しない', async t => {

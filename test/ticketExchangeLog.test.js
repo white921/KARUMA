@@ -8,7 +8,10 @@ const result = { label: 'VIPホテル無料券（12時間）', quantity: 10, amo
 const requestId = '1234567890123456789';
 function fixture({ failSend = false, guildId = 'guild', thread = true } = {}) {
   const calls = [];
-  const client = { channels: { fetch: async id => {
+  const client = {
+    user: { displayAvatarURL: () => 'https://cdn.discordapp.com/embed/avatars/0.png' },
+    users: { fetch: async id => ({ send: async payload => { calls.push(['dm', id, payload]); } }) },
+    channels: { fetch: async id => {
     calls.push(['fetch', id]);
     return { isThread: () => thread, guildId, send: async payload => {
       calls.push(['send', payload]);
@@ -52,13 +55,14 @@ test('換金失敗・キャンセルでは換金ログを送信しない', async
 });
 
 test('Discord送信失敗でも入金済みの利用者には換金成功を返す', async t => {
-  const { client } = fixture({ failSend: true });
+  const { client, calls } = fixture({ failSend: true });
   const errors = t.mock.method(console, 'error', () => {});
   t.mock.method(TicketExchangeService, 'redeem', async () => result);
   let response;
   await handleTicketExchangeButton({ channelId: TEXT_CHANNEL_IDS.TICKET_EXCHANGE_PANEL, guildId: 'guild', user: { id: '1001' }, client,
     customId: `ticketExchange:confirm:${requestId}`, editReply: async p => { response = p; } });
   assert.match(response.content, /チケットを換金しました/);
+  assert.deepEqual(calls.filter(([op]) => op === 'dm').map(([, id]) => id), ['1001']);
   assert.equal(errors.mock.callCount(), 1);
   assert.equal(errors.mock.calls[0].arguments[1].requestId, requestId);
 });

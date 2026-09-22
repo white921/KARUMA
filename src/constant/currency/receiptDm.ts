@@ -1,8 +1,7 @@
 import { ACTION_TYPES as A } from "./action";
 import type { ReceiptDmDefinition } from "../../type/currency/receiptDm";
 
-// 試験運用中はこの受取人に限定する。紋章支払い・購入代金は対象外。
-export const RECEIPT_DM_TEST_RECIPIENT_ID = "649438093996195851";
+// 対象取引の受取人全員へ通知する。紋章支払い・購入代金は対象外。
 export const RECEIPT_DM_DEFINITIONS: Record<string, ReceiptDmDefinition> = {
   [A.TRANSFER]: { title: "💸 送金を受け取りました", verb: "が届きました。", balanceLabel: "受取後", humanSender: true },
   [A.CASINO_GF]: { title: "💸 GFの送金を受け取りました", verb: "が届きました。", balanceLabel: "受取後", humanSender: true },
