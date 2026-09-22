@@ -46,7 +46,9 @@ test('cast buttons use initial ephemeral reply, subsequent update, and immediate
 test('real event entry records ack before fetching cast members; no false restart after completion', async t => {
   const handle = entry(t), i = interaction('castPayment:start:group');
   let release;
-  i.guild = { members: { fetch: () => new Promise(resolve => { release = resolve; }) } };
+  i.guild = { available: true, members: { cache: new Collection(), fetch: () => new Promise(resolve => {
+    release = members => { i.guild.members.cache = members; resolve(members); };
+  }) } };
   const running = handle(i);
   await new Promise(resolve => setImmediate(resolve));
   assert.deepEqual(i.calls, ['deferReply']);

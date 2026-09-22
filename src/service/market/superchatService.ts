@@ -1,3 +1,4 @@
+import { GuildMemberCacheService } from "../system/guildMemberCacheService";
 import {
   ActionRowBuilder,
   ButtonInteraction,
@@ -64,7 +65,7 @@ export class SuperchatService {
       throw new Error("この操作はサーバー内でのみ使用できます。");
     }
 
-    const members = await interaction.guild.members.fetch();
+    const members = await GuildMemberCacheService.getMembers(interaction.guild);
     const streamers = members
       .filter((member) => !member.user.bot && canReceiveSuperchat(member) && hasSuperchatThread(member.id))
       .sort((a, b) => a.displayName.localeCompare(b.displayName, "ja"));

@@ -1,3 +1,4 @@
+import { GuildMemberCacheService } from "../system/guildMemberCacheService";
 import { ReceiptDmService } from "./receiptDmService";
 import { ACTION_TYPES } from "../../constant/currency/action";
 import { Client, Guild } from "discord.js";
@@ -41,7 +42,7 @@ export class SalaryService {
    */
   static async payMonthlySalaries(guild: Guild) {
     // メンバー一覧を取得
-    const members = await guild.members.fetch();
+    const members = await GuildMemberCacheService.getMembers(guild);
 
     // すべてのメンバーに対してチェック
     for (const member of members.values()) {

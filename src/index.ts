@@ -40,6 +40,7 @@ import { AccountService } from "./service/account/accountService";
 import { VcService } from "./service/vc/vcService";
 import { DiaryService } from "./service/diary/diaryService";
 import { BotHealthMonitor } from "./service/system/botHealthMonitor";
+import { GuildMemberCacheService } from "./service/system/guildMemberCacheService";
 import { getEvaluationCommandHandlerTimeoutMs } from "./util/interaction/interactionHealth";
 import { shouldDeferButtonUpdate } from "./util/interaction/interactionAck";
 
@@ -65,6 +66,8 @@ const client = new Client({
     GatewayIntentBits.GuildVoiceStates,
   ],
 });
+
+GuildMemberCacheService.install(client);
 
 // bot起動時
 client.once("clientReady", async () => {

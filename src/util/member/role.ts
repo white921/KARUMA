@@ -1,3 +1,4 @@
+import { GuildMemberCacheService } from "../../service/system/guildMemberCacheService";
 import { Guild, GuildMember } from "discord.js";
 
 import { RoleAction } from "../../type/member/role";
@@ -156,7 +157,7 @@ export async function getUserIdsByRoleId(
   guild: Guild,
   roleId: string
 ): Promise<string[]> {
-  const members = await guild.members.fetch();
+  const members = await GuildMemberCacheService.getMembers(guild);
   return members
     .filter((member) => member.roles.cache.has(roleId))
     .map((member) => member.id);

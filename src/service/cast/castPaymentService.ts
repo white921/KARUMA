@@ -1,3 +1,4 @@
+import { GuildMemberCacheService } from "../system/guildMemberCacheService";
 import { randomUUID } from "node:crypto";
 import {
   ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, GuildMember,
@@ -68,7 +69,7 @@ export class CastPaymentService {
       throw new Error("指定の支払いパネルから操作してください。");
     }
     if (!interaction.deferred) await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-    const members = await interaction.guild.members.fetch();
+    const members = await GuildMemberCacheService.getMembers(interaction.guild);
     const candidates = members.filter(m => isEligibleCast(m, menu))
       .sort((a, b) => a.displayName.localeCompare(b.displayName, "ja"))
       .map(m => ({ id: m.id, name: m.displayName }));

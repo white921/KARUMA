@@ -1,3 +1,4 @@
+import { GuildMemberCacheService } from "../../service/system/guildMemberCacheService";
 import {
   ChatInputCommandInteraction,
   SlashCommandBuilder,
@@ -39,7 +40,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     throw new Error(ADMIN_OPEN_ACCOUNT_MESSAGES.ROLE_NOT_FOUND);
   }
 
-  const members = await interaction.guild?.members.fetch();
+  const members = interaction.guild ? await GuildMemberCacheService.getMembers(interaction.guild) : undefined;
   const targetMembers =
     members?.filter((member) => member.roles.cache.has(targetRole.id)) ?? null;
 

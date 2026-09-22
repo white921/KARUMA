@@ -1,3 +1,4 @@
+import { GuildMemberCacheService } from "../system/guildMemberCacheService";
 import { ChatInputCommandInteraction, Collection, GuildMember, Role } from "discord.js";
 import { COMMAND_NAMES } from "../../constant/shared/command";
 import { CURRENCY_NAMES } from "../../constant/currency/currency";
@@ -23,7 +24,7 @@ export class RoleBasedSendService {
     const botAccount = (
       await AccountService.getAccountByUserId(BOT_ID)
     )[0];
-    const members = await interaction.guild!.members.fetch();
+    const members = await GuildMemberCacheService.getMembers(interaction.guild!);
     const targetMembers = members.filter((member) =>
       member.roles.cache.has(targetRole!.id),
     );

@@ -1,3 +1,4 @@
+import { GuildMemberCacheService } from "../system/guildMemberCacheService";
 import { ChannelType, GuildMember } from "discord.js";
 import { CHECK_NAME_MESSAGES } from "../../constant/evaluation/checkName";
 import { ROLE_IDS } from "../../constant/shared/id";
@@ -68,7 +69,7 @@ export class CheckNameService {
   ): Promise<ValidateVcMemberNamesResult> {
     await this.validateOperator(user);
     const targets = await this.getVcInterviewWaitingMembers(user);
-    const guildMembers = await user.guild.members.fetch();
+    const guildMembers = await GuildMemberCacheService.getMembers(user.guild);
 
     const successes: GuildMember[] = [];
     const failures: { member: GuildMember; reason: string }[] = [];

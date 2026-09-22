@@ -20,7 +20,7 @@ function fixture(t, menu = 'group', extra = {}) {
   const thread = { id: CAST_MENUS[menu].threadId, guildId: 'guild', isThread: () => true, locked: false,
     permissionsFor: () => ({ has: () => true }), send: async p => { logs.push(p); return { id: 'log' }; } };
   const base = { user: { id: 'payer' }, guildId: 'guild', channelId: TEXT_CHANNEL_IDS.CAST_PAYMENT_PANEL,
-    guild: { members: { fetch: async options => options ? members.get(options.user) : members, fetchMe: async () => ({}) } },
+    guild: { available: true, members: { cache: members, fetch: async options => options ? members.get(options.user) : members, fetchMe: async () => ({}) } },
     client: { channels: { fetch: async id => { assert.equal(id, CAST_MENUS[menu].threadId); return thread; } } },
     editReply: async p => { edits.push(p); }, showModal: async p => modals.push(p),
     deferReply: async () => {}, deferUpdate: async () => {}, ...extra };
