@@ -1,6 +1,7 @@
 import { CastPaymentService } from "../../service/cast/castPaymentService";
 import { CAST_PAYMENT_PREFIX } from "../../constant/cast/castPayment";
-import { DARK_DISCLOSURE_PREFIX, DARK_MESSAGE_PREFIX } from "../../constant/market/darkMessage";
+import { DARK_DISCLOSURE_PREFIX, DARK_MESSAGE_PREFIX, DARK_MESSAGE_CLOSE_PREFIX } from "../../constant/market/darkMessage";
+import { DarkMessageCloseService } from "../../service/market/darkMessageCloseService";
 import { DarkDisclosureService } from "../../service/market/darkDisclosureService";
 import { DarkMessageService } from "../../service/market/darkMessageService";
 import { GACHA_COIN_PREFIX } from "../../constant/market/gachaCoin";
@@ -72,6 +73,10 @@ import { DIARY_MESSAGES } from "../../constant/diary/diary";
  */
 export async function handlePanelButton(interaction: ButtonInteraction) {
   const customId = interaction.customId;
+  if (customId.startsWith(`${DARK_MESSAGE_CLOSE_PREFIX}:`)) {
+    await DarkMessageCloseService.handleButton(interaction);
+    return;
+  }
   if (customId.startsWith(`${CAST_PAYMENT_PREFIX}:`)) {
     await CastPaymentService.handle(interaction);
     return;

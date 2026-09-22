@@ -1,5 +1,6 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 import { DARK_DISCLOSURE_PREFIX, DARK_DISCLOSURE_PRICE, DARK_MESSAGE_PRODUCTS, type DarkMessageKind } from "../../constant/market/darkMessage";
+import { createDarkMessageCloseButton } from "./darkMessageClosePanel";
 
 export function createDisclosureOffer(requestId: string) {
   return {
@@ -7,7 +8,8 @@ export function createDisclosureOffer(requestId: string) {
       .setDescription(`${DARK_DISCLOSURE_PRICE}LIAで送信者を開示しますか？`)
       .setColor(0x392247),
     row: new ActionRowBuilder<ButtonBuilder>().addComponents(new ButtonBuilder()
-      .setCustomId(`${DARK_DISCLOSURE_PREFIX}:show:${requestId}`).setLabel("35,000 LIAで開示する").setStyle(ButtonStyle.Success)),
+      .setCustomId(`${DARK_DISCLOSURE_PREFIX}:show:${requestId}`).setLabel("35,000 LIAで開示する").setStyle(ButtonStyle.Success),
+      createDarkMessageCloseButton(requestId)),
   };
 }
 

@@ -1,6 +1,7 @@
 import { EmbedBuilder, type ButtonInteraction } from "discord.js";
 import { DARK_DISCLOSURE_PREFIX } from "../../constant/market/darkMessage";
 import { createDisclosureConfirmation, createDisclosureResult } from "../../panel/market/darkDisclosurePanel";
+import { createDarkMessageCloseRow } from "../../panel/market/darkMessageClosePanel";
 import { DarkMessageStore, type DarkMessageRequest } from "./darkMessageStore";
 import { assertDisclosureRecipient, DarkDisclosureStore, type DisclosureContext } from "./darkDisclosureStore";
 
@@ -23,7 +24,7 @@ export class DarkDisclosureService {
       const preserved = ["闇手紙", "悪魔の囁き"].includes(message.embeds[0].title ?? "")
         ? [EmbedBuilder.from(message.embeds[0])] : [];
       await message.edit({ embeds: [...preserved, createDisclosureResult(request.buyer_id)],
-        components: [], allowedMentions: { parse: [] } });
+        components: [createDarkMessageCloseRow(request.request_id)], allowedMentions: { parse: [] } });
       displayed = true;
     } catch {
       console.error("[DarkDisclosure] result display requires retry", { requestId: request.request_id });

@@ -158,7 +158,7 @@ test('確定後だけ開示。元の本文と音声添付を保持し送信者�
   assert.equal(p.attachments, undefined);
   assert.equal(p.files, undefined);
   assert.deepEqual(p.allowedMentions.parse, []);
-  assert.deepEqual(p.components, []);
+  assert.equal(p.components[0].components[0].data.custom_id, `darkClose:show:${requestId}`);
 });
 
 test('キャンセルは確認だけを閉じる', async t => {
