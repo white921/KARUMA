@@ -115,7 +115,17 @@ export class SalaryService {
       if (client) {
         await ReceiptDmService.send({ client }, {
           actionType: ACTION_TYPES.SALARY_PAYMENT, recipientId: userId, amount, afterWallet: toUserAmount,
-          fields: [{ name: "対象ロール", value: roleName }, { name: "支給月", value: new Intl.DateTimeFormat("ja-JP", { timeZone: "Asia/Tokyo", year: "numeric", month: "long" }).format(new Date()) }],
+          fields: [
+            { name: "対象ロール", value: roleName },
+            {
+              name: "支給月",
+              value: `${new Intl.DateTimeFormat("ja-JP", {
+                timeZone: "Asia/Tokyo",
+                year: "numeric",
+                month: "long",
+              }).format(new Date())}分`,
+            },
+          ],
         });
         await ActionService.createActionLogMessage(
           { client },

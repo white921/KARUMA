@@ -103,12 +103,14 @@ test('付与と剥奪の実処理から対象本人へ通知し、剥奪の操�
 });
 
 test('給与の実処理からロール・支給月と確定残高をBOT名義で通知する', async t => {
+  t.mock.timers.enable({ apis: ['Date'], now: new Date('2026-08-31T15:00:00Z') });
   const f = moneyFixture(t);
   await SalaryService.paySalary(target, 'システム補佐', 100000, f.ctx.client);
   assert.equal(f.messages.length, 1);
   assert.equal(f.messages[0].embed.author.name, 'LEVELIA BOT');
   assert.match(f.messages[0].embed.footer.text, /110,000/);
   assert.equal(f.messages[0].embed.fields[0].value, 'システム補佐');
+  assert.deepEqual(f.messages[0].embed.fields[1], { name: '支給月', value: '2026年9月分' });
 });
 
 test('DM拒否は付与を失敗扱いにせず残高と履歴を維持する', async t => {
