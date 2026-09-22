@@ -1,3 +1,4 @@
+import { ReceiptDmService } from "../currency/receiptDmService";
 import type { PartialGuildMember } from "discord.js";
 import { Client, GuildMember } from "discord.js";
 import type { RowDataPacket } from "mysql2";
@@ -46,6 +47,10 @@ export class ServerBoostService {
       return;
     }
 
+    await ReceiptDmService.send({ client, guild: newMember.guild }, {
+      actionType: ACTION_TYPES.SERVER_BOOST_REWARD, recipientId: newMember.id,
+      amount: reward.amount, afterWallet: reward.afterWallet, comment: reward.comment,
+    });
     await ActionService.createActionLogMessage(
       { client },
       COMMAND_NAMES.SERVER_BOOST,
@@ -122,7 +127,7 @@ export class ServerBoostService {
       );
       await connection.commit();
 
-      return { amount, boostCount, comment };
+      return { amount, boostCount, comment, afterWallet };
     } catch (error: unknown) {
       await connection.rollback();
       if (

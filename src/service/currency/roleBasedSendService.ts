@@ -44,6 +44,7 @@ export class RoleBasedSendService {
         sendTargets,
         amount,
         comment,
+        targetRole!.name,
       );
     }
 
@@ -124,6 +125,7 @@ export class RoleBasedSendService {
     sendTargets: TargetUser[],
     amount: number,
     comment: string,
+    roleName?: string,
   ) {
     const connection = await DbService.getConnection();
 
@@ -147,6 +149,7 @@ export class RoleBasedSendService {
           botWallet,
           toAfterWallet,
           comment,
+          roleName ? [{ name: "対象ロール", value: formatRoleNameForOutput(roleName) }] : undefined,
         );
       }
     } catch (error) {

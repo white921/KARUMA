@@ -1,3 +1,5 @@
+import { ReceiptDmService } from "../currency/receiptDmService";
+import { ACTION_TYPES } from "../../constant/currency/action";
 import {
   ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, EmbedBuilder, MessageFlags,
   ModalSubmitInteraction, StringSelectMenuBuilder, StringSelectMenuInteraction,
@@ -53,9 +55,19 @@ export async function handleTicketExchangeButton(interaction: ButtonInteraction)
   }
   if (action !== "confirm") throw new Error("換金操作が不正です。");
   const result = await TicketExchangeService.redeem(requestId, interaction.user.id);
+  await notifyExchange(interaction, result);
   // 利用者への応答に失敗しても、確定した換金のログを先に記録する。
   await TicketExchangeLogService.send(interaction.client, interaction.guildId!, interaction.user.id, requestId, result);
   await showExchangeResult(interaction, result);
+}
+
+async function notifyExchange(interaction: ButtonInteraction, result: TicketExchangeResult) {
+  if (result.alreadyCompleted) return;
+  await ReceiptDmService.send(interaction, {
+    actionType: ACTION_TYPES.TICKET_EXCHANGE, recipientId: interaction.user.id,
+    amount: result.amount, afterWallet: result.afterWallet,
+    fields: [{ name: "換金チケット", value: `${result.label} ×${result.quantity}枚` }],
+  });
 }
 
 async function showExchangeResult(interaction: ButtonInteraction, result: TicketExchangeResult) {
@@ -172,6 +184,7 @@ async function handleQuantityButton(interaction: ButtonInteraction) {
       }
       const result = await TicketExchangeService.redeem(draft.id, draft.userId);
       draft.result = result;
+      await notifyExchange(interaction, result);
       await TicketExchangeLogService.send(interaction.client, interaction.guildId!, draft.userId, draft.id, result);
       await showExchangeResult(interaction, result);
       return;

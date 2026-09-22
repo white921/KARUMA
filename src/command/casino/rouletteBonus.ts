@@ -10,7 +10,7 @@ export const data = new SlashCommandBuilder()
 
 export async function execute(interaction: ChatInputCommandInteraction) {
   await RouletteService.assertOperator(interaction);
-  const paidCount = await RouletteService.grantParticipationBonus();
+  const paidCount = await RouletteService.grantParticipationBonus(interaction);
   await interaction.editReply({
     content: `🎁 前回の参加ボーナス配布以降に参加した ${paidCount} 名へ30,000通貨を配布しました。`,
   });

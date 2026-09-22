@@ -5,7 +5,7 @@ const { AccountService } = require("../dist/service/account/accountService.js");
 const { ActionService } = require("../dist/service/currency/actionService.js");
 const { DbService } = require("../dist/service/system/dbService.js");
 const { PANEL_COMMAND_NAMES } = require("../dist/constant/shared/command.js");
-const { SEND_DM_TEST_RECIPIENT_ID } = require("../dist/constant/currency/send.js");
+const { RECEIPT_DM_TEST_RECIPIENT_ID } = require("../dist/constant/currency/receiptDm.js");
 
 function fixture(t) {
   const events = [];
@@ -19,7 +19,8 @@ function fixture(t) {
     execute: async (sql, params) => { events.push(["write", ...params]); return [{}]; },
     release() {},
   }));
-  t.mock.method(ActionService, "executeActionLog", async () => { events.push(["log"]); });
+  t.mock.method(ActionService, "createActionLog", async () => { events.push(["log"]); });
+  t.mock.method(ActionService, "createActionLogMessage", async () => {});
   const recipient = { send: async (payload) => { events.push(["dm"]); payloads.push(payload); } };
   const interaction = {
     user: sender,
@@ -35,9 +36,9 @@ for (const entry of ["command", "panel"]) {
   test(`${entry}: 指定受取人だけに送金者の名前・アイコンと確定残高をDM通知する`, async (t) => {
     const f = fixture(t);
     if (entry === "command") {
-      await SendService.sendByCommand(f.interaction, "sender", SEND_DM_TEST_RECIPIENT_ID, 10000, "ありがとう！");
+      await SendService.sendByCommand(f.interaction, "sender", RECEIPT_DM_TEST_RECIPIENT_ID, 10000, "ありがとう！");
     } else {
-      await SendService.executeSend(f.interaction, "sender", SEND_DM_TEST_RECIPIENT_ID, 10000, "ありがとう！", PANEL_COMMAND_NAMES.SEND, "editReply");
+      await SendService.executeSend(f.interaction, "sender", RECEIPT_DM_TEST_RECIPIENT_ID, 10000, "ありがとう！", PANEL_COMMAND_NAMES.SEND, "editReply");
     }
     assert.equal(f.payloads.length, 1);
     const payload = f.payloads[0];
@@ -49,16 +50,16 @@ for (const entry of ["command", "panel"]) {
     assert.equal(embed.footer.text, "受取後の残高：110,000 LIA");
     assert.deepEqual(embed.fields, [{ name: "備考", value: "ありがとう！" }]);
     assert.deepEqual(payload.allowedMentions, { parse: [] });
-    assert.deepEqual(f.events.slice(0, 2), [["write", 90000, "sender"], ["write", 110000, SEND_DM_TEST_RECIPIENT_ID]]);
+    assert.deepEqual(f.events.slice(0, 2), [["write", 90000, "sender"], ["write", 110000, RECEIPT_DM_TEST_RECIPIENT_ID]]);
     assert.equal(f.events.at(-1)[0], "dm");
   });
 }
 
-test("他の受取人や賭博・紋章送金にはユーザー取得もDM送信もしない", async (t) => {
+test("他の受取人や紋章送金にはユーザー取得もDM送信もしない", async (t) => {
   const f = fixture(t);
   await SendService.sendByCommand(f.interaction, "sender", "other", 1000, "");
-  for (const command of [PANEL_COMMAND_NAMES.CASINO_GF, PANEL_COMMAND_NAMES.CASINO_MAJONG, PANEL_COMMAND_NAMES.CASINO_OTHER, PANEL_COMMAND_NAMES.CREATOR_EMBLEM_PAY]) {
-    await SendService.executeSend(f.interaction, "sender", SEND_DM_TEST_RECIPIENT_ID, 1000, "", command, "editReply");
+  for (const command of [PANEL_COMMAND_NAMES.CREATOR_EMBLEM_PAY]) {
+    await SendService.executeSend(f.interaction, "sender", RECEIPT_DM_TEST_RECIPIENT_ID, 1000, "", command, "editReply");
   }
   assert.deepEqual(f.fetched, []);
   assert.deepEqual(f.payloads, []);
@@ -69,7 +70,7 @@ test("DM拒否でも送金・履歴は成功し、残高更新も送信も再試
   const errors = t.mock.method(console, "error", () => {});
   let attempts = 0;
   f.recipient.send = async () => { attempts++; throw Object.assign(new Error("Cannot send messages to this user"), { code: 50007 }); };
-  await SendService.sendByCommand(f.interaction, "sender", SEND_DM_TEST_RECIPIENT_ID, 10000, "");
+  await SendService.sendByCommand(f.interaction, "sender", RECEIPT_DM_TEST_RECIPIENT_ID, 10000, "");
   assert.equal(attempts, 1);
   assert.equal(errors.mock.callCount(), 1);
   assert.equal(f.events.filter(([kind]) => kind === "write").length, 2);
@@ -80,7 +81,7 @@ test("DM拒否でも送金・履歴は成功し、残高更新も送信も再試
 test("空の備考は省略し、メンバー取得失敗時はユーザーの名前・アイコンを使う", async (t) => {
   const f = fixture(t);
   f.interaction.guild.members.fetch = async () => { throw new Error("Unknown member"); };
-  await SendService.sendByCommand(f.interaction, "sender", SEND_DM_TEST_RECIPIENT_ID, 1, "  ");
+  await SendService.sendByCommand(f.interaction, "sender", RECEIPT_DM_TEST_RECIPIENT_ID, 1, "  ");
   const embed = f.payloads[0].embeds[0].toJSON();
   assert.equal(embed.author.name, "送金者");
   assert.equal(embed.author.icon_url, f.avatar);
@@ -89,13 +90,13 @@ test("空の備考は省略し、メンバー取得失敗時はユーザーの�
 
 test("長い備考でもEmbedの上限を超えない", async (t) => {
   const f = fixture(t);
-  await SendService.sendByCommand(f.interaction, "sender", SEND_DM_TEST_RECIPIENT_ID, 1, "あ".repeat(2000));
+  await SendService.sendByCommand(f.interaction, "sender", RECEIPT_DM_TEST_RECIPIENT_ID, 1, "あ".repeat(2000));
   assert.equal(f.payloads[0].embeds[0].toJSON().fields[0].value.length, 1024);
 });
 
 test("送金失敗時にはDMを送らない", async (t) => {
   const f = fixture(t);
-  await assert.rejects(SendService.sendByCommand(f.interaction, "sender", SEND_DM_TEST_RECIPIENT_ID, 100001, ""));
+  await assert.rejects(SendService.sendByCommand(f.interaction, "sender", RECEIPT_DM_TEST_RECIPIENT_ID, 100001, ""));
   assert.deepEqual(f.events, []);
   assert.deepEqual(f.fetched, []);
 });
@@ -104,7 +105,7 @@ test("受取ユーザー取得失敗も通知失敗として扱う", async (t) =
   const f = fixture(t);
   t.mock.method(console, "error", () => {});
   f.interaction.client.users.fetch = async () => { throw new Error("Discord unavailable"); };
-  await SendService.sendByCommand(f.interaction, "sender", SEND_DM_TEST_RECIPIENT_ID, 1, "");
+  await SendService.sendByCommand(f.interaction, "sender", RECEIPT_DM_TEST_RECIPIENT_ID, 1, "");
   assert.equal(f.events.filter(([kind]) => kind === "write").length, 2);
   assert.deepEqual(f.payloads, []);
 });

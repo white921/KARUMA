@@ -1,3 +1,5 @@
+import { ReceiptDmService } from "./receiptDmService";
+import type { CurrencyReceipt } from "../../type/currency/receiptDm";
 import { TextChannel, ThreadChannel } from "discord.js";
 
 import { DbService } from "../system/dbService";
@@ -8,7 +10,7 @@ import { COMMAND_NAMES, PANEL_COMMAND_NAMES } from "../../constant/shared/comman
 import { CURRENCY_NAMES } from "../../constant/currency/currency";
 import { CASINO_MESSAGES } from "../../constant/casino/casino";
 import { formatNumber } from "../../util/shared/number";
-import { toActionType } from "../../constant/currency/action";
+import { ACTION_TYPES, toActionType } from "../../constant/currency/action";
 
 export function resolveActionLogThreadId(commandName: string): string | null {
   switch (commandName) {
@@ -320,6 +322,7 @@ export class ActionService {
     fromAfterWallet: number,
     toAfterWallet: number,
     comment: string,
+    receiptFields?: CurrencyReceipt["fields"],
   ) {
     try {
       await this.createActionLog(
@@ -331,6 +334,13 @@ export class ActionService {
         toAfterWallet,
         comment,
       );
+      const actionType = toActionType(commandName);
+      const isBurn = actionType === ACTION_TYPES.ADMIN_BURN;
+      await ReceiptDmService.send(interaction, {
+        actionType, recipientId: isBurn ? fromUserId : toUserId,
+        senderId: fromUserId, amount, afterWallet: isBurn ? fromAfterWallet : toAfterWallet,
+        comment, fields: receiptFields,
+      });
       try {
         await this.createActionLogMessage(
           interaction,

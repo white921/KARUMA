@@ -14,7 +14,7 @@ export const data = new SlashCommandBuilder()
 export async function execute(interaction: ChatInputCommandInteraction) {
   await RouletteService.assertOperator(interaction);
   const number = interaction.options.getInteger("number", true);
-  const settlement = await RouletteService.settleRound(number);
+  const settlement = await RouletteService.settleRound(number, interaction);
   if (interaction.channel?.isSendable()) {
     await interaction.channel.send({ embeds: [RouletteService.createSettlementEmbed(settlement)] });
   }

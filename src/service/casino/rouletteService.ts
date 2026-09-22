@@ -1,3 +1,5 @@
+import { ReceiptDmService } from "../currency/receiptDmService";
+import type { CurrencyReceipt, ReceiptDmContext } from "../../type/currency/receiptDm";
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -14,7 +16,7 @@ import {
   TextInputStyle,
 } from "discord.js";
 import type { ResultSetHeader, RowDataPacket } from "mysql2";
-import { toActionType } from "../../constant/currency/action";
+import { ACTION_TYPES, toActionType } from "../../constant/currency/action";
 import { CURRENCY_NAMES } from "../../constant/currency/currency";
 import { BOT_ID } from "../../constant/shared/id";
 import {
@@ -321,7 +323,21 @@ export class RouletteService {
     }
   }
 
-  static async settleRound(result: number): Promise<RouletteSettlement> {
+  static async settleRound(result: number, context?: ReceiptDmContext): Promise<RouletteSettlement> {
+    const receipts: CurrencyReceipt[] = [];
+    const settlement = await this.settleRoundTransaction(result, receipts);
+    if (context) {
+      const byUser = new Map<string, CurrencyReceipt>();
+      for (const receipt of receipts) {
+        const previous = byUser.get(receipt.recipientId);
+        byUser.set(receipt.recipientId, { ...receipt, amount: receipt.amount + (previous?.amount ?? 0) });
+      }
+      for (const receipt of byUser.values()) await ReceiptDmService.send(context, receipt);
+    }
+    return settlement;
+  }
+
+  private static async settleRoundTransaction(result: number, receipts: CurrencyReceipt[]): Promise<RouletteSettlement> {
     if (!Number.isInteger(result) || result < 0 || result > 36) throw new Error("結果は0〜36の整数で指定してください。");
     const connection = await DbService.getConnection();
     try {
@@ -357,6 +373,9 @@ export class RouletteService {
         await connection.execute("UPDATE accounts SET wallet = ? WHERE user_id = ?", [userAfterWallet, row.user_id]);
         await this.insertActionLog(connection, ROULETTE_ACTION_NAMES.PAYOUT, payout, BOT_ID, row.user_id, botWallet, userAfterWallet, "ルーレットイベント");
         winners.push({ userId: row.user_id, payout, bet });
+        receipts.push({ actionType: ACTION_TYPES.ROULETTE_PAYOUT, recipientId: row.user_id,
+          amount: payout, afterWallet: userAfterWallet,
+          fields: [{ name: "ラウンド", value: `第${round.stage}部・第${roundNumber}ラウンド` }] });
       }
       await connection.execute("UPDATE accounts SET wallet = ? WHERE user_id = ?", [botWallet, BOT_ID]);
       await connection.execute(
@@ -375,7 +394,16 @@ export class RouletteService {
     }
   }
 
-  static async grantParticipationBonus(): Promise<number> {
+  static async grantParticipationBonus(context?: ReceiptDmContext): Promise<number> {
+    const receipts: CurrencyReceipt[] = [];
+    const paidCount = await this.grantParticipationBonusTransaction(receipts);
+    if (context) {
+      for (const receipt of receipts) await ReceiptDmService.send(context, receipt);
+    }
+    return paidCount;
+  }
+
+  private static async grantParticipationBonusTransaction(receipts: CurrencyReceipt[]): Promise<number> {
     const connection = await DbService.getConnection();
     try {
       await connection.beginTransaction();
@@ -419,6 +447,8 @@ export class RouletteService {
         botWallet -= ROULETTE_PARTICIPATION_BONUS;
         await connection.execute("UPDATE accounts SET wallet = ? WHERE user_id = ?", [userAfterWallet, userId]);
         await this.insertActionLog(connection, ROULETTE_ACTION_NAMES.BONUS, ROULETTE_PARTICIPATION_BONUS, BOT_ID, userId, botWallet, userAfterWallet, "ルーレットイベント");
+        receipts.push({ actionType: ACTION_TYPES.ROULETTE_BONUS, recipientId: userId,
+          amount: ROULETTE_PARTICIPATION_BONUS, afterWallet: userAfterWallet });
         paidCount += 1;
       }
       await connection.execute("UPDATE accounts SET wallet = ? WHERE user_id = ?", [botWallet, BOT_ID]);

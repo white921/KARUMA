@@ -8,6 +8,7 @@ export type BoostAccountRow = RowDataPacket & {
 
 export type ServerBoostReward = {
   amount: number;
+  afterWallet: number;
   boostCount: number;
   comment: string;
 };

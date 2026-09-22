@@ -1,3 +1,4 @@
+import { ReceiptDmService } from "../currency/receiptDmService";
 import { ButtonInteraction, EmbedBuilder, GuildMember, TextChannel } from "discord.js";
 import type { RowDataPacket } from "mysql2";
 import { ACTION_TYPES } from "../../constant/currency/action";
@@ -189,6 +190,11 @@ export class OmikujiService {
     } finally {
       connection.release();
     }
+
+    await ReceiptDmService.send(interaction, {
+      actionType: ACTION_TYPES.OMIKUJI_DRAW, recipientId: interaction.user.id,
+      amount: actualAmount, afterWallet, comment: prize.fortune,
+    });
 
     if (prize.fortune === "凶" || prize.fortune === "超大吉") {
       await this.sendSpecialResultLog(
