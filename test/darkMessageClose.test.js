@@ -6,6 +6,7 @@ const { DarkDisclosureStore } = require('../dist/service/market/darkDisclosureSt
 const { handlePanelButton } = require('../dist/handler/interaction/panelButtonHandler');
 const { shouldDeferButtonUpdate } = require('../dist/util/interaction/interactionAck');
 const { createDisclosureOffer } = require('../dist/panel/market/darkDisclosurePanel');
+const { ROLE_IDS } = require('../dist/constant/shared/id');
 
 const requestId = '123456789012345678';
 function setup(t, product = 'letter') {
@@ -28,9 +29,56 @@ function setup(t, product = 'letter') {
 test('開示パネルの閉じるボタンは本人限定の新規確認応答、確定・取消はその確認を更新', () => {
   const row = createDisclosureOffer(requestId).row.toJSON();
   assert.equal(row.components[1].label, 'このTCを閉じる');
+  assert.equal(row.components[1].style, 4);
   assert.equal(shouldDeferButtonUpdate(row.components[1].custom_id), false);
   for (const action of ['confirm', 'cancel'])
     assert.equal(shouldDeferButtonUpdate(`darkClose:${action}:${requestId}:token`), true);
+});
+
+for (const role of [ROLE_IDS.DARK_SHOP_LEADER, ROLE_IDS.KANRISYA, ROLE_IDS.GIJUTU_LEADER]) {
+  test(`許可ロール ${role} は最新権限を照合し、自分の確認後だけ削除できる`, async t => {
+    const { i, events, show } = setup(t);
+    i.user.id = 'operator';
+    const fetched = [];
+    i.guild = { members: { fetch: async args => { fetched.push(args); return { roles: [role] }; } } };
+    const [confirm] = await show();
+    assert.equal(events.some(e => e[0] === 'delete'), false);
+    i.customId = confirm;
+    await handlePanelButton(i);
+    assert.deepEqual(fetched, [{ user: 'operator', force: true }, { user: 'operator', force: true }]);
+    assert.equal(events.filter(e => e[0] === 'delete').length, 1);
+  });
+}
+
+test('皇帝・管理者権限だけでは閉じられず、ロール取得失敗でも拒否する', async t => {
+  const { i, events } = setup(t);
+  i.user.id = 'operator';
+  i.guild = { members: { fetch: async () => ({ roles: [ROLE_IDS.SABANUSI], permissions: { administrator: true } }) } };
+  await assert.rejects(handlePanelButton(i), /だけが閉じる/);
+  i.guild.members.fetch = async () => { throw Error('fetch failed'); };
+  await assert.rejects(handlePanelButton(i), /だけが閉じる/);
+  assert.deepEqual(events, []);
+});
+
+test('確認後にロールを失った運営は削除できない', async t => {
+  const { i, events, show } = setup(t);
+  i.user.id = 'operator';
+  i.guild = { members: { fetch: async () => ({ roles: [ROLE_IDS.KANRISYA] }) } };
+  const [confirm] = await show();
+  i.customId = confirm;
+  i.guild.members.fetch = async () => ({ roles: [] });
+  await assert.rejects(handlePanelButton(i), /だけが閉じる/);
+  assert.equal(events.some(e => e[0] === 'delete'), false);
+});
+
+test('許可された運営でも別人が開いた確認を流用できない', async t => {
+  const { i, events, show } = setup(t);
+  const [confirm] = await show();
+  i.customId = confirm;
+  i.user.id = 'operator';
+  i.guild = { members: { fetch: async () => ({ roles: [ROLE_IDS.KANRISYA] }) } };
+  await assert.rejects(handlePanelButton(i), /確認が無効/);
+  assert.equal(events.some(e => e[0] === 'delete'), false);
 });
 
 for (const product of ['letter', 'whisper']) {

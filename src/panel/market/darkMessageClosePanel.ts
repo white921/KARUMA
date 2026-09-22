@@ -3,7 +3,7 @@ import { DARK_MESSAGE_CLOSE_PREFIX } from "../../constant/market/darkMessage";
 
 export function createDarkMessageCloseButton(requestId: string) {
   return new ButtonBuilder().setCustomId(`${DARK_MESSAGE_CLOSE_PREFIX}:show:${requestId}`)
-    .setLabel("このTCを閉じる").setStyle(ButtonStyle.Secondary);
+    .setLabel("このTCを閉じる").setStyle(ButtonStyle.Danger);
 }
 
 export function createDarkMessageCloseRow(requestId: string) {

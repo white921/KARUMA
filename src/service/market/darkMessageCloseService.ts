@@ -1,8 +1,9 @@
 import { randomBytes } from "node:crypto";
 import { ChannelType, type ButtonInteraction } from "discord.js";
-import { DARK_MESSAGE_CLOSE_PREFIX } from "../../constant/market/darkMessage";
+import { DARK_MESSAGE_CLOSE_PREFIX, DARK_MESSAGE_CLOSE_OPERATOR_ROLES } from "../../constant/market/darkMessage";
 import { createDarkMessageCloseConfirmation } from "../../panel/market/darkMessageClosePanel";
 import { DarkMessageStore } from "./darkMessageStore";
+import { hasOperatorRole } from "../../util/shared/operatorPermission";
 
 type PendingClose = { requestId: string; userId: string; guildId: string; channelId: string; expiresAt: number };
 
@@ -21,8 +22,14 @@ export class DarkMessageCloseService {
     const request = await DarkMessageStore.get(requestId);
     const channel = interaction.channel;
     if (!request || !interaction.guildId || request.guild_id !== interaction.guildId ||
-        request.recipient_id !== interaction.user.id || request.delivery_channel_id !== interaction.channelId)
-      throw new Error("このTCの受取人本人だけが閉じることができます。");
+        request.delivery_channel_id !== interaction.channelId)
+      throw new Error("このTCの受取人本人・闇市場支配人・英傑・システム支配人だけが閉じることができます。");
+    if (request.recipient_id !== interaction.user.id) {
+      // 確認を開くときも削除確定時も、最新のロールで権限を照合する。
+      const member = await interaction.guild?.members.fetch({ user: interaction.user.id, force: true }).catch(() => null);
+      if (!hasOperatorRole(member, DARK_MESSAGE_CLOSE_OPERATOR_ROLES))
+        throw new Error("このTCの受取人本人・闇市場支配人・英傑・システム支配人だけが閉じることができます。");
+    }
     if (request.status !== "delivered" || !request.delivery_message_id ||
         channel?.type !== ChannelType.GuildText || channel.id !== request.delivery_channel_id)
       throw new Error("配送済みの専用TCで操作してください。");
@@ -51,7 +58,7 @@ export class DarkMessageCloseService {
     this.deleting.add(channel.id);
     try {
       await interaction.editReply({ content: "TCを削除しています。", embeds: [], components: [] });
-      await channel.delete("闇市場商品の受取人が確認画面でTC削除を確定");
+      await channel.delete("闇市場商品の受取人または許可された運営が確認画面でTC削除を確定");
       // 削除済みTCでは応答を更新できない場合がある。
       await interaction.editReply({ content: "TCを削除しました。", embeds: [], components: [] }).catch(() => undefined);
     } catch {
