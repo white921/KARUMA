@@ -73,18 +73,19 @@ test('元ファイル名を隠し、不正URL・形式・サイズを拒否', ()
 });
 
 test('配送内容は商品名と本文/音声のみ。作者・元URL・送信元は付けない', () => {
-  const [payload, text] = createDarkMessagePayloads('letter', '@everyone hello');
-  assert.deepEqual(payload.embeds[0].toJSON(), { title: '闇手紙', color: 0x392247, description: '匿名のメッセージが届きました。' });
-  assert.deepEqual(payload.allowedMentions.parse, []);
+  const [payload, text] = createDarkMessagePayloads('letter', recipientId, '@everyone hello');
+  assert.deepEqual(payload.embeds[0].toJSON(), { title: '闇手紙が届きました', color: 0x392247, description: '匿名のメッセージが届きました。' });
+  assert.equal(payload.content, `<@${recipientId}>`);
+  assert.deepEqual(payload.allowedMentions, { parse: [], users: [recipientId] });
   assert.equal(text.content, '@everyone hello');
   assert.equal(text.embeds, undefined);
   assert.deepEqual(text.allowedMentions.parse, []);
   const longBody = 'あ'.repeat(1999) + '💌' + 'い'.repeat(1999);
-  const parts = createDarkMessagePayloads('letter', longBody).slice(1);
+  const parts = createDarkMessagePayloads('letter', recipientId, longBody).slice(1);
   assert.equal(parts.map(p => p.content).join(''), longBody);
   assert.ok(parts.every(p => p.content.length <= 2000));
-  assert.deepEqual(createDarkMessagePayloads('whisper', undefined, { attachment: Buffer.from('test'), name: 'voice-message.mp3' })[0].embeds[0].toJSON(),
-    { title: '悪魔の囁き', color: 0x392247 });
+  assert.deepEqual(createDarkMessagePayloads('whisper', recipientId, undefined, { attachment: Buffer.from('test'), name: 'voice-message.mp3' })[0].embeds[0].toJSON(),
+    { title: '悪魔の囁きが届きました', color: 0x392247 });
 });
 
 function setup(t, kind = 'letter') {
@@ -110,10 +111,10 @@ function setup(t, kind = 'letter') {
   return { i, r, events, channel };
 }
 
-test('記録→投稿→メッセージ記録の後に受取人へ公開。二重送信を拒否', async t => {
+test('配送TCを記録し受取人へ公開してからメンション・投稿。二重送信を拒否', async t => {
   const { i, events } = setup(t);
   await handleModalSubmit(i);
-  assert.deepEqual(events.map(e => e[0]), ['claim', 'create', 'recordChannel', 'send', 'send', 'send', 'recordMessage', 'grant', 'complete', 'reply']);
+  assert.deepEqual(events.map(e => e[0]), ['claim', 'create', 'recordChannel', 'grant', 'send', 'send', 'send', 'recordMessage', 'complete', 'reply']);
   assert.deepEqual(events[0].slice(1), [id, 'buyer', 'guild', 'ticket', recipientId]);
   assert.equal(events[1][1].parent, CATEGORY_IDS.DARK_MARKET);
   assert.equal(events[1][1].permissionOverwrites.some(o => o.id === recipientId || o.id === 'buyer'), false);
@@ -130,7 +131,7 @@ test('同時送信はDBのclaimに勝った1件だけを配送', async t => {
   assert.equal(events.filter(e => e[0] === 'send').length, 3);
 });
 
-for (const failing of ['recordChannel', 'send', 'send', 'send', 'recordMessage', 'grant', 'complete']) {
+for (const failing of ['recordChannel', 'grant', 'send', 'send', 'send', 'recordMessage', 'complete']) {
   test(`配送の${failing}失敗時は再送可能に戻さず記録し、内部エラーや送信元を表示しない`, async t => {
     const { i, events, channel } = setup(t);
     const target = failing === 'send' ? channel : failing === 'grant' ? channel.permissionOverwrites : DarkMessageStore;
@@ -138,8 +139,10 @@ for (const failing of ['recordChannel', 'send', 'send', 'send', 'recordMessage',
     t.mock.method(console, 'error', () => {});
     await assert.rejects(DarkMessageService.submit(i), /^Error: 送信の完了を確認できませんでした/);
     assert.equal(events.filter(e => e[0] === 'fail').length, 1);
-    if (['recordChannel', 'send', 'recordMessage'].includes(failing))
+    if (failing === 'recordChannel')
       assert.equal(events.some(e => e[0] === 'grant'), false);
+    if (['recordChannel', 'grant'].includes(failing))
+      assert.equal(events.some(e => e[0] === 'send'), false);
   });
 }
 
@@ -148,7 +151,9 @@ test('音声を再アップロードし、元URLと元ファイル名を受取�
   t.mock.method(globalThis, 'fetch', async () => new Response(Buffer.from('test')));
   await DarkMessageService.submit(i);
   const [header, payload, panel] = events.filter(e => e[0] === 'send').map(e => e[1]);
-  assert.equal(header.embeds[0].data.title, '悪魔の囁き');
+  assert.equal(header.embeds[0].data.title, '悪魔の囁きが届きました');
+  assert.equal(header.content, `<@${recipientId}>`);
+  assert.deepEqual(header.allowedMentions, { parse: [], users: [recipientId] });
   assert.equal(header.files, undefined);
   assert.equal(payload.embeds, undefined);
   assert.equal(panel.embeds[0].data.title, '匿名開示');

@@ -98,10 +98,12 @@ async function downloadAudio(attachment: Attachment): Promise<{ attachment: Buff
   return { attachment: Buffer.concat(chunks), name };
 }
 
-export function createDarkMessagePayloads(kind: DarkMessageKind, body?: string, file?: { attachment: Buffer; name: string }, requestId?: string): MessageCreateOptions[] {
-  const embed = new EmbedBuilder().setTitle(DARK_MESSAGE_PRODUCTS[kind].title).setColor(0x392247);
+export function createDarkMessagePayloads(kind: DarkMessageKind, recipientId: string, body?: string, file?: { attachment: Buffer; name: string }, requestId?: string): MessageCreateOptions[] {
+  const embed = new EmbedBuilder().setTitle(`${DARK_MESSAGE_PRODUCTS[kind].title}が届きました`).setColor(0x392247);
   if (kind === "letter") embed.setDescription("匿名のメッセージが届きました。");
-  const payloads: MessageCreateOptions[] = [{ embeds: [embed], allowedMentions: { parse: [] } }];
+  const payloads: MessageCreateOptions[] = [{
+    content: `<@${recipientId}>`, embeds: [embed], allowedMentions: { parse: [], users: [recipientId] },
+  }];
   if (kind === "whisper" && file) payloads.push({ files: [file], allowedMentions: { parse: [] } });
   // 通常メッセージの上限に合わせて分割し、従来の4,000文字入力を維持する。
   if (kind === "letter") {
@@ -210,7 +212,7 @@ export class DarkMessageService {
     let deliveryChannelId: string | undefined;
     let deliveryMessageId: string | undefined;
     try {
-      // 親カテゴリーの公開権限は継承しない。記録・投稿が済むまでは受取人にも非公開。
+      // 親カテゴリーの公開権限は継承しない。配送TCの記録後、通知前に受取人へ閲覧を許可する。
       const channel = await guild.channels.create({
         name: `${DARK_MESSAGE_PRODUCTS[request.product].title}-${randomBytes(4).toString("hex")}`,
         type: ChannelType.GuildText, parent: category.id,
@@ -219,15 +221,15 @@ export class DarkMessageService {
       });
       deliveryChannelId = channel.id;
       await DarkMessageStore.recordChannel(request.request_id, channel.id);
-      for (const payload of createDarkMessagePayloads(request.product, body, file, request.request_id)) {
+      await channel.permissionOverwrites.edit(recipientId, {
+        ViewChannel: true, ReadMessageHistory: true, SendMessages: true, AttachFiles: true,
+      }, { type: OverwriteType.Member, reason: "闇市場商品の受取人" });
+      for (const payload of createDarkMessagePayloads(request.product, recipientId, body, file, request.request_id)) {
         const message = await channel.send(payload);
         deliveryMessageId = message.id;
       }
       // 最後の匿名開示パネルを保存。開示時も別投稿の本文・音声は変更しない。
       await DarkMessageStore.recordMessage(request.request_id, deliveryMessageId!);
-      await channel.permissionOverwrites.edit(recipientId, {
-        ViewChannel: true, ReadMessageHistory: true, SendMessages: true, AttachFiles: true,
-      }, { type: OverwriteType.Member, reason: "闇市場商品の受取人" });
       await DarkMessageStore.complete(request.request_id);
     } catch {
       // Discord APIの送信結果が不明な場合も再送しない。運営が配送記録とTCを確認する。
