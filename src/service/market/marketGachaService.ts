@@ -4,7 +4,6 @@ import {
   ButtonBuilder,
   ButtonInteraction,
   ButtonStyle,
-  GuildMember,
   ThreadChannel,
 } from "discord.js";
 import type { RowDataPacket } from "mysql2";
@@ -80,17 +79,6 @@ export function createMarketGachaConfirmationRow(
       .setCustomId(PANEL_COMMAND_NAMES.MARKET_GACHA_CANCEL)
       .setLabel("キャンセル")
       .setStyle(ButtonStyle.Secondary),
-  );
-}
-
-export function canBypassMarketGachaDailyLimit(member: unknown): boolean {
-  const roleBackedMember = member as
-    | { roles?: { cache?: { has: (roleId: string) => boolean } } }
-    | null
-    | undefined;
-  return Boolean(
-    roleBackedMember?.roles?.cache?.has(ROLE_IDS.GIJUTU_LEADER) ||
-      roleBackedMember?.roles?.cache?.has(ROLE_IDS.SABANUSI),
   );
 }
 
@@ -314,7 +302,6 @@ export class MarketGachaService {
     paymentSource: MarketGachaPaymentSource = "currency",
   ): Promise<void> {
     const prize = selectMarketGachaPrize(Math.random());
-    const isDailyLimitExempt = await this.isDailyLimitExempt(interaction);
     const connection = await DbService.getConnection();
 
     let remainingDraws = 0;
@@ -338,7 +325,7 @@ export class MarketGachaService {
          FOR UPDATE`,
         [interaction.user.id],
       );
-      if (!isDailyLimitExempt && drawRows.length >= MARKET_GACHA_DAILY_LIMIT) {
+      if (drawRows.length >= MARKET_GACHA_DAILY_LIMIT) {
         throw new Error(`市場ガチャは1日${MARKET_GACHA_DAILY_LIMIT}回までです。`);
       }
 
@@ -487,9 +474,7 @@ export class MarketGachaService {
           : "") +
         (prize.key === "day_off"
           ? "\n"
-          : isDailyLimitExempt
-            ? "技術統括・鯖主テスト中のため、1日の回数制限は適用されません。\n\n"
-            : `本日の残り回数：${remainingDraws}回\n\n`) +
+          : `本日の残り回数：${remainingDraws}回\n\n`) +
         (audioAsset && !audioDmDelivered
           ? `ファイルのURLをDMに送信できませんでした。DMの受信設定を確認後、総合お問い合わせへご連絡ください。\n${AUDIO_PRIZE_PROHIBITION_NOTICE}`
           : this.getTicketInstructions(prize, audioAsset)) +
@@ -498,18 +483,5 @@ export class MarketGachaService {
           : `\n現在の招待ポイント：${awardedInvitePoints}pt`),
       components: [],
     });
-  }
-
-  private static async isDailyLimitExempt(
-    interaction: ButtonInteraction,
-  ): Promise<boolean> {
-    if (interaction.member instanceof GuildMember) {
-      return canBypassMarketGachaDailyLimit(interaction.member);
-    }
-
-    const member = interaction.guild
-      ? await interaction.guild.members.fetch(interaction.user.id)
-      : undefined;
-    return canBypassMarketGachaDailyLimit(member);
   }
 }

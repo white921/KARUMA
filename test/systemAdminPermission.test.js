@@ -9,7 +9,6 @@ const { hasAdminBankPanelPermission } = require("../dist/util/currency/adminPerm
 const { canManageEvaluationSheetArchive } = require("../dist/util/evaluation/evaluationSheetPermission.js");
 const { canManageLinkAccount } = require("../dist/service/account/linkAccountService.js");
 const { canManageInvitePoints } = require("../dist/service/market/invitePointService.js");
-const { canBypassMarketGachaDailyLimit } = require("../dist/service/market/marketGachaService.js");
 const { InterviewService } = require("../dist/service/evaluation/interviewService.js");
 const { EvaluationService } = require("../dist/service/evaluation/evaluationService.js");
 const { CheckNameService } = require("../dist/service/evaluation/checkNameService.js");
@@ -49,7 +48,6 @@ test("システム支配人だけで既存の管理者コマンド・銀行パ�
   assert.equal(canManageEvaluationSheetArchive(operator), true);
   assert.equal(canManageLinkAccount(operator), true);
   assert.equal(canManageInvitePoints(operator), true);
-  assert.equal(canBypassMarketGachaDailyLimit(operator), true);
   await InterviewService.validateOperator(operator);
   await CheckNameService.validateOperator(operator);
   await ChangeRoleService.validateChangeRole(operator);

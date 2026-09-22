@@ -8,13 +8,15 @@ const {
   selectMarketGachaPrize,
 } = require("../dist/constant/market/marketGacha.js");
 const {
-  canBypassMarketGachaDailyLimit,
+  MarketGachaService,
   createMarketGachaConfirmationRow,
   createMarketGachaPaymentSelectionRow,
   formatMarketGachaDrawLog,
 } = require("../dist/service/market/marketGachaService.js");
 const { ROLE_IDS, TEXT_CHANNEL_IDS, THREAD_IDS } = require("../dist/constant/shared/id.js");
 const { PANEL_COMMAND_NAMES } = require("../dist/constant/shared/command.js");
+const { DbService } = require("../dist/service/system/dbService.js");
+const { GachaCoinActivationService } = require("../dist/service/market/gachaCoinActivationService.js");
 
 function memberWithRoles(roleIds) {
   return { roles: { cache: { has: (roleId) => roleIds.includes(roleId) } } };
@@ -78,11 +80,39 @@ test("market gacha charge and daily limit remain unchanged", () => {
   assert.equal(MARKET_GACHA_DAILY_LIMIT, 5);
 });
 
-test("technical director and server owner bypass the ordinary daily draw limit", () => {
-  assert.equal(canBypassMarketGachaDailyLimit(memberWithRoles([ROLE_IDS.GIJUTU_LEADER])), true);
-  assert.equal(canBypassMarketGachaDailyLimit(memberWithRoles([ROLE_IDS.SABANUSI])), true);
-  assert.equal(canBypassMarketGachaDailyLimit(memberWithRoles([ROLE_IDS.KANRISYA])), false);
-});
+for (const roleIds of [[], [ROLE_IDS.GIJUTU_LEADER], [ROLE_IDS.SABANUSI]]) {
+  for (const paymentSource of ["currency", "invite_point"]) {
+    test(`market gacha rejects a sixth draw before charging: roles=${roleIds}, payment=${paymentSource}`, async (t) => {
+      const queries = [];
+      const connection = {
+        beginTransaction: t.mock.fn(async () => {}),
+        execute: async (sql) => {
+          queries.push(sql);
+          if (sql.startsWith("SELECT user_id FROM accounts")) return [[{ user_id: "drawer" }]];
+          if (sql.includes("FROM market_gacha_draws")) {
+            return [Array.from({ length: 5 }, (_, id) => ({ id }))];
+          }
+          throw new Error(`Unexpected query after daily limit: ${sql}`);
+        },
+        commit: t.mock.fn(async () => {}),
+        rollback: t.mock.fn(async () => {}),
+        release: t.mock.fn(),
+      };
+      t.mock.method(DbService, "getConnection", async () => connection);
+      t.mock.method(GachaCoinActivationService, "lockDrawGate", async () => {});
+      const member = memberWithRoles(roleIds);
+      await assert.rejects(MarketGachaService.draw({
+        user: { id: "drawer" },
+        member,
+        guild: { members: { fetch: async () => member } },
+      }, paymentSource), /市場ガチャは1日5回までです。/);
+      assert.equal(queries.length, 2);
+      assert.equal(connection.commit.mock.callCount(), 0);
+      assert.equal(connection.rollback.mock.callCount(), 1);
+      assert.equal(connection.release.mock.callCount(), 1);
+    });
+  }
+}
 
 test("market gacha payment selector offers LIA and invite points", () => {
   const buttonIds = createMarketGachaPaymentSelectionRow().toJSON().components
