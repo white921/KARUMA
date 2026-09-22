@@ -24,7 +24,7 @@ export const HISTORY_FILTER_GROUPS: { label: string; types: string[]; hidden?: b
   { label: "付与・剥奪", types: [A.ROLE_BASED_GRANT, A.ADMIN_MINT, A.ADMIN_BURN] },
   { label: "付与・剥奪", types: [], hidden: true, replacement: 15 },
   { label: "市場・夢印", types: [], hidden: true, replacement: 2 },
-  { label: "ホテル", types: [A.HOTEL_NORMAL, A.HOTEL_SECRET, A.HOTEL_SECRET_LONG, A.HOTEL_FREEDOM, A.HOTEL_FREEDOM_LONG] },
+  { label: "楽園の館", types: [A.HOTEL_NORMAL, A.HOTEL_SECRET, A.HOTEL_SECRET_LONG, A.HOTEL_FREEDOM, A.HOTEL_FREEDOM_LONG] },
   { label: "独房", types: [A.SOLITARY_CELL] },
   { label: "日記", types: [A.DIARY_PRIVATE, A.DIARY_PUBLIC, A.DIARY_UPDATE] },
   { label: "遊戯の間", types: [A.GAME_SHORT, A.GAME_LONG, A.GAME_SHORT_EXTEND, A.GAME_PASS, A.GAME_VC_CREATE, A.GAME_CRIMINAL_ACCESS, A.GAME_PASS_TWO_WEEKS, A.GAME_PASS_ONE_MONTH, A.MINECRAFT_PASS] },
