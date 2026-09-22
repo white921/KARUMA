@@ -103,7 +103,7 @@ test("サーバー専用アイコンを使い、本文のニックネームのMa
   assert.equal(embed.author.name, "**サーバー名**");
   assert.equal(embed.author.icon_url, guildAvatar);
   assert.equal(embed.thumbnail.url, guildAvatar);
-  assert.equal(embed.description, "\\*\\*サーバー名\\*\\* さんから **1 LIA**が届きました。");
+  assert.equal(embed.description, "\\*\\*サーバー名\\*\\* さんから **1 LIA**が届きました。\n\n[取引履歴はこちら](https://discord.com/channels/1534636292153807039/1534648842719465683)");
 });
 
 test("長い備考でもEmbedの上限を超えない", async (t) => {

@@ -1,7 +1,7 @@
 import { EmbedBuilder, escapeMarkdown } from "discord.js";
 import { ACTION_TYPES } from "../../constant/currency/action";
 import { CURRENCY_NAMES } from "../../constant/currency/currency";
-import { RECEIPT_DM_DEFINITIONS } from "../../constant/currency/receiptDm";
+import { RECEIPT_DM_DEFINITIONS, RECEIPT_DM_HISTORY_URL } from "../../constant/currency/receiptDm";
 import { COLOR } from "../../constant/shared/color";
 import { BOT_ID } from "../../constant/shared/id";
 import type { CurrencyReceipt, ReceiptDmContext } from "../../type/currency/receiptDm";
@@ -28,7 +28,7 @@ export class ReceiptDmService {
         .setAuthor({ name: senderName, iconURL: avatarUrl })
         .setThumbnail(avatarUrl)
         .setTitle(omikujiLoss ? "⛩️ おみくじによる減額のお知らせ" : definition.title)
-        .setDescription(`${definition.humanSender ? `${escapeMarkdown(senderName)} さんから ` : ""}**${Math.abs(receipt.amount).toLocaleString("ja-JP")} ${CURRENCY_NAMES}**${omikujiLoss ? "が差し引かれました。" : definition.verb}`)
+        .setDescription(`${definition.humanSender ? `${escapeMarkdown(senderName)} さんから ` : ""}**${Math.abs(receipt.amount).toLocaleString("ja-JP")} ${CURRENCY_NAMES}**${omikujiLoss ? "が差し引かれました。" : definition.verb}\n\n[取引履歴はこちら](${RECEIPT_DM_HISTORY_URL})`)
         .setFooter({ text: `${omikujiLoss ? "減額後" : definition.balanceLabel}の残高：${receipt.afterWallet.toLocaleString("ja-JP")} ${CURRENCY_NAMES}` })
         .setTimestamp();
       const fields = [...(receipt.fields ?? [])];

@@ -1,6 +1,8 @@
 import { ACTION_TYPES as A } from "./action";
 import type { ReceiptDmDefinition } from "../../type/currency/receiptDm";
 
+export const RECEIPT_DM_HISTORY_URL = "https://discord.com/channels/1534636292153807039/1534648842719465683";
+
 // 対象取引の受取人全員へ通知する。紋章支払い・購入代金は対象外。
 export const RECEIPT_DM_DEFINITIONS: Record<string, ReceiptDmDefinition> = {
   [A.TRANSFER]: { title: "💸 送金を受け取りました", verb: "が届きました。", balanceLabel: "受取後", humanSender: true },
