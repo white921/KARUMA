@@ -63,7 +63,8 @@ test('パネルは3券種の時間とレート、手動交換の全景品、残�
   assert.match(embed.fields[0].value, /遊戯24時間/);
   assert.match(embed.fields[0].value, /シクレ12時間/);
   assert.match(embed.fields[0].value, /フリーダム12時間/);
-  for (const name of ['通行証', '評価延長3', '評価延長5', '再評価券', 'オリジナルロール']) assert.ok(embed.fields[1].value.includes(name));
+  for (const name of ['通行証', '評価延長3', '評価延長5', 'オリジナルロール']) assert.ok(embed.fields[1].value.includes(name));
+  assert.ok(!JSON.stringify(embed).includes('再評価'));
   assert.deepEqual(payload.components.flatMap(row => row.components.map(button => button.data.custom_id)),
     ['gachaCoin:start', 'gachaCoin:balance', 'shopTicketView']);
   assert.equal(TEXT_CHANNEL_IDS.GACHA_COIN_PANEL, '1551480569232236625');
