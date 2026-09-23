@@ -241,7 +241,8 @@ export class PrivateHotelService {
         `INSERT INTO actions (command_name, amount, from_user_id, to_user_id, from_after_wallet, to_after_wallet, comment)
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [toActionType(plan.type), price, session.userId, BOT_ID, afterWallet, botAccounts[0]?.wallet ?? 0,
-          `新ホテルパネル ${voiceChannelId}：${plan.name}／${this.paymentLabel(session)}`],
+          `${voiceChannelId}：${plan.name}` +
+            (payment === "ticket" ? `／${this.paymentLabel(session)}` : "")],
       );
       await connection.commit();
     } catch (error) {
