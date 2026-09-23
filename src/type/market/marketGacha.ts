@@ -15,8 +15,7 @@ export type MarketGachaPrizeKey =
   | "detention_pass_3_days"
   | "custom_role_week"
   | "one_more_chance"
-  | "day_off"
-  | "event_proposal";
+  | "day_off";
 
 export type MarketGachaAudioCategory = "superchat" | "song_cover";
 

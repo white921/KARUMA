@@ -46,17 +46,16 @@ test("market gacha uses the updated prize probabilities", () => {
       idol_collab: 3,
       superchat_nomination: 5,
       game_free_1: 12.5,
-      game_free_3: 6.5,
+      game_free_3: 7.5,
       secret_free_1: 6.5,
-      secret_free_3: 3,
-      freedom_free_1: 3,
+      secret_free_3: 4,
+      freedom_free_1: 4,
       discount_5: 5,
       discount_10: 2,
       detention_pass_3_days: 7,
       custom_role_week: 0.5,
       one_more_chance: 5,
       day_off: 2,
-      event_proposal: 3,
     },
   );
 });
@@ -66,7 +65,19 @@ test("market gacha selects updated prizes at probability boundaries", () => {
   assert.equal(selectMarketGachaPrize(0.179999).key, "superchat");
   assert.equal(selectMarketGachaPrize(0.18).key, "song_cover");
   assert.equal(selectMarketGachaPrize(0.36).key, "idol_collab");
-  assert.equal(selectMarketGachaPrize(0.999999).key, "event_proposal");
+  assert.equal(selectMarketGachaPrize(0.564999).key, "game_free_1");
+  assert.equal(selectMarketGachaPrize(0.565001).key, "game_free_3");
+  assert.equal(selectMarketGachaPrize(0.639999).key, "game_free_3");
+  assert.equal(selectMarketGachaPrize(0.64).key, "secret_free_1");
+  assert.equal(selectMarketGachaPrize(0.704999).key, "secret_free_1");
+  assert.equal(selectMarketGachaPrize(0.705).key, "secret_free_3");
+  assert.equal(selectMarketGachaPrize(0.744999).key, "secret_free_3");
+  assert.equal(selectMarketGachaPrize(0.745).key, "freedom_free_1");
+  assert.equal(selectMarketGachaPrize(0.784999).key, "freedom_free_1");
+  assert.equal(selectMarketGachaPrize(0.785).key, "discount_5");
+  assert.equal(selectMarketGachaPrize(0.979999).key, "one_more_chance");
+  assert.equal(selectMarketGachaPrize(0.98).key, "day_off");
+  assert.equal(selectMarketGachaPrize(0.999999).key, "day_off");
 });
 
 test("market gacha rejects invalid random values", () => {
@@ -157,14 +168,13 @@ test("Scarlet's song cover mentions Scarlet's Discord user ID", () => {
 
 test("manual prizes guide users to the market ticket flow", () => {
   assert.equal(prize("detention_pass_3_days").label, "どこでも通行券");
-  for (const key of ["detention_pass_3_days", "event_proposal"]) {
+  for (const key of ["detention_pass_3_days", "custom_role_week"]) {
     const output = instructions(key);
     assert.match(output, new RegExp(`<#${TEXT_CHANNEL_IDS.GENERAL_INQUIRY}>`));
     assert.match(output, /市場チケット/);
     assert.match(output, /スクショしてチケット内に送信/);
   }
   assert.match(instructions("custom_role_week"), /1週間限定のカスタムロール/);
-  assert.match(instructions("event_proposal"), /採用されたら報酬のLIA/);
 });
 
 test("collaboration prizes mention their intended roles", () => {

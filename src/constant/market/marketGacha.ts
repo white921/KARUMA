@@ -22,10 +22,10 @@ export const MARKET_GACHA_PRIZES: readonly MarketGachaPrize[] = [
   { key: "idol_collab", label: "アイドルコラボ", probability: 3 },
   { key: "superchat_nomination", label: "サプボ指名", probability: 5 },
   { key: "game_free_1", label: "遊戯チケット 1枚", probability: 12.5 },
-  { key: "game_free_3", label: "遊戯チケット 3枚", probability: 6.5 },
+  { key: "game_free_3", label: "遊戯チケット 3枚", probability: 7.5 },
   { key: "secret_free_1", label: "シークレット無料チケット 1枚", probability: 6.5 },
-  { key: "secret_free_3", label: "シークレット無料チケット 3枚", probability: 3 },
-  { key: "freedom_free_1", label: "フリーダム無料チケット 1枚", probability: 3 },
+  { key: "secret_free_3", label: "シークレット無料チケット 3枚", probability: 4 },
+  { key: "freedom_free_1", label: "フリーダム無料チケット 1枚", probability: 4 },
   {
     key: "discount_5",
     label: "市場割引 5%OFF（100万LIA以上の商品は利用不可）",
@@ -40,7 +40,6 @@ export const MARKET_GACHA_PRIZES: readonly MarketGachaPrize[] = [
   { key: "custom_role_week", label: "カスタムロール（1週間）", probability: 0.5 },
   { key: "one_more_chance", label: "ワンモアチャンス", probability: 5 },
   { key: "day_off", label: "1日休み", probability: 2 },
-  { key: "event_proposal", label: "イベント提案券", probability: 3 },
 ];
 
 export function selectMarketGachaPrize(randomValue: number): MarketGachaPrize {

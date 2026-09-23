@@ -205,10 +205,6 @@ export class MarketGachaService {
       return "今日のガチャはこれでおしまい！また明日ガチャを引いてね。";
     }
 
-    if (prize.key === "event_proposal") {
-      return `イベントを提案することができます！採用されたら報酬のLIAがあります！\nご利用の際は${MARKET_TICKET_GUIDANCE}`;
-    }
-
     if (prize.key === "detention_pass_3_days") {
       return MARKET_TICKET_GUIDANCE;
     }
