@@ -57,6 +57,13 @@ test('real event entry records ack before fetching cast members; no false restar
   release(new Collection([['cast', { id: 'cast', displayName: 'cast', user: { bot: false }, roles: { cache: new Collection([[ROLE_IDS.CAST_MAID, {}]]) } }]]));
   await running; assertFinished();
 });
+test('free entry acknowledges once and renders time without fetching cast members', async t => {
+  const handle = entry(t), i = interaction('castPayment:start:free');
+  i.guild = { members: { fetch: async () => { assert.fail('free must not fetch cast members'); } } };
+  await handle(i);
+  assert.deepEqual(i.calls, ['deferReply', 'editReply']);
+  assertFinished();
+});
 for (const [action, stage] of [['chosen', 'cast'], ['review', 'time'], ['cancel', 'confirm']]) {
   test(`${action} acknowledges once and leaves no pending watchdog entry`, async t => {
     const handle = entry(t), s = session(stage); CastPaymentService.sessions.set(s.id, s);

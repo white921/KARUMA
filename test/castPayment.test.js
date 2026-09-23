@@ -46,11 +46,13 @@ test('five entry buttons and install target match requested channel', () => {
   const p = createCastPaymentPanelPayload();
   assert.deepEqual(p.components[0].toJSON().components.map(c => c.label), ['ツーショ', 'フリー', '団体指名', 'お給仕メイド', 'お仕え執事']);
   assert.equal(resolvePanelInstallTarget('1551478036673728512'), 'cast_payment');
+  assert.match(p.embeds[0].toJSON().description, /フリーは利用時間のみ指定/);
 });
 test('prices are per hour and group prices are per cast', () => {
   assert.equal(calculateCastAmount('group', 3, 2), 300000);
   assert.equal(calculateCastAmount('twoshot', 1, 3), 90000);
-  assert.equal(calculateCastAmount('free', 1, 2), 20000);
+  assert.equal(calculateCastAmount('free', 0, 2), 20000);
+  assert.throws(() => calculateCastAmount('free', 1, 2));
   for (const [c, h] of [[0, 1], [1, 0], [1, 1.5], [2, Infinity]]) assert.throws(() => calculateCastAmount('group', c, h));
   assert.throws(() => calculateCastAmount('twoshot', 2, 1));
   for (const amount of [0, -1, 1.5, Infinity, 2147483648]) assert.throws(() => calculateCastAmount('maid', 1, 1, amount));
@@ -75,11 +77,38 @@ test('group accumulates and removes select choices, then pays exactly once after
   assert.equal(f.payments.length, 1); assert.equal(f.payments[0].hours, 2);
   assert.equal(f.logs.length, 1); assert.equal(f.thread.id, THREAD_IDS.CAST_BASIC_LOG);
 });
-for (const menu of ['twoshot', 'free']) test(`${menu} chooses a single cast and hours`, async t => {
+for (const menu of ['twoshot']) test(`${menu} chooses a single cast and hours`, async t => {
   const f = fixture(t, menu); await f.start();
   assert.equal(f.edits.at(-1).components[0].toJSON().components[0].max_values, 1);
   await f.select(['maid']); await f.button('review'); await f.button('pay');
   assert.equal(f.payments.length, 1); assert.equal(f.logs.length, 1);
+});
+test('free starts with hours only, supports revisions, and pays without any cast members', async t => {
+  const f = fixture(t, 'free');
+  f.members.clear();
+  await f.start();
+  const payload = f.edits.at(-1);
+  assert.equal(payload.embeds[0].toJSON().title, '利用時間を選択');
+  assert.doesNotMatch(JSON.stringify(payload), /キャスト|まだ選択|StringSelect/);
+  assert.deepEqual(payload.components[0].toJSON().components.map(c => c.custom_id.split(':')[1]), ['minus', 'plus', 'review', 'cancel']);
+  const invalidBack = f.currentId('plus').replace(':plus:', ':back:');
+  await assert.rejects(handlePanelButton(f.interaction('button', invalidBack)), /最新の画面/);
+  await f.button('plus'); await f.button('plus'); await f.button('minus');
+  await f.button('review');
+  assert.match(JSON.stringify(f.edits.at(-1)), /20,000/);
+  assert.doesNotMatch(JSON.stringify(f.edits.at(-1)), /指名中|まだ選択/);
+  assert.equal(f.payments.length, 0);
+  await f.button('revise');
+  assert.equal(f.edits.at(-1).embeds[0].toJSON().title, '利用時間を選択');
+  await f.button('review');
+  const payId = f.currentId('pay');
+  await f.button('pay');
+  await assert.rejects(handlePanelButton(f.interaction('button', payId)), /処理済み/);
+  assert.equal(f.payments.length, 1);
+  assert.deepEqual(f.payments[0].castIds, []);
+  assert.equal(f.payments[0].hours, 2);
+  assert.equal(f.logs.length, 1);
+  assert.doesNotMatch(JSON.stringify(f.logs[0]), /指名中|まだ選択/);
 });
 for (const menu of ['maid', 'butler']) test(`${menu} opens modal from select and logs option only after payment`, async t => {
   const f = fixture(t, menu); await f.start();
@@ -108,7 +137,7 @@ test('cancel and stale confirmation cannot debit; another user cannot operate', 
   assert.equal(f.payments.length, 0);
 });
 test('role removal or unavailable log thread prevents all money movement', async t => {
-  const f = fixture(t, 'free'); await f.start(); await f.select(['maid']); await f.button('review');
+  const f = fixture(t, 'twoshot'); await f.start(); await f.select(['maid']); await f.button('review');
   f.members.get('maid').roles.cache.clear(); await assert.rejects(f.button('pay'), /対象ロール/);
   assert.equal(f.payments.length, 0);
   f.members.get('maid').roles.cache.set(ROLE_IDS.CAST_MAID, {});
@@ -126,7 +155,7 @@ test('more than 25 cast members can be selected across pages', async t => {
 test('a log failure reports completed payment and cannot charge twice', async t => {
   const f = fixture(t, 'free'); t.mock.method(console, 'error', () => {});
   f.thread.send = async () => { throw new Error('discord unavailable'); };
-  await f.start(); await f.select(['maid']); await f.button('review'); await f.button('pay');
+  await f.start(); await f.button('review'); await f.button('pay');
   assert.equal(f.payments.length, 1); assert.match(f.edits.at(-1).content, /再度支払わず/);
 });
 
@@ -155,6 +184,13 @@ test('transaction debits user, credits only bot, and records details atomically'
   const f = transactionFixture(t); assert.equal(await CastPaymentService.transfer(f.session), true);
   assert.deepEqual(f.balances(), [50000, 50100]); assert.ok(f.calls.includes('commit'));
   assert.ok(f.calls.some(c => c.includes('ORDER BY user_id FOR UPDATE')));
+});
+test('free transaction accepts no cast and charges only for hours', async t => {
+  const f = transactionFixture(t);
+  Object.assign(f.session, { menu: 'free', castIds: [], hours: 2 });
+  assert.equal(await CastPaymentService.transfer(f.session), true);
+  assert.deepEqual(f.balances(), [80000, 20100]);
+  assert.ok(f.calls.includes('commit'));
 });
 test('duplicate payment record skips debit', async t => {
   const f = transactionFixture(t, { duplicate: true }); assert.equal(await CastPaymentService.transfer(f.session), false);
