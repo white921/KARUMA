@@ -45,21 +45,21 @@ export class VcPanelService {
         );
       }
 
-      if (lockMark) {
-        buttons.push(
-          new ButtonBuilder()
-            .setCustomId(PANEL_COMMAND_NAMES.TOGGLE_VC_LOCK_MARK)
-            .setLabel("🔒着脱")
-            .setStyle(ButtonStyle.Secondary),
-        );
-      }
-
       if (status) {
         buttons.push(
           new ButtonBuilder()
             .setCustomId(PANEL_COMMAND_NAMES.CHANGE_VC_STATUS)
             .setLabel(VC_MESSAGES.CHANGE_VC_STATUS)
             .setStyle(ButtonStyle.Primary),
+        );
+      }
+
+      if (lockMark) {
+        buttons.push(
+          new ButtonBuilder()
+            .setCustomId(PANEL_COMMAND_NAMES.TOGGLE_VC_LOCK_MARK)
+            .setLabel("🔒着脱")
+            .setStyle(ButtonStyle.Success),
         );
       }
 
