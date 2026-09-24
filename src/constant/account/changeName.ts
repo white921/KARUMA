@@ -5,6 +5,6 @@ export const CHANGE_NAME_MESSAGES = {
   SAME_NAME: "現在の表示名とは違う名前を入力してください。",
   NOT_ENOUGH_BALANCE: "残高が不足しています。",
   REQUIRED_ROLE_NOT_FOUND:
-    "賢者または貴族ロールを持っていないユーザーには使えません。",
+    "賢者・騎士・貴族のいずれかのロールを持っていないユーザーには使えません。",
   NO_PERMISSION: "❌ 権限がありません。",
 };

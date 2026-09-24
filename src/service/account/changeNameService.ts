@@ -94,10 +94,11 @@ export class ChangeNameService {
         throw new Error(CHANGE_NAME_MESSAGES.SAME_NAME);
       }
 
-      // 準メン以上でない
+      // 対象者が賢者・騎士・貴族のいずれでもない
       if (
         !hasSystemAdminRole(user) &&
         !(await hasRole(member, ROLE_IDS.CORE_MEMBER_ROLES.JUNJUNHONMEN)) &&
+        !(await hasRole(member, ROLE_IDS.CORE_MEMBER_ROLES.JUNHONMEN)) &&
         !(await hasRole(member, ROLE_IDS.CORE_MEMBER_ROLES.HONMEN))
       ) {
         throw new Error(CHANGE_NAME_MESSAGES.REQUIRED_ROLE_NOT_FOUND);
