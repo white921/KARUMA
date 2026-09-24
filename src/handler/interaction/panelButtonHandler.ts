@@ -286,6 +286,9 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
           PANEL_COMMAND_NAMES.CHANGE_VC_NAME,
         );
         break;
+      case PANEL_COMMAND_NAMES.TOGGLE_VC_LOCK_MARK:
+        await VcService.toggleVcLockMark(interaction);
+        break;
       case PANEL_COMMAND_NAMES.CHANGE_VC_STATUS:
         await VcService.validateVcMember(interaction);
         await showVcStatusModal(

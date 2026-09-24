@@ -227,6 +227,17 @@ test("teleport VC panel offers name and status changes", async () => {
   ]);
 });
 
+test("game VC panel has name, lock mark and status controls with expiry", async () => {
+  const panel = await VcPanelService.createGameVcPanel("09/25 12:00");
+  assert.deepEqual(panel.components[0].toJSON().components.map(b => b.custom_id), [
+    PANEL_COMMAND_NAMES.CHANGE_VC_NAME,
+    PANEL_COMMAND_NAMES.TOGGLE_VC_LOCK_MARK,
+    PANEL_COMMAND_NAMES.CHANGE_VC_STATUS,
+  ]);
+  assert.match(panel.embeds[0].data.description, /09\/25 12:00/);
+  assert.match(panel.embeds[0].data.description, /接続権限は変わりません/);
+});
+
 test("hotel panel buttons do not use icons", () => {
   assertButtonsHaveNoIcons(createHotelVcPanelActionRows());
 });

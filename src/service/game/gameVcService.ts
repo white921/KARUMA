@@ -47,6 +47,7 @@ import { addRole } from "../../util/member/role";
 import { ItemService } from "../inventory/itemService";
 import { DbService } from "../system/dbService";
 import { GameFreeTicketService } from "./gameFreeTicketService";
+import { VcPanelService } from "../../panel/vc/vcPanelService";
 
 dayjs.extend(utc);
 
@@ -284,9 +285,11 @@ export class GameVcService {
       hour: "2-digit",
       minute: "2-digit",
     });
-    await voiceChannel.send(`有効期限: ${expiryText}\n期限になるとVCは削除されます。`).catch((error) =>
-      console.error("遊戯VCへの案内送信に失敗しました:", error),
-    );
+    try {
+      await voiceChannel.send(await VcPanelService.createGameVcPanel(expiryText));
+    } catch (error) {
+      console.error("遊戯VCへの操作パネル送信に失敗しました:", error);
+    }
     await this.sendVcLog(interaction, tier, payment, voiceChannel.id, afterWallet, expiryText);
     await interaction.editReply({
       content:

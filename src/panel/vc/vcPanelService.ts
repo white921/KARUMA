@@ -17,11 +17,12 @@ export class VcPanelService {
    * @param limit 人数変更ボタンを表示するかどうか
    * @param name 名前変更ボタンを表示するかどうか
    * @param status ステータス変更ボタンを表示するかどうか
+   * @param lockMark 名前の鍵マーク着脱ボタンを表示するかどうか
    * @returns パネルのEmbedとコンポーネント
    */
-  static async createVcPanel(limit: boolean, name: boolean, status = false) {
+  static async createVcPanel(limit: boolean, name: boolean, status = false, lockMark = false) {
     try {
-      if (!limit && !name && !status) {
+      if (!limit && !name && !status && !lockMark) {
         return;
       }
 
@@ -41,6 +42,15 @@ export class VcPanelService {
             .setCustomId(PANEL_COMMAND_NAMES.CHANGE_VC_NAME)
             .setLabel(HOTEL_VC_PANEL_MESSAGES.CHANGE_VC_NAME)
             .setStyle(ButtonStyle.Primary)
+        );
+      }
+
+      if (lockMark) {
+        buttons.push(
+          new ButtonBuilder()
+            .setCustomId(PANEL_COMMAND_NAMES.TOGGLE_VC_LOCK_MARK)
+            .setLabel("🔒着脱")
+            .setStyle(ButtonStyle.Secondary),
         );
       }
 
@@ -72,5 +82,18 @@ export class VcPanelService {
     } catch (error) {
       throw error;
     }
+  }
+
+  static async createGameVcPanel(expiryText: string) {
+    const panel = (await this.createVcPanel(false, true, true, true))!;
+    panel.embeds[0]
+      .setTitle("遊戯VC操作パネル")
+      .setDescription(
+        `有効期限: ${expiryText}\n期限になるとVCは削除されます。\n\n` +
+        "VC内にいる方が操作できます。\n" +
+        "🔒着脱はVC名の先頭に🔒を付け外しします。接続権限は変わりません。",
+      )
+      .setThumbnail(null);
+    return panel;
   }
 }

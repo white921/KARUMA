@@ -8,6 +8,7 @@ import {
   VoiceChannel,
 } from "discord.js";
 import { HOTEL_TYPE } from "../../constant/hotel/hotel";
+import { GAME_VC } from "../../constant/game/game";
 import { CATEGORY_IDS } from "../../constant/shared/id";
 import { TELEPORT_TYPE, USER_EDITABLE_VC_TYPES, VC_MESSAGES } from "../../constant/vc/vc";
 import type { ManagedVcRow } from "../../type/vc/vc";
@@ -28,6 +29,35 @@ export function isUserEditableManagedVc(
 }
 
 export class VcService {
+  private static readonly pendingLockMarks = new Set<string>();
+
+  /** 鍵は名前の目印のみ。チャンネルの権限には触れない。 */
+  static async toggleVcLockMark(interaction: ButtonInteraction): Promise<void> {
+    if (!interaction.deferred) await interaction.deferReply({ ephemeral: true });
+    await this.validateVcMember(interaction);
+    const channel = interaction.channel;
+    if (!channel || channel.type !== ChannelType.GuildVoice ||
+        await this.getVcTypeFromDb(channel.id) !== GAME_VC.TYPE) {
+      throw new Error("遊戯VCの操作パネルで使用してください。");
+    }
+    if (this.pendingLockMarks.has(channel.id)) {
+      throw new Error("🔒を変更中です。しばらくお待ちください。");
+    }
+    this.pendingLockMarks.add(channel.id);
+    try {
+      const current = await channel.fetch(true);
+      const locked = current.name.startsWith("🔒");
+      const name = locked ? current.name.replace(/^🔒\s*/, "") : `🔒 ${current.name}`;
+      if (!name.trim() || name.length > 100) {
+        throw new Error("🔒を付け外しした後のVC名が1〜100文字になるように変更してください。");
+      }
+      await current.setName(name);
+      await interaction.editReply({ content: `VC名の先頭の🔒を${locked ? "外しました" : "付けました"}。` });
+    } finally {
+      this.pendingLockMarks.delete(channel.id);
+    }
+  }
+
   private static async getOwnedManagedVoiceChannel(
     interaction: ChatInputCommandInteraction,
   ): Promise<VoiceChannel> {
@@ -177,10 +207,11 @@ export class VcService {
     newName: string
   ) {
     try {
+      await interaction.deferReply({ ephemeral: true });
+      await this.validateVcMember(interaction);
       await (interaction.channel as VoiceChannel).setName(newName);
-      await interaction.reply({
+      await interaction.editReply({
         content: `VC名を${newName}に変更しました。`,
-        ephemeral: true,
       });
     } catch (error) {
       throw error;
@@ -192,6 +223,8 @@ export class VcService {
     interaction: ModalSubmitInteraction,
     newStatus: string,
   ) {
+    await interaction.deferReply({ ephemeral: true });
+    await this.validateVcMember(interaction);
     const status = newStatus.trim();
     if (!status) {
       throw new Error(VC_MESSAGES.NO_NEW_STATUS_INPUT);
@@ -208,9 +241,8 @@ export class VcService {
     await rest.put(`/channels/${voiceChannel.id}/voice-status`, {
       body: { status },
     });
-    await interaction.reply({
+    await interaction.editReply({
       content: `VCステータスを「${status}」に変更しました。`,
-      ephemeral: true,
     });
   }
 
@@ -218,7 +250,7 @@ export class VcService {
    * VCメンバーのバリデーション
    * @param interaction ButtonInteraction
    */
-  static async validateVcMember(interaction: ButtonInteraction) {
+  static async validateVcMember(interaction: ButtonInteraction | ModalSubmitInteraction) {
     try {
       const guild = interaction.guild;
       if (!guild) return;
