@@ -17,6 +17,7 @@ export const SOLITARY_CELL_MESSAGES = {
   DESCRIPTION:
     "独房を12時間作成できます。\n\n" +
     "空位者：無料\n" +
+    "収容官・収容支配人：無料\n" +
     "召役罪：10,000LIA\n" +
     "従軍罪：20,000LIA\n" +
     "徴兵罪：30,000LIA\n\n" +

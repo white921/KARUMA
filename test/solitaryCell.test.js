@@ -55,6 +55,34 @@ test("higher detention tier wins if a member temporarily has multiple tiers", ()
   );
 });
 
+test("detention staff and leaders use solitary cells for free even with paid roles", () => {
+  for (const [roleId, label] of [
+    [ROLE_IDS.MONSTER_STAFF, "収容官"],
+    [ROLE_IDS.MONSTER_LEADER, "収容支配人"],
+  ]) {
+    for (const otherRoles of [[], ...Object.values(ROLE_IDS.DETENTION_ROLES).map((id) => [id])]) {
+      assert.deepEqual(
+        SolitaryCellService.getTier(memberWithRoles([roleId, ...otherRoles])),
+        { label, price: 0 },
+      );
+    }
+  }
+});
+
+test("paid detention roles still take precedence over vacant membership", () => {
+  assert.equal(
+    SolitaryCellService.getTier(memberWithRoles([
+      ROLE_IDS.CORE_MEMBER_ROLES.JUNMEN,
+      ROLE_IDS.DETENTION_ROLES.SUMMONED_CRIME,
+    ])).price,
+    10000,
+  );
+  assert.throws(
+    () => SolitaryCellService.getTier(memberWithRoles([])),
+    /独房を作成できるロールではありません。/,
+  );
+});
+
 test("solitary-cell panel and action history use dedicated identifiers", () => {
   const buttons = createSolitaryCellPanelActionRow().toJSON().components;
   assert.equal(buttons[0].custom_id, PANEL_COMMAND_NAMES.SOLITARY_CELL_CREATE);
@@ -62,6 +90,7 @@ test("solitary-cell panel and action history use dedicated identifiers", () => {
   assert.equal(buttons[1].custom_id, PANEL_COMMAND_NAMES.VIEW);
   assert.equal(buttons[1].emoji, undefined);
   const { SOLITARY_CELL_MESSAGES } = require("../dist/constant/vc/solitaryCell.js");
+  assert.match(SOLITARY_CELL_MESSAGES.DESCRIPTION, /収容官・収容支配人：無料/);
   assert.match(SOLITARY_CELL_MESSAGES.DESCRIPTION, /召役罪：10,000LIA/);
   assert.match(SOLITARY_CELL_MESSAGES.DESCRIPTION, /従軍罪：20,000LIA/);
   assert.match(SOLITARY_CELL_MESSAGES.DESCRIPTION, /徴兵罪：30,000LIA/);

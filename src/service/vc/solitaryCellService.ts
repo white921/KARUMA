@@ -27,6 +27,12 @@ import { DbService } from "../system/dbService";
 
 export class SolitaryCellService {
   static getTier(member: GuildMember): SolitaryCellTier {
+    if (member.roles.cache.has(ROLE_IDS.MONSTER_LEADER)) {
+      return { label: "収容支配人", price: SOLITARY_CELL.PRICES.VACANT };
+    }
+    if (member.roles.cache.has(ROLE_IDS.MONSTER_STAFF)) {
+      return { label: "収容官", price: SOLITARY_CELL.PRICES.VACANT };
+    }
 
     const paidTier = SOLITARY_CELL_PAID_TIERS.find((tier) =>
       member.roles.cache.has(tier.roleId),
