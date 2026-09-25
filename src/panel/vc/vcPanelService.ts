@@ -58,7 +58,7 @@ export class VcPanelService {
         buttons.push(
           new ButtonBuilder()
             .setCustomId(PANEL_COMMAND_NAMES.TOGGLE_VC_LOCK_MARK)
-            .setLabel("🔒着脱")
+            .setLabel("🔒付け外し")
             .setStyle(ButtonStyle.Success),
         );
       }
@@ -91,7 +91,7 @@ export class VcPanelService {
       .setDescription(
         `有効期限: ${expiryText}\n期限になるとVCは削除されます。\n\n` +
         "VC内にいる方が操作できます。\n" +
-        "🔒着脱はVC名の先頭に🔒を付け外しします。接続権限は変わりません。",
+        "🔒付け外しはVC名の先頭に🔒を付け外しします。接続権限は変わりません。",
       )
       .setThumbnail(null);
     return panel;
