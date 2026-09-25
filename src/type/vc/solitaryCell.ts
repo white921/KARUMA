@@ -6,3 +6,11 @@ export type SolitaryCellTier = {
 };
 
 export type WalletRow = RowDataPacket & { wallet: number };
+
+export type SolitaryCellConfirmation = {
+  userId: string;
+  guildId: string | null;
+  channelId: string;
+  expiresAt: number;
+  tier: SolitaryCellTier;
+};

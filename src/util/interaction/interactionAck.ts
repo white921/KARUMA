@@ -11,6 +11,10 @@ import { PAYMENT_CONFIRMATION_PREFIX } from "../../constant/currency/paymentConf
 /** ボタンが付いているメッセージを更新して応答するかどうかを判定する。 */
 export function shouldDeferButtonUpdate(customId: string): boolean {
   return (
+    customId === PANEL_COMMAND_NAMES.SOLITARY_CELL_CONFIRM ||
+    customId === PANEL_COMMAND_NAMES.SOLITARY_CELL_CANCEL ||
+    customId.startsWith(`${PANEL_COMMAND_NAMES.SOLITARY_CELL_CONFIRM}:`) ||
+    customId.startsWith(`${PANEL_COMMAND_NAMES.SOLITARY_CELL_CANCEL}:`) ||
     customId.startsWith(`${DARK_MESSAGE_CLOSE_PREFIX}:confirm:`) ||
     customId.startsWith(`${DARK_MESSAGE_CLOSE_PREFIX}:cancel:`) ||
     (customId.startsWith(`${CAST_PAYMENT_PREFIX}:`) &&

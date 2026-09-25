@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -20,12 +21,14 @@ import {
   SOLITARY_CELL_MESSAGES,
   SOLITARY_CELL_PAID_TIERS,
 } from "../../constant/vc/solitaryCell";
-import type { SolitaryCellTier, WalletRow } from "../../type/vc/solitaryCell";
+import type { SolitaryCellConfirmation, SolitaryCellTier, WalletRow } from "../../type/vc/solitaryCell";
 import { formatNumber } from "../../util/shared/number";
 import { hasSystemAdminRole } from "../../util/shared/operatorPermission";
 import { DbService } from "../system/dbService";
 
 export class SolitaryCellService {
+  private static confirmations = new Map<string, SolitaryCellConfirmation>();
+
   static getTier(member: GuildMember): SolitaryCellTier {
     if (member.roles.cache.has(ROLE_IDS.MONSTER_LEADER)) {
       return { label: "収容支配人", price: SOLITARY_CELL.PRICES.VACANT };
@@ -55,41 +58,79 @@ export class SolitaryCellService {
   static async showConfirmation(interaction: ButtonInteraction) {
     const member = interaction.member as GuildMember;
     const tier = this.getTier(member);
+    await this.renderConfirmation(interaction, tier);
+  }
+
+  private static async renderConfirmation(
+    interaction: ButtonInteraction,
+    tier: SolitaryCellTier,
+    notice = "",
+  ) {
+    const id = randomUUID();
+    this.confirmations.set(id, {
+      userId: interaction.user.id,
+      guildId: interaction.guildId,
+      channelId: interaction.channelId,
+      expiresAt: Date.now() + SOLITARY_CELL.CONFIRMATION_TTL_MS,
+      tier: { ...tier },
+    });
+    setTimeout(() => this.confirmations.delete(id), SOLITARY_CELL.CONFIRMATION_TTL_MS).unref();
     const priceLabel =
       tier.price === 0
         ? "無料"
         : `${formatNumber(tier.price)}${CURRENCY_NAMES}`;
 
     const cancelButton = new ButtonBuilder()
-      .setCustomId(PANEL_COMMAND_NAMES.SOLITARY_CELL_CANCEL)
+      .setCustomId(`${PANEL_COMMAND_NAMES.SOLITARY_CELL_CANCEL}:${id}`)
       .setLabel(SOLITARY_CELL_MESSAGES.CANCEL)
       .setStyle(ButtonStyle.Secondary);
     const confirmButton = new ButtonBuilder()
-      .setCustomId(PANEL_COMMAND_NAMES.SOLITARY_CELL_CONFIRM)
+      .setCustomId(`${PANEL_COMMAND_NAMES.SOLITARY_CELL_CONFIRM}:${id}`)
       .setLabel("作成を確定")
       .setStyle(ButtonStyle.Danger);
 
-    await interaction.reply({
-      embeds: [
-        new EmbedBuilder()
-          .setTitle("独房を作成しますか？")
-          .setDescription(
-            `対象ロール：${tier.label}\n料金：**${priceLabel}**\n利用時間：${SOLITARY_CELL.DURATION_HOURS}時間`,
-          )
-          .setColor(COLOR.YELLOW),
-      ],
-      components: [
-        new ActionRowBuilder<ButtonBuilder>().addComponents(
-          cancelButton,
-          confirmButton,
-        ),
-      ],
-      flags: "Ephemeral" as any,
-    });
+    try {
+      await interaction.editReply({
+        content: notice,
+        embeds: [
+          new EmbedBuilder()
+            .setTitle("独房を作成しますか？")
+            .setDescription(
+              `対象ロール：${tier.label}\n料金：**${priceLabel}**\n利用時間：${SOLITARY_CELL.DURATION_HOURS}時間`,
+            )
+            .setColor(COLOR.YELLOW)
+            .setFooter({ text: "10分以内に確定してください。" }),
+        ],
+        components: [
+          new ActionRowBuilder<ButtonBuilder>().addComponents(
+            cancelButton,
+            confirmButton,
+          ),
+        ],
+      });
+    } catch (error) {
+      this.confirmations.delete(id);
+      throw error;
+    }
+  }
+
+  private static consumeConfirmation(interaction: ButtonInteraction, action: string) {
+    const [command, id, extra] = interaction.customId.split(":");
+    const confirmation = this.confirmations.get(id);
+    if (command !== action || extra !== undefined || !confirmation || confirmation.expiresAt <= Date.now()) {
+      throw new Error("この確認画面は期限切れ、または処理済みです。パネルからやり直してください。");
+    }
+    if (confirmation.userId !== interaction.user.id || confirmation.guildId !== interaction.guildId || confirmation.channelId !== interaction.channelId) {
+      throw new Error("この確認画面は操作できません。");
+    }
+    // 最初のawaitより前に消費する。失敗・再起動後も同じ画面から再購入しない。
+    this.confirmations.delete(id);
+    return confirmation;
   }
 
   static async cancel(interaction: ButtonInteraction) {
-    await interaction.update({
+    this.consumeConfirmation(interaction, PANEL_COMMAND_NAMES.SOLITARY_CELL_CANCEL);
+    await interaction.editReply({
       content: SOLITARY_CELL_MESSAGES.CANCEL,
       embeds: [],
       components: [],
@@ -97,14 +138,19 @@ export class SolitaryCellService {
   }
 
   static async create(interaction: ButtonInteraction) {
+    const confirmation = this.consumeConfirmation(interaction, PANEL_COMMAND_NAMES.SOLITARY_CELL_CONFIRM);
     const guild = interaction.guild;
     if (!guild) {
       throw new Error("この操作はサーバー内でのみ実行できます。");
     }
 
-    const member = interaction.member as GuildMember;
+    await interaction.editReply({ content: "処理しています…", embeds: [], components: [] });
+    const member = await guild.members.fetch({ user: interaction.user.id, force: true });
     const tier = this.getTier(member);
-    await interaction.deferUpdate();
+    if (tier.price !== confirmation.tier.price) {
+      await this.renderConfirmation(interaction, tier, "料金が変更されたため、内容を確認してもう一度確定してください。");
+      return;
+    }
 
     const category = await guild.channels.fetch(CATEGORY_IDS.SOLITARY);
     if (!category || category.type !== ChannelType.GuildCategory) {

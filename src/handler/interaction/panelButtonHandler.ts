@@ -107,6 +107,14 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
   }
 
   try {
+    if (customId.startsWith(`${PANEL_COMMAND_NAMES.SOLITARY_CELL_CONFIRM}:`)) {
+      await SolitaryCellService.create(interaction);
+      return;
+    }
+    if (customId.startsWith(`${PANEL_COMMAND_NAMES.SOLITARY_CELL_CANCEL}:`)) {
+      await SolitaryCellService.cancel(interaction);
+      return;
+    }
     if (customId.startsWith(`${GACHA_COIN_PREFIX}:`)) {
       await handleGachaCoinButton(interaction);
       return;

@@ -7,6 +7,7 @@ import {
   GuildMember,
   OverwriteType,
   PermissionsBitField,
+  RESTJSONErrorCodes,
   StringSelectMenuInteraction,
   UserSelectMenuInteraction,
   VoiceChannel,
@@ -757,7 +758,8 @@ export class HotelVcService {
         let channel: Channel | null = null;
         try {
           channel = await client.channels.fetch(channelId);
-        } catch {
+        } catch (error: any) {
+          if (error.code !== RESTJSONErrorCodes.UnknownChannel) throw error;
           await updateVcStatus(channelId, false);
           continue;
         }
@@ -765,7 +767,8 @@ export class HotelVcService {
           await channel.delete();
         }
       } catch (error: any) {
-        throw error;
+        console.error("期限切れVCの削除に失敗しました。次回再試行します:", channelId, error);
+        continue;
       }
 
       try {

@@ -250,3 +250,55 @@ test("expired hotel VC checker deletes expired channels and marks them inactive"
   assert.match(statements[1].sql, /UPDATE vcs SET is_active = \?/);
   assert.deepEqual(statements[1].params, [false, channel.id]);
 });
+
+for (const failure of ["fetch", "delete"]) {
+  test(`expired VC checker retries transient ${failure} failures and continues other rooms`, async (t) => {
+    const active = new Set(["first", "second"]);
+    const deleted = [];
+    let unavailable = true;
+    t.mock.method(console, "error", () => {});
+    DbService.getConnection = async () => ({
+      execute: async (sql, params) => {
+        if (sql.includes("SELECT channel_id")) return [[...active].map((channel_id) => ({ channel_id }))];
+        assert.equal(params[0], false);
+        active.delete(params[1]);
+        return [{}];
+      },
+      release() {},
+    });
+    const client = { channels: { fetch: async (id) => {
+      if (unavailable && id === "first" && failure === "fetch") throw new Error("temporary network failure");
+      return { delete: async () => {
+        if (unavailable && id === "first" && failure === "delete") throw new Error("temporary network failure");
+        deleted.push(id);
+      } };
+    } } };
+    await HotelVcService.deleteExpiredVcs(client);
+    assert.deepEqual([...active], ["first"]);
+    assert.deepEqual(deleted, ["second"]);
+    unavailable = false;
+    await HotelVcService.deleteExpiredVcs(client);
+    assert.equal(active.size, 0);
+    assert.deepEqual(deleted, ["second", "first"]);
+  });
+}
+
+for (const response of ["unknown", "null", "forbidden"]) {
+  test(`expired VC checker only retires confirmed missing channels: ${response}`, async (t) => {
+    const updates = [];
+    t.mock.method(console, "error", () => {});
+    DbService.getConnection = async () => ({
+      execute: async (sql, params) => {
+        if (sql.includes("SELECT channel_id")) return [[{ channel_id: "missing" }]];
+        updates.push(params);
+        return [{}];
+      },
+      release() {},
+    });
+    await HotelVcService.deleteExpiredVcs({ channels: { fetch: async () => {
+      if (response === "null") return null;
+      throw Object.assign(new Error(response), { code: response === "unknown" ? 10003 : 50001 });
+    } } });
+    assert.deepEqual(updates, response === "forbidden" ? [] : [[false, "missing"]]);
+  });
+}
