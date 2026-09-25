@@ -294,7 +294,7 @@ export class HotelVcService {
         minute: "2-digit",
       });
 
-      const inChatPanel = await VcPanelService.createVcPanel(true, true);
+      const inChatPanel = await VcPanelService.createHotelVcPanel();
 
       switch (hotelVcTypeName) {
         case HOTEL_TYPE_NAMES.NORMAL:

@@ -36,9 +36,12 @@ export class VcService {
     if (!interaction.deferred) await interaction.deferReply({ ephemeral: true });
     await this.validateVcMember(interaction);
     const channel = interaction.channel;
-    if (!channel || channel.type !== ChannelType.GuildVoice ||
-        await this.getVcTypeFromDb(channel.id) !== GAME_VC.TYPE) {
-      throw new Error("遊戯VCの操作パネルで使用してください。");
+    if (!channel || channel.type !== ChannelType.GuildVoice) {
+      throw new Error("遊戯・ホテルVCの操作パネルで使用してください。");
+    }
+    const vcType = await this.getVcTypeFromDb(channel.id);
+    if (vcType !== GAME_VC.TYPE && !Object.values(HOTEL_TYPE).includes(vcType ?? "")) {
+      throw new Error("遊戯・ホテルVCの操作パネルで使用してください。");
     }
     if (this.pendingLockMarks.has(channel.id)) {
       throw new Error("🔒を変更中です。しばらくお待ちください。");
@@ -47,7 +50,7 @@ export class VcService {
     try {
       const current = await channel.fetch(true);
       const locked = current.name.startsWith("🔒");
-      const name = locked ? current.name.replace(/^🔒\s*/, "") : `🔒 ${current.name}`;
+      const name = locked ? current.name.replace(/^🔒[\uFE0E\uFE0F]?\s*/, "") : `🔒 ${current.name}`;
       if (!name.trim() || name.length > 100) {
         throw new Error("🔒を付け外しした後のVC名が1〜100文字になるように変更してください。");
       }

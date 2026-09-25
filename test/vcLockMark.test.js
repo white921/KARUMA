@@ -3,6 +3,7 @@ const assert = require("node:assert/strict");
 const { ChannelType, REST } = require("discord.js");
 const { VcService } = require("../dist/service/vc/vcService.js");
 const { GAME_VC } = require("../dist/constant/game/game.js");
+const { HOTEL_TYPE } = require("../dist/constant/hotel/hotel.js");
 
 function fixture(name = "遊戯 - テスト", inside = true) {
   const calls = [];
@@ -33,10 +34,28 @@ test("lock mark toggles only the name, with acknowledgement before API work", as
     ["defer"], ["name", "遊戯 - テスト"], ["reply"]]);
 });
 
-test("lock mark rejects outsiders and non-game VCs", async t => {
+test("lock mark supports every hotel type without changing permissions", async t => {
+  for (const type of Object.values(HOTEL_TYPE)) {
+    await t.test(type, async t => {
+      t.mock.method(VcService, "getVcTypeFromDb", async () => type);
+      const f = fixture("ホテル - テスト");
+      f.channel.permissionOverwrites = { async set() { assert.fail("permissions must stay unchanged"); } };
+      await VcService.toggleVcLockMark(f.interaction);
+      assert.equal(f.channel.name, "🔒 ホテル - テスト");
+      await VcService.toggleVcLockMark(f.interaction);
+      assert.equal(f.channel.name, "ホテル - テスト");
+      await assert.rejects(VcService.toggleVcLockMark(fixture("ホテル", false).interaction), /VCにいる方/);
+    });
+  }
+});
+
+test("lock mark rejects outsiders and unmanaged or unsupported VCs", async t => {
   t.mock.method(VcService, "getVcTypeFromDb", async () => "TELEPORT");
   await assert.rejects(VcService.toggleVcLockMark(fixture("遊戯", false).interaction), /VCにいる方/);
-  await assert.rejects(VcService.toggleVcLockMark(fixture().interaction), /遊戯VCの操作パネル/);
+  await assert.rejects(VcService.toggleVcLockMark(fixture().interaction), /遊戯・ホテルVCの操作パネル/);
+  VcService.getVcTypeFromDb.mock.restore();
+  t.mock.method(VcService, "getVcTypeFromDb", async () => null);
+  await assert.rejects(VcService.toggleVcLockMark(fixture().interaction), /遊戯・ホテルVCの操作パネル/);
 });
 
 test("lock button handler accepts the acknowledgement already sent by the entrypoint", async t => {
@@ -62,6 +81,9 @@ test("lock mark does not truncate long names or rename a lock-only VC to empty",
   const f = fixture("🔒遊戯");
   await VcService.toggleVcLockMark(f.interaction);
   assert.equal(f.channel.name, "遊戯");
+  const emoji = fixture("🔒️ ホテル");
+  await VcService.toggleVcLockMark(emoji.interaction);
+  assert.equal(emoji.channel.name, "ホテル");
 });
 
 test("name and status modals reject users who left the VC", async () => {

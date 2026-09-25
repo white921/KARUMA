@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { PermissionsBitField } = require("discord.js");
+const { ButtonStyle, PermissionsBitField } = require("discord.js");
 
 const { ROLE_IDS, TEXT_CHANNEL_IDS } = require("../dist/constant/shared/id.js");
 const { CURRENCY_NAMES } = require("../dist/constant/currency/currency.js");
@@ -235,6 +235,19 @@ test("game VC panel has name, lock mark and status controls with expiry", async 
     PANEL_COMMAND_NAMES.TOGGLE_VC_LOCK_MARK,
   ]);
   assert.match(panel.embeds[0].data.description, /09\/25 12:00/);
+  assert.match(panel.embeds[0].data.description, /接続権限は変わりません/);
+});
+
+test("hotel VC panel preserves name and limit controls and adds status and lock", async () => {
+  const panel = await VcPanelService.createHotelVcPanel();
+  const buttons = panel.components[0].toJSON().components;
+  assert.deepEqual(buttons.map(b => b.custom_id), [
+    PANEL_COMMAND_NAMES.CHANGE_VC_NAME,
+    PANEL_COMMAND_NAMES.CHANGE_VC_STATUS,
+    PANEL_COMMAND_NAMES.TOGGLE_VC_LOCK_MARK,
+    PANEL_COMMAND_NAMES.CHANGE_VC_LIMIT,
+  ]);
+  assert.equal(buttons[2].style, ButtonStyle.Success);
   assert.match(panel.embeds[0].data.description, /接続権限は変わりません/);
 });
 

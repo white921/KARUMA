@@ -84,6 +84,15 @@ export class VcPanelService {
     }
   }
 
+  static async createHotelVcPanel() {
+    const panel = (await this.createVcPanel(true, true, true, true))!;
+    panel.embeds[0].setDescription(
+      `${IN_CHAT_PANEL_MESSAGES.DESCRIPTION}\n\n` +
+      "🔒付け外しはVC名の先頭に🔒を付け外しします。接続権限は変わりません。",
+    );
+    return panel;
+  }
+
   static async createGameVcPanel(expiryText: string) {
     const panel = (await this.createVcPanel(false, true, true, true))!;
     panel.embeds[0]
