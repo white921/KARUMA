@@ -121,7 +121,7 @@ test('4フォーラムで全状態を処理し、全ページ取得完了前に�
   assert.equal(result.extendedCount, 8);
   assert.deepEqual(result.failed, []);
   assert.deepEqual(result.skipped, []);
-  assert.ok(all.every(t => t.name === '旅人〜 09/23'));
+  assert.ok(all.every(t => t.name === '旅人〜09/23'));
 });
 
 test('アーカイブの取得途中で失敗したフォーラムは部分更新しない', async t => {

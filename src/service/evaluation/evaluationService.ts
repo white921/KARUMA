@@ -148,7 +148,7 @@ export class EvaluationService {
   }
 
   static createEvaluationPeriodText(): string {
-    return `〜 ${this.createEvaluationEndDateText()}`;
+    return `〜${this.createEvaluationEndDateText()}`;
   }
 
   static createEvaluationEndDateText(): string {
@@ -193,7 +193,7 @@ export class EvaluationService {
         }
 
         const thread = await (forum as ForumChannel).threads.create({
-          name: `${targetMember.displayName}〜 ${endDateText}`,
+          name: `${targetMember.displayName}〜${endDateText}`,
           message: {
             content,
           },
@@ -448,7 +448,7 @@ export class EvaluationService {
         }
 
         const newEnd = parsed.endDate.add(days, "day");
-        const newTitle = `${parsed.base}${newEnd.format("MM/DD")}`;
+        const newTitle = `${parsed.base.trimEnd()}${newEnd.format("MM/DD")}`;
         const threadUrl = `https://discord.com/channels/${thread.guildId}/${thread.id}`;
 
         try {
