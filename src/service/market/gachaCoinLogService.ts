@@ -27,7 +27,6 @@ export class GachaCoinLogService {
             { name: "実行者", value: `<@${adjustment.operatorUserId}>` },
             { name: "対象者", value: `<@${adjustment.targetUserId}>` },
             { name: "増減枚数", value: `${adjustment.amount > 0 ? "+" : ""}${adjustment.amount.toLocaleString()}枚`, inline: true },
-            { name: "変更後残高", value: `${adjustment.afterCoins.toLocaleString()}枚`, inline: true },
             { name: "理由", value: escapeMarkdown(adjustment.reason) || "未記入" },
           )
           .setTimestamp()],

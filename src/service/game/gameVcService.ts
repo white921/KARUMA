@@ -262,9 +262,8 @@ export class GameVcService {
     });
     const expireAt = new Date(Date.now() + GAME_VC.DURATION_HOURS * 60 * 60 * 1000);
 
-    let afterWallet: number;
     try {
-      afterWallet = await this.recordVcCreation(
+      await this.recordVcCreation(
         interaction.user.id,
         voiceChannel.id,
         payment,
@@ -290,7 +289,7 @@ export class GameVcService {
     } catch (error) {
       console.error("遊戯VCへの操作パネル送信に失敗しました:", error);
     }
-    await this.sendVcLog(interaction, tier, payment, voiceChannel.id, afterWallet, expiryText);
+    await this.sendVcLog(interaction, tier, payment, voiceChannel.id, expiryText);
     await interaction.editReply({
       content:
         `✅ 遊戯VCを作成しました。\n<#${voiceChannel.id}>\n` +
@@ -384,7 +383,7 @@ export class GameVcService {
       hour: "2-digit",
       minute: "2-digit",
     });
-    await this.sendPassLog(interaction, detail.label, detail.price, result.afterWallet, expiryText);
+    await this.sendPassLog(interaction, detail.label, detail.price, expiryText);
     await interaction.editReply({
       content: `✅ ${detail.label}を購入しました。\n有効期限：${expiryText}`,
     });
@@ -455,7 +454,7 @@ export class GameVcService {
       hour: "2-digit",
       minute: "2-digit",
     });
-    await this.sendCriminalAccessLog(interaction, result.afterWallet, expiryText);
+    await this.sendCriminalAccessLog(interaction, expiryText);
     await interaction.editReply({
       content:
         `✅ 遊戯VC接続権限を購入しました。\n` +
@@ -816,7 +815,6 @@ export class GameVcService {
     tier: GameVcTier,
     payment: GameVcPayment,
     voiceChannelId: string,
-    afterWallet: number,
     expiryText: string,
   ): Promise<void> {
     try {
@@ -831,7 +829,6 @@ export class GameVcService {
       await (thread as ThreadChannel).send(
         `**${tier.label === "罪人" ? "罪人用遊戯VC作成" : "遊戯VC作成"}**\n<@${interaction.user.id}>\n` +
           `対象ロール: ${tier.label}\n${this.paymentLabel(payment)}\n` +
-          `残高: ${formatNumber(afterWallet)}${CURRENCY_NAMES}\n` +
           `作成VC: <#${voiceChannelId}>\n有効期限: ${expiryText}`,
       );
     } catch (error) {
@@ -841,7 +838,6 @@ export class GameVcService {
 
   private static async sendCriminalAccessLog(
     interaction: ButtonInteraction,
-    afterWallet: number,
     expiryText: string,
   ): Promise<void> {
     try {
@@ -854,7 +850,7 @@ export class GameVcService {
       await (thread as ThreadChannel).send(
         `**罪人用遊戯VC接続権限購入**\n<@${interaction.user.id}>\n` +
           `料金: ${formatNumber(GAME_VC.CRIMINAL_ACCESS_PRICE)}${CURRENCY_NAMES}\n` +
-          `残高: ${formatNumber(afterWallet)}${CURRENCY_NAMES}\n有効期限: ${expiryText}`,
+          `有効期限: ${expiryText}`,
       );
     } catch (error) {
       console.error("罪人用遊戯VC接続権限購入ログの送信に失敗しました:", error);
@@ -865,7 +861,6 @@ export class GameVcService {
     interaction: ButtonInteraction,
     label: string,
     price: number,
-    afterWallet: number,
     expiryText: string,
   ): Promise<void> {
     try {
@@ -876,7 +871,7 @@ export class GameVcService {
       await (thread as ThreadChannel).send(
         `**ゲームパス購入**\n<@${interaction.user.id}>\n` +
           `プラン: ${label}\n料金: ${formatNumber(price)}${CURRENCY_NAMES}\n` +
-          `残高: ${formatNumber(afterWallet)}${CURRENCY_NAMES}\n有効期限: ${expiryText}`,
+          `有効期限: ${expiryText}`,
       );
     } catch (error) {
       console.error("ゲームパス購入ログの送信に失敗しました:", error);

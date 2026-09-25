@@ -14,7 +14,7 @@ const FREE = ROLE_IDS.CORE_MEMBER_ROLES.JUNMEN;
 const member = (roles) => ({ displayName: "利用者", roles: { cache: new Set(roles) } });
 
 function fixture(t, roles = [PAID]) {
-  const state = { wallet: 100000, vcs: [], actions: [], created: [], deleted: [], replies: [], commits: 0, rollbacks: 0, roles };
+  const state = { logs: [], wallet: 100000, vcs: [], actions: [], created: [], deleted: [], replies: [], commits: 0, rollbacks: 0, roles };
   t.mock.method(AccountService, "hasAccount", async () => true);
   t.mock.method(DbService, "getConnection", async () => {
     const snapshot = { wallet: state.wallet, vcs: [...state.vcs], actions: [...state.actions] };
@@ -62,7 +62,7 @@ function fixture(t, roles = [PAID]) {
         },
       },
     },
-    client: { channels: { fetch: async () => ({ isTextBased: () => true, send: async () => {} }) } },
+    client: { channels: { fetch: async () => ({ isTextBased: () => true, send: async message => state.logs.push(message) }) } },
   };
   return { state, source, button(action = "confirm", payload = state.replies[0], overrides = {}) {
     const buttons = payload.components[0].toJSON().components;
@@ -82,6 +82,10 @@ test("入口と確定は二重応答せず、課金・期限・履歴を記録�
   assert.equal(f.state.commits, 1);
   assert.equal(f.state.actions.length, 1);
   assert.equal(f.state.actions[0][1], 10000);
+  assert.equal(f.state.actions[0][4], 90000);
+  assert.equal(f.state.logs.length, 1);
+  assert.doesNotMatch(f.state.logs[0], /残高|90,000/);
+  assert.match(f.state.logs[0], /料金: 10,000LIA/);
   assert.equal(f.state.created[0].userLimit, 1);
   assert.equal(f.state.vcs[0][2], SOLITARY_CELL.TYPE);
   assert.ok(f.state.vcs[0][3].getTime() >= before + 12 * 60 * 60 * 1000);

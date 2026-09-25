@@ -189,9 +189,8 @@ export class SolitaryCellService {
     const expireAt = new Date(
       Date.now() + SOLITARY_CELL.DURATION_HOURS * 60 * 60 * 1000,
     );
-    let afterWallet = 0;
     try {
-      afterWallet = await this.recordPurchase(
+      await this.recordPurchase(
         interaction.user.id,
         tier.price,
         voiceChannel.id,
@@ -214,7 +213,7 @@ export class SolitaryCellService {
       )
       .catch((error) => console.error("独房VCへの案内送信に失敗しました:", error));
 
-    await this.sendLog(interaction, tier, voiceChannel.id, afterWallet);
+    await this.sendLog(interaction, tier, voiceChannel.id);
     await interaction.editReply({
       content:
         `✅ 独房を作成しました。\n<#${voiceChannel.id}>\n` +
@@ -293,7 +292,6 @@ export class SolitaryCellService {
     interaction: ButtonInteraction,
     tier: SolitaryCellTier,
     voiceChannelId: string,
-    afterWallet: number,
   ) {
     try {
       const channel = await interaction.client.channels.fetch(
@@ -306,7 +304,6 @@ export class SolitaryCellService {
         `**独房作成**\n<@${interaction.user.id}>\n` +
           `対象ロール: ${tier.label}\n` +
           `料金: ${tier.price === 0 ? "無料" : `${formatNumber(tier.price)}${CURRENCY_NAMES}`}\n` +
-          `残高: ${formatNumber(afterWallet)}${CURRENCY_NAMES}\n` +
           `作成VC: <#${voiceChannelId}>\n` +
           `利用時間: ${SOLITARY_CELL.DURATION_HOURS}時間`,
       );

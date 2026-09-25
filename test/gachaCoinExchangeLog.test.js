@@ -24,7 +24,7 @@ function mockExchange(t, calls, result = {}) {
   });
 }
 
-test('各券種の交換確定後に指定スレッドへ内容と残高を記録する', async t => {
+test('各券種の交換確定後に指定スレッドへ内容を記録し残高は表示しない', async t => {
   for (const reward of GACHA_COIN_REWARDS) {
     const { calls, interaction } = fixture(); mockExchange(t, calls, { reward });
     await handleGachaCoinButton(interaction);
@@ -36,7 +36,6 @@ test('各券種の交換確定後に指定スレッドへ内容と残高を記�
       { name: '交換者', value: '<@user>' },
       { name: 'アイテム', value: `${reward.label} × 1枚` },
       { name: '消費コイン', value: `${reward.cost}枚`, inline: true },
-      { name: '交換後残高', value: '20枚', inline: true },
     ]);
     assert.ok(Number.isFinite(Date.parse(embed.timestamp)));
     assert.deepEqual(payload.allowedMentions, { parse: [] });

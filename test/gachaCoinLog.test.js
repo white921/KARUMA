@@ -30,7 +30,7 @@ function mockAdjust(t, calls) {
   });
 }
 
-test('付与・減算の確定後に指定スレッドへ実行者・対象者・符号付き枚数・残高・理由・日時を記録する', async t => {
+test('付与・減算の確定後に実行者・対象者・符号付き枚数・理由・日時を記録し残高は表示しない', async t => {
   for (const [command, sign, title] of [[grant, 1, 'ガチャコイン付与'], [deduct, -1, 'ガチャコイン減算']]) {
     const { calls, interaction } = fixture(); mockAdjust(t, calls);
     await command.execute(interaction);
@@ -42,7 +42,7 @@ test('付与・減算の確定後に指定スレッドへ実行者・対象者�
     assert.deepEqual(embed.fields, [
       { name: '実行者', value: '<@operator>' }, { name: '対象者', value: '<@target>' },
       { name: '増減枚数', value: sign > 0 ? '+5枚' : '-5枚', inline: true },
-      { name: '変更後残高', value: '30枚', inline: true }, { name: '理由', value: '交換対応' },
+      { name: '理由', value: '交換対応' },
     ]);
     assert.ok(Number.isFinite(Date.parse(embed.timestamp)));
     assert.deepEqual(payload.allowedMentions, { parse: [] });

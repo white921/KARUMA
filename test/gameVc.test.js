@@ -154,3 +154,40 @@ test("vacant role has the same VC connection permissions as traveler or above", 
   assert.ok(criminalAccess.allow.includes(PermissionsBitField.Flags.Connect));
   assert.ok(creator.allow.includes(PermissionsBitField.Flags.Connect));
 });
+
+const { GameVcService } = require("../dist/service/game/gameVcService.js");
+
+test("遊戯の全ログで残高を表示せず、利用内容と期限を残す", async () => {
+  const sent = [];
+  const interaction = {
+    user: { id: "buyer" },
+    client: { channels: { fetch: async id => ({
+      isThread: () => true, isTextBased: () => true,
+      send: async content => sent.push({ id, content }),
+    }) } },
+  };
+  const expiry = "09/26 12:00";
+  for (const label of ["旅人以上", "罪人"]) {
+    for (const payment of ["money", "ticket", "pass", "staff"]) {
+      await GameVcService.sendVcLog(interaction, { label, price: 5000 }, payment, "vc", expiry);
+      const message = sent.at(-1);
+      assert.equal(message.id, label === "罪人" ? THREAD_IDS.GAME_CRIMINAL_VC_CREATE_LOG_THREAD : THREAD_IDS.GAME_VC_CREATE_LOG_THREAD);
+      assert.match(message.content, /作成VC: <#vc>/);
+      assert.match(message.content, /料金：/);
+    }
+  }
+  await GameVcService.sendCriminalAccessLog(interaction, expiry);
+  assert.equal(sent.at(-1).id, THREAD_IDS.GAME_CRIMINAL_ACCESS_LOG_THREAD);
+  assert.match(sent.at(-1).content, /料金: 5,000LIA/);
+  for (const [label, price] of [["2週間", 50000], ["1か月", 100000]]) {
+    await GameVcService.sendPassLog(interaction, label, price, expiry);
+    assert.equal(sent.at(-1).id, THREAD_IDS.GAME_PASS_LOG_THREAD);
+    assert.ok(sent.at(-1).content.includes(`プラン: ${label}\n料金: ${price.toLocaleString()}LIA`));
+  }
+  assert.equal(sent.length, 11);
+  for (const { content } of sent) {
+    assert.doesNotMatch(content, /残高|wallet|balance|undefined/);
+    assert.ok(content.includes(`有効期限: ${expiry}`));
+    assert.match(content, /<@buyer>/);
+  }
+});

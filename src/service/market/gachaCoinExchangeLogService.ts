@@ -21,7 +21,6 @@ export class GachaCoinExchangeLogService {
             { name: "交換者", value: `<@${userId}>` },
             { name: "アイテム", value: `${result.reward.label} × 1枚` },
             { name: "消費コイン", value: `${result.reward.cost.toLocaleString()}枚`, inline: true },
-            { name: "交換後残高", value: `${result.balance.toLocaleString()}枚`, inline: true },
           )
           .setFooter({ text: `交換ID: ${requestId}` })
           .setTimestamp()],
