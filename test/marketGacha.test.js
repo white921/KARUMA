@@ -1,214 +1,137 @@
-const test = require("node:test");
-const assert = require("node:assert/strict");
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const { MARKET_GACHA_DAILY_LIMIT, MARKET_GACHA_PRICE, MARKET_GACHA_PRIZES: prizes, selectMarketGachaPrize, MARKET_GACHA_CONFIRMATION_PREFIX: prefix } = require('../dist/constant/market/marketGacha');
+const { MarketGachaService: Service, createMarketGachaPaymentSelectionRow, formatMarketGachaDrawLog } = require('../dist/service/market/marketGachaService');
+const { resolveMarketGachaPrize, formatMarketGachaResult, marketGachaInstructions, isSageOrHigherPerformer } = require('../dist/service/market/marketGachaResult');
+const { ROLE_IDS: R, TEXT_CHANNEL_IDS, THREAD_IDS } = require('../dist/constant/shared/id');
+const { PANEL_COMMAND_NAMES: C } = require('../dist/constant/shared/command');
+const { shouldDeferButtonUpdate } = require('../dist/util/interaction/interactionAck');
+const { AccountService } = require('../dist/service/account/accountService');
+const { handlePanelButton } = require('../dist/handler/interaction/panelButtonHandler');
+const { ITEM_KEY: K } = require('../dist/constant/inventory/item');
+const member = (...roles) => ({roles:{cache:new Set(roles)}});
+const prize = key => {const p=prizes.find(p=>p.key===key); assert.ok(p,key);return p;};
 
-const {
-  MARKET_GACHA_DAILY_LIMIT,
-  MARKET_GACHA_PRICE,
-  MARKET_GACHA_PRIZES,
-  selectMarketGachaPrize,
-} = require("../dist/constant/market/marketGacha.js");
-const {
-  MarketGachaService,
-  createMarketGachaConfirmationRow,
-  createMarketGachaPaymentSelectionRow,
-  formatMarketGachaDrawLog,
-} = require("../dist/service/market/marketGachaService.js");
-const { ROLE_IDS, TEXT_CHANNEL_IDS, THREAD_IDS } = require("../dist/constant/shared/id.js");
-const { PANEL_COMMAND_NAMES } = require("../dist/constant/shared/command.js");
-const { DbService } = require("../dist/service/system/dbService.js");
-const { GachaCoinActivationService } = require("../dist/service/market/gachaCoinActivationService.js");
-
-function memberWithRoles(roleIds) {
-  return { roles: { cache: { has: (roleId) => roleIds.includes(roleId) } } };
-}
-
-function prize(key) {
-  const value = MARKET_GACHA_PRIZES.find((item) => item.key === key);
-  assert.ok(value, `missing prize: ${key}`);
-  return value;
-}
-
-function instructions(key, audioAsset) {
-  const { MarketGachaService } = require("../dist/service/market/marketGachaService.js");
-  return MarketGachaService.getTicketInstructions(prize(key), audioAsset);
-}
-
-test("market gacha prize probabilities total 100 percent", () => {
-  assert.equal(MARKET_GACHA_PRIZES.reduce((sum, item) => sum + item.probability, 0), 100);
-});
-
-test("market gacha uses the updated prize probabilities", () => {
-  assert.deepEqual(
-    Object.fromEntries(MARKET_GACHA_PRIZES.map((item) => [item.key, item.probability])),
-    {
-      superchat: 18,
-      song_cover: 18,
-      idol_collab: 3,
-      superchat_nomination: 5,
-      game_free_1: 12.5,
-      game_free_3: 7.5,
-      secret_free_1: 6.5,
-      secret_free_3: 4,
-      freedom_free_1: 4,
-      discount_5: 5,
-      discount_10: 2,
-      detention_pass_3_days: 7,
-      custom_role_week: 0.5,
-      one_more_chance: 5,
-      day_off: 2,
-    },
-  );
-});
-
-test("market gacha selects updated prizes at probability boundaries", () => {
-  assert.equal(selectMarketGachaPrize(0).key, "superchat");
-  assert.equal(selectMarketGachaPrize(0.179999).key, "superchat");
-  assert.equal(selectMarketGachaPrize(0.18).key, "song_cover");
-  assert.equal(selectMarketGachaPrize(0.36).key, "idol_collab");
-  assert.equal(selectMarketGachaPrize(0.564999).key, "game_free_1");
-  assert.equal(selectMarketGachaPrize(0.565001).key, "game_free_3");
-  assert.equal(selectMarketGachaPrize(0.639999).key, "game_free_3");
-  assert.equal(selectMarketGachaPrize(0.64).key, "secret_free_1");
-  assert.equal(selectMarketGachaPrize(0.704999).key, "secret_free_1");
-  assert.equal(selectMarketGachaPrize(0.705).key, "secret_free_3");
-  assert.equal(selectMarketGachaPrize(0.744999).key, "secret_free_3");
-  assert.equal(selectMarketGachaPrize(0.745).key, "freedom_free_1");
-  assert.equal(selectMarketGachaPrize(0.784999).key, "freedom_free_1");
-  assert.equal(selectMarketGachaPrize(0.785).key, "discount_5");
-  assert.equal(selectMarketGachaPrize(0.979999).key, "one_more_chance");
-  assert.equal(selectMarketGachaPrize(0.98).key, "day_off");
-  assert.equal(selectMarketGachaPrize(0.999999).key, "day_off");
-});
-
-test("market gacha rejects invalid random values", () => {
-  for (const value of [-0.01, 1, Number.NaN, Number.POSITIVE_INFINITY]) {
-    assert.throws(() => selectMarketGachaPrize(value));
-  }
-});
-
-test("market gacha charge and daily limit remain unchanged", () => {
-  assert.equal(MARKET_GACHA_PRICE, 5000);
-  assert.equal(MARKET_GACHA_DAILY_LIMIT, 5);
-});
-
-for (const roleIds of [[], [ROLE_IDS.GIJUTU_LEADER], [ROLE_IDS.SABANUSI]]) {
-  for (const paymentSource of ["currency", "invite_point"]) {
-    test(`market gacha rejects a sixth draw before charging: roles=${roleIds}, payment=${paymentSource}`, async (t) => {
-      const queries = [];
-      const connection = {
-        beginTransaction: t.mock.fn(async () => {}),
-        execute: async (sql) => {
-          queries.push(sql);
-          if (sql.startsWith("SELECT user_id FROM accounts")) return [[{ user_id: "drawer" }]];
-          if (sql.includes("FROM market_gacha_draws")) {
-            return [Array.from({ length: 5 }, (_, id) => ({ id }))];
-          }
-          throw new Error(`Unexpected query after daily limit: ${sql}`);
-        },
-        commit: t.mock.fn(async () => {}),
-        rollback: t.mock.fn(async () => {}),
-        release: t.mock.fn(),
-      };
-      t.mock.method(DbService, "getConnection", async () => connection);
-      t.mock.method(GachaCoinActivationService, "lockDrawGate", async () => {});
-      const member = memberWithRoles(roleIds);
-      await assert.rejects(MarketGachaService.draw({
-        user: { id: "drawer" },
-        member,
-        guild: { members: { fetch: async () => member } },
-      }, paymentSource), /市場ガチャは1日5回までです。/);
-      assert.equal(queries.length, 2);
-      assert.equal(connection.commit.mock.callCount(), 0);
-      assert.equal(connection.rollback.mock.callCount(), 1);
-      assert.equal(connection.release.mock.callCount(), 1);
-    });
-  }
-}
-
-test("market gacha payment selector offers LIA and invite points", () => {
-  const buttonIds = createMarketGachaPaymentSelectionRow().toJSON().components
-    .map((button) => button.custom_id);
-  assert.ok(buttonIds.includes(PANEL_COMMAND_NAMES.MARKET_GACHA_PAYMENT_CURRENCY));
-  assert.ok(buttonIds.includes(PANEL_COMMAND_NAMES.MARKET_GACHA_PAYMENT_INVITE_POINT));
-});
-
-test("market gacha confirmation button keeps the selected payment source", () => {
-  const currencyIds = createMarketGachaConfirmationRow("currency").toJSON().components
-    .map((button) => button.custom_id);
-  const invitePointIds = createMarketGachaConfirmationRow("invite_point").toJSON().components
-    .map((button) => button.custom_id);
-  assert.ok(currencyIds.includes(PANEL_COMMAND_NAMES.MARKET_GACHA_CONFIRM_CURRENCY));
-  assert.ok(invitePointIds.includes(PANEL_COMMAND_NAMES.MARKET_GACHA_CONFIRM_INVITE_POINT));
-});
-
-test("audio prizes select their files from matching database categories", () => {
-  assert.equal(prize("superchat").audioCategory, "superchat");
-  assert.equal(prize("song_cover").audioCategory, "song_cover");
-});
-
-test("audio prize output mentions the recording performer", () => {
-  const output = instructions("superchat", {
-    performerName: "強がり",
-    performerUserId: "1223107953444257812",
-    publicUrl: "https://example.com/file",
+test('承認済み22景品と確率、基本料金・回数', () => {
+  assert.equal(MARKET_GACHA_PRICE,5000); assert.equal(MARKET_GACHA_DAILY_LIMIT,5);
+  assert.deepEqual(Object.fromEntries(prizes.map(p=>[p.key,p.probability])),{
+    superchat:15,song_cover:15,idol_collab:3,superchat_nomination:4,voice_message_nomination:4,letter:3,private_call:3,
+    game_free_1:6,game_free_3:3,secret_free_1:5,secret_free_3:3,freedom_free_1:3,discount_5:5,discount_10:2.5,
+    detention_pass_3_days:5,custom_role_week:0.5,soundboard_week:0.5,one_more_chance:6,miss:2,gacha_coin_2:7,gacha_coin_4:3,gacha_coin_6:1.5,
   });
-  assert.match(output, /<@1223107953444257812>のサプボです！/);
-  assert.match(output, /ファイルのURLをDMにて送信/);
-  assert.match(output, /転載・転送・保存・画面録画等は禁止/);
+  assert.equal(prizes.reduce((sum,p)=>sum+p.probability,0),100);
+  assert.equal(new Set(prizes.map(p=>p.key)).size,22);
 });
 
-test("Scarlet's song cover mentions Scarlet's Discord user ID", () => {
-  const output = instructions("song_cover", {
-    performerName: "secret",
-    performerUserId: "1086598017345388685",
-    publicUrl: "https://example.com/file",
-  });
-  assert.match(output, /<@1086598017345388685>の歌みたです！/);
-});
-
-test("manual prizes guide users to the market ticket flow", () => {
-  assert.equal(prize("detention_pass_3_days").label, "どこでも通行券");
-  for (const key of ["detention_pass_3_days", "custom_role_week"]) {
-    const output = instructions(key);
-    assert.match(output, new RegExp(`<#${TEXT_CHANNEL_IDS.GENERAL_INQUIRY}>`));
-    assert.match(output, /市場チケット/);
-    assert.match(output, /スクショしてチケット内に送信/);
+test('0.5%刻みの全抽選区間と境界を検証', () => {
+  const counts = new Map();
+  for(let i=0;i<10000;i++){const p=selectMarketGachaPrize((i+0.5)/10000);counts.set(p.key,(counts.get(p.key)||0)+1);}
+  let cumulative=0;
+  for(const p of prizes){
+    assert.equal(counts.get(p.key),p.probability*100);
+    assert.equal(selectMarketGachaPrize(cumulative/100+1e-10).key,p.key);
+    cumulative+=p.probability;
+    assert.equal(selectMarketGachaPrize(cumulative/100-1e-10).key,p.key);
   }
-  assert.match(instructions("custom_role_week"), /1週間限定のカスタムロール/);
+  for(const v of [-1,1,NaN,Infinity])assert.throws(()=>selectMarketGachaPrize(v));
 });
 
-test("collaboration prizes mention their intended roles", () => {
-  assert.match(instructions("idol_collab"), new RegExp(`<@&${ROLE_IDS.SINGER_CROWN}>`));
-  const nomination = instructions("superchat_nomination");
-  assert.match(nomination, new RegExp(`<@&${ROLE_IDS.CORE_MEMBER_ROLES.HONMEN}>`));
-  assert.match(nomination, new RegExp(`<@&${ROLE_IDS.CORE_MEMBER_ROLES.JUNHONMEN}>`));
-  assert.match(nomination, /市場ガチャに追加/);
+test('5%枠は身分に応じて置換、罪人優先', () => {
+  const pass=prize('detention_pass_3_days');
+  for(const role of [R.CORE_MEMBER_ROLES.HONMEN,R.CORE_MEMBER_ROLES.JUNHONMEN,R.SABANUSI,R.KANRISYA])assert.equal(resolveMarketGachaPrize(pass,member(role)),pass);
+  for(const role of [R.CORE_MEMBER_ROLES.JUNJUNHONMEN,R.CORE_MEMBER_ROLES.KARIMEN])assert.equal(resolveMarketGachaPrize(pass,member(role)).itemKey,K.HOTEL_NORMAL_FREE);
+  assert.equal(resolveMarketGachaPrize(pass,member(R.CORE_MEMBER_ROLES.JUNMEN)).quantity,3);
+  assert.equal(resolveMarketGachaPrize(pass,member(R.CORE_MEMBER_ROLES.JUNMEN)).itemKey,K.HAZAMA_FREE);
+  for(const role of [R.CORE_MEMBER_ROLES.HYOKAOTI,...Object.values(R.DETENTION_ROLES)]){
+    const p=resolveMarketGachaPrize(pass,member(role,R.CORE_MEMBER_ROLES.HONMEN));
+    assert.equal(p.itemKey,K.SOLITARY_CELL_FREE);assert.equal(p.quantity,1);
+  }
+  assert.throws(()=>resolveMarketGachaPrize(pass,member()),/身分ロール/);
 });
 
-test("one more chance and day off have their intended result copy", () => {
-  assert.match(instructions("one_more_chance"), /招待ポイントが1pt付与/);
-  assert.match(instructions("day_off"), /また明日ガチャを引いてね/);
+test('サプボ・歌みたの演者条件は賢者以上', () => {
+  for(const role of [R.CORE_MEMBER_ROLES.JUNJUNHONMEN,R.CORE_MEMBER_ROLES.JUNHONMEN,R.CORE_MEMBER_ROLES.HONMEN,R.SABANUSI,R.KANRISYA])assert.equal(isSageOrHigherPerformer(member(role)),true);
+  for(const role of [R.CORE_MEMBER_ROLES.KARIMEN,R.CORE_MEMBER_ROLES.JUNMEN,R.CORE_MEMBER_ROLES.HYOKAOTI])assert.equal(isSageOrHigherPerformer(member(role)),false);
 });
 
-test("game ticket prizes explain 24-hour priority consumption", () => {
-  assert.equal(prize("game_free_1").label, "遊戯チケット 1枚");
-  assert.equal(prize("game_free_3").label, "遊戯チケット 3枚");
-  assert.match(instructions("game_free_1"), /遊戯24h/);
-  assert.match(instructions("game_free_1"), /優先的にチケットが消費/);
+test('全景品と身分別代替に当選文・コイン増分・付与後所持数を表示', () => {
+  const replacements=[R.CORE_MEMBER_ROLES.JUNJUNHONMEN,R.CORE_MEMBER_ROLES.JUNMEN,R.CORE_MEMBER_ROLES.HYOKAOTI].map(r=>resolveMarketGachaPrize(prize('detention_pass_3_days'),member(r)));
+  for(const p of [...prizes,...replacements]) {
+    const audio=p.audioCategory?{performerName:'演者',performerUserId:'123',publicUrl:'https://example.com/audio'}:undefined;
+    const text=formatMarketGachaResult(p,42,3,audio);
+    assert.ok(text.includes(p.label));assert.match(text,/現在の所持数：42枚$/);
+    assert.ok(text.includes(`ガチャコイン：＋${p.coins??1}枚`));assert.match(text,/本日の残り回数：3回/);
+    assert.ok(text.length<2000);
+  }
 });
 
-test("hotel and shop ticket prizes retain their guidance", () => {
-  assert.match(instructions("secret_free_1"), /次回シークレットを使用時に、優先的にチケットが消費/);
-  assert.match(instructions("freedom_free_1"), /次回フリーダムを使用時に、優先的にチケットが消費/);
-  const discount = instructions("discount_5");
-  assert.match(discount, /割引後の支払額を確認/);
-  assert.match(discount, /100万LIA以上の商品には利用できません/);
+test('音源メンション・DM失敗・禁止事項の出力', () => {
+  const asset={performerName:'演者',performerUserId:'123',publicUrl:'https://example.com/audio'};
+  for(const key of ['superchat','song_cover']){
+    assert.match(formatMarketGachaResult(prize(key),1,4,asset),/<@123>の/);
+    assert.match(formatMarketGachaResult(prize(key),1,4,asset),/転載・転送・保存・画面録画等は禁止/);
+    const failed=formatMarketGachaResult(prize(key),1,4,asset,false);
+    assert.match(failed,/DMに送信できませんでした/);assert.doesNotMatch(failed,/送信したので/);
+  }
 });
 
-test("market gacha log records the drawer, prize, and payment", () => {
-  const log = formatMarketGachaDrawLog("123", prize("idol_collab"), "invite_point");
-  assert.equal(THREAD_IDS.MARKET_GACHA_LOG_THREAD, "1536708822725427301");
-  assert.match(log, /<@123>/);
-  assert.match(log, /アイドルコラボ/);
-  assert.match(log, /招待ポイント1pt/);
+test('手動景品の案内・指定ロール・期間を保持', () => {
+  for(const key of ['idol_collab','superchat_nomination','voice_message_nomination','letter','private_call','detention_pass_3_days','custom_role_week','soundboard_week']){
+    const text=marketGachaInstructions(prize(key));
+    assert.match(text,new RegExp(`<#${TEXT_CHANNEL_IDS.GENERAL_INQUIRY}>`));assert.match(text,/当選メッセージをスクショ/);
+  }
+  for(const key of ['superchat_nomination','voice_message_nomination','letter','private_call']){
+    const text=marketGachaInstructions(prize(key));
+    for(const role of [R.CORE_MEMBER_ROLES.HONMEN,R.CORE_MEMBER_ROLES.JUNHONMEN,R.CORE_MEMBER_ROLES.JUNJUNHONMEN])assert.ok(text.includes(`<@&${role}>`));
+  }
+  assert.match(marketGachaInstructions(prize('private_call')),/15分/);
+  assert.match(marketGachaInstructions(prize('soundboard_week')),/1週間限定/);
+  assert.match(marketGachaInstructions(prize('one_more_chance')),/今日のガチャ上限が1回増えた/);
+  assert.match(marketGachaInstructions(prize('one_more_chance')),/招待ポイントを1pt付与/);
+  assert.doesNotMatch(marketGachaInstructions(prize('miss')),/おしまい|また明日/);
+  for(const key of ['discount_5','discount_10'])assert.match(marketGachaInstructions(prize(key)),/100万LIA以上の商品には利用できません/);
+});
+
+function fixture(t) {
+  t.mock.method(AccountService,'hasAccount',async()=>true);
+  const replies=[],draws=[];
+  t.mock.method(Service,'draw',async (i,p)=>draws.push(p));
+  const source={customId:C.MARKET_GACHA_PAYMENT_CURRENCY,user:{id:'u'},guildId:'g',channelId:'c',editReply:async p=>replies.push(p)};
+  return {source,replies,draws,button(index=0){return {...source,customId:replies.find(p=>p.components?.[0]?.toJSON().components[0].custom_id.startsWith(prefix)).components[0].toJSON().components[index].custom_id};}};
+}
+
+test('支払確認は選択方法を保持し同時連打・再実行で二重抽選しない',async t=>{
+  for(const payment of ['currency','invite_point']){
+    const f=fixture(t);await Service.showDrawConfirmation(f.source,payment);const confirm=f.button();
+    assert.equal(shouldDeferButtonUpdate(confirm.customId),true);
+    const result=await Promise.allSettled([handlePanelButton(confirm),handlePanelButton(confirm)]);
+    assert.equal(result.filter(r=>r.status==='fulfilled').length,1);assert.deepEqual(f.draws,[payment]);
+    await assert.rejects(handlePanelButton(confirm),/処理済み/);
+  }
+});
+
+for(const index of [1,2])test(`選び直し・キャンセル ${index} は元の確認を無効化`,async t=>{
+  const f=fixture(t);await Service.showDrawConfirmation(f.source,'currency');
+  const confirm=f.button();await handlePanelButton(f.button(index));
+  await assert.rejects(handlePanelButton(confirm),/処理済み/);assert.equal(f.draws.length,0);
+});
+
+test('他人・別サーバー・別チャンネルでは確認を消費できない',async t=>{
+  const f=fixture(t);await Service.showDrawConfirmation(f.source,'currency');
+  for(const overrides of [{user:{id:'other'}},{guildId:'other'},{channelId:'other'}])await assert.rejects(handlePanelButton({...f.button(),...overrides}),/操作できません/);
+  await handlePanelButton(f.button());assert.equal(f.draws.length,1);
+});
+
+test('期限切れ・旧形式の確認は抽選しない',async t=>{
+  const f=fixture(t);await Service.showDrawConfirmation(f.source,'currency');
+  const now=Date.now();t.mock.method(Date,'now',()=>now+600001);
+  await assert.rejects(handlePanelButton(f.button()),/期限切れ/);
+  for(const id of [C.MARKET_GACHA_CONFIRM_CURRENCY,C.MARKET_GACHA_CONFIRM_INVITE_POINT])await assert.rejects(handlePanelButton({...f.source,customId:id}),/期限切れ/);
+  assert.equal(f.draws.length,0);
+});
+
+test('支払い選択とログ',()=>{
+  assert.deepEqual(createMarketGachaPaymentSelectionRow().toJSON().components.map(b=>b.custom_id),[C.MARKET_GACHA_PAYMENT_CURRENCY,C.MARKET_GACHA_PAYMENT_INVITE_POINT,C.MARKET_GACHA_CANCEL]);
+  const log=formatMarketGachaDrawLog('123',prize('idol_collab'),'invite_point');
+  assert.match(log,/<@123>/);assert.match(log,/招待ポイント1pt/);assert.equal(THREAD_IDS.MARKET_GACHA_LOG_THREAD,'1536708822725427301');
 });

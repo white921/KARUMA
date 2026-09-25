@@ -1,3 +1,6 @@
+import { MARKET_GACHA_CONFIRMATION_PREFIX } from "../../constant/market/marketGacha";
+import { NORMAL_HOTEL_CONFIRMATION_PREFIX } from "../../constant/hotel/hotel";
+import { NormalHotelService } from "../../service/hotel/normalHotelService";
 import { HISTORY_FILTER_PREFIX } from "../../service/currency/historyFilter";
 import { CastPaymentService } from "../../service/cast/castPaymentService";
 import { CAST_PAYMENT_PREFIX } from "../../constant/cast/castPayment";
@@ -107,6 +110,14 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
   }
 
   try {
+    if (customId.startsWith(`${MARKET_GACHA_CONFIRMATION_PREFIX}:`)) {
+      await MarketGachaService.handleConfirmation(interaction);
+      return;
+    }
+    if (customId.startsWith(`${NORMAL_HOTEL_CONFIRMATION_PREFIX}:`)) {
+      await NormalHotelService.handleConfirmation(interaction);
+      return;
+    }
     if (customId.startsWith(`${PANEL_COMMAND_NAMES.HAZAMA_CONFIRM}:`) || customId.startsWith(`${PANEL_COMMAND_NAMES.HAZAMA_CANCEL}:`)) {
       await HazamaService.handleConfirmation(interaction);
       return;
@@ -194,11 +205,8 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
         await MarketGachaService.showDrawConfirmation(interaction, "invite_point");
         break;
       case PANEL_COMMAND_NAMES.MARKET_GACHA_CONFIRM_CURRENCY:
-        await MarketGachaService.draw(interaction, "currency");
-        break;
       case PANEL_COMMAND_NAMES.MARKET_GACHA_CONFIRM_INVITE_POINT:
-        await MarketGachaService.draw(interaction, "invite_point");
-        break;
+        throw new Error("この確認画面は期限切れです。パネルからやり直してください。");
       case PANEL_COMMAND_NAMES.MARKET_GACHA_CANCEL:
         await interaction.editReply({ content: "市場ガチャをキャンセルしました。", components: [] });
         break;
@@ -310,32 +318,7 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
         );
         break;
       case PANEL_COMMAND_NAMES.HOTEL_VC_NORMAL:
-        if (
-          await HotelVcService.isNormalHotelBonusMember(
-            interaction.member as GuildMember,
-          )
-        ) {
-          const voiceChannelId = await HotelVcService.createHotelVc(
-            interaction,
-            HOTEL_TYPE_NAMES.NORMAL,
-            true,
-          );
-          await HotelVcService.insertIntoVcs(
-            voiceChannelId,
-            interaction.user.id,
-            HOTEL_TYPE.NORMAL,
-            false,
-            true,
-            undefined,
-          );
-          break;
-        }
-        // 現在は通貨支払いのみ。将来的にチケットを戻す場合は showStringSelectMenu を再利用する
-        await showConfirmButton(
-          interaction,
-          PANEL_COMMAND_NAMES.HOTEL_VC_NORMAL,
-          HOTEL_PURCHASE_WAY_TYPE.MONEY,
-        );
+        await NormalHotelService.showConfirmation(interaction);
         break;
       case PANEL_COMMAND_NAMES.HOTEL_TICKET_VIEW:
       case PANEL_COMMAND_NAMES.GAME_TICKET_VIEW:
@@ -499,6 +482,7 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
           // 例: NORMAL_hotel_create_LIA_1234567890
           const parts = customId.split("_");
           const commandId = parts[0]; // NORMAL, SECRET, SECRETLONG, FREEDOM, FREEDOMLONG
+          if (commandId === PANEL_COMMAND_NAMES.HOTEL_VC_NORMAL) throw new Error("この確認画面は期限切れです。パネルからやり直してください。");
           const selectedHotelPurchaseWay = parts[3]; // (LIA, チケット)
           const selectedUserId = parts[4]; // 選択されたユーザーID (user_not_selected or ユーザーID)
           await HotelVcService.executeHotelVc(

@@ -1,6 +1,7 @@
 import type { ItemKey } from "../../type/inventory/item";
 
 export const ITEM_KEY = {
+  HOTEL_NORMAL_FREE: "HOTEL_NORMAL_FREE",
   HOTEL_SECRET_FREE: "HOTEL_SECRET_FREE",
   HOTEL_FREEDOM_FREE: "HOTEL_FREEDOM_FREE",
   SHOP_DISCOUNT_5: "SHOP_DISCOUNT_5",
@@ -15,6 +16,7 @@ export const ITEM_DEFINITIONS: readonly {
   name: string;
   description: string;
 }[] = [
+  { key: ITEM_KEY.HOTEL_NORMAL_FREE, name: "通常ホテル無料券", description: "通常ホテル（12時間）を無料で利用できる券" },
   {
     key: ITEM_KEY.HOTEL_SECRET_FREE,
     name: "VIPホテル無料券",

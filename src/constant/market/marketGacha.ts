@@ -1,45 +1,36 @@
 import type { MarketGachaPrize } from "../../type/market/marketGacha";
+import { ITEM_KEY } from "../inventory/item";
 import { TEXT_CHANNEL_IDS } from "../shared/id";
 
 export const MARKET_GACHA_PRICE = 5_000;
-
 export const MARKET_GACHA_DAILY_LIMIT = 5;
+export const MARKET_GACHA_CONFIRMATION_PREFIX = "marketGachaSession";
+export const MARKET_GACHA_CONFIRMATION_TTL_MS = 10 * 60 * 1000;
 
-/** 確率の単位は %。合計が100になることをテストで保証する。 */
+/** 確率の単位は%。身分別の代替景品は通行券の5%枠を共有する。 */
 export const MARKET_GACHA_PRIZES: readonly MarketGachaPrize[] = [
-  {
-    key: "superchat",
-    label: "サプボ",
-    probability: 18,
-    audioCategory: "superchat",
-  },
-  {
-    key: "song_cover",
-    label: "歌みた",
-    probability: 18,
-    audioCategory: "song_cover",
-  },
+  { key: "superchat", label: "サプボ", probability: 15, audioCategory: "superchat" },
+  { key: "song_cover", label: "歌みた", probability: 15, audioCategory: "song_cover" },
   { key: "idol_collab", label: "アイドルコラボ", probability: 3 },
-  { key: "superchat_nomination", label: "サプボ指名", probability: 5 },
-  { key: "game_free_1", label: "遊戯チケット 1枚", probability: 12.5 },
-  { key: "game_free_3", label: "遊戯チケット 3枚", probability: 7.5 },
-  { key: "secret_free_1", label: "シークレット無料チケット 1枚", probability: 6.5 },
-  { key: "secret_free_3", label: "シークレット無料チケット 3枚", probability: 4 },
-  { key: "freedom_free_1", label: "フリーダム無料チケット 1枚", probability: 4 },
-  {
-    key: "discount_5",
-    label: "市場割引 5%OFF（100万LIA以上の商品は利用不可）",
-    probability: 5,
-  },
-  {
-    key: "discount_10",
-    label: "市場割引 10%OFF（100万LIA以上の商品は利用不可）",
-    probability: 2,
-  },
-  { key: "detention_pass_3_days", label: "どこでも通行券", probability: 7 },
+  { key: "superchat_nomination", label: "サプボ指名", probability: 4 },
+  { key: "voice_message_nomination", label: "ボイメ指名", probability: 4 },
+  { key: "letter", label: "お手紙", probability: 3 },
+  { key: "private_call", label: "個通強制券", probability: 3 },
+  { key: "game_free_1", label: "遊戯チケット1枚", probability: 6, itemKey: ITEM_KEY.GAME_SHORT_FREE, quantity: 1 },
+  { key: "game_free_3", label: "遊戯チケット3枚", probability: 3, itemKey: ITEM_KEY.GAME_SHORT_FREE, quantity: 3 },
+  { key: "secret_free_1", label: "シークレット無料チケット1枚", probability: 5, itemKey: ITEM_KEY.HOTEL_SECRET_FREE, quantity: 1 },
+  { key: "secret_free_3", label: "シークレット無料チケット3枚", probability: 3, itemKey: ITEM_KEY.HOTEL_SECRET_FREE, quantity: 3 },
+  { key: "freedom_free_1", label: "フリーダム無料チケット1枚", probability: 3, itemKey: ITEM_KEY.HOTEL_FREEDOM_FREE, quantity: 1 },
+  { key: "discount_5", label: "市場5%割引券", probability: 5, itemKey: ITEM_KEY.SHOP_DISCOUNT_5, quantity: 1 },
+  { key: "discount_10", label: "市場10%割引券", probability: 2.5, itemKey: ITEM_KEY.SHOP_DISCOUNT_10, quantity: 1 },
+  { key: "detention_pass_3_days", label: "どこでも通行券（3日）", probability: 5 },
   { key: "custom_role_week", label: "カスタムロール（1週間）", probability: 0.5 },
-  { key: "one_more_chance", label: "ワンモアチャンス", probability: 5 },
-  { key: "day_off", label: "1日休み", probability: 2 },
+  { key: "soundboard_week", label: "サウンドボード追加券（1週間）", probability: 0.5 },
+  { key: "one_more_chance", label: "もう1回", probability: 6 },
+  { key: "miss", label: "ハズレ", probability: 2 },
+  { key: "gacha_coin_2", label: "ガチャコイン2枚", probability: 7, coins: 2 },
+  { key: "gacha_coin_4", label: "ガチャコイン4枚", probability: 3, coins: 4 },
+  { key: "gacha_coin_6", label: "ガチャコイン6枚", probability: 1.5, coins: 6 },
 ];
 
 export function selectMarketGachaPrize(randomValue: number): MarketGachaPrize {

@@ -1,3 +1,5 @@
+import { MARKET_GACHA_CONFIRMATION_PREFIX } from "../../constant/market/marketGacha";
+import { NORMAL_HOTEL_CONFIRMATION_PREFIX } from "../../constant/hotel/hotel";
 import { HISTORY_FILTER_PREFIX } from "../../service/currency/historyFilter";
 import { CAST_PAYMENT_PREFIX } from "../../constant/cast/castPayment";
 import { GACHA_COIN_PREFIX } from "../../constant/market/gachaCoin";
@@ -11,6 +13,8 @@ import { PAYMENT_CONFIRMATION_PREFIX } from "../../constant/currency/paymentConf
 /** ボタンが付いているメッセージを更新して応答するかどうかを判定する。 */
 export function shouldDeferButtonUpdate(customId: string): boolean {
   return (
+    customId.startsWith(`${MARKET_GACHA_CONFIRMATION_PREFIX}:`) ||
+    customId.startsWith(`${NORMAL_HOTEL_CONFIRMATION_PREFIX}:`) ||
     customId.startsWith(`${PANEL_COMMAND_NAMES.HAZAMA_CONFIRM}:`) ||
     customId.startsWith(`${PANEL_COMMAND_NAMES.HAZAMA_CANCEL}:`) ||
     customId === PANEL_COMMAND_NAMES.SOLITARY_CELL_CONFIRM ||

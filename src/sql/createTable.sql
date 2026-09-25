@@ -100,6 +100,7 @@ CREATE TABLE IF NOT EXISTS item_users (
 COMMENT='ユーザーのアイテム所持情報';
 
 INSERT INTO items (item_key, name, description) VALUES
+  ('HOTEL_NORMAL_FREE', '通常ホテル無料券', '通常ホテル（12時間）を無料で利用できる券'),
   ('HOTEL_SECRET_FREE', 'VIPホテル無料券', 'VIPホテル（12時間）を無料で利用できる券'),
   ('HOTEL_FREEDOM_FREE', 'フリーダム無料券', 'フリーダム（12時間）を無料で利用できる券'),
   ('SHOP_DISCOUNT_5', '市場割引券 5%OFF', '100万LIA未満の市場支払いに使える5%割引券'),
@@ -275,6 +276,7 @@ CREATE TABLE IF NOT EXISTS market_gacha_draws (
   prize_key VARCHAR(64) NOT NULL COMMENT '景品識別子',
   prize_name VARCHAR(128) NOT NULL COMMENT '抽選時点の景品名',
   payment_source VARCHAR(16) NOT NULL DEFAULT 'currency' COMMENT 'currency または invite_point',
+  bonus_draws_awarded TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'この抽選で付与した当日の追加抽選枠',
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '抽選日時',
   PRIMARY KEY (id),
   KEY idx_market_gacha_draws_user_created (user_id, created_at),

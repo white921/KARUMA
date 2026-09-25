@@ -13,6 +13,7 @@ test("all ticket types have registered item definitions", () => {
   assert.deepEqual(
     ITEM_DEFINITIONS.map((item) => item.key),
     [
+      ITEM_KEY.HOTEL_NORMAL_FREE,
       ITEM_KEY.HOTEL_SECRET_FREE,
       ITEM_KEY.HOTEL_FREEDOM_FREE,
       ITEM_KEY.SHOP_DISCOUNT_5,

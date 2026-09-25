@@ -1,3 +1,4 @@
+import type { ItemKey } from "../inventory/item";
 import type { RowDataPacket } from "mysql2";
 
 export type MarketGachaPrizeKey =
@@ -15,7 +16,17 @@ export type MarketGachaPrizeKey =
   | "detention_pass_3_days"
   | "custom_role_week"
   | "one_more_chance"
-  | "day_off";
+  | "miss"
+  | "voice_message_nomination"
+  | "letter"
+  | "private_call"
+  | "soundboard_week"
+  | "gacha_coin_2"
+  | "gacha_coin_4"
+  | "gacha_coin_6"
+  | "normal_hotel_free_1"
+  | "hazama_free_3"
+  | "solitary_cell_free_1";
 
 export type MarketGachaAudioCategory = "superchat" | "song_cover";
 
@@ -25,6 +36,10 @@ export type MarketGachaPrize = {
   probability: number;
   /** R2上の当選ファイルをDBから選んで渡す景品かどうか */
   audioCategory?: MarketGachaAudioCategory;
+  itemKey?: ItemKey;
+  quantity?: number;
+  /** 毎回の基本1枚を含む合計枚数 */
+  coins?: number;
 };
 
 export type WalletRow = RowDataPacket & { wallet: number };
@@ -36,8 +51,6 @@ export type AudioAssetRow = RowDataPacket & {
   file_name: string;
   public_url: string;
 };
-
-export type DailyLockRow = RowDataPacket & { user_id: string };
 
 export type MarketGachaAudioAsset = {
   id: number;

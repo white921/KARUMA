@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { GachaCoinActivationService } from "./gachaCoinActivationService";
 import {
   ActionRowBuilder,
@@ -11,36 +12,29 @@ import type { PoolConnection, ResultSetHeader } from "mysql2/promise";
 import { ACTION_TYPES } from "../../constant/currency/action";
 import { PANEL_COMMAND_NAMES } from "../../constant/shared/command";
 import { CURRENCY_NAMES } from "../../constant/currency/currency";
-import { GAME_FREE_TICKET_TYPE } from "../../constant/game/gameTicket";
-import { HOTEL_FREE_TICKET_TYPE } from "../../constant/hotel/hotel";
-import { BOT_ID, ROLE_IDS, THREAD_IDS } from "../../constant/shared/id";
+import { BOT_ID, THREAD_IDS } from "../../constant/shared/id";
 import { INVITE_POINT_GACHA_COST } from "../../constant/market/invitePoint";
 import {
   AUDIO_PRIZE_PROHIBITION_NOTICE,
-  GENERAL_INQUIRY_CHANNEL_MENTION,
   MARKET_GACHA_DAILY_LIMIT,
   MARKET_GACHA_PRICE,
-  MARKET_TICKET_GUIDANCE,
+  MARKET_GACHA_CONFIRMATION_PREFIX,
+  MARKET_GACHA_CONFIRMATION_TTL_MS,
   selectMarketGachaPrize,
 } from "../../constant/market/marketGacha";
-import { SHOP_TICKET_TYPE } from "../../constant/market/shopTicket";
-import type { GameFreeTicketType } from "../../type/game/gameTicket";
-import type { HotelFreeTicketType } from "../../type/hotel/hotel";
 import type {
   AudioAssetRow,
-  DailyLockRow,
   MarketGachaAudioAsset,
   MarketGachaAudioCategory,
   MarketGachaPaymentSource,
   MarketGachaPrize,
   WalletRow,
 } from "../../type/market/marketGacha";
-import type { ShopTicketType } from "../../type/market/shopTicket";
-import { GameFreeTicketService } from "../game/gameFreeTicketService";
-import { HotelFreeTicketService } from "../hotel/hotelFreeTicketService";
 import { DbService } from "../system/dbService";
 import { InvitePointService } from "./invitePointService";
-import { ShopTicketService } from "./shopTicketService";
+import { ItemService } from "../inventory/itemService";
+import { GuildMemberCacheService } from "../system/guildMemberCacheService";
+import { formatMarketGachaResult, isSageOrHigherPerformer, performerMention, resolveMarketGachaPrize } from "./marketGachaResult";
 
 export function createMarketGachaPaymentSelectionRow() {
   return new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -59,24 +53,18 @@ export function createMarketGachaPaymentSelectionRow() {
   );
 }
 
-export function createMarketGachaConfirmationRow(
-  paymentSource: MarketGachaPaymentSource,
-) {
-  const confirmCustomId =
-    paymentSource === "currency"
-      ? PANEL_COMMAND_NAMES.MARKET_GACHA_CONFIRM_CURRENCY
-      : PANEL_COMMAND_NAMES.MARKET_GACHA_CONFIRM_INVITE_POINT;
+export function createMarketGachaConfirmationRow(confirmationId: string) {
   return new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
-      .setCustomId(confirmCustomId)
+      .setCustomId(`${MARKET_GACHA_CONFIRMATION_PREFIX}:confirm:${confirmationId}`)
       .setLabel("この内容で引く")
       .setStyle(ButtonStyle.Danger),
     new ButtonBuilder()
-      .setCustomId(PANEL_COMMAND_NAMES.MARKET_GACHA_DRAW)
+      .setCustomId(`${MARKET_GACHA_CONFIRMATION_PREFIX}:back:${confirmationId}`)
       .setLabel("支払い方法を選び直す")
       .setStyle(ButtonStyle.Secondary),
     new ButtonBuilder()
-      .setCustomId(PANEL_COMMAND_NAMES.MARKET_GACHA_CANCEL)
+      .setCustomId(`${MARKET_GACHA_CONFIRMATION_PREFIX}:cancel:${confirmationId}`)
       .setLabel("キャンセル")
       .setStyle(ButtonStyle.Secondary),
   );
@@ -94,7 +82,25 @@ export function formatMarketGachaDrawLog(
   return `🎰 **市場ガチャログ**\nユーザー: <@${userId}>\n景品: **${prize.label}**\n支払い: ${payment}`;
 }
 
+type GachaConfirmation = { userId: string; guildId: string | null; channelId: string; expiresAt: number; paymentSource: MarketGachaPaymentSource };
+
 export class MarketGachaService {
+  private static confirmations = new Map<string, GachaConfirmation>();
+
+  static async handleConfirmation(interaction: ButtonInteraction): Promise<void> {
+    const [prefix, action, id, extra] = interaction.customId.split(":");
+    const confirmation = this.confirmations.get(id);
+    if (prefix !== MARKET_GACHA_CONFIRMATION_PREFIX || extra !== undefined || !["confirm", "cancel", "back"].includes(action) || !confirmation || confirmation.expiresAt <= Date.now()) {
+      throw new Error("この確認画面は期限切れ、または処理済みです。パネルからやり直してください。");
+    }
+    if (confirmation.userId !== interaction.user.id || confirmation.guildId !== interaction.guildId || confirmation.channelId !== interaction.channelId) {
+      throw new Error("この確認画面は操作できません。");
+    }
+    this.confirmations.delete(id);
+    await interaction.editReply({ content: action === "cancel" ? "市場ガチャをキャンセルしました。" : "処理しています…", components: [], embeds: [] });
+    if (action === "back") await this.showPaymentSelection(interaction);
+    else if (action === "confirm") await this.draw(interaction, confirmation.paymentSource);
+  }
   static async showPaymentSelection(interaction: ButtonInteraction): Promise<void> {
     await interaction.editReply({
       content:
@@ -112,104 +118,19 @@ export class MarketGachaService {
       paymentSource === "currency"
         ? `5,000${CURRENCY_NAMES}`
         : `招待ポイント${INVITE_POINT_GACHA_COST}pt`;
-    await interaction.editReply({
-      content:
-        `**確認**\n${paymentDescription}を消費して市場ガチャを引きます。\nよろしいですか？`,
-      components: [createMarketGachaConfirmationRow(paymentSource)],
-    });
-  }
-
-  private static getHotelTicketGrant(prize: MarketGachaPrize):
-    | { ticketType: HotelFreeTicketType; quantity: number }
-    | undefined {
-    switch (prize.key) {
-      case "secret_free_1":
-        return { ticketType: HOTEL_FREE_TICKET_TYPE.SECRET, quantity: 1 };
-      case "secret_free_3":
-        return { ticketType: HOTEL_FREE_TICKET_TYPE.SECRET, quantity: 3 };
-      case "freedom_free_1":
-        return { ticketType: HOTEL_FREE_TICKET_TYPE.FREEDOM, quantity: 1 };
-      default:
-        return undefined;
+    const id = randomUUID();
+    this.confirmations.set(id, { userId: interaction.user.id, guildId: interaction.guildId,
+      channelId: interaction.channelId, expiresAt: Date.now() + MARKET_GACHA_CONFIRMATION_TTL_MS, paymentSource });
+    setTimeout(() => this.confirmations.delete(id), MARKET_GACHA_CONFIRMATION_TTL_MS).unref();
+    try {
+      await interaction.editReply({
+        content: `**確認**\n${paymentDescription}を消費して市場ガチャを引きます。\nよろしいですか？`,
+        components: [createMarketGachaConfirmationRow(id)],
+      });
+    } catch (error) {
+      this.confirmations.delete(id);
+      throw error;
     }
-  }
-
-  private static getShopTicketGrant(
-    prize: MarketGachaPrize,
-  ): ShopTicketType | undefined {
-    switch (prize.key) {
-      case "discount_5":
-        return SHOP_TICKET_TYPE.DISCOUNT_5;
-      case "discount_10":
-        return SHOP_TICKET_TYPE.DISCOUNT_10;
-      default:
-        return undefined;
-    }
-  }
-
-  private static getGameTicketGrant(prize: MarketGachaPrize):
-    | { ticketType: GameFreeTicketType; quantity: number }
-    | undefined {
-    switch (prize.key) {
-      case "game_free_1":
-        return { ticketType: GAME_FREE_TICKET_TYPE.VC_CREATE, quantity: 1 };
-      case "game_free_3":
-        return { ticketType: GAME_FREE_TICKET_TYPE.VC_CREATE, quantity: 3 };
-      default:
-        return undefined;
-    }
-  }
-
-  private static getTicketInstructions(
-    prize: MarketGachaPrize,
-    audioAsset?: MarketGachaAudioAsset,
-  ): string {
-    if (audioAsset) {
-      const audioPrizeName = prize.audioCategory === "superchat" ? "サプボ" : "歌みた";
-      return `${this.getPerformerMention(audioAsset)}の${audioPrizeName}です！\nファイルのURLをDMにて送信したのでご確認ください。\n${AUDIO_PRIZE_PROHIBITION_NOTICE}`;
-    }
-
-    const hotelTicketGrant = this.getHotelTicketGrant(prize);
-    if (hotelTicketGrant?.ticketType === HOTEL_FREE_TICKET_TYPE.SECRET) {
-      return "次回シークレットを使用時に、優先的にチケットが消費されるようになります。";
-    }
-    if (hotelTicketGrant?.ticketType === HOTEL_FREE_TICKET_TYPE.FREEDOM) {
-      return "次回フリーダムを使用時に、優先的にチケットが消費されるようになります。";
-    }
-
-    if (this.getGameTicketGrant(prize)) {
-      return "次回遊戯24hを使用時に、優先的にチケットが消費されるようになります。";
-    }
-
-    if (this.getShopTicketGrant(prize)) {
-      return `${GENERAL_INQUIRY_CHANNEL_MENTION}にて市場チケットを切り、割引券を使用したい旨と商品を商人にお伝えください。割引後の支払額を確認したら、市場パネルからその金額を送金してください。100万LIA以上の商品には利用できません。`;
-    }
-
-    if (prize.key === "idol_collab") {
-      return `<@&${ROLE_IDS.SINGER_CROWN}>と歌コラボすることができます！\nご利用の際は${MARKET_TICKET_GUIDANCE}`;
-    }
-
-    if (prize.key === "superchat_nomination") {
-      return `<@&${ROLE_IDS.CORE_MEMBER_ROLES.HONMEN}> <@&${ROLE_IDS.CORE_MEMBER_ROLES.JUNHONMEN}>の誰か1人にサンプルボイスを撮ってもらうことができます。できたサンプルボイスは市場ガチャに追加されます。\nご利用の際は${MARKET_TICKET_GUIDANCE}`;
-    }
-
-    if (prize.key === "custom_role_week") {
-      return `1週間限定のカスタムロールを作ることができます。\n${MARKET_TICKET_GUIDANCE}`;
-    }
-
-    if (prize.key === "one_more_chance") {
-      return "もう一度ガチャを引くことができます！自動的に招待ポイントが1pt付与されているので、招待ポイントで引くことができます。";
-    }
-
-    if (prize.key === "day_off") {
-      return "今日のガチャはこれでおしまい！また明日ガチャを引いてね。";
-    }
-
-    if (prize.key === "detention_pass_3_days") {
-      return MARKET_TICKET_GUIDANCE;
-    }
-
-    return MARKET_TICKET_GUIDANCE;
   }
 
   private static async sendAudioPrizeDm(
@@ -220,7 +141,7 @@ export class MarketGachaService {
     const audioPrizeName = prize.audioCategory === "superchat" ? "サプボ" : "歌みた";
     try {
       await interaction.user.send(
-        `🎉 ${this.getPerformerMention(audioAsset)}の${audioPrizeName}です！\nファイルURL: <${audioAsset.publicUrl}>\n\n${AUDIO_PRIZE_PROHIBITION_NOTICE}`,
+        `🎉 ${performerMention(audioAsset)}の${audioPrizeName}です！\nファイルURL: <${audioAsset.publicUrl}>\n\n${AUDIO_PRIZE_PROHIBITION_NOTICE}`,
       );
       return true;
     } catch (error) {
@@ -257,18 +178,21 @@ export class MarketGachaService {
   private static async selectAudioAsset(
     connection: PoolConnection,
     category?: MarketGachaAudioCategory,
+    performerIds: string[] = [],
   ): Promise<MarketGachaAudioAsset | undefined> {
     if (!category) {
       return undefined;
     }
 
+    if (!performerIds.length) throw new Error("賢者以上の当選音源がありません。運営へお問い合わせください。");
     const [rows] = await connection.execute<AudioAssetRow[]>(
       `SELECT id, performer_name, performer_user_id, file_name, public_url
        FROM market_gacha_audio_assets
        WHERE category = ? AND is_active = 1
+         AND performer_user_id IN (${performerIds.map(() => "?").join(",")})
        ORDER BY RAND()
        LIMIT 1`,
-      [category],
+      [category, ...performerIds],
     );
     const asset = rows[0];
     if (!asset) {
@@ -284,12 +208,6 @@ export class MarketGachaService {
     };
   }
 
-  private static getPerformerMention(audioAsset: MarketGachaAudioAsset): string {
-    return audioAsset.performerUserId
-      ? `<@${audioAsset.performerUserId}>`
-      : `**${audioAsset.performerName}**`;
-  }
-
   /**
    * 市場ガチャを一回実行する。日次上限、残高引落し、抽選記録を単一トランザクションで確定する。
    */
@@ -297,48 +215,45 @@ export class MarketGachaService {
     interaction: ButtonInteraction,
     paymentSource: MarketGachaPaymentSource = "currency",
   ): Promise<void> {
-    const prize = selectMarketGachaPrize(Math.random());
+    if (!interaction.guild) throw new Error("サーバー内でのみ利用できます。");
+    const member = await interaction.guild.members.fetch({ user: interaction.user.id, force: true });
+    const prize = resolveMarketGachaPrize(selectMarketGachaPrize(Math.random()), member);
+    const performerIds = prize.audioCategory
+      ? (await GuildMemberCacheService.getMembers(interaction.guild)).filter(isSageOrHigherPerformer).map(member => member.id)
+      : [];
     const connection = await DbService.getConnection();
 
     let remainingDraws = 0;
     let afterWallet = 0;
-    let afterInvitePoints: number | undefined;
-    let awardedInvitePoints: number | undefined;
     let afterGachaCoins: number | undefined;
     let audioAsset: MarketGachaAudioAsset | undefined;
     try {
       await connection.beginTransaction();
       await GachaCoinActivationService.lockDrawGate(connection);
       // 付与・交換・過去分集計とロック順を統一する。招待ポイント払いでも口座を先にロックする。
-      await connection.execute("SELECT user_id FROM accounts WHERE user_id = ? FOR UPDATE", [interaction.user.id]);
+      const [accounts] = await connection.execute<RowDataPacket[]>("SELECT user_id FROM accounts WHERE user_id = ? FOR UPDATE", [interaction.user.id]);
+      if (!accounts[0]) throw new Error("口座が見つかりません。");
 
+      // 日付境界をまたいでも回数判定・抽選日時・追加枠を同じ日本時間の日に揃える。
+      const [clockRows] = await connection.execute<RowDataPacket[]>("SELECT UNIX_TIMESTAMP() AS draw_epoch");
+      const drawEpoch = Number(clockRows[0].draw_epoch);
       const [drawRows] = await connection.execute<RowDataPacket[]>(
-        `SELECT id
+        `SELECT id, bonus_draws_awarded
          FROM market_gacha_draws
          WHERE user_id = ?
-           AND created_at >= CONVERT_TZ(DATE(CONVERT_TZ(UTC_TIMESTAMP(), '+00:00', '+09:00')), '+09:00', '+00:00')
-           AND created_at < CONVERT_TZ(DATE_ADD(DATE(CONVERT_TZ(UTC_TIMESTAMP(), '+00:00', '+09:00')), INTERVAL 1 DAY), '+09:00', '+00:00')
+           AND created_at >= CONVERT_TZ(DATE(CONVERT_TZ(FROM_UNIXTIME(?), '+00:00', '+09:00')), '+09:00', '+00:00')
+           AND created_at < CONVERT_TZ(DATE_ADD(DATE(CONVERT_TZ(FROM_UNIXTIME(?), '+00:00', '+09:00')), INTERVAL 1 DAY), '+09:00', '+00:00')
          FOR UPDATE`,
-        [interaction.user.id],
+        [interaction.user.id, drawEpoch, drawEpoch],
       );
-      if (drawRows.length >= MARKET_GACHA_DAILY_LIMIT) {
-        throw new Error(`市場ガチャは1日${MARKET_GACHA_DAILY_LIMIT}回までです。`);
+      const dailyLimit = MARKET_GACHA_DAILY_LIMIT + drawRows.reduce((sum, row) => sum + Number(row.bonus_draws_awarded ?? 0), 0);
+      if (drawRows.length >= dailyLimit) {
+        throw new Error(`市場ガチャは本日${dailyLimit}回までです。`);
       }
-
-      const [dailyLocks] = await connection.execute<DailyLockRow[]>(
-        `SELECT user_id
-         FROM market_gacha_daily_locks
-         WHERE user_id = ?
-           AND lock_date = DATE(CONVERT_TZ(UTC_TIMESTAMP(), '+00:00', '+09:00'))
-         FOR UPDATE`,
-        [interaction.user.id],
-      );
-      if (dailyLocks[0]) {
-        throw new Error("今日のガチャはこれでおしまい！また明日ガチャを引いてね。");
-      }
+      remainingDraws = dailyLimit - drawRows.length - 1 + (prize.key === "one_more_chance" ? 1 : 0);
 
       // 当選ファイルが未登録なら、料金を引き落とす前に中止する。
-      audioAsset = await this.selectAudioAsset(connection, prize.audioCategory);
+      audioAsset = await this.selectAudioAsset(connection, prize.audioCategory, performerIds);
 
       let botAfterWallet = 0;
       if (paymentSource === "currency") {
@@ -372,16 +287,16 @@ export class MarketGachaService {
           BOT_ID,
         ]);
       } else {
-        afterInvitePoints = await InvitePointService.consumeForGacha(
+        await InvitePointService.consumeForGacha(
           connection,
           interaction.user.id,
         );
       }
       const [drawResult] = await connection.execute<ResultSetHeader>(
         `INSERT INTO market_gacha_draws
-         (user_id, prize_key, prize_name, payment_source)
-         VALUES (?, ?, ?, ?)`,
-        [interaction.user.id, prize.key, prize.label, paymentSource],
+         (user_id, prize_key, prize_name, payment_source, bonus_draws_awarded, created_at)
+         VALUES (?, ?, ?, ?, ?, FROM_UNIXTIME(?))`,
+        [interaction.user.id, prize.key, prize.label, paymentSource, prize.key === "one_more_chance" ? 1 : 0, drawEpoch],
       );
       if (audioAsset) {
         await connection.execute(
@@ -390,43 +305,13 @@ export class MarketGachaService {
           [drawResult.insertId, audioAsset.id],
         );
       }
-      const hotelTicketGrant = this.getHotelTicketGrant(prize);
-      if (hotelTicketGrant) {
-        await HotelFreeTicketService.grant(
-          connection,
-          interaction.user.id,
-          hotelTicketGrant.ticketType,
-          hotelTicketGrant.quantity,
-        );
-      }
-      const shopTicketGrant = this.getShopTicketGrant(prize);
-      if (shopTicketGrant) {
-        await ShopTicketService.grant(
-          connection,
-          interaction.user.id,
-          shopTicketGrant,
-        );
-      }
-      const gameTicketGrant = this.getGameTicketGrant(prize);
-      if (gameTicketGrant) {
-        await GameFreeTicketService.grant(
-          connection,
-          interaction.user.id,
-          gameTicketGrant.ticketType,
-          gameTicketGrant.quantity,
-        );
+      if (prize.itemKey && prize.quantity) {
+        await ItemService.grant(connection, interaction.user.id, prize.itemKey, prize.quantity);
       }
       if (prize.key === "one_more_chance") {
-        awardedInvitePoints = await InvitePointService.grantForGachaReward(
+        await InvitePointService.grantForGachaReward(
           connection,
           interaction.user.id,
-        );
-      }
-      if (prize.key === "day_off") {
-        await connection.execute(
-          `INSERT INTO market_gacha_daily_locks (user_id, lock_date)
-           VALUES (?, DATE(CONVERT_TZ(UTC_TIMESTAMP(), '+00:00', '+09:00')))`,
-          [interaction.user.id],
         );
       }
       if (paymentSource === "currency") {
@@ -446,9 +331,9 @@ export class MarketGachaService {
         );
       }
 
-      afterGachaCoins = await GachaCoinActivationService.grantForDraw(connection, interaction.user.id, drawResult.insertId);
+      afterGachaCoins = await GachaCoinActivationService.grantForDraw(connection, interaction.user.id, drawResult.insertId, prize.coins ?? 1);
+      if (afterGachaCoins === undefined) throw new Error("ガチャコインの開始設定を確認してください。");
       await connection.commit();
-      remainingDraws = MARKET_GACHA_DAILY_LIMIT - drawRows.length - 1;
     } catch (error) {
       await connection.rollback();
       throw error;
@@ -461,23 +346,9 @@ export class MarketGachaService {
       ? await this.sendAudioPrizeDm(interaction, prize, audioAsset)
       : false;
     await interaction.editReply({
-      content:
-        "🎉 **市場ガチャ当選！**\n" +
-        `景品：**${prize.label}**\n` +
-        (afterGachaCoins === undefined ? "" : `ガチャコイン：+1枚／所持：${afterGachaCoins}枚\n`) +
-        (paymentSource === "invite_point"
-          ? `消費：${INVITE_POINT_GACHA_COST}招待ポイント／残り：${afterInvitePoints}pt\n`
-          : "") +
-        (prize.key === "day_off"
-          ? "\n"
-          : `本日の残り回数：${remainingDraws}回\n\n`) +
-        (audioAsset && !audioDmDelivered
-          ? `ファイルのURLをDMに送信できませんでした。DMの受信設定を確認後、総合お問い合わせへご連絡ください。\n${AUDIO_PRIZE_PROHIBITION_NOTICE}`
-          : this.getTicketInstructions(prize, audioAsset)) +
-        (awardedInvitePoints === undefined
-          ? ""
-          : `\n現在の招待ポイント：${awardedInvitePoints}pt`),
+      content: formatMarketGachaResult(prize, afterGachaCoins!, remainingDraws, audioAsset, audioDmDelivered),
       components: [],
+      embeds: [],
     });
   }
 }

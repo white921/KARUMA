@@ -1,6 +1,8 @@
 import { PermissionsBitField } from "discord.js";
 import { CURRENCY_NAMES } from "../currency/currency";
 
+export const NORMAL_HOTEL_CONFIRMATION_PREFIX = "normalHotelConfirmation";
+
 export const HOTEL_TYPE = {
   NORMAL: "NORMAL",
   SECRET: "SECRET",

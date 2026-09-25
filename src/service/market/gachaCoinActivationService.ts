@@ -40,13 +40,13 @@ export class GachaCoinActivationService {
     validateRollout(rows[0]);
   }
 
-  /** 抽選・支払いと同一トランザクション内で1枚付与。開始前の抽選には付与しない。 */
-  static async grantForDraw(connection: PoolConnection, userId: string, drawId: number): Promise<number | undefined> {
+  /** 抽選・支払いと同一トランザクション内で基本分を含む合計枚数を付与。開始前の抽選には付与しない。 */
+  static async grantForDraw(connection: PoolConnection, userId: string, drawId: number, totalCoins = 1): Promise<number | undefined> {
     const [draws] = await connection.execute<RowDataPacket[]>(
       "SELECT user_id, UNIX_TIMESTAMP(created_at) AS draw_epoch FROM market_gacha_draws WHERE id = ?", [drawId]);
     if (!draws[0] || String(draws[0].user_id) !== userId) throw new Error("コイン付与対象のガチャ履歴が一致しません。");
     if (Number(draws[0].draw_epoch) < GACHA_COIN_ACTIVATION_EPOCH) return undefined;
-    const result = await credit(connection, userId, 1, `gacha:${drawId}`, "gacha_draw", `市場ガチャ抽選ID: ${drawId}`);
+    const result = await credit(connection, userId, totalCoins, `gacha:${drawId}`, "gacha_draw", `市場ガチャ抽選ID: ${drawId}`);
     return result.balance;
   }
 

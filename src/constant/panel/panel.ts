@@ -70,6 +70,7 @@ const NORMAL_HOTEL_GUIDANCE = [
   `**・ ${HOTEL_TYPE_NAMES.NORMAL}**`,
   "通常ツーショットVC",
   NORMAL_HOTEL_PRICE_GUIDANCE,
+  "通常ホテル無料券を持っている場合は1枚を優先して消費します。もともと無料の方は消費しません。",
   "",
   `**・ 残高確認**：現在の${CURRENCY_NAMES}残高を確認できます。`,
   "**・ チケット確認**：所持しているチケットと枚数を確認できます。",
@@ -132,7 +133,7 @@ export const HAZAMA_PANEL_MESSAGES = {
 export const SHOP_PANEL_MESSAGES = {
   TITLE: "市場パネル",
   DESCRIPTION:
-    `市場の商品購入はこちらのパネルから行ってください。\n購入前に使用するチケットを選択し、商品名と割引適用後の購入金額を入力してください。\n\n**【市場ガチャ】**\n1回5,000${CURRENCY_NAMES}または招待ポイント1pt／合計で1日5回まで。\n商品案内は<#${TEXT_CHANNEL_IDS.MARKET_INFO}>にてご確認いただけます。`,
+    `市場の商品購入はこちらのパネルから行ってください。\n購入前に使用するチケットを選択し、商品名と割引適用後の購入金額を入力してください。\n\n**【市場ガチャ】**\n1回5,000${CURRENCY_NAMES}または招待ポイント1pt／合計で1日5回まで。「もう1回」が当たるたびに、当日の上限が1回増えます。\n商品案内は<#${TEXT_CHANNEL_IDS.MARKET_INFO}>にてご確認いただけます。`,
   VIEW: "残高確認",
   SHOP_SEND: "商品購入",
   TICKET_VIEW: "チケット確認",

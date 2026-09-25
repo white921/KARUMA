@@ -5,6 +5,7 @@ import { ItemService } from "./itemService";
 
 const GROUPS: readonly { title: string; tickets: readonly { key: ItemKey; label: string }[] }[] = [
   { title: "ホテル無料券", tickets: [
+    { key: ITEM_KEY.HOTEL_NORMAL_FREE, label: "通常ホテル（12時間）" },
     { key: ITEM_KEY.HOTEL_SECRET_FREE, label: "VIPホテル（12時間）" },
     { key: ITEM_KEY.HOTEL_FREEDOM_FREE, label: "フリーダム（12時間）" },
   ] },

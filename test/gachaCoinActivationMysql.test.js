@@ -132,7 +132,7 @@ test('ガチャコイン開始日時・過去分付与 MySQL統合テスト', { 
   });
   await t.test('コイン履歴保存に失敗すると本物のガチャ処理の支払い・抽選も全て戻す', async () => {
     await reset(); now = boundary;
-    t.mock.method(Math, 'random', () => 0.999);
+    t.mock.method(Math, 'random', () => 0.875);
     t.mock.method(MarketGachaService, 'sendDrawLog', async () => {});
     await pool.query("CREATE TRIGGER reject_draw_coin BEFORE INSERT ON gacha_coin_transactions FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='coin log failure'");
     try {
@@ -146,7 +146,7 @@ test('ガチャコイン開始日時・過去分付与 MySQL統合テスト', { 
     } finally { await pool.query('DROP TRIGGER reject_draw_coin'); }
   });
   await t.test('本物のガチャ処理でLIA・招待ポイントともに1回1枚、支払失敗なら付与なし', async () => {
-    t.mock.method(Math, 'random', () => 0.999);
+    t.mock.method(Math, 'random', () => 0.875);
     t.mock.method(MarketGachaService, 'sendDrawLog', async () => {});
     for (const paymentSource of ['currency', 'invite_point']) {
       await reset(); now = boundary;
@@ -155,7 +155,7 @@ test('ガチャコイン開始日時・過去分付与 MySQL統合テスト', { 
       const interaction = { user: { id: '1001' }, guild: { members: { fetch: async () => ({ roles: { cache: new Set([ROLE_IDS.GIJUTU_LEADER]) } }) } }, editReply: async p => replies.push(p) };
       await MarketGachaService.draw(interaction, paymentSource);
       assert.equal(await GachaCoinService.getBalance('1001'), 1);
-      assert.match(replies[0].content, /ガチャコイン：\+1枚／所持：1枚/);
+      assert.match(replies[0].content, /ガチャコイン：＋1枚\n現在の所持数：1枚/);
       const [[wallet]] = await pool.query('SELECT wallet FROM accounts WHERE user_id=1001');
       assert.equal(Number(wallet.wallet), paymentSource === 'currency' ? 95000 : 100000);
       await pool.query('UPDATE accounts SET wallet=0 WHERE user_id=1001');
