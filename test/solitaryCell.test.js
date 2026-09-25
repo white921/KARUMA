@@ -89,6 +89,8 @@ test("solitary-cell panel and action history use dedicated identifiers", () => {
   assert.equal(buttons[0].emoji, undefined);
   assert.equal(buttons[1].custom_id, PANEL_COMMAND_NAMES.VIEW);
   assert.equal(buttons[1].emoji, undefined);
+  assert.equal(buttons[2].custom_id, PANEL_COMMAND_NAMES.SOLITARY_CELL_TICKET_VIEW);
+  assert.equal(buttons[2].label, "チケット確認");
   const { SOLITARY_CELL_MESSAGES } = require("../dist/constant/vc/solitaryCell.js");
   assert.match(SOLITARY_CELL_MESSAGES.DESCRIPTION, /収容官・収容支配人：無料/);
   assert.match(SOLITARY_CELL_MESSAGES.DESCRIPTION, /召役罪：10,000LIA/);

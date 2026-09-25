@@ -1,89 +1,58 @@
 import { ButtonInteraction } from "discord.js";
+import { ITEM_KEY } from "../../constant/inventory/item";
+import type { ItemKey } from "../../type/inventory/item";
+import { ItemService } from "./itemService";
 
-import {
-  HOTEL_FREE_TICKET_TYPE,
-} from "../../constant/hotel/hotel";
-import { GAME_FREE_TICKET_TYPE } from "../../constant/game/gameTicket";
-import { SHOP_TICKETS } from "../../constant/market/shopTicket";
-import { HotelFreeTicketService } from "../hotel/hotelFreeTicketService";
-import { GameFreeTicketService } from "../game/gameFreeTicketService";
-import { ShopTicketService } from "../market/shopTicketService";
+const GROUPS: readonly { title: string; tickets: readonly { key: ItemKey; label: string }[] }[] = [
+  { title: "ホテル無料券", tickets: [
+    { key: ITEM_KEY.HOTEL_SECRET_FREE, label: "VIPホテル（12時間）" },
+    { key: ITEM_KEY.HOTEL_FREEDOM_FREE, label: "フリーダム（12時間）" },
+  ] },
+  { title: "市場割引券", tickets: [
+    { key: ITEM_KEY.SHOP_DISCOUNT_5, label: "市場割引 5%OFF" },
+    { key: ITEM_KEY.SHOP_DISCOUNT_10, label: "市場割引 10%OFF" },
+  ] },
+  { title: "遊戯チケット", tickets: [
+    { key: ITEM_KEY.GAME_SHORT_FREE, label: "VC作成（24時間）" },
+  ] },
+  { title: "狭間・独房無料券", tickets: [
+    { key: ITEM_KEY.HAZAMA_FREE, label: "辺境の狭間（12時間）" },
+    { key: ITEM_KEY.SOLITARY_CELL_FREE, label: "独房（12時間）" },
+  ] },
+];
 
 export class TicketViewService {
-  /** パネルの種類に関係なく、所持している全チケットを表示する。 */
-  static async createTicketMessage(userId: string): Promise<string> {
-    const [hotelQuantities, ownedShopTickets, gameQuantities] =
-      await Promise.all([
-        HotelFreeTicketService.getTicketQuantities(userId),
-        ShopTicketService.getOwnedTickets(userId),
-        GameFreeTicketService.getTicketQuantities(userId),
-      ]);
-    const shopQuantities = new Map(
-      ownedShopTickets.map((ticket) => [ticket.type, ticket.quantity]),
-    );
+  private static async createMessage(userId: string, groups = GROUPS, title = "所持チケット一覧"): Promise<string> {
+    const quantities = await ItemService.getQuantities(userId, groups.flatMap(group => group.tickets.map(ticket => ticket.key)));
+    const sections = groups.flatMap(group => {
+      const tickets = group.tickets.filter(ticket => (quantities.get(ticket.key) ?? 0) >= 1);
+      return tickets.length ? [`**${group.title}**\n${tickets.map(ticket => `${ticket.label}: ${quantities.get(ticket.key)}枚`).join("\n")}`] : [];
+    });
+    return [`🎫 **${title}**`, ...(sections.length ? sections : ["所持しているチケットはありません。"])].join("\n\n");
+  }
 
-    return [
-      "🎫 **所持チケット一覧**",
-      "",
-      "**ホテル無料券**",
-      `VIPホテル（12時間）: ${hotelQuantities[HOTEL_FREE_TICKET_TYPE.SECRET]}枚`,
-      `フリーダム（12時間）: ${hotelQuantities[HOTEL_FREE_TICKET_TYPE.FREEDOM]}枚`,
-      "",
-      "**市場割引券**",
-      ...SHOP_TICKETS.map(
-        (ticket) => `${ticket.label}: ${shopQuantities.get(ticket.type) ?? 0}枚`,
-      ),
-      "",
-      "**遊戯チケット**",
-      `VC作成（24時間）: ${gameQuantities[GAME_FREE_TICKET_TYPE.VC_CREATE]}枚`,
-    ].join("\n");
+  /** パネルの種類に関係なく、1枚以上所持している全チケットを表示する。 */
+  static async createTicketMessage(userId: string): Promise<string> {
+    return this.createMessage(userId);
   }
 
   static async createHotelTicketMessage(userId: string): Promise<string> {
-    const quantities = await HotelFreeTicketService.getTicketQuantities(userId);
-    return [
-      "🎫 **ホテル無料券**",
-      `VIPホテル（12時間）: ${quantities[HOTEL_FREE_TICKET_TYPE.SECRET]}枚`,
-      `フリーダム（12時間）: ${quantities[HOTEL_FREE_TICKET_TYPE.FREEDOM]}枚`,
-    ].join("\n");
+    return this.createMessage(userId, [GROUPS[0]], "ホテル無料券");
   }
 
   static async createShopTicketMessage(userId: string): Promise<string> {
-    const ownedTickets = await ShopTicketService.getOwnedTickets(userId);
-    const quantities = new Map(
-      ownedTickets.map((ticket) => [ticket.type, ticket.quantity]),
-    );
-    return [
-      "🎫 **市場割引券**",
-      ...SHOP_TICKETS.map(
-        (ticket) => `${ticket.label}: ${quantities.get(ticket.type) ?? 0}枚`,
-      ),
-    ].join("\n");
+    return this.createMessage(userId, [GROUPS[1]], "市場割引券");
   }
 
   static async createGameTicketMessage(userId: string): Promise<string> {
-    const quantities = await GameFreeTicketService.getTicketQuantities(userId);
-    return [
-      "🎫 **遊戯チケット**",
-      `VC作成（24時間）: ${quantities[GAME_FREE_TICKET_TYPE.VC_CREATE]}枚`,
-    ].join("\n");
+    return this.createMessage(userId, [GROUPS[2]], "遊戯チケット");
   }
 
-  static async viewHotelTickets(interaction: ButtonInteraction): Promise<void> {
-    await this.viewTickets(interaction);
-  }
-
-  static async viewShopTickets(interaction: ButtonInteraction): Promise<void> {
-    await this.viewTickets(interaction);
-  }
-
-  static async viewGameTickets(interaction: ButtonInteraction): Promise<void> {
-    await this.viewTickets(interaction);
-  }
+  static async viewHotelTickets(interaction: ButtonInteraction): Promise<void> { await this.viewTickets(interaction); }
+  static async viewShopTickets(interaction: ButtonInteraction): Promise<void> { await this.viewTickets(interaction); }
+  static async viewGameTickets(interaction: ButtonInteraction): Promise<void> { await this.viewTickets(interaction); }
 
   static async viewTickets(interaction: ButtonInteraction): Promise<void> {
-    await interaction.editReply({
-      content: await this.createTicketMessage(interaction.user.id),
-    });
+    await interaction.editReply({ content: await this.createTicketMessage(interaction.user.id) });
   }
 }

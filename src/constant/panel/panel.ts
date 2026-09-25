@@ -124,7 +124,7 @@ export const GAME_CRIMINAL_PANEL_MESSAGES = {
 
 export const HAZAMA_PANEL_MESSAGES = {
   TITLE: "辺境の狭間 パネル",
-  DESCRIPTION: `辺境の狭間に入るための滞在許可証を購入できます。\n\n**【滞在許可証】**\n1,000${CURRENCY_NAMES}／12時間\n購入後12時間まで、辺境の狭間をご利用できます。\n\n**・残高確認**：現在の${CURRENCY_NAMES}残高を確認できます。`,
+  DESCRIPTION: `辺境の狭間に入るための滞在許可証を購入できます。\n\n**【滞在許可証】**\n1,000${CURRENCY_NAMES}／12時間\n購入後12時間まで、辺境の狭間をご利用できます。\n無料券を持っている場合は、料金の代わりに1枚を優先して消費します。狭間従業員・狭間統括は消費しません。\n\n**・チケット確認**：所持チケットを確認できます。\n**・残高確認**：現在の${CURRENCY_NAMES}残高を確認できます。`,
   ACCESS: "滞在許可証を購入",
   ERROR: "辺境の狭間パネルチャンネルが見つからないか、無効な型です。",
 };

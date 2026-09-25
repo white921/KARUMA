@@ -251,7 +251,7 @@ export class ActionService {
           channel = await interaction.client.channels.fetch(channelId);
           if (channel && channel.isTextBased()) {
             await (channel as TextChannel).send(
-              `**辺境の狭間 滞在許可証購入**\n<@${fromUserId}>が${formatNumber(amount)}${CURRENCY_NAMES}で滞在許可証を購入しました。`,
+              `**辺境の狭間 滞在許可証購入**\n<@${fromUserId}>が${formatNumber(amount)}${CURRENCY_NAMES}で滞在許可証を取得しました。${comment ? `\n備考: ${comment}` : ""}`,
             );
           }
           break;

@@ -18,6 +18,8 @@ test("all ticket types have registered item definitions", () => {
       ITEM_KEY.SHOP_DISCOUNT_5,
       ITEM_KEY.SHOP_DISCOUNT_10,
       ITEM_KEY.GAME_SHORT_FREE,
+      ITEM_KEY.HAZAMA_FREE,
+      ITEM_KEY.SOLITARY_CELL_FREE,
     ],
   );
 });

@@ -14,13 +14,15 @@ const FREE = ROLE_IDS.CORE_MEMBER_ROLES.JUNMEN;
 const member = (roles) => ({ displayName: "利用者", roles: { cache: new Set(roles) } });
 
 function fixture(t, roles = [PAID]) {
-  const state = { logs: [], wallet: 100000, vcs: [], actions: [], created: [], deleted: [], replies: [], commits: 0, rollbacks: 0, roles };
+  const state = { tickets: 0, logs: [], wallet: 100000, vcs: [], actions: [], created: [], deleted: [], replies: [], commits: 0, rollbacks: 0, roles };
   t.mock.method(AccountService, "hasAccount", async () => true);
   t.mock.method(DbService, "getConnection", async () => {
-    const snapshot = { wallet: state.wallet, vcs: [...state.vcs], actions: [...state.actions] };
+    const snapshot = { tickets: state.tickets, wallet: state.wallet, vcs: [...state.vcs], actions: [...state.actions] };
     return {
       beginTransaction: async () => {},
       execute: async (sql, params) => {
+        if (sql.includes("FROM item_users")) return [[{ item_id: 1, item_key: "SOLITARY_CELL_FREE", quantity: state.tickets }]];
+        if (sql.includes("UPDATE item_users")) state.tickets--;
         if (sql.includes("SELECT wallet")) return [[{ wallet: sql.includes("FOR UPDATE") ? state.wallet : 0 }]];
         if (sql.includes("UPDATE accounts")) state.wallet = params[0];
         if (sql.includes("INSERT INTO vcs")) state.vcs.push(params);
@@ -88,7 +90,7 @@ test("入口と確定は二重応答せず、課金・期限・履歴を記録�
   assert.match(f.state.logs[0], /料金: 10,000LIA/);
   assert.equal(f.state.created[0].userLimit, 1);
   assert.equal(f.state.vcs[0][2], SOLITARY_CELL.TYPE);
-  assert.ok(f.state.vcs[0][3].getTime() >= before + 12 * 60 * 60 * 1000);
+  assert.ok(f.state.vcs[0][4].getTime() >= before + 12 * 60 * 60 * 1000);
   assert.deepEqual(f.state.replies.at(-1).components, []);
   assert.match(f.state.replies.at(-1).content, /作成しました/);
 });
@@ -195,3 +197,56 @@ for (const failure of ["failCreate", "failDb", "failReply", "insufficientWallet"
     }
   });
 }
+
+test("無料券1枚を優先し残高0でも独房を作成できる", async t => {
+  const f = fixture(t);
+  f.state.tickets = 2;
+  f.state.wallet = 0;
+  await handlePanelButton(f.source);
+  assert.match(f.state.replies[0].embeds[0].toJSON().description, /独房無料券1枚/);
+  await handlePanelButton(f.button());
+  assert.equal(f.state.tickets, 1);
+  assert.equal(f.state.wallet, 0);
+  assert.equal(f.state.actions[0][1], 0);
+  assert.equal(f.state.vcs[0][3], true);
+  assert.match(f.state.logs[0], /独房無料券1枚/);
+  await assert.rejects(handlePanelButton(f.button()), /処理済み/);
+  assert.equal(f.state.tickets, 1);
+});
+
+for (const role of [FREE, ROLE_IDS.MONSTER_STAFF, ROLE_IDS.MONSTER_LEADER]) {
+  test(`無料ロール ${role} は券を消費しない`, async t => {
+    const f = fixture(t, [role]);
+    f.state.tickets = 1;
+    await handlePanelButton(f.source);
+    await handlePanelButton(f.button());
+    assert.equal(f.state.tickets, 1);
+    assert.equal(f.state.actions[0][1], 0);
+    assert.equal(f.state.vcs[0][3], false);
+  });
+}
+
+for (const failure of ["failCreate", "failDb"]) {
+  test(`チケット使用時の ${failure} で券は失われない`, async t => {
+    const f = fixture(t);
+    f.state.tickets = 1;
+    f.state[failure] = true;
+    await handlePanelButton(f.source);
+    await assert.rejects(handlePanelButton(f.button()));
+    assert.equal(f.state.tickets, 1);
+    assert.equal(f.state.wallet, 100000);
+    assert.equal(f.state.vcs.length, 0);
+  });
+}
+
+test("確認後に券がなくなっても自動課金せず再確認する", async t => {
+  const f = fixture(t);
+  f.state.tickets = 1;
+  await handlePanelButton(f.source);
+  f.state.tickets = 0;
+  await handlePanelButton(f.button());
+  assert.equal(f.state.actions.length, 0);
+  assert.equal(f.state.created.length, 0);
+  assert.equal(f.state.wallet, 100000);
+  assert.match(f.state.replies.at(-1).content, /所持状況が変わった/);
+});

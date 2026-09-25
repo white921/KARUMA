@@ -16,8 +16,8 @@ const { TicketExchangeLogService } = require('../dist/service/inventory/ticketEx
 const { HistoryService } = require('../dist/service/currency/historyService');
 const channel = { channelId: TEXT_CHANNEL_IDS.TICKET_EXCHANGE_PANEL, guildId: 'guild', user: { id: '1001' } };
 
-test('換金対象は所持品の全5種類、すべて5枚単位で受け付ける', () => {
-  assert.deepEqual(new Set(TICKET_EXCHANGE_RATES.map(r => r.itemKey)), new Set(Object.values(ITEM_KEY)));
+test('換金対象は従来の5種類、狭間・独房券は対象外', () => {
+  assert.deepEqual(new Set(TICKET_EXCHANGE_RATES.map(r => r.itemKey)), new Set([ITEM_KEY.HOTEL_SECRET_FREE, ITEM_KEY.HOTEL_FREEDOM_FREE, ITEM_KEY.SHOP_DISCOUNT_5, ITEM_KEY.SHOP_DISCOUNT_10, ITEM_KEY.GAME_SHORT_FREE]));
   assert.deepEqual(TICKET_EXCHANGE_RATES.map(r => r.unitPrice * 5), [15000, 25000, 2500, 2500, 5000]);
   for (const q of ['5', '10', ' 15 ', '100000']) assert.equal(parseTicketExchangeQuantity(q), Number(q));
   for (const q of ['0', '1', '4', '6', '-5', '5.0', '1e1', '', 'NaN', '100005', '5枚']) assert.throws(() => parseTicketExchangeQuantity(q));

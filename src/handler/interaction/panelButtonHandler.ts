@@ -107,6 +107,10 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
   }
 
   try {
+    if (customId.startsWith(`${PANEL_COMMAND_NAMES.HAZAMA_CONFIRM}:`) || customId.startsWith(`${PANEL_COMMAND_NAMES.HAZAMA_CANCEL}:`)) {
+      await HazamaService.handleConfirmation(interaction);
+      return;
+    }
     if (customId.startsWith(`${PANEL_COMMAND_NAMES.SOLITARY_CELL_CONFIRM}:`)) {
       await SolitaryCellService.create(interaction);
       return;
@@ -335,6 +339,8 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
         break;
       case PANEL_COMMAND_NAMES.HOTEL_TICKET_VIEW:
       case PANEL_COMMAND_NAMES.GAME_TICKET_VIEW:
+      case PANEL_COMMAND_NAMES.HAZAMA_TICKET_VIEW:
+      case PANEL_COMMAND_NAMES.SOLITARY_CELL_TICKET_VIEW:
         await TicketViewService.viewTickets(interaction);
         break;
       case PANEL_COMMAND_NAMES.HOTEL_VC_SECRET:
@@ -461,11 +467,7 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
         });
         break;
       case PANEL_COMMAND_NAMES.HAZAMA_ACCESS:
-        if (await HazamaService.isFree(interaction.member as GuildMember)) {
-          await HazamaService.purchase(interaction);
-        } else {
-          await showConfirmButton(interaction, customId);
-        }
+        await HazamaService.showConfirmation(interaction);
         break;
       default:
         if (CreatorEmblemPaymentService.isConfirmCustomId(customId)) {
@@ -533,8 +535,7 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
           }
           break;
         } else if (customId === `${PANEL_COMMAND_NAMES.HAZAMA_ACCESS}_hazama_confirm`) {
-          await HazamaService.purchase(interaction);
-          break;
+          throw new Error("この確認画面は期限切れです。パネルからやり直してください。");
         } else if (customId.includes("_diary_confirm")) {
           const commandId = customId.replace("_diary_confirm", "");
           const pending = DiaryService.consumePendingDiaryAction(

@@ -25,6 +25,8 @@ import type { SolitaryCellConfirmation, SolitaryCellTier, WalletRow } from "../.
 import { formatNumber } from "../../util/shared/number";
 import { hasSystemAdminRole } from "../../util/shared/operatorPermission";
 import { DbService } from "../system/dbService";
+import { ITEM_KEY } from "../../constant/inventory/item";
+import { ItemService } from "../inventory/itemService";
 
 export class SolitaryCellService {
   private static confirmations = new Map<string, SolitaryCellConfirmation>();
@@ -66,6 +68,7 @@ export class SolitaryCellService {
     tier: SolitaryCellTier,
     notice = "",
   ) {
+    const useTicket = tier.price > 0 && await ItemService.hasItem(interaction.user.id, ITEM_KEY.SOLITARY_CELL_FREE);
     const id = randomUUID();
     this.confirmations.set(id, {
       userId: interaction.user.id,
@@ -73,10 +76,11 @@ export class SolitaryCellService {
       channelId: interaction.channelId,
       expiresAt: Date.now() + SOLITARY_CELL.CONFIRMATION_TTL_MS,
       tier: { ...tier },
+      useTicket,
     });
     setTimeout(() => this.confirmations.delete(id), SOLITARY_CELL.CONFIRMATION_TTL_MS).unref();
     const priceLabel =
-      tier.price === 0
+      useTicket ? "独房無料券1枚（LIA消費なし）" : tier.price === 0
         ? "無料"
         : `${formatNumber(tier.price)}${CURRENCY_NAMES}`;
 
@@ -147,8 +151,9 @@ export class SolitaryCellService {
     await interaction.editReply({ content: "処理しています…", embeds: [], components: [] });
     const member = await guild.members.fetch({ user: interaction.user.id, force: true });
     const tier = this.getTier(member);
-    if (tier.price !== confirmation.tier.price) {
-      await this.renderConfirmation(interaction, tier, "料金が変更されたため、内容を確認してもう一度確定してください。");
+    const useTicket = tier.price > 0 && await ItemService.hasItem(interaction.user.id, ITEM_KEY.SOLITARY_CELL_FREE);
+    if (tier.price !== confirmation.tier.price || useTicket !== confirmation.useTicket) {
+      await this.renderConfirmation(interaction, tier, "料金が変更されたか、チケットの所持状況が変わったため、内容を確認してもう一度確定してください。");
       return;
     }
 
@@ -195,6 +200,7 @@ export class SolitaryCellService {
         tier.price,
         voiceChannel.id,
         expireAt,
+        useTicket,
       );
     } catch (error) {
       await voiceChannel.delete().catch((deleteError) =>
@@ -213,11 +219,11 @@ export class SolitaryCellService {
       )
       .catch((error) => console.error("独房VCへの案内送信に失敗しました:", error));
 
-    await this.sendLog(interaction, tier, voiceChannel.id);
+    await this.sendLog(interaction, useTicket ? { ...tier, price: 0 } : tier, voiceChannel.id, useTicket);
     await interaction.editReply({
       content:
         `✅ 独房を作成しました。\n<#${voiceChannel.id}>\n` +
-        `${tier.price === 0 ? "料金：無料" : `料金：${formatNumber(tier.price)}${CURRENCY_NAMES}`}`,
+        `${useTicket ? "独房無料券を1枚使用しました。" : tier.price === 0 ? "料金：無料" : `料金：${formatNumber(tier.price)}${CURRENCY_NAMES}`}`,
       embeds: [],
       components: [],
     });
@@ -228,6 +234,7 @@ export class SolitaryCellService {
     price: number,
     voiceChannelId: string,
     expireAt: Date,
+    useTicket: boolean,
   ): Promise<number> {
     const connection = await DbService.getConnection();
     try {
@@ -240,6 +247,12 @@ export class SolitaryCellService {
       if (!account) {
         throw new Error("口座が見つかりません。");
       }
+      // 在庫の確定と消費を口座ロックの内側で行う。支払方法が変わったら全体を戻し、勝手に課金しない。
+      const consumed = price > 0 && await ItemService.consume(connection, userId, ITEM_KEY.SOLITARY_CELL_FREE);
+      if (consumed !== useTicket) {
+        throw new Error("チケットの所持状況が変わりました。パネルからもう一度確認してください。");
+      }
+      if (useTicket) price = 0;
       if (account.wallet < price) {
         throw new Error(
           `残高が不足しています。\n現在の残高: ${formatNumber(account.wallet)}${CURRENCY_NAMES}\n必要な残高: ${formatNumber(price)}${CURRENCY_NAMES}`,
@@ -255,8 +268,8 @@ export class SolitaryCellService {
       }
       await connection.execute(
         `INSERT INTO vcs (channel_id, owner_id, guest_id, type, is_ticket, is_bonus, expire_at)
-         VALUES (?, ?, NULL, ?, FALSE, FALSE, ?)`,
-        [voiceChannelId, userId, SOLITARY_CELL.TYPE, expireAt],
+         VALUES (?, ?, NULL, ?, ?, FALSE, ?)`,
+        [voiceChannelId, userId, SOLITARY_CELL.TYPE, useTicket, expireAt],
       );
 
       const [botRows] = await connection.execute<WalletRow[]>(
@@ -275,7 +288,7 @@ export class SolitaryCellService {
           BOT_ID,
           afterWallet,
           botWallet,
-          `独房作成: ${SOLITARY_CELL.DURATION_HOURS}時間`,
+          `独房作成: ${SOLITARY_CELL.DURATION_HOURS}時間${useTicket ? "（独房無料券1枚使用）" : ""}`,
         ],
       );
       await connection.commit();
@@ -292,6 +305,7 @@ export class SolitaryCellService {
     interaction: ButtonInteraction,
     tier: SolitaryCellTier,
     voiceChannelId: string,
+    useTicket = false,
   ) {
     try {
       const channel = await interaction.client.channels.fetch(
@@ -304,6 +318,7 @@ export class SolitaryCellService {
         `**独房作成**\n<@${interaction.user.id}>\n` +
           `対象ロール: ${tier.label}\n` +
           `料金: ${tier.price === 0 ? "無料" : `${formatNumber(tier.price)}${CURRENCY_NAMES}`}\n` +
+          (useTicket ? "使用チケット: 独房無料券1枚\n" : "") +
           `作成VC: <#${voiceChannelId}>\n` +
           `利用時間: ${SOLITARY_CELL.DURATION_HOURS}時間`,
       );

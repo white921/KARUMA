@@ -102,6 +102,10 @@ export const PANEL_COMMAND_NAMES = {
   GAME_TICKET_VIEW: "gameTicketView",
   MINECRAFT_PASS: "gameMinecraftPass",
   HAZAMA_ACCESS: "hazamaAccess",
+  HAZAMA_CONFIRM: "hazamaConfirm",
+  HAZAMA_CANCEL: "hazamaCancel",
+  HAZAMA_TICKET_VIEW: "hazamaTicketView",
+  SOLITARY_CELL_TICKET_VIEW: "solitaryCellTicketView",
   REDEPLOY: "redeploy",
   // ADMIN_CHANGE_NAME: "adminChangeName",
 };

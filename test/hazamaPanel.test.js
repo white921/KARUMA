@@ -15,7 +15,10 @@ test("hazama panel uses the configured payment channel and access role", () => {
   assert.match(HAZAMA_PANEL_MESSAGES.DESCRIPTION, /1,000LIA／12時間/);
   assert.doesNotMatch(HAZAMA_PANEL_MESSAGES.DESCRIPTION, /スマートフォン/);
 
-  const button = createHazamaPanelActionRow().toJSON().components[0];
+  const buttons = createHazamaPanelActionRow().toJSON().components;
+  assert.equal(buttons[2].custom_id, PANEL_COMMAND_NAMES.HAZAMA_TICKET_VIEW);
+  assert.equal(buttons[2].label, "チケット確認");
+  const button = buttons[0];
   assert.equal(button.custom_id, PANEL_COMMAND_NAMES.HAZAMA_ACCESS);
 });
 

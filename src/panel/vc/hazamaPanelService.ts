@@ -23,6 +23,10 @@ export function createHazamaPanelActionRow() {
       .setCustomId(PANEL_COMMAND_NAMES.VIEW)
       .setLabel(PANEL_MESSAGES.VIEW)
       .setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder()
+      .setCustomId(PANEL_COMMAND_NAMES.HAZAMA_TICKET_VIEW)
+      .setLabel("チケット確認")
+      .setStyle(ButtonStyle.Secondary),
   );
 }
 

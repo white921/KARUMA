@@ -13,4 +13,5 @@ export type SolitaryCellConfirmation = {
   channelId: string;
   expiresAt: number;
   tier: SolitaryCellTier;
+  useTicket: boolean;
 };

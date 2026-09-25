@@ -23,6 +23,10 @@ export function createSolitaryCellPanelActionRow() {
       .setCustomId(PANEL_COMMAND_NAMES.VIEW)
       .setLabel("残高確認")
       .setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder()
+      .setCustomId(PANEL_COMMAND_NAMES.SOLITARY_CELL_TICKET_VIEW)
+      .setLabel("チケット確認")
+      .setStyle(ButtonStyle.Secondary),
   );
 }
 
