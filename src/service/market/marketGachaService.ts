@@ -35,6 +35,7 @@ import { InvitePointService } from "./invitePointService";
 import { ItemService } from "../inventory/itemService";
 import { GuildMemberCacheService } from "../system/guildMemberCacheService";
 import { formatMarketGachaResult, isSageOrHigherPerformer, performerMention, resolveMarketGachaPrize } from "./marketGachaResult";
+import { selectWeightedAudioAsset } from "./marketGachaAudioSelection";
 
 export function createMarketGachaPaymentSelectionRow() {
   return new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -186,15 +187,15 @@ export class MarketGachaService {
 
     if (!performerIds.length) throw new Error("賢者以上の当選音源がありません。運営へお問い合わせください。");
     const [rows] = await connection.execute<AudioAssetRow[]>(
-      `SELECT id, performer_name, performer_user_id, file_name, public_url
+      `SELECT id, performer_name, performer_user_id, file_name, public_url,
+         UNIX_TIMESTAMP(created_at) AS created_at_epoch, UNIX_TIMESTAMP() AS selection_epoch
        FROM market_gacha_audio_assets
        WHERE category = ? AND is_active = 1
          AND performer_user_id IN (${performerIds.map(() => "?").join(",")})
-       ORDER BY RAND()
-       LIMIT 1`,
+       ORDER BY id`,
       [category, ...performerIds],
     );
-    const asset = rows[0];
+    const asset = selectWeightedAudioAsset(rows, Number(rows[0]?.selection_epoch), Math.random());
     if (!asset) {
       throw new Error("当選ファイルがまだ登録されていません。運営へお問い合わせください。");
     }

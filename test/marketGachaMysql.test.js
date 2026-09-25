@@ -56,6 +56,24 @@ test('市場ガチャ更新 MySQL統合テスト',{skip:!process.env.MARKET_GACH
   const [logs]=await pool.query('SELECT amount FROM gacha_coin_transactions');
   return {wallet:wallet.wallet,points:points.points,coins:coins[0]?.coins??0,draws,items:Object.fromEntries(items.map(i=>[i.item_key,i.quantity])),logs};
  }
+ await t.test('サプボ・歌みたの実DB登録日時で7日間だけ優遇し、無効音源と対象外演者は除外',async()=>{
+  for(const category of ['superchat','song_cover']){
+   await reset();const added=now;
+   await pool.execute('UPDATE market_gacha_audio_assets SET created_at=FROM_UNIXTIME(?)',[added-8*86400]);
+   for(const active of [1,0])await pool.execute('INSERT INTO market_gacha_audio_assets(category,performer_name,performer_user_id,file_name,object_key,public_url,is_active,created_at) VALUES (?,?,?,?,?,?,?,FROM_UNIXTIME(?))',
+    [category,'演者','1002',`recent-${active}`,`${category}/recent-${active}`,`https://example.com/recent-${active}`,active,added]);
+   let sample=0;const random=t.mock.method(Math,'random',()=>sample);
+   const choose=async value=>{sample=value;const c=await DbService.getConnection();try{return await Service.selectAudioAsset(c,category,['1002']);}finally{c.release();}};
+   try{
+    assert.equal((await choose(0.4-1e-10)).fileName,`${category}-1002`);
+    assert.equal((await choose(0.4)).fileName,'recent-1');
+    assert.equal((await choose(0.999999)).fileName,'recent-1');
+    now=added+7*86400;
+    assert.equal((await choose(0.49)).fileName,`${category}-1002`);
+    assert.equal((await choose(0.5)).fileName,'recent-1');
+   }finally{random.mock.restore();}
+  }
+ });
  await t.test('全22景品で正しい付与枚数・残高・メッセージ・台帳',async()=>{
   for(const p of prizes){
    await reset();await draw(p.key);const s=await state();
