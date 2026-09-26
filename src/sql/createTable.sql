@@ -519,7 +519,7 @@ CREATE TABLE IF NOT EXISTS cast_payments (
   user_id VARCHAR(32) NOT NULL,
   menu VARCHAR(16) NOT NULL,
   cast_ids JSON NOT NULL,
-  hours INT NOT NULL,
+  hours DECIMAL(11,1) NOT NULL,
   amount INT NOT NULL,
   option_text VARCHAR(500) NOT NULL DEFAULT '',
   log_thread_id VARCHAR(32) NOT NULL,

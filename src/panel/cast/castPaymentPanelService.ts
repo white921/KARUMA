@@ -5,11 +5,11 @@ import { COLOR } from "../../constant/shared/color";
 export function createCastPaymentPanelPayload() {
   return {
     embeds: [new EmbedBuilder().setTitle(CAST_PAYMENT_TITLE).setColor(COLOR.PINK)
-      .setDescription("**基本メニュー**\nツーショ：1時間 / 30,000 LIA\nフリー：1時間 / 10,000 LIA\n団体指名：キャスト1人につき1時間 / 50,000 LIA\n\nツーショ・団体指名はキャストと利用時間を指定してください。\nフリーは利用時間のみ指定してください。\nオプションは「お給仕メイド」「お仕え執事」から、キャスト・金額・内容を指定できます。\n最後の確認画面で確定すると、LEVELIA Botへ支払われます。")],
+      .setDescription("**基本メニュー**\nツーショ：30分 / 10,000 LIA\nフリー：30分 / 5,000 LIA\n団体指名：キャスト1人につき30分 / 25,000 LIA\n利用時間は30分単位で選べます。\n\nツーショ・団体指名はキャストと利用時間を指定してください。\nフリーは利用時間のみ指定してください。\nオプションは「お給仕メイド」「お仕え執事」から、キャスト・金額・内容を指定できます。\n最後の確認画面で確定すると、LEVELIA Botへ支払われます。")],
     components: [new ActionRowBuilder<ButtonBuilder>().addComponents(
       Object.entries(CAST_MENUS).map(([key, menu]) => new ButtonBuilder()
         .setCustomId(`${CAST_PAYMENT_PREFIX}:start:${key}`).setLabel(menu.label)
-        .setStyle(menu.rate ? ButtonStyle.Primary : ButtonStyle.Secondary)))],
+        .setStyle(menu.ratePerHalfHour ? ButtonStyle.Primary : ButtonStyle.Secondary)))],
     allowedMentions: { parse: [] as never[] },
   };
 }

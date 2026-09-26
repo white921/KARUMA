@@ -6,7 +6,7 @@ import {
   TextInputBuilder, TextInputStyle,
 } from "discord.js";
 import type { RowDataPacket } from "mysql2";
-import { CAST_MAX_AMOUNT, CAST_MAX_SELECTION, CAST_MENUS, CAST_PAGE_SIZE, CAST_PAYMENT_PREFIX, CAST_SESSION_TTL_MS } from "../../constant/cast/castPayment";
+import { CAST_MAX_AMOUNT, CAST_MAX_SELECTION, CAST_MENUS, CAST_PAGE_SIZE, CAST_PAYMENT_PREFIX, CAST_SESSION_TTL_MS, CAST_TIME_STEP_HOURS } from "../../constant/cast/castPayment";
 import { ACTION_TYPES } from "../../constant/currency/action";
 import { BOT_ID, ROLE_IDS, TEXT_CHANNEL_IDS } from "../../constant/shared/id";
 import { COLOR } from "../../constant/shared/color";
@@ -30,10 +30,16 @@ export function calculateCastAmount(menu: CastMenu, count: number, hours: number
     : count < 1 || count > CAST_MAX_SELECTION || (menu !== "group" && count !== 1))) {
     throw new Error("指名するキャストを選択してください。");
   }
-  if (!Number.isSafeInteger(hours) || hours < 1) throw new Error("時間は1時間単位で指定してください。");
-  const amount = CAST_MENUS[menu].rate ? CAST_MENUS[menu].rate * hours * (menu === "group" ? count : 1) : optionAmount;
+  const units = hours / CAST_TIME_STEP_HOURS;
+  if (!Number.isSafeInteger(units) || units < 1) throw new Error("時間は30分単位で指定してください。");
+  const amount = CAST_MENUS[menu].ratePerHalfHour ? CAST_MENUS[menu].ratePerHalfHour * units * (menu === "group" ? count : 1) : optionAmount;
   if (!Number.isSafeInteger(amount) || amount < 1 || amount > CAST_MAX_AMOUNT) throw new Error("支払い金額が不正、または上限を超えています。");
   return amount;
+}
+export function formatCastDuration(hours: number): string {
+  const wholeHours = Math.floor(hours);
+  const minutes = (hours - wholeHours) * 60;
+  return `${wholeHours ? `${wholeHours}時間` : ""}${minutes ? `${minutes}分` : ""}`;
 }
 function customId(s: CastSession, action: string): string {
   return `${CAST_PAYMENT_PREFIX}:${action}:${s.id}:${s.revision}`;
@@ -56,9 +62,9 @@ function selectedEmbed(s: CastSession, title: string): EmbedBuilder {
 export function createCastConfirmationEmbed(s: CastSession): EmbedBuilder {
   const amount = calculateCastAmount(s.menu, s.castIds.length, s.hours, s.amount);
   const embed = selectedEmbed(s, "支払い内容の確認");
-  if (CAST_MENUS[s.menu].rate) embed.addFields(
-    { name: "利用時間", value: `${s.hours}時間`, inline: true },
-    { name: "料金", value: `${CAST_MENUS[s.menu].rate.toLocaleString()} LIA × ${s.hours}時間${s.menu === "group" ? ` × ${s.castIds.length}人` : ""}`, inline: true },
+  if (CAST_MENUS[s.menu].ratePerHalfHour) embed.addFields(
+    { name: "利用時間", value: formatCastDuration(s.hours), inline: true },
+    { name: "料金", value: `${CAST_MENUS[s.menu].ratePerHalfHour.toLocaleString()} LIA / 30分 × ${s.hours / CAST_TIME_STEP_HOURS}枠${s.menu === "group" ? ` × ${s.castIds.length}人` : ""}`, inline: true },
   );
   else embed.addFields({ name: "オプション", value: s.option });
   return embed.addFields({ name: "合計金額", value: `**${amount.toLocaleString()} LIA**` }, { name: "支払先", value: `<@${BOT_ID}>` });
@@ -82,7 +88,7 @@ export class CastPaymentService {
     }
     const s: CastSession = {
       id: randomUUID(), userId: interaction.user.id, guildId: interaction.guildId!, channelId: interaction.channelId,
-      menu, candidates, castIds: [], page: 0, hours: 1, amount: 0, option: "", stage: menu === "free" ? "time" : "cast",
+      menu, candidates, castIds: [], page: 0, hours: CAST_TIME_STEP_HOURS, amount: 0, option: "", stage: menu === "free" ? "time" : "cast",
       revision: 0, expiresAt: Date.now() + CAST_SESSION_TTL_MS, busy: false,
     };
     this.sessions.set(s.id, s);
@@ -110,10 +116,10 @@ export class CastPaymentService {
       components.push(controls);
     } else if (s.stage === "time") {
       embed = selectedEmbed(s, "利用時間を選択").addFields(
-        { name: "利用時間", value: `**${s.hours}時間**` },
+        { name: "利用時間", value: `**${formatCastDuration(s.hours)}**` },
         { name: "合計金額", value: `${calculateCastAmount(s.menu, s.castIds.length, s.hours).toLocaleString()} LIA` });
       const controls = new ActionRowBuilder<ButtonBuilder>().addComponents(
-        button(s, "minus", "−1時間", s.hours === 1), button(s, "plus", "＋1時間"),
+        button(s, "minus", "−30分", s.hours === CAST_TIME_STEP_HOURS), button(s, "plus", "＋30分"),
         button(s, "review", "確認へ進む", false, ButtonStyle.Success));
       if (s.menu !== "free") controls.addComponents(button(s, "back", "キャストを選び直す"));
       controls.addComponents(button(s, "cancel", "キャンセル"));
@@ -164,7 +170,7 @@ export class CastPaymentService {
         if (ids.length > CAST_MAX_SELECTION) throw new Error(`一度の指名は${CAST_MAX_SELECTION}人までです。`);
         s.castIds = ids;
         s.revision++;
-        if (!CAST_MENUS[s.menu].rate) {
+        if (!CAST_MENUS[s.menu].ratePerHalfHour) {
           s.stage = "option";
           await this.showOptionModal(interaction, s);
           // モーダルを閉じた場合も、この画面から再入力・キャンセルできる。
@@ -201,12 +207,12 @@ export class CastPaymentService {
         if ((action === "prev" || action === "next") && s.stage === "cast") s.page += action === "next" ? 1 : -1;
         else if (action === "chosen" && s.stage === "cast" && s.menu === "group" && s.castIds.length) s.stage = "time";
         else if ((action === "minus" || action === "plus") && s.stage === "time") {
-          const hours = s.hours + (action === "plus" ? 1 : -1);
+          const hours = s.hours + (action === "plus" ? CAST_TIME_STEP_HOURS : -CAST_TIME_STEP_HOURS);
           calculateCastAmount(s.menu, s.castIds.length, hours);
           s.hours = hours;
         } else if (action === "review" && s.stage === "time") s.stage = "confirm";
         else if (action === "back" && s.menu !== "free" && (s.stage === "time" || s.stage === "option")) s.stage = "cast";
-        else if (action === "revise" && s.stage === "confirm") s.stage = CAST_MENUS[s.menu].rate ? "time" : "option";
+        else if (action === "revise" && s.stage === "confirm") s.stage = CAST_MENUS[s.menu].ratePerHalfHour ? "time" : "option";
         else throw new Error("最新の画面から操作してください。");
         s.revision++;
       } else throw new Error("無効な操作です。");
@@ -231,15 +237,15 @@ export class CastPaymentService {
       if (Number(recipient!.wallet) + amount > CAST_MAX_AMOUNT) throw new Error("受取口座の残高上限のため支払いできません。運営へお問い合わせください。");
       await connection.execute("UPDATE accounts SET wallet = wallet - ? WHERE user_id = ?", [amount, s.userId]);
       await connection.execute("UPDATE accounts SET wallet = wallet + ? WHERE user_id = ?", [amount, BOT_ID]);
-      const detail = CAST_MENUS[s.menu].rate
-        ? `${s.hours}時間${s.menu === "free" ? "" : ` / ${s.castIds.length}人指名`}` : s.option;
+      const detail = CAST_MENUS[s.menu].ratePerHalfHour
+        ? `${formatCastDuration(s.hours)}${s.menu === "free" ? "" : ` / ${s.castIds.length}人指名`}` : s.option;
       const comment = `キャスト支払い [${s.id}] ${CAST_MENUS[s.menu].label} / ${detail}`;
       await connection.execute(
         "INSERT INTO actions (command_name, amount, from_user_id, to_user_id, from_after_wallet, to_after_wallet, comment) VALUES (?, ?, ?, ?, ?, ?, ?)",
         [ACTION_TYPES.CAST_PAYMENT, amount, s.userId, BOT_ID, Number(payer!.wallet) - amount, Number(recipient!.wallet) + amount, [...comment].slice(0, 256).join("")]);
       await connection.execute(
         "INSERT INTO cast_payments (id, user_id, menu, cast_ids, hours, amount, option_text, log_thread_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-        [s.id, s.userId, s.menu, JSON.stringify(s.castIds), CAST_MENUS[s.menu].rate ? s.hours : 0, amount, s.option, CAST_MENUS[s.menu].threadId]);
+        [s.id, s.userId, s.menu, JSON.stringify(s.castIds), CAST_MENUS[s.menu].ratePerHalfHour ? s.hours : 0, amount, s.option, CAST_MENUS[s.menu].threadId]);
       await connection.commit();
       return true;
     } catch (error) { await connection.rollback(); throw error; }

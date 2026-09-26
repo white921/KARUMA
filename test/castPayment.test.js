@@ -1,7 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { Collection, ComponentType } = require('discord.js');
-const { CastPaymentService, calculateCastAmount, isEligibleCast } = require('../dist/service/cast/castPaymentService');
+const { CastPaymentService, calculateCastAmount, formatCastDuration, isEligibleCast } = require('../dist/service/cast/castPaymentService');
 const { CAST_MENUS } = require('../dist/constant/cast/castPayment');
 const { BOT_ID, ROLE_IDS, TEXT_CHANNEL_IDS, THREAD_IDS } = require('../dist/constant/shared/id');
 const { DbService } = require('../dist/service/system/dbService');
@@ -47,13 +47,17 @@ test('five entry buttons and install target match requested channel', () => {
   assert.deepEqual(p.components[0].toJSON().components.map(c => c.label), ['ツーショ', 'フリー', '団体指名', 'お給仕メイド', 'お仕え執事']);
   assert.equal(resolvePanelInstallTarget('1551478036673728512'), 'cast_payment');
   assert.match(p.embeds[0].toJSON().description, /フリーは利用時間のみ指定/);
+  assert.match(p.embeds[0].toJSON().description, /ツーショ：30分 \/ 10,000 LIA/);
+  assert.match(p.embeds[0].toJSON().description, /フリー：30分 \/ 5,000 LIA/);
+  assert.match(p.embeds[0].toJSON().description, /キャスト1人につき30分 \/ 25,000 LIA/);
+  assert.doesNotMatch(p.embeds[0].toJSON().description, /1時間|30,000|50,000/);
 });
-test('prices are per hour and group prices are per cast', () => {
+test('prices support half hours and group prices are per cast', () => {
   assert.equal(calculateCastAmount('group', 3, 2), 300000);
-  assert.equal(calculateCastAmount('twoshot', 1, 3), 90000);
+  assert.equal(calculateCastAmount('twoshot', 1, 3), 60000);
   assert.equal(calculateCastAmount('free', 0, 2), 20000);
   assert.throws(() => calculateCastAmount('free', 1, 2));
-  for (const [c, h] of [[0, 1], [1, 0], [1, 1.5], [2, Infinity]]) assert.throws(() => calculateCastAmount('group', c, h));
+  for (const [c, h] of [[0, 1], [1, 0], [1, 0.25], [1, 0.75], [1, -0.5], [1, NaN], [2, Infinity]]) assert.throws(() => calculateCastAmount('group', c, h));
   assert.throws(() => calculateCastAmount('twoshot', 2, 1));
   for (const amount of [0, -1, 1.5, Infinity, 2147483648]) assert.throws(() => calculateCastAmount('maid', 1, 1, amount));
 });
@@ -71,10 +75,10 @@ test('group accumulates and removes select choices, then pays exactly once after
   await f.select(['maid']); await f.select(['maid']);
   await f.button('chosen'); await f.button('plus'); await f.button('review');
   assert.equal(f.payments.length, 0);
-  assert.match(JSON.stringify(f.edits.at(-1).embeds[0]), /200,000/);
+  assert.match(JSON.stringify(f.edits.at(-1).embeds[0]), /100,000/);
   const payId = f.currentId('pay');
   await Promise.allSettled([handlePanelButton(f.interaction('button', payId)), handlePanelButton(f.interaction('button', payId))]);
-  assert.equal(f.payments.length, 1); assert.equal(f.payments[0].hours, 2);
+  assert.equal(f.payments.length, 1); assert.equal(f.payments[0].hours, 1);
   assert.equal(f.logs.length, 1); assert.equal(f.thread.id, THREAD_IDS.CAST_BASIC_LOG);
 });
 for (const menu of ['twoshot']) test(`${menu} chooses a single cast and hours`, async t => {
@@ -95,7 +99,7 @@ test('free starts with hours only, supports revisions, and pays without any cast
   await assert.rejects(handlePanelButton(f.interaction('button', invalidBack)), /最新の画面/);
   await f.button('plus'); await f.button('plus'); await f.button('minus');
   await f.button('review');
-  assert.match(JSON.stringify(f.edits.at(-1)), /20,000/);
+  assert.match(JSON.stringify(f.edits.at(-1)), /10,000/);
   assert.doesNotMatch(JSON.stringify(f.edits.at(-1)), /指名中|まだ選択/);
   assert.equal(f.payments.length, 0);
   await f.button('revise');
@@ -106,7 +110,7 @@ test('free starts with hours only, supports revisions, and pays without any cast
   await assert.rejects(handlePanelButton(f.interaction('button', payId)), /処理済み/);
   assert.equal(f.payments.length, 1);
   assert.deepEqual(f.payments[0].castIds, []);
-  assert.equal(f.payments[0].hours, 2);
+  assert.equal(f.payments[0].hours, 1);
   assert.equal(f.logs.length, 1);
   assert.doesNotMatch(JSON.stringify(f.logs[0]), /指名中|まだ選択/);
 });
@@ -161,11 +165,11 @@ test('a log failure reports completed payment and cannot charge twice', async t 
 
 function transactionFixture(t, { balance = 100000, duplicate = false, failInsert = false } = {}) {
   let payer = balance, recipient = 100, snapshot;
-  const calls = [];
+  const calls = [], statements = [];
   const connection = {
     beginTransaction: async () => { snapshot = [payer, recipient]; calls.push('begin'); },
     execute: async (sql, params) => {
-      calls.push(sql);
+      calls.push(sql); statements.push({ sql, params });
       if (sql.startsWith('SELECT *')) return [[{ user_id: 'payer', wallet: payer }, { user_id: BOT_ID, wallet: recipient }]];
       if (sql.startsWith('SELECT id')) return [duplicate ? [{ id: 'id' }] : []];
       if (sql.includes('wallet = wallet -')) payer -= params[0];
@@ -178,7 +182,7 @@ function transactionFixture(t, { balance = 100000, duplicate = false, failInsert
   };
   t.mock.method(DbService, 'getConnection', async () => connection);
   const session = { id: 'payment-id', userId: 'payer', menu: 'group', castIds: ['maid'], hours: 1, amount: 0, option: '' };
-  return { calls, session, balances: () => [payer, recipient] };
+  return { calls, statements, session, balances: () => [payer, recipient] };
 }
 test('transaction debits user, credits only bot, and records details atomically', async t => {
   const f = transactionFixture(t); assert.equal(await CastPaymentService.transfer(f.session), true);
@@ -203,3 +207,42 @@ test('insufficient balance and failed detail insert roll back all changes', asyn
   await assert.rejects(CastPaymentService.transfer(g.session), /insert failed/);
   assert.deepEqual(g.balances(), [100000, 100]); assert.equal(g.calls.at(-1), 'release');
 });
+
+test('duration display uses minutes and hours', () => {
+  assert.equal(formatCastDuration(0.5), '30分');
+  assert.equal(formatCastDuration(1), '1時間');
+  assert.equal(formatCastDuration(1.5), '1時間30分');
+});
+for (const [menu, count, halfHourPrice] of [['twoshot', 1, 10000], ['free', 0, 5000], ['group', 3, 75000]]) {
+  test(`${menu} charges 30, 60 and 90 minutes at the requested rate`, () => {
+    for (const units of [1, 2, 3]) assert.equal(calculateCastAmount(menu, count, units / 2), halfHourPrice * units);
+    assert.throws(() => calculateCastAmount(menu, count, 1e9), /上限/);
+  });
+  test(`${menu} starts at 30 minutes, cannot decrease below it, and logs 90 minutes`, async t => {
+    const f = fixture(t, menu); await f.start();
+    if (menu !== 'free') await f.select(menu === 'group' ? ['maid', 'butler'] : ['maid']);
+    if (menu === 'group') await f.button('chosen');
+    const payload = f.edits.at(-1);
+    assert.match(JSON.stringify(payload), /30分/);
+    const buttons = payload.components[0].toJSON().components;
+    assert.equal(buttons.find(c => c.label === '−30分').disabled, true);
+    assert.ok(buttons.some(c => c.label === '＋30分'));
+    await assert.rejects(f.button('minus'), /30分単位/);
+    await f.button('plus'); await f.button('plus'); await f.button('review');
+    const confirmation = JSON.stringify(f.edits.at(-1));
+    assert.match(confirmation, /1時間30分/); assert.match(confirmation, /30分 × 3枠/);
+    await f.button('pay');
+    assert.equal(f.payments[0].hours, 1.5);
+    assert.match(JSON.stringify(f.logs[0]), /1時間30分/);
+  });
+  test(`${menu} transfers the half-hour amount and preserves fractional hours in the detail record`, async t => {
+    const f = transactionFixture(t);
+    Object.assign(f.session, { menu, castIds: Array.from({ length: count }, (_, i) => `cast-${i}`), hours: 0.5 });
+    await CastPaymentService.transfer(f.session);
+    assert.deepEqual(f.balances(), [100000 - halfHourPrice, 100 + halfHourPrice]);
+    const detail = f.statements.find(s => s.sql.startsWith('INSERT INTO cast_payments'));
+    assert.equal(detail.params[4], 0.5); assert.equal(detail.params[5], halfHourPrice);
+    const action = f.statements.find(s => s.sql.startsWith('INSERT INTO actions'));
+    assert.match(action.params[6], /30分/);
+  });
+}
