@@ -361,6 +361,7 @@ COMMENT='市場ガチャの音源配信履歴';
 INSERT INTO market_gacha_audio_assets
   (category, performer_name, performer_user_id, object_key, file_name, public_url)
 VALUES
+  ('superchat', '朱桜', 1508435688218169457, 'superchat/1508435688218169457/ScreenRecording_09-14-2026_20-13-12_1.mov', 'ScreenRecording_09-14-2026_20-13-12_1.mov', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/superchat/1508435688218169457/ScreenRecording_09-14-2026_20-13-12_1.mov'),
   ('superchat', 'にゃさん', 657269973848162384, 'superchat/nya-san/9F302217-0478-494A-8EC2-7AA66CD947CC.mp4', '9F302217-0478-494A-8EC2-7AA66CD947CC.mp4', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/superchat/nya-san/9F302217-0478-494A-8EC2-7AA66CD947CC.mp4'),
   ('superchat', '流川', 918705763948593152, 'superchat/rukawa/D7807C99-EA6E-4E08-A403-726B1C230A64.mov', 'D7807C99-EA6E-4E08-A403-726B1C230A64.mov', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/superchat/rukawa/D7807C99-EA6E-4E08-A403-726B1C230A64.mov'),
   ('superchat', '僕は気ままなゴミムシでしゅ', 1229603188068323348, 'superchat/kimamana-gomimushi/copy_1AE81E4E-C056-4973-AFE6-FDBE34689621.mov', 'copy_1AE81E4E-C056-4973-AFE6-FDBE34689621.mov', 'https://pub-aaabd7254d424bdba4911fc1e40251e9.r2.dev/superchat/kimamana-gomimushi/copy_1AE81E4E-C056-4973-AFE6-FDBE34689621.mov'),
