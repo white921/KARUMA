@@ -19,7 +19,7 @@ export function isCastMenu(value: string): value is CastMenu {
   return Object.prototype.hasOwnProperty.call(CAST_MENUS, value);
 }
 export function isEligibleCast(member: GuildMember, menu: CastMenu): boolean {
-  if (member.user.bot) return false;
+  if (member.user.bot || member.roles.cache.has(ROLE_IDS.SUB_ACCOUNT)) return false;
   const roles = menu === "maid" ? [ROLE_IDS.CAST_MAID] : menu === "butler"
     ? [ROLE_IDS.CAST_BUTLER] : [ROLE_IDS.CAST_MAID, ROLE_IDS.CAST_BUTLER];
   return roles.some(role => member.roles.cache.has(role));
@@ -256,7 +256,7 @@ export class CastPaymentService {
     if (!interaction.guild) throw new Error("サーバー内で操作してください。");
     for (const id of s.castIds) {
       const member = await interaction.guild.members.fetch({ user: id, force: true }).catch(() => null);
-      if (!member || !isEligibleCast(member, s.menu)) throw new Error("指名したキャストが退会、または対象ロールを失っています。選び直してください。");
+      if (!member || !isEligibleCast(member, s.menu)) throw new Error("指名したキャストが退会、対象ロールの変更、またはサブ垢のため指名できません。選び直してください。");
     }
     const thread = await interaction.client.channels.fetch(CAST_MENUS[s.menu].threadId);
     const bot = await interaction.guild.members.fetchMe();

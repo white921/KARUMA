@@ -67,6 +67,33 @@ test('role restrictions exclude unrelated members and bots', () => {
   assert.equal(isEligibleCast(member('m', ROLE_IDS.CAST_MAID, true), 'group'), false);
   assert.equal(isEligibleCast(member('m', 'other'), 'group'), false);
 });
+for (const menu of ['twoshot', 'group', 'maid', 'butler']) {
+  test(`${menu} excludes sub accounts from cast choices`, async t => {
+    const f = fixture(t, menu);
+    for (const role of [ROLE_IDS.CAST_MAID, ROLE_IDS.CAST_BUTLER]) {
+      const sub = member(`sub-${role}`, role);
+      sub.roles.cache.set(ROLE_IDS.SUB_ACCOUNT, {});
+      f.members.set(sub.id, sub);
+      assert.equal(isEligibleCast(sub, menu), false);
+    }
+    await f.start();
+    const options = f.edits.at(-1).components[0].toJSON().components[0].options;
+    assert.deepEqual(options.map(o => o.value).sort(), menu === 'maid' ? ['maid'] : menu === 'butler' ? ['butler'] : ['butler', 'maid']);
+    await f.button('cancel');
+  });
+  test(`${menu} rejects a cast who becomes a sub account before payment`, async t => {
+    const f = fixture(t, menu);
+    const castId = menu === 'butler' ? 'butler' : 'maid';
+    await f.start(); await f.select([castId]);
+    if (menu === 'group') await f.button('chosen');
+    if (menu === 'maid' || menu === 'butler') await f.modal('10000', 'option');
+    else await f.button('review');
+    f.members.get(castId).roles.cache.set(ROLE_IDS.SUB_ACCOUNT, {});
+    await assert.rejects(f.button('pay'), /サブ垢/);
+    assert.equal(f.payments.length, 0);
+    assert.equal(f.logs.length, 0);
+  });
+}
 test('group accumulates and removes select choices, then pays exactly once after final confirmation', async t => {
   const f = fixture(t); await f.start();
   assert.equal(f.edits.at(-1).components[0].toJSON().components[0].type, ComponentType.StringSelect);
