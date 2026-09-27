@@ -21,6 +21,10 @@ export function createDiaryPanelActionRow() {
       .setLabel(DIARY_PANEL_MESSAGES.PUBLIC)
       .setStyle(ButtonStyle.Success),
     new ButtonBuilder()
+      .setCustomId(PANEL_COMMAND_NAMES.DIARY_REBUILD)
+      .setLabel("日記を作り直す")
+      .setStyle(ButtonStyle.Danger),
+    new ButtonBuilder()
       .setCustomId(PANEL_COMMAND_NAMES.VIEW)
       .setLabel(PANEL_MESSAGES.VIEW)
       .setStyle(ButtonStyle.Secondary),

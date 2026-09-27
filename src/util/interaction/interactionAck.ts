@@ -13,6 +13,7 @@ import { PAYMENT_CONFIRMATION_PREFIX } from "../../constant/currency/paymentConf
 /** ボタンが付いているメッセージを更新して応答するかどうかを判定する。 */
 export function shouldDeferButtonUpdate(customId: string): boolean {
   return (
+    customId.startsWith("diaryRebuild:") ||
     customId.startsWith(`${MARKET_GACHA_CONFIRMATION_PREFIX}:`) ||
     customId.startsWith(`${NORMAL_HOTEL_CONFIRMATION_PREFIX}:`) ||
     customId.startsWith(`${PANEL_COMMAND_NAMES.HAZAMA_CONFIRM}:`) ||

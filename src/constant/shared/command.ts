@@ -66,6 +66,7 @@ export const PANEL_COMMAND_NAMES = {
   DIARY_PRIVATE: "diaryPrivate",
   DIARY_PUBLIC: "diaryPublic",
   DIARY_UPDATE: "diaryUpdate",
+  DIARY_REBUILD: "diaryRebuild",
   ADMIN_VIEW: "adminView",
   ADMIN_BURN: "adminBurn",
   ADMIN_MINT: "adminMint",

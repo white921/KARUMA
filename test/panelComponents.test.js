@@ -120,6 +120,7 @@ test("diary panel provides the LEVELIA VIP diary flow for 5000 LIA", () => {
 
   assert.deepEqual(buttonIds, [
     PANEL_COMMAND_NAMES.DIARY_PUBLIC,
+    PANEL_COMMAND_NAMES.DIARY_REBUILD,
     PANEL_COMMAND_NAMES.VIEW,
   ]);
   assert.match(DIARY_PANEL_MESSAGES.DESCRIPTION, /日記作成: 5,000 LIA/);

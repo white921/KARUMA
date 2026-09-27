@@ -1,3 +1,4 @@
+import { withDiaryMutation } from "./diaryMutationGuard";
 import {
   ChannelType,
   Client,
@@ -81,6 +82,13 @@ export class DiaryService {
     diaryType: DiaryType,
     title: string,
     body: string,
+  ) {
+    return withDiaryMutation(interaction.user.id, () =>
+      this.createDiaryUnlocked(interaction, diaryType, title, body));
+  }
+
+  private static async createDiaryUnlocked(
+    interaction: DiaryExecutionInteraction, diaryType: DiaryType, title: string, body: string,
   ) {
     const creatorUserId = interaction.user.id;
     const member = interaction.member as GuildMember;
@@ -168,6 +176,13 @@ export class DiaryService {
     interaction: DiaryExecutionInteraction,
     title: string,
     body: string,
+  ) {
+    return withDiaryMutation(interaction.user.id, () =>
+      this.updateDiaryUnlocked(interaction, title, body));
+  }
+
+  private static async updateDiaryUnlocked(
+    interaction: DiaryExecutionInteraction, title: string, body: string,
   ) {
     const creatorUserId = interaction.user.id;
     const member = interaction.member as GuildMember;

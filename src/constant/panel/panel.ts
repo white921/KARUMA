@@ -29,7 +29,7 @@ export const SUPERCHAT_PANEL_MESSAGES = {
 export const DIARY_PANEL_MESSAGES = {
   TITLE: "日記パネル",
   DESCRIPTION:
-    `日記作成: 5,000 ${CURRENCY_NAMES}\n\n※3日間連続で投稿がない場合、自動で日記がクローズします。\nこちらのパネルでもう一度作成を行うと日記が再開されます。（要5,000${CURRENCY_NAMES}）`,
+    `日記作成: 5,000 ${CURRENCY_NAMES}\n日記を作り直す: 5,000 ${CURRENCY_NAMES}\n※作り直すと元の日記スレッドと投稿はすべて削除され、元に戻せません。\n\n※3日間連続で投稿がない場合、自動で日記がクローズします。\nこちらのパネルでもう一度作成を行うと日記が再開されます。（要5,000${CURRENCY_NAMES}）`,
   PRIVATE: "通常日記",
   PUBLIC: "日記を作成",
   UPDATE: "アップグレード",

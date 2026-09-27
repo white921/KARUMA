@@ -1,3 +1,4 @@
+import { DiaryRebuildService } from "./service/diary/diaryRebuildService";
 import { ChannelCountService } from "./service/system/channelCountService";
 import { MeetingVcService } from "./service/vc/meetingVcService";
 import { MEETING_CATEGORY_ID } from "./constant/vc/meeting";
@@ -79,6 +80,7 @@ client.once("clientReady", async () => {
     BotHealthMonitor.recordGatewayReady("clientReady");
     BotHealthMonitor.startWatchdog();
     MeetingVcService.startCleanup(client);
+    DiaryRebuildService.startRecovery(client);
     new ChannelCountService(client, process.env.GUILD_ID!).start();
     if (shouldRegisterCommandsOnBoot(process.env.REGISTER_COMMANDS_ON_BOOT)) {
       await registerCommands();
@@ -172,6 +174,7 @@ client.on("interactionCreate", async (interaction) => {
         interaction.customId !== PANEL_COMMAND_NAMES.DIARY_PRIVATE &&
         interaction.customId !== PANEL_COMMAND_NAMES.DIARY_PUBLIC &&
         interaction.customId !== PANEL_COMMAND_NAMES.DIARY_UPDATE &&
+        interaction.customId !== PANEL_COMMAND_NAMES.DIARY_REBUILD &&
         interaction.customId !== PANEL_COMMAND_NAMES.REDEPLOY
       ) {
         const shouldDeferUpdate = shouldDeferButtonUpdate(interaction.customId);

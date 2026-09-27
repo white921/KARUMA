@@ -1,3 +1,4 @@
+import { DiaryRebuildService } from "../../service/diary/diaryRebuildService";
 import { CastPaymentService } from "../../service/cast/castPaymentService";
 import { CAST_PAYMENT_PREFIX } from "../../constant/cast/castPayment";
 import { DARK_MESSAGE_PREFIX } from "../../constant/market/darkMessage";
@@ -79,6 +80,10 @@ export async function handleModalSubmit(interaction: ModalSubmitInteraction) {
         await VcService.changeVcStatus(interaction, newStatus);
         break;
       }
+      case PANEL_COMMAND_NAMES.DIARY_REBUILD:
+        await DiaryRebuildService.showConfirmation(interaction,
+          getModalFieldValue(interaction, "title"), getModalFieldValue(interaction, "body"));
+        break;
       case PANEL_COMMAND_NAMES.DIARY_PRIVATE:
       case PANEL_COMMAND_NAMES.DIARY_PUBLIC: {
         const title = getModalFieldValue(interaction, "title");

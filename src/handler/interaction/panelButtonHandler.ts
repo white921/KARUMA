@@ -1,3 +1,4 @@
+import { DiaryRebuildService } from "../../service/diary/diaryRebuildService";
 import { MARKET_GACHA_CONFIRMATION_PREFIX } from "../../constant/market/marketGacha";
 import { NORMAL_HOTEL_CONFIRMATION_PREFIX } from "../../constant/hotel/hotel";
 import { NormalHotelService } from "../../service/hotel/normalHotelService";
@@ -101,6 +102,15 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
   // 枚数調整は本人の下書きを検証し、DB照会を省く。確定時はサービス側で口座を再確認する。
   if (customId.startsWith(TICKET_EXCHANGE_STEP_PREFIX)) {
     await handleTicketExchangeButton(interaction);
+    return;
+  }
+
+  if (customId === PANEL_COMMAND_NAMES.DIARY_REBUILD) {
+    await showStringModal(interaction, "日記を作り直す", customId, true);
+    return;
+  }
+  if (customId.startsWith("diaryRebuild:")) {
+    await DiaryRebuildService.handleButton(interaction);
     return;
   }
 
