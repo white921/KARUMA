@@ -1,3 +1,5 @@
+import { MeetingVcService } from "./service/vc/meetingVcService";
+import { MEETING_CATEGORY_ID } from "./constant/vc/meeting";
 import { HISTORY_FILTER_PREFIX } from "./service/currency/historyFilter";
 import { CAST_PAYMENT_PREFIX } from "./constant/cast/castPayment";
 import { DARK_MESSAGE_PREFIX } from "./constant/market/darkMessage";
@@ -75,6 +77,7 @@ client.once("clientReady", async () => {
   try {
     BotHealthMonitor.recordGatewayReady("clientReady");
     BotHealthMonitor.startWatchdog();
+    MeetingVcService.startCleanup(client);
     if (shouldRegisterCommandsOnBoot(process.env.REGISTER_COMMANDS_ON_BOOT)) {
       await registerCommands();
     }
@@ -390,6 +393,10 @@ client.on(
       // ミュート変更などは無視
       if (oldChannel?.id === newChannel?.id) {
         return;
+      }
+
+      if (oldChannel?.type === ChannelType.GuildVoice && oldChannel.parentId === MEETING_CATEGORY_ID) {
+        await MeetingVcService.deleteIfEmpty(oldChannel);
       }
 
       // ホテルVC内のbot出入り時だけ人数制限を自動調整する

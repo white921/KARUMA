@@ -1,3 +1,5 @@
+import { MeetingVcService } from "../../service/vc/meetingVcService";
+import { MEETING_SELECT_ID } from "../../constant/vc/meeting";
 import { HistoryService } from "../../service/currency/historyService";
 import { HISTORY_FILTER_PREFIX } from "../../service/currency/historyFilter";
 import { CastPaymentService } from "../../service/cast/castPaymentService";
@@ -36,6 +38,10 @@ export async function handleStringSelectMenu(
 ) {
   try {
     const customId = interaction.customId;
+    if (customId === MEETING_SELECT_ID) {
+      await MeetingVcService.create(interaction);
+      return;
+    }
     if (customId.startsWith(HISTORY_FILTER_PREFIX)) {
       await HistoryService.handleFilter(interaction);
       return;

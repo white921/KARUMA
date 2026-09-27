@@ -1,3 +1,4 @@
+import { MeetingPanelService } from "./vc/meetingPanelService";
 import { CastPaymentPanelService } from "./cast/castPaymentPanelService";
 import { GachaCoinPanelService } from "./market/gachaCoinPanelService";
 import { TicketExchangePanelService } from "./inventory/ticketExchangePanelService";
@@ -55,6 +56,9 @@ async function installTargetPanel(
   target: PanelInstallTarget,
 ): Promise<void> {
   switch (target) {
+    case PANEL_INSTALL_TARGETS.MEETING:
+      await MeetingPanelService.createPanel(client);
+      return;
     case PANEL_INSTALL_TARGETS.CAST_PAYMENT:
       await CastPaymentPanelService.createPanel(client);
       return;
