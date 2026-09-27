@@ -3,6 +3,7 @@ import { COMMAND_NAMES } from "../../constant/shared/command";
 import { ROLE_IDS } from "../../constant/shared/id";
 import { ITEM_DEFINITIONS } from "../../constant/inventory/item";
 import { TicketGrantService } from "../../service/inventory/ticketGrantService";
+import { TicketGrantLogService } from "../../service/inventory/ticketGrantLogService";
 import { MAX_TICKET_QUANTITY } from "../../constant/inventory/ticketGrant";
 import { assertManagementPermission } from "../../util/shared/managementPermission";
 
@@ -23,7 +24,12 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   const item = ITEM_DEFINITIONS.find(item => item.key === interaction.options.getString("種類", true));
   if (!item) throw new Error("チケットの種類が不正です。");
   const quantity = interaction.options.getInteger("枚数", true);
-  const after = await TicketGrantService.grant(interaction.id, user.id, item.key, quantity, interaction.user.id, interaction.options.getString("理由", true));
+  const reason = interaction.options.getString("理由", true);
+  const after = await TicketGrantService.grant(interaction.id, user.id, item.key, quantity, interaction.user.id, reason);
+  await TicketGrantLogService.send(interaction.client, interaction.guildId!, {
+    targetUserId: user.id, operatorUserId: interaction.user.id,
+    itemName: item.name, quantity, reason, interactionId: interaction.id,
+  });
   await interaction.editReply({
     content: `✅ <@${user.id}> に **${item.name}** を **${quantity}枚**付与しました。\n付与後の所持数：**${after}枚**`,
     allowedMentions: { parse: [] },
