@@ -5,11 +5,13 @@ import { COLOR } from "../../constant/shared/color";
 export function createCastPaymentPanelPayload() {
   return {
     embeds: [new EmbedBuilder().setTitle(CAST_PAYMENT_TITLE).setColor(COLOR.PINK)
-      .setDescription("**基本メニュー**\nツーショ：30分 / 10,000 LIA\nフリー：30分 / 5,000 LIA\n団体指名：キャスト1人につき30分 / 25,000 LIA\n利用時間は30分単位で選べます。\n\nツーショ・団体指名はキャストと利用時間を指定してください。\nフリーは利用時間のみ指定してください。\nオプションは「お給仕メイド」「お仕え執事」から、キャスト・金額・内容を指定できます。\n最後の確認画面で確定すると、LEVELIA Botへ支払われます。")],
+      .setDescription("**基本メニュー**\nツーショ：30分 / 10,000 LIA\nフリー：30分 / 5,000 LIA\n団体指名：キャスト1人につき30分 / 25,000 LIA\n利用時間は30分単位で選べます。\n\nツーショ・団体指名はキャストと利用時間を指定してください。\nフリーは利用時間のみ指定してください。\nオプションは「お給仕メイド」「お仕え執事」から、キャスト・金額・内容を指定できます。\n最後の確認画面で確定すると、LEVELIA Botへ支払われます。\n\n**初回無料チケット**\n「30分無料チケットを使う」からキャストを選ぶと、ツーショ30分をチケット1枚で利用できます（LIA消費なし）。\nガチャコイン15枚で1人1回のみ交換できます。")],
     components: [new ActionRowBuilder<ButtonBuilder>().addComponents(
       Object.entries(CAST_MENUS).map(([key, menu]) => new ButtonBuilder()
         .setCustomId(`${CAST_PAYMENT_PREFIX}:start:${key}`).setLabel(menu.label)
-        .setStyle(menu.ratePerHalfHour ? ButtonStyle.Primary : ButtonStyle.Secondary)))],
+        .setStyle(menu.ratePerHalfHour ? ButtonStyle.Primary : ButtonStyle.Secondary))),
+      new ActionRowBuilder<ButtonBuilder>().addComponents(new ButtonBuilder()
+        .setCustomId(`${CAST_PAYMENT_PREFIX}:start:ticket`).setLabel("30分無料チケットを使う").setStyle(ButtonStyle.Success))],
     allowedMentions: { parse: [] as never[] },
   };
 }

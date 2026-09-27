@@ -5,6 +5,7 @@ export type CastInteraction = ButtonInteraction | StringSelectMenuInteraction | 
 export interface CastSession {
   id: string; userId: string; guildId: string; channelId: string;
   menu: CastMenu; candidates: { id: string; name: string }[]; castIds: string[];
+  useTicket?: boolean;
   page: number; hours: number; amount: number; option: string;
   stage: "cast" | "time" | "option" | "confirm";
   revision: number; expiresAt: number; busy: boolean;

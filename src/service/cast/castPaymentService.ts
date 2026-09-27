@@ -1,3 +1,5 @@
+import { ITEM_KEY } from "../../constant/inventory/item";
+import { ItemService } from "../inventory/itemService";
 import { GuildMemberCacheService } from "../system/guildMemberCacheService";
 import { randomUUID } from "node:crypto";
 import {
@@ -36,6 +38,14 @@ export function calculateCastAmount(menu: CastMenu, count: number, hours: number
   if (!Number.isSafeInteger(amount) || amount < 1 || amount > CAST_MAX_AMOUNT) throw new Error("支払い金額が不正、または上限を超えています。");
   return amount;
 }
+export function calculateCastSessionAmount(s: CastSession): number {
+  const amount = calculateCastAmount(s.menu, s.castIds.length, s.hours, s.amount);
+  if (!s.useTicket) return amount;
+  if (s.menu !== "twoshot" || s.hours !== CAST_TIME_STEP_HOURS) {
+    throw new Error("初回無料チケットはツーショ30分のみ利用できます。");
+  }
+  return 0;
+}
 export function formatCastDuration(hours: number): string {
   const wholeHours = Math.floor(hours);
   const minutes = (hours - wholeHours) * 60;
@@ -60,13 +70,14 @@ function selectedEmbed(s: CastSession, title: string): EmbedBuilder {
   return embed;
 }
 export function createCastConfirmationEmbed(s: CastSession): EmbedBuilder {
-  const amount = calculateCastAmount(s.menu, s.castIds.length, s.hours, s.amount);
+  const amount = calculateCastSessionAmount(s);
   const embed = selectedEmbed(s, "支払い内容の確認");
   if (CAST_MENUS[s.menu].ratePerHalfHour) embed.addFields(
     { name: "利用時間", value: formatCastDuration(s.hours), inline: true },
     { name: "料金", value: `${CAST_MENUS[s.menu].ratePerHalfHour.toLocaleString()} LIA / 30分 × ${s.hours / CAST_TIME_STEP_HOURS}枠${s.menu === "group" ? ` × ${s.castIds.length}人` : ""}`, inline: true },
   );
   else embed.addFields({ name: "オプション", value: s.option });
+  if (s.useTicket) embed.addFields({ name: "使用チケット", value: "執事・メイドツーショ30分初回無料チケット × 1枚（LIAの引き落としなし）" });
   return embed.addFields({ name: "合計金額", value: `**${amount.toLocaleString()} LIA**` }, { name: "支払先", value: `<@${BOT_ID}>` });
 }
 
@@ -74,10 +85,15 @@ export class CastPaymentService {
   private static sessions = new Map<string, CastSession>();
 
   private static async start(interaction: CastInteraction, menu: string): Promise<void> {
+    const useTicket = menu === "ticket";
+    if (useTicket) menu = "twoshot";
     if (!interaction.isButton() || !interaction.guild || interaction.channelId !== TEXT_CHANNEL_IDS.CAST_PAYMENT_PANEL || !isCastMenu(menu)) {
       throw new Error("指定の支払いパネルから操作してください。");
     }
     if (!interaction.deferred) await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    if (useTicket && !await ItemService.hasItem(interaction.user.id, ITEM_KEY.CAST_TWOSHOT_FIRST_FREE)) {
+      throw new Error("ツーショ30分初回無料チケットを所持していません。ガチャコイン交換所で交換してください。");
+    }
     let candidates: CastSession["candidates"] = [];
     if (menu !== "free") {
       const members = await GuildMemberCacheService.getMembers(interaction.guild);
@@ -88,7 +104,7 @@ export class CastPaymentService {
     }
     const s: CastSession = {
       id: randomUUID(), userId: interaction.user.id, guildId: interaction.guildId!, channelId: interaction.channelId,
-      menu, candidates, castIds: [], page: 0, hours: CAST_TIME_STEP_HOURS, amount: 0, option: "", stage: menu === "free" ? "time" : "cast",
+      menu, useTicket, candidates, castIds: [], page: 0, hours: CAST_TIME_STEP_HOURS, amount: 0, option: "", stage: menu === "free" ? "time" : "cast",
       revision: 0, expiresAt: Date.now() + CAST_SESSION_TTL_MS, busy: false,
     };
     this.sessions.set(s.id, s);
@@ -132,7 +148,7 @@ export class CastPaymentService {
     } else {
       embed = createCastConfirmationEmbed(s);
       components.push(new ActionRowBuilder<ButtonBuilder>().addComponents(
-        button(s, "pay", "確定して支払う", false, ButtonStyle.Success),
+        button(s, "pay", s.useTicket ? "確定してチケットを使う" : "確定して支払う", false, ButtonStyle.Success),
         button(s, "revise", "内容を変更"), button(s, "cancel", "キャンセル")));
     }
     await interaction.editReply({ content: "", embeds: [embed], components, allowedMentions: { parse: [] } });
@@ -178,7 +194,7 @@ export class CastPaymentService {
           return;
         }
         if (!interaction.deferred) await interaction.deferUpdate();
-        if (s.menu !== "group") s.stage = "time";
+        if (s.menu !== "group") s.stage = s.useTicket ? "confirm" : "time";
       } else if (action === "details" && s.stage === "option" && interaction.isModalSubmit()) {
         const rawAmount = interaction.fields.getTextInputValue("amount").trim();
         const option = interaction.fields.getTextInputValue("option").trim();
@@ -195,12 +211,12 @@ export class CastPaymentService {
         if (!interaction.deferred) await interaction.deferUpdate();
         if (action === "cancel") {
           this.sessions.delete(s.id);
-          await interaction.editReply({ content: "キャンセルしました。支払いは発生していません。", embeds: [], components: [] });
+          await interaction.editReply({ content: s.useTicket ? "キャンセルしました。チケットは消費されていません。" : "キャンセルしました。支払いは発生していません。", embeds: [], components: [] });
           return;
         }
         if (action === "pay" && s.stage === "confirm") {
           this.sessions.delete(s.id);
-          await interaction.editReply({ content: "支払いを処理しています…", embeds: [], components: [] });
+          await interaction.editReply({ content: s.useTicket ? "チケット利用を処理しています…" : "支払いを処理しています…", embeds: [], components: [] });
           await this.pay(interaction, s);
           return;
         }
@@ -212,7 +228,7 @@ export class CastPaymentService {
           s.hours = hours;
         } else if (action === "review" && s.stage === "time") s.stage = "confirm";
         else if (action === "back" && s.menu !== "free" && (s.stage === "time" || s.stage === "option")) s.stage = "cast";
-        else if (action === "revise" && s.stage === "confirm") s.stage = CAST_MENUS[s.menu].ratePerHalfHour ? "time" : "option";
+        else if (action === "revise" && s.stage === "confirm") s.stage = s.useTicket ? "cast" : CAST_MENUS[s.menu].ratePerHalfHour ? "time" : "option";
         else throw new Error("最新の画面から操作してください。");
         s.revision++;
       } else throw new Error("無効な操作です。");
@@ -222,7 +238,7 @@ export class CastPaymentService {
 
   /** 口座を決まった順でロックし、決済IDの記録と残高・履歴を一括確定する。 */
   static async transfer(s: CastSession): Promise<boolean> {
-    const amount = calculateCastAmount(s.menu, s.castIds.length, s.hours, s.amount);
+    const amount = calculateCastSessionAmount(s);
     if (new Set(s.castIds).size !== s.castIds.length) throw new Error("キャストが重複しています。");
     const connection = await DbService.getConnection();
     try {
@@ -233,19 +249,27 @@ export class CastPaymentService {
       if (previous.length) { await connection.rollback(); return false; }
       const payer = accounts.find(a => String(a.user_id) === s.userId);
       const recipient = accounts.find(a => String(a.user_id) === BOT_ID);
-      await SendService.validateSend(payer!, recipient!, amount);
-      if (Number(recipient!.wallet) + amount > CAST_MAX_AMOUNT) throw new Error("受取口座の残高上限のため支払いできません。運営へお問い合わせください。");
-      await connection.execute("UPDATE accounts SET wallet = wallet - ? WHERE user_id = ?", [amount, s.userId]);
-      await connection.execute("UPDATE accounts SET wallet = wallet + ? WHERE user_id = ?", [amount, BOT_ID]);
-      const detail = CAST_MENUS[s.menu].ratePerHalfHour
-        ? `${formatCastDuration(s.hours)}${s.menu === "free" ? "" : ` / ${s.castIds.length}人指名`}` : s.option;
-      const comment = `キャスト支払い [${s.id}] ${CAST_MENUS[s.menu].label} / ${detail}`;
-      await connection.execute(
-        "INSERT INTO actions (command_name, amount, from_user_id, to_user_id, from_after_wallet, to_after_wallet, comment) VALUES (?, ?, ?, ?, ?, ?, ?)",
-        [ACTION_TYPES.CAST_PAYMENT, amount, s.userId, BOT_ID, Number(payer!.wallet) - amount, Number(recipient!.wallet) + amount, [...comment].slice(0, 256).join("")]);
+      if (s.useTicket) {
+        if (!payer) throw new Error("先に口座を開設してください。");
+        if (Number(payer.is_frozen)) throw new Error("口座が凍結されているためチケットを使用できません。");
+        if (!await ItemService.consume(connection, s.userId, ITEM_KEY.CAST_TWOSHOT_FIRST_FREE)) {
+          throw new Error("ツーショ30分初回無料チケットを所持していません。チケットは消費されていません。");
+        }
+      } else {
+        await SendService.validateSend(payer!, recipient!, amount);
+        if (Number(recipient!.wallet) + amount > CAST_MAX_AMOUNT) throw new Error("受取口座の残高上限のため支払いできません。運営へお問い合わせください。");
+        await connection.execute("UPDATE accounts SET wallet = wallet - ? WHERE user_id = ?", [amount, s.userId]);
+        await connection.execute("UPDATE accounts SET wallet = wallet + ? WHERE user_id = ?", [amount, BOT_ID]);
+        const detail = CAST_MENUS[s.menu].ratePerHalfHour
+          ? `${formatCastDuration(s.hours)}${s.menu === "free" ? "" : ` / ${s.castIds.length}人指名`}` : s.option;
+        const comment = `キャスト支払い [${s.id}] ${CAST_MENUS[s.menu].label} / ${detail}`;
+        await connection.execute(
+          "INSERT INTO actions (command_name, amount, from_user_id, to_user_id, from_after_wallet, to_after_wallet, comment) VALUES (?, ?, ?, ?, ?, ?, ?)",
+          [ACTION_TYPES.CAST_PAYMENT, amount, s.userId, BOT_ID, Number(payer!.wallet) - amount, Number(recipient!.wallet) + amount, [...comment].slice(0, 256).join("")]);
+      }
       await connection.execute(
         "INSERT INTO cast_payments (id, user_id, menu, cast_ids, hours, amount, option_text, log_thread_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-        [s.id, s.userId, s.menu, JSON.stringify(s.castIds), CAST_MENUS[s.menu].ratePerHalfHour ? s.hours : 0, amount, s.option, CAST_MENUS[s.menu].threadId]);
+        [s.id, s.userId, s.menu, JSON.stringify(s.castIds), CAST_MENUS[s.menu].ratePerHalfHour ? s.hours : 0, amount, s.useTicket ? "執事・メイドツーショ30分初回無料チケット使用" : s.option, CAST_MENUS[s.menu].threadId]);
       await connection.commit();
       return true;
     } catch (error) { await connection.rollback(); throw error; }
@@ -270,7 +294,7 @@ export class CastPaymentService {
     }
     let logFailed = false;
     try {
-      const log = createCastConfirmationEmbed(s).setTitle("執事・メイド 支払い完了").setColor(COLOR.GREEN)
+      const log = createCastConfirmationEmbed(s).setTitle(s.useTicket ? "執事・メイド チケット利用完了" : "執事・メイド 支払い完了").setColor(COLOR.GREEN)
         .addFields({ name: "利用者", value: `<@${s.userId}>` }).setTimestamp().setFooter({ text: `決済ID: ${s.id}` });
       const message = await thread.send({ embeds: [log], allowedMentions: { parse: [] } });
       const connection = await DbService.getConnection();
@@ -281,8 +305,12 @@ export class CastPaymentService {
       console.error(`[CastPayment] Payment committed, log delivery/receipt failed. payment=${s.id}`, error);
     }
     await interaction.editReply({
-      content: `✅ ${CAST_MENUS[s.menu].label}の支払いが完了しました。**${calculateCastAmount(s.menu, s.castIds.length, s.hours, s.amount).toLocaleString()} LIA** をLEVELIA Botへ送金しました。` +
-        (logFailed ? `\n支払いは完了していますが、ログの送信・記録に失敗しました。再度支払わず、運営へ決済ID「${s.id}」をお知らせください。` : ""),
+      content: (s.useTicket
+        ? "✅ ツーショ30分初回無料チケットを1枚使用しました。利用時間は30分です。LIAの引き落としはありません。"
+        : `✅ ${CAST_MENUS[s.menu].label}の支払いが完了しました。**${calculateCastSessionAmount(s).toLocaleString()} LIA** をLEVELIA Botへ送金しました。`) +
+        (logFailed ? (s.useTicket
+          ? `\nチケット利用は完了していますが、ログの送信・記録に失敗しました。再度使用せず、運営へ決済ID「${s.id}」をお知らせください。`
+          : `\n支払いは完了していますが、ログの送信・記録に失敗しました。再度支払わず、運営へ決済ID「${s.id}」をお知らせください。`) : ""),
       embeds: [], components: [], allowedMentions: { parse: [] },
     });
   }

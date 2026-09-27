@@ -273,3 +273,40 @@ for (const [menu, count, halfHourPrice] of [['twoshot', 1, 10000], ['free', 0, 5
     assert.match(action.params[6], /30分/);
   });
 }
+
+const { ItemService } = require('../dist/service/inventory/itemService');
+const { calculateCastSessionAmount } = require('../dist/service/cast/castPaymentService');
+test('初回券ボタンはキャスト選択から30分0LIAの確認へ進み、確定時だけ消費する', async t => {
+  const f = fixture(t, 'twoshot');
+  t.mock.method(ItemService, 'hasItem', async () => true);
+  const start = () => handlePanelButton(f.interaction('button', 'castPayment:start:ticket'));
+  assert.equal(createCastPaymentPanelPayload().components[1].toJSON().components[0].custom_id, 'castPayment:start:ticket');
+  await start(); await f.select(['maid']);
+  const confirmation = JSON.stringify(f.edits.at(-1));
+  assert.match(confirmation, /30分/); assert.match(confirmation, /\*\*0 LIA\*\*/);
+  assert.match(confirmation, /確定してチケットを使う/);
+  assert.equal(f.payments.length, 0);
+  await f.button('revise'); await f.select(['butler']);
+  await f.button('pay');
+  assert.equal(f.payments.length, 1);
+  assert.equal(f.payments[0].useTicket, true);
+  assert.equal(f.payments[0].hours, 0.5);
+  assert.match(f.edits.at(-1).content, /LIAの引き落としはありません/);
+  assert.match(JSON.stringify(f.logs[0]), /初回無料チケット/);
+});
+test('初回券未所持では開始できず、キャンセルでは消費しない', async t => {
+  const f = fixture(t, 'twoshot');
+  const has = t.mock.method(ItemService, 'hasItem', async () => false);
+  const start = () => handlePanelButton(f.interaction('button', 'castPayment:start:ticket'));
+  await assert.rejects(start(), /所持していません/);
+  has.mock.mockImplementation(async () => true);
+  await start(); await f.select(['maid']); await f.button('cancel');
+  assert.equal(f.payments.length, 0);
+});
+test('初回券では他メニュー・時間延長・複数キャストを拒否する', () => {
+  const s = { menu: 'twoshot', castIds: ['maid'], hours: 0.5, amount: 0, useTicket: true };
+  assert.equal(calculateCastSessionAmount(s), 0);
+  for (const extra of [{ menu: 'group' }, { menu: 'free', castIds: [] }, { hours: 1 }, { castIds: ['a', 'b'] }]) {
+    assert.throws(() => calculateCastSessionAmount({ ...s, ...extra }));
+  }
+});

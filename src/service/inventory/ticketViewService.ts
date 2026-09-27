@@ -20,6 +20,9 @@ const GROUPS: readonly { title: string; tickets: readonly { key: ItemKey; label:
     { key: ITEM_KEY.HAZAMA_FREE, label: "辺境の狭間（12時間）" },
     { key: ITEM_KEY.SOLITARY_CELL_FREE, label: "独房（12時間）" },
   ] },
+  { title: "執事・メイド", tickets: [
+    { key: ITEM_KEY.CAST_TWOSHOT_FIRST_FREE, label: "ツーショ30分初回無料チケット" },
+  ] },
 ];
 
 export class TicketViewService {

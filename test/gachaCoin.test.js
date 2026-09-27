@@ -56,13 +56,14 @@ test('不正な枚数はDBに接続せず拒否する', async () => {
   for (const amount of [0, NaN, Infinity, 1.5, GACHA_COIN_MAX + 1]) await assert.rejects(GachaCoinService.adjust('id', 'user', amount, 'op', ''), /枚数/);
 });
 
-test('パネルは3券種の時間とレート、手動交換の全景品、残高確認を表示する', () => {
-  assert.deepEqual(GACHA_COIN_REWARDS.map(r => r.cost), [10, 20, 25]);
+test('パネルは4券種の時間とレート、手動交換の全景品、残高確認を表示する', () => {
+  assert.deepEqual(GACHA_COIN_REWARDS.map(r => r.cost), [10, 20, 25, 15]);
   const payload = createGachaCoinPanelPayload();
   const embed = payload.embeds[0].toJSON();
   assert.match(embed.fields[0].value, /遊戯24時間/);
   assert.match(embed.fields[0].value, /シクレ12時間/);
   assert.match(embed.fields[0].value, /フリーダム12時間/);
+  assert.match(embed.fields[0].value, /執事・メイドツーショ30分初回無料チケット：\*\*15枚\*\*（1人1回限定）/);
   for (const name of ['通行証', '評価延長3', '評価延長5', 'オリジナルロール']) assert.ok(embed.fields[1].value.includes(name));
   assert.ok(!JSON.stringify(embed).includes('再評価'));
   assert.deepEqual(payload.components.flatMap(row => row.components.map(button => button.data.custom_id)),
@@ -85,8 +86,8 @@ test('選択は確認画面だけを作り、確定・キャンセルは本人�
   const menu = replies[0].components[0].components[0].toJSON();
   assert.equal(menu.type, 3);
   assert.equal(menu.custom_id, 'gachaCoin:select');
-  assert.deepEqual(menu.options.map(option => option.value), ['game', 'secret', 'freedom']);
-  assert.deepEqual(menu.options.map(option => option.description), ['10コインで1枚と交換', '20コインで1枚と交換', '25コインで1枚と交換']);
+  assert.deepEqual(menu.options.map(option => option.value), ['game', 'secret', 'freedom', 'cast_first']);
+  assert.deepEqual(menu.options.map(option => option.description), ['10コインで1枚と交換', '20コインで1枚と交換', '25コインで1枚と交換', '15コインで1枚と交換（1人1回限定）']);
   assert.match(replies[0].embeds[0].data.description, /50枚/);
   assert.equal(shouldDeferButtonUpdate('gachaCoin:start'), false);
   replies.length = 0;

@@ -35,7 +35,7 @@ test('5コマンドの名前・任意指定・券種が登録される', () => {
   assert.deepEqual(definitions.map(d => d.name), ['残高統計', '口座発行', '残高確認', 'チケット付与', 'インチャ掃除']);
   assert.ok(definitions.every(d => d.dm_permission === false));
   assert.ok(definitions[1].options.every(o => !o.required));
-  assert.equal(definitions[3].options.find(o => o.name === '種類').choices.length, 8);
+  assert.equal(definitions[3].options.find(o => o.name === '種類').choices.length, 9);
   for (const command of [C.VC_CLEAN, C.ADMIN_OPEN_ACCOUNT, C.BALANCE_STATISTICS]) assert.ok(getEvaluationCommandHandlerTimeoutMs(command, false) > 120000);
 });
 

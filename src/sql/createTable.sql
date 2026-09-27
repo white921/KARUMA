@@ -100,6 +100,7 @@ CREATE TABLE IF NOT EXISTS item_users (
 COMMENT='ユーザーのアイテム所持情報';
 
 INSERT INTO items (item_key, name, description) VALUES
+  ('CAST_TWOSHOT_FIRST_FREE', '執事・メイドツーショ30分初回無料チケット', 'ツーショ30分を無料で利用できる券。ガチャコイン15枚で1人1回のみ交換可能'),
   ('HOTEL_NORMAL_FREE', '通常ホテル無料券', '通常ホテル（12時間）を無料で利用できる券'),
   ('HOTEL_SECRET_FREE', 'VIPホテル無料券', 'VIPホテル（12時間）を無料で利用できる券'),
   ('HOTEL_FREEDOM_FREE', 'フリーダム無料券', 'フリーダム（12時間）を無料で利用できる券'),

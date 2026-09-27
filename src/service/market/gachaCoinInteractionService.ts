@@ -1,6 +1,6 @@
 import { GachaCoinExchangeLogService } from "./gachaCoinExchangeLogService";
 import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, EmbedBuilder, StringSelectMenuBuilder, StringSelectMenuInteraction } from "discord.js";
-import { GACHA_COIN_PREFIX, GACHA_COIN_REWARDS, getGachaCoinReward } from "../../constant/market/gachaCoin";
+import { GACHA_COIN_PREFIX, GACHA_COIN_REWARDS, getGachaCoinReward, isOneTimeGachaReward } from "../../constant/market/gachaCoin";
 import { COLOR } from "../../constant/shared/color";
 import { GachaCoinService } from "./gachaCoinService";
 
@@ -16,7 +16,7 @@ export async function handleGachaCoinButton(interaction: ButtonInteraction): Pro
         new StringSelectMenuBuilder().setCustomId(`${GACHA_COIN_PREFIX}:select`)
           .setPlaceholder("交換するチケットを選択").setMinValues(1).setMaxValues(1)
           .addOptions(GACHA_COIN_REWARDS.map(reward => ({
-            label: reward.label, value: reward.key, description: `${reward.cost}コインで1枚と交換`,
+            label: reward.label, value: reward.key, description: `${reward.cost}コインで1枚と交換${isOneTimeGachaReward(reward.key) ? "（1人1回限定）" : ""}`,
           }))),
       )],
     });
@@ -50,7 +50,7 @@ async function showGachaCoinConfirmation(
   await interaction.editReply({
     content: "",
     embeds: [new EmbedBuilder().setTitle("アイテム交換の確認").setColor(COLOR.LIGFT_PINK)
-      .setDescription(`**${reward.label} × 1枚**と交換します。\n消費: **${reward.cost}コイン**\n所持: ${balance}枚 → ${balance - reward.cost}枚\n\n交換したチケットは所持チケットに追加されます。確認の有効期限は10分です。`)],
+      .setDescription(`**${reward.label} × 1枚**と交換します。\n消費: **${reward.cost}コイン**\n所持: ${balance}枚 → ${balance - reward.cost}枚\n\n${isOneTimeGachaReward(reward.key) ? "このチケットの交換は1人1回限定です。使用後も再交換できません。\n" : ""}交換したチケットは所持チケットに追加されます。確認の有効期限は10分です。`)],
     components: [new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder().setCustomId(`${GACHA_COIN_PREFIX}:confirm:${interaction.id}`).setLabel("交換を確定").setStyle(ButtonStyle.Success),
       new ButtonBuilder().setCustomId(`${GACHA_COIN_PREFIX}:cancel:${interaction.id}`).setLabel("キャンセル").setStyle(ButtonStyle.Secondary),

@@ -47,7 +47,7 @@ test('ガチャコイン MySQL統合テスト', { skip: !process.env.GACHA_COIN_
     assert.deepEqual(await Promise.all([service.adjust(operation, '1001', 50, '1002', ''), service.adjust(operation, '1001', 50, '1002', '')]), [50, 50]);
     assert.equal((await state()).logs, 1);
   });
-  await t.test('3券種を正しいレートで付与し、確認だけでは残高を消費しない', async () => {
+  await t.test('4券種を正しいレートで付与し、確認だけでは残高を消費しない', async () => {
     for (const reward of rewards) {
       await reset(); const request = id(); const before = await state();
       await service.createRequest(request, '1001', reward.key);
@@ -55,6 +55,27 @@ test('ガチャコイン MySQL統合テスト', { skip: !process.env.GACHA_COIN_
       await service.redeem(request, '1001');
       assert.deepEqual(await state(), { coins: 100 - reward.cost, items: [{ key: reward.itemKey, quantity: 1 }], logs: 2, wallet: 999 });
     }
+  });
+  await t.test('初回券の異なる確認を並行確定しても1枚だけ、使用後も再交換不可', async () => {
+    await reset(); const ids = [id(), id()];
+    for (const request of ids) await service.createRequest(request, '1001', 'cast_first');
+    const results = await Promise.allSettled(ids.map(request => service.redeem(request, '1001')));
+    assert.equal(results.filter(r => r.status === 'fulfilled').length, 1);
+    assert.match(results.find(r => r.status === 'rejected').reason.message, /すでに交換済み/);
+    assert.equal((await state()).coins, 85);
+    assert.equal((await state()).items[0].quantity, 1);
+    const succeeded = ids[results.findIndex(r => r.status === 'fulfilled')];
+    assert.equal((await service.redeem(succeeded, '1001')).alreadyCompleted, true);
+    await pool.query('UPDATE item_users SET quantity=0 WHERE user_id=1001');
+    await assert.rejects(service.createRequest(id(), '1001', 'cast_first'), /すでに交換済み/);
+    assert.equal((await state()).coins, 85);
+  });
+  await t.test('初回券の確認キャンセルは交換権を消費しない', async () => {
+    await reset(); const cancelled = id(), next = id();
+    await service.createRequest(cancelled, '1001', 'cast_first');
+    await service.cancel(cancelled, '1001');
+    await service.createRequest(next, '1001', 'cast_first');
+    assert.equal((await service.redeem(next, '1001')).balance, 85);
   });
   await t.test('同じ交換の並行確定は1回だけ消費・付与する', async () => {
     await reset(); const request = id(); await service.createRequest(request, '1001', 'game');

@@ -1,6 +1,6 @@
 import type { ChatInputCommandInteraction } from "discord.js";
 import type { PoolConnection, RowDataPacket } from "mysql2/promise";
-import { GACHA_COIN_MAX, GACHA_COIN_OPERATOR_ROLE_IDS, getGachaCoinReward } from "../../constant/market/gachaCoin";
+import { GACHA_COIN_MAX, GACHA_COIN_OPERATOR_ROLE_IDS, getGachaCoinReward, isOneTimeGachaReward } from "../../constant/market/gachaCoin";
 import { hasOperatorRole } from "../../util/shared/operatorPermission";
 import { ItemService } from "../inventory/itemService";
 import { DbService } from "../system/dbService";
@@ -33,6 +33,15 @@ async function lockBalance(connection: PoolConnection, userId: string, requireUn
   const [rows] = await connection.execute<RowDataPacket[]>(
     "SELECT coins FROM gacha_coin_balances WHERE user_id = ? FOR UPDATE", [userId]);
   return Number(rows[0].coins);
+}
+
+// 呼び出し元で口座をロック済み。所持数ではなく永続履歴で使用後も再交換を拒否する。
+async function assertRewardAvailable(connection: PoolConnection, userId: string, rewardKey: string): Promise<void> {
+  if (!isOneTimeGachaReward(rewardKey)) return;
+  const [rows] = await connection.execute<RowDataPacket[]>(
+    "SELECT operation_id FROM gacha_coin_transactions WHERE user_id = ? AND transaction_type = 'exchange' AND item_key = ? LIMIT 1 FOR UPDATE",
+    [userId, getGachaCoinReward(rewardKey).itemKey]);
+  if (rows.length) throw new Error("この初回無料チケットは1人1回までです。すでに交換済みのため再交換できません。");
 }
 
 export class GachaCoinService {
@@ -80,6 +89,7 @@ export class GachaCoinService {
     const reward = getGachaCoinReward(rewardKey);
     return transaction(async (connection) => {
       const balance = await lockBalance(connection, userId, true);
+      await assertRewardAvailable(connection, userId, reward.key);
       if (balance < reward.cost) throw new Error(`ガチャコインが不足しています。必要: ${reward.cost}枚 / 所持: ${balance}枚`);
       await connection.execute(`INSERT INTO gacha_coin_exchange_requests
         (request_id, user_id, reward_key, cost, expires_at) VALUES (?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 10 MINUTE))`,
@@ -99,6 +109,7 @@ export class GachaCoinService {
       if (request.status === "completed") return { reward, balance, alreadyCompleted: true };
       if (request.status !== "pending" || Number(request.expired)) throw new Error("キャンセル済み、または確認の有効期限が切れています。パネルからやり直してください。");
       if (Number(request.cost) !== reward.cost) throw new Error("交換レートが変更されました。パネルからやり直してください。");
+      await assertRewardAvailable(connection, userId, reward.key);
       if (balance < reward.cost) throw new Error(`ガチャコインが不足しています。必要: ${reward.cost}枚 / 所持: ${balance}枚`);
       const after = balance - reward.cost;
       await connection.execute("UPDATE gacha_coin_balances SET coins = ? WHERE user_id = ?", [after, userId]);

@@ -1,5 +1,5 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, Client, EmbedBuilder } from "discord.js";
-import { GACHA_COIN_PANEL_TITLE, GACHA_COIN_PREFIX, GACHA_COIN_REWARDS } from "../../constant/market/gachaCoin";
+import { GACHA_COIN_PANEL_TITLE, GACHA_COIN_PREFIX, GACHA_COIN_REWARDS, isOneTimeGachaReward } from "../../constant/market/gachaCoin";
 import { TEXT_CHANNEL_IDS } from "../../constant/shared/id";
 import { PANEL_COMMAND_NAMES } from "../../constant/shared/command";
 import { COLOR } from "../../constant/shared/color";
@@ -9,7 +9,7 @@ export function createGachaCoinPanelPayload() {
     embeds: [new EmbedBuilder().setTitle(GACHA_COIN_PANEL_TITLE).setColor(COLOR.LIGFT_PINK)
       .setDescription("ガチャコインをアイテムと交換できます。「交換する」を押してチケットを選び、内容を確認して確定してください。")
       .addFields(
-        { name: "パネルで交換", value: GACHA_COIN_REWARDS.map(r => `${r.label}：**${r.cost}枚**`).join("\n") },
+        { name: "パネルで交換", value: GACHA_COIN_REWARDS.map(r => `${r.label}：**${r.cost}枚**${isOneTimeGachaReward(r.key) ? "（1人1回限定）" : ""}`).join("\n") },
         { name: "チケット内で従業員が対応", value: "通行証（1ヶ月）：**30枚**\n評価延長3：**30枚**\n評価延長5：**50枚**\n支配人・英傑・皇帝の相談室（15分間）：**75枚**\nオリジナルロール（1週間）：**150枚**\nご希望の方はショップのチケット内で従業員にお申し付けください。" },
       )],
     components: [

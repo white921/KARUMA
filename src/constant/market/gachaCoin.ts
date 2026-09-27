@@ -12,9 +12,14 @@ export const GACHA_COIN_REWARDS = [
   { key: "game", itemKey: ITEM_KEY.GAME_SHORT_FREE, label: "遊戯24時間チケット", cost: 10 },
   { key: "secret", itemKey: ITEM_KEY.HOTEL_SECRET_FREE, label: "シクレ12時間チケット", cost: 20 },
   { key: "freedom", itemKey: ITEM_KEY.HOTEL_FREEDOM_FREE, label: "フリーダム12時間チケット", cost: 25 },
+  { key: "cast_first", itemKey: ITEM_KEY.CAST_TWOSHOT_FIRST_FREE, label: "執事・メイドツーショ30分初回無料チケット", cost: 15 },
 ] as const;
 export function getGachaCoinReward(key: string) {
   const reward = GACHA_COIN_REWARDS.find((entry) => entry.key === key);
   if (!reward) throw new Error("交換するアイテムが不正です。");
   return reward;
+}
+
+export function isOneTimeGachaReward(key: string): boolean {
+  return getGachaCoinReward(key).itemKey === ITEM_KEY.CAST_TWOSHOT_FIRST_FREE;
 }

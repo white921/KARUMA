@@ -1,6 +1,7 @@
 import type { ItemKey } from "../../type/inventory/item";
 
 export const ITEM_KEY = {
+  CAST_TWOSHOT_FIRST_FREE: "CAST_TWOSHOT_FIRST_FREE",
   HOTEL_NORMAL_FREE: "HOTEL_NORMAL_FREE",
   HOTEL_SECRET_FREE: "HOTEL_SECRET_FREE",
   HOTEL_FREEDOM_FREE: "HOTEL_FREEDOM_FREE",
@@ -16,6 +17,7 @@ export const ITEM_DEFINITIONS: readonly {
   name: string;
   description: string;
 }[] = [
+  { key: ITEM_KEY.CAST_TWOSHOT_FIRST_FREE, name: "執事・メイドツーショ30分初回無料チケット", description: "ツーショ30分を無料で利用できる券。ガチャコイン15枚で1人1回のみ交換可能" },
   { key: ITEM_KEY.HOTEL_NORMAL_FREE, name: "通常ホテル無料券", description: "通常ホテル（12時間）を無料で利用できる券" },
   {
     key: ITEM_KEY.HOTEL_SECRET_FREE,
