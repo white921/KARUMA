@@ -29,6 +29,9 @@ import { execute as rouletteBonus } from "../../command/casino/rouletteBonus";
 import { execute as result } from "../../command/casino/result";
 import { execute as invitePointAdd } from "../../command/market/invitePointAdd";
 import { execute as vc } from "../../command/vc/vc";
+import { execute as vcClean } from "../../command/vc/vcClean";
+import { execute as balanceStatistics } from "../../command/currency/balanceStatistics";
+import { execute as ticketGrant } from "../../command/market/ticketGrant";
 
 import { COMMAND_MESSAGES, COMMAND_NAMES } from "../../constant/shared/command";
 
@@ -122,6 +125,15 @@ export async function exeCommand(
         break;
       case COMMAND_NAMES.ROOM_NAME_CHANGE:
         await vc(interaction);
+        break;
+      case COMMAND_NAMES.VC_CLEAN:
+        await vcClean(interaction);
+        break;
+      case COMMAND_NAMES.BALANCE_STATISTICS:
+        await balanceStatistics(interaction);
+        break;
+      case COMMAND_NAMES.TICKET_GRANT:
+        await ticketGrant(interaction);
         break;
       default:
         throw new Error(COMMAND_MESSAGES.UNKNOWN_COMMAND);

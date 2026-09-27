@@ -2,33 +2,21 @@ import {
   ChatInputCommandInteraction,
   Collection,
   GuildMember,
-  Role,
 } from "discord.js";
 
 import { AccountService } from "./accountService";
 
 import { hasRole } from "../../util/member/role";
-import { hasAdminBankPanelPermission } from "../../util/currency/adminPermission";
+import { assertManagementPermission } from "../../util/shared/managementPermission";
 
 import { INITIAL_WALLET } from "../../constant/account/account";
-import { ADMIN_MESSAGES } from "../../constant/currency/admin";
-import { ADMIN_OPEN_ACCOUNT_MESSAGES } from "../../constant/account/adminOpenAccount";
 import { ROLE_IDS } from "../../constant/shared/id";
 
 export class AdminOpenAccountService {
   static async validate(
     interaction: ChatInputCommandInteraction,
-    targetRole: Role | null,
   ) {
-    const member = interaction.member as GuildMember;
-
-    if (!(await hasAdminBankPanelPermission(member))) {
-      throw new Error(ADMIN_MESSAGES.NO_PERMISSION);
-    }
-
-    if (!targetRole) {
-      throw new Error(ADMIN_OPEN_ACCOUNT_MESSAGES.ROLE_NOT_FOUND);
-    }
+    await assertManagementPermission(interaction);
   }
 
   static async createAccountsForRole(

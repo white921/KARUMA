@@ -30,6 +30,9 @@ import { data as rouletteBonus } from "./command/casino/rouletteBonus";
 import { data as result } from "./command/casino/result";
 import { data as invitePointAdd } from "./command/market/invitePointAdd";
 import { data as vc } from "./command/vc/vc";
+import { data as vcClean } from "./command/vc/vcClean";
+import { data as balanceStatistics } from "./command/currency/balanceStatistics";
+import { data as ticketGrant } from "./command/market/ticketGrant";
 
 dotenv.config();
 
@@ -72,6 +75,9 @@ export async function registerCommands() {
     gachaCoinGrant.toJSON(),
     gachaCoinDeduct.toJSON(),
     vc.toJSON(),
+    vcClean.toJSON(),
+    balanceStatistics.toJSON(),
+    ticketGrant.toJSON(),
   ];
 
   const rest = new REST({ version: "10" }).setToken(
