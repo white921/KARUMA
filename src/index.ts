@@ -1,3 +1,4 @@
+import { ChannelCountService } from "./service/system/channelCountService";
 import { MeetingVcService } from "./service/vc/meetingVcService";
 import { MEETING_CATEGORY_ID } from "./constant/vc/meeting";
 import { HISTORY_FILTER_PREFIX } from "./service/currency/historyFilter";
@@ -78,6 +79,7 @@ client.once("clientReady", async () => {
     BotHealthMonitor.recordGatewayReady("clientReady");
     BotHealthMonitor.startWatchdog();
     MeetingVcService.startCleanup(client);
+    new ChannelCountService(client, process.env.GUILD_ID!).start();
     if (shouldRegisterCommandsOnBoot(process.env.REGISTER_COMMANDS_ON_BOOT)) {
       await registerCommands();
     }
