@@ -24,25 +24,25 @@ function setup(t) {
 test('counter includes itself, categories, voice and forum but excludes threads and nulls', async t => {
   const s = setup(t);
   await s.service.refresh();
-  assert.deepEqual(s.edits, ['4/500']);
+  assert.deepEqual(s.edits, ['チャンネル数-4／500']);
 });
 
 test('unchanged name is not written and rapid changes are coalesced', async t => {
   const s = setup(t);
   let now = 1000000;
   t.mock.method(Date, 'now', () => now);
-  s.target.name = '4/500';
+  s.target.name = 'チャンネル数-4／500';
   await s.service.refresh();
   assert.equal(s.edits.length, 0);
   s.channels.set('new', {isThread: () => false});
   await s.service.refresh();
-  assert.deepEqual(s.edits, ['5/500']);
+  assert.deepEqual(s.edits, ['チャンネル数-5／500']);
   s.channels.delete('new');
   await s.service.refresh();
-  assert.deepEqual(s.edits, ['5/500']);
+  assert.deepEqual(s.edits, ['チャンネル数-5／500']);
   now += CHANNEL_COUNT_UPDATE_INTERVAL_MS;
   await s.service.refresh();
-  assert.deepEqual(s.edits, ['5/500', '4/500']);
+  assert.deepEqual(s.edits, ['チャンネル数-5／500', 'チャンネル数-4／500']);
 });
 
 test('startup registers create/delete events once and stopping removes them', async t => {

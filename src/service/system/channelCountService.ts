@@ -44,7 +44,8 @@ export class ChannelCountService {
         throw new Error("チャンネル数表示用のTCが見つかりません。");
       }
       const count = channels.filter(channel => channel !== null && !channel.isThread()).size;
-      const name = `${count}/500`;
+      // TC名では半角 / が除去され、空白は - になるため全角 ／ と - を使う。
+      const name = `チャンネル数-${count}／500`;
       if (target.name === name) return;
       // リクエスト中のイベントや失敗時にも、名前変更が連続しないようにする。
       this.lastRenameAt = Date.now();
