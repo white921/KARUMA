@@ -46,7 +46,8 @@ async function remote(mode, sql) {
       assert.deepEqual(controls(actual.components), controls(body.components));
       for (const [index, embed] of body.embeds.entries()) {
         assert.equal(actual.embeds[index].description, embed.description);
-        assert.deepEqual(actual.embeds[index].fields ?? [], embed.fields ?? []);
+        const fields = entries => (entries ?? []).map(field => ({ name: field.name, value: field.value, inline: !!field.inline }));
+        assert.deepEqual(fields(actual.embeds[index].fields), fields(embed.fields));
       }
     }
     console.log(JSON.stringify({ verified: mode === 'panels', panel: `https://discord.com/channels/${process.env.GUILD_ID}/${target.channel}/${actual.id}`, embeds: actual.embeds, controls: controls(actual.components) }));
