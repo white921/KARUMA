@@ -21,7 +21,7 @@ export const COMMAND_NAMES = {
   ROLE_BASED_SEND: "ロール別送金",
   VIEW: "残高確認",
   LINK_ACCOUNT: "サブ垢登録",
-  RANKING: "ランキング",
+  RANKING: "残高ランキング",
   OPEN_ACCOUNT: "open_account",
   ADMIN_OPEN_ACCOUNT: "口座発行",
   BALANCE_STATISTICS: "残高統計",
