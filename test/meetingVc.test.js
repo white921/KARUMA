@@ -1,10 +1,12 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { Collection, PermissionsBitField, PermissionFlagsBits: P, ChannelType } = require('discord.js');
-const { MeetingVcService, buildMeetingOverwrites, canJoinMeeting } = require('../dist/service/vc/meetingVcService');
+const { MeetingVcService, buildMeetingOverwrites, canJoinMeeting, resolveMeetingSettings } = require('../dist/service/vc/meetingVcService');
 const { DbService } = require('../dist/service/system/dbService');
 const { createMeetingPanel } = require('../dist/panel/vc/meetingPanelService');
 const { MEETING_TEMPLATES, MEETING_CATEGORY_ID, MEETING_PANEL_CHANNEL_ID, MEETING_VC_TYPE } = require('../dist/constant/vc/meeting');
+const { ROLE_IDS } = require("../dist/constant/shared/id");
+const { MEETING_PERMISSION_SNAPSHOTS } = require("../dist/constant/vc/meetingPermissionSnapshots");
 const { resolvePanelInstallTarget } = require('../dist/panel/panelInstallService');
 const guild = { id: 'guild', ownerId: 'owner' };
 const overwrite = (id, allow = 0n, deny = 0n, type = 0) => ({id, type, allow: new PermissionsBitField(allow), deny: new PermissionsBitField(deny)});
@@ -12,11 +14,11 @@ const channelWith = entries => ({guild, permissionOverwrites: {cache: new Collec
 const member = (id, roles = [], permissions = P.ViewChannel | P.Connect) => ({id, guild, roles: {cache: new Set(roles)}, permissions: new PermissionsBitField(permissions)});
 const category = channelWith([overwrite('guild', 0n, P.ViewChannel), overwrite('general', P.ViewChannel | P.Connect)]);
 
-test('13 meeting choices and installation route', () => {
+test('14 meeting choices and installation route', () => {
   const panel = createMeetingPanel();
   const select = panel.components[0].toJSON().components[0];
-  assert.equal(select.options.length, 13);
-  assert.equal(new Set(select.options.map(o => o.value)).size, 13);
+  assert.equal(select.options.length, 14);
+  assert.equal(new Set(select.options.map(o => o.value)).size, 14);
   assert.equal(resolvePanelInstallTarget(MEETING_PANEL_CHANNEL_ID), 'meeting');
   assert.match(panel.embeds[0].data.description, /無料/);
 });
@@ -157,4 +159,51 @@ test('parallel creation clicks do not create duplicate channels', async t => {
   const results = await Promise.allSettled([MeetingVcService.create(s.interaction), MeetingVcService.create(s.interaction)]);
   assert.equal(results.filter(r => r.status === 'fulfilled').length, 1);
   assert.equal(s.created.length, 1);
+});
+
+
+test('mansion cafe permits exactly the manager, butler and maid roles', async () => {
+  const template = MEETING_TEMPLATES.find(t => t.label === 'お屋敷喫茶');
+  assert.deepEqual(template.roleIds, [ROLE_IDS.CAST_MANAGER, ROLE_IDS.CAST_BUTLER, ROLE_IDS.CAST_MAID]);
+  const g = {...guild, roles: {cache: new Set(template.roleIds)}};
+  const {permissionOverwrites} = await resolveMeetingSettings(g, template, category);
+  for (const role of template.roleIds) {
+    assert.equal(canJoinMeeting(member('employee', [role, 'general']), permissionOverwrites), true);
+    const entry = permissionOverwrites.find(p => p.id === role);
+    assert.equal(entry.allow & (P.Speak | P.UseVAD), P.Speak | P.UseVAD);
+  }
+  assert.equal(canJoinMeeting(member('outsider', ['general']), permissionOverwrites), false);
+  assert.equal(canJoinMeeting(member('customer', ['1547982885099933866', 'general']), permissionOverwrites), false);
+  assert.equal(permissionOverwrites.find(p => p.id === 'general').allow & P.ViewChannel, P.ViewChannel);
+});
+
+test('each mansion cafe role can create without a source VC or account', async t => {
+  const s = setup(t);
+  const template = MEETING_TEMPLATES.find(t => t.label === 'お屋敷喫茶');
+  s.interaction.values = [template.id];
+  s.interaction.guild.roles.cache = new Set(template.roleIds);
+  for (const role of template.roleIds) {
+    s.interaction.guild.members.fetch = async () => member('creator', [role, 'general']);
+    await MeetingVcService.create(s.interaction);
+  }
+  assert.equal(s.created.length, 3);
+  assert(s.created.every(options => options.name === 'お屋敷喫茶会議'));
+});
+
+test('deleted original meetings use saved permissions while transient errors fail closed', async () => {
+  const template = MEETING_TEMPLATES.find(t => t.label === '市場');
+  const g = {...guild, channels: {fetch: async () => {throw Object.assign(new Error('deleted'), {code: 10003});}}};
+  const {permissionOverwrites, bitrate} = await resolveMeetingSettings(g, template, category);
+  assert.equal(bitrate, 64000);
+  assert.equal(canJoinMeeting(member('merchant', ['1534907685747822693', 'general']), permissionOverwrites), true);
+  assert.equal(canJoinMeeting(member('other', ['general']), permissionOverwrites), false);
+  assert.equal(Object.keys(MEETING_PERMISSION_SNAPSHOTS).length, 13);
+  assert(MEETING_TEMPLATES.filter(t => !t.roleIds).every(t => MEETING_PERMISSION_SNAPSHOTS[t.id]));
+  g.channels.fetch = async () => {throw Object.assign(new Error('network'), {code: 500});};
+  await assert.rejects(resolveMeetingSettings(g, template, category), /network/);
+});
+
+test('missing mansion staff roles stop creation', async () => {
+  const template = MEETING_TEMPLATES.find(t => t.label === 'お屋敷喫茶');
+  await assert.rejects(resolveMeetingSettings({...guild, roles: {cache: new Set()}}, template, category), /ロールが見つかりません/);
 });
