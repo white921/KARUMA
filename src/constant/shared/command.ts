@@ -44,6 +44,14 @@ export const COMMAND_NAMES = {
   ROOM_NAME_CHANGE: "部屋名変更",
 };
 
+// 再開時は対象をここから外す。登録と実行の両方に適用する。
+export const DISABLED_COMMAND_NAMES: ReadonlySet<string> = new Set([
+  COMMAND_NAMES.ROULETTE_OPEN,
+  COMMAND_NAMES.ROULETTE_CLOSE,
+  COMMAND_NAMES.ROULETTE_RESULT,
+  COMMAND_NAMES.ROULETTE_BONUS,
+]);
+
 export const PANEL_COMMAND_NAMES = {
   VIEW: "view",
   SEND: "send",

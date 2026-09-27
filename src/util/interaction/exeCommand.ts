@@ -32,13 +32,17 @@ import { execute as vcClean } from "../../command/vc/vcClean";
 import { execute as balanceStatistics } from "../../command/currency/balanceStatistics";
 import { execute as ticketGrant } from "../../command/market/ticketGrant";
 
-import { COMMAND_MESSAGES, COMMAND_NAMES } from "../../constant/shared/command";
+import { COMMAND_MESSAGES, COMMAND_NAMES, DISABLED_COMMAND_NAMES } from "../../constant/shared/command";
 
 export async function exeCommand(
   interaction: ChatInputCommandInteraction,
   command: string
 ) {
   try {
+    if (DISABLED_COMMAND_NAMES.has(command)) {
+      throw new Error(COMMAND_MESSAGES.CURRENTLY_DISABLED);
+    }
+
     switch (command) {
       case DARK_MESSAGE_PRODUCTS.letter.command:
       case DARK_MESSAGE_PRODUCTS.whisper.command:

@@ -4,6 +4,7 @@ import { data as gachaCoinDeduct } from "./command/market/gachaCoinDeduct";
 // src/registerCommands.ts
 import { REST, Routes } from "discord.js";
 import dotenv from "dotenv";
+import { DISABLED_COMMAND_NAMES } from "./constant/shared/command";
 
 import { data as test } from "./command/system/test";
 import { data as panel } from "./command/panel/panel";
@@ -76,7 +77,7 @@ export async function registerCommands() {
     vcClean.toJSON(),
     balanceStatistics.toJSON(),
     ticketGrant.toJSON(),
-  ];
+  ].filter((command) => !DISABLED_COMMAND_NAMES.has(command.name));
 
   const rest = new REST({ version: "10" }).setToken(
     getRequiredEnv("DISCORD_TOKEN"),
