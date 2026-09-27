@@ -1,6 +1,7 @@
 import { DiscordAPIError, RESTJSONErrorCodes } from "discord.js";
 import type { Guild, GuildMember, PartialGuildMember } from "discord.js";
 import { ResultSetHeader, RowDataPacket } from "mysql2";
+import type { PoolConnection } from "mysql2/promise";
 
 import { DbService } from "../system/dbService";
 
@@ -12,7 +13,157 @@ import {
   SUB_ACCOUNT_SUFFIX_LENGTH,
 } from "../../constant/account/account";
 
+type MemberSnapshot = Pick<GuildMember | PartialGuildMember, "id" | "displayName" | "roles"> & {
+  joinedAt?: Date | null;
+  partial?: boolean;
+};
+
+type MembershipAccountRow = RowDataPacket & {
+  user_id: string;
+  user_name: string;
+  wallet: number;
+  left_core_member_roles: string | null;
+  state_is_present: number | null;
+  state_joined_at: Date | null;
+  state_display_name: string | null;
+  state_core_member_role_id: string | null;
+};
+
+export type MemberLeftResult =
+  | "recorded"
+  | "sub_account_unlinked"
+  | "duplicate"
+  | "account_not_found";
+
 export class AccountService {
+  private static membershipMutation: Promise<void> = Promise.resolve();
+
+  private static async serializeMembershipMutation<T>(
+    operation: () => Promise<T>,
+  ): Promise<T> {
+    const previous = this.membershipMutation;
+    let release!: () => void;
+    this.membershipMutation = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    await previous;
+    try {
+      return await operation();
+    } finally {
+      release();
+    }
+  }
+
+  private static getTrackedCoreRole(member: MemberSnapshot): string | null {
+    return Object.values(ROLE_IDS.CORE_MEMBER_ROLES).find((roleId) =>
+      roleId !== ROLE_IDS.CORE_MEMBER_ROLES.MENSETUMATI &&
+      roleId !== ROLE_IDS.CORE_MEMBER_ROLES.DEMODORI &&
+      member.roles.cache.has(roleId),
+    ) ?? null;
+  }
+
+  private static async upsertMembershipState(
+    connection: PoolConnection,
+    member: MemberSnapshot,
+  ): Promise<boolean> {
+    const coreMemberRoleId = this.getTrackedCoreRole(member);
+    const [result] = await connection.execute<ResultSetHeader>(
+      `INSERT INTO account_membership_states
+         (user_id, is_present, joined_at, display_name, core_member_role_id)
+       SELECT user_id, TRUE, ?, ?, ?
+       FROM accounts
+       WHERE user_id = ?
+       ON DUPLICATE KEY UPDATE
+         is_present = TRUE,
+         joined_at = VALUES(joined_at),
+         display_name = VALUES(display_name),
+         core_member_role_id = COALESCE(
+           VALUES(core_member_role_id),
+           core_member_role_id
+         )`,
+      [member.joinedAt ?? null, member.displayName, coreMemberRoleId, member.id],
+    );
+    return result.affectedRows > 0;
+  }
+
+  private static async processMemberLeft(
+    connection: PoolConnection,
+    member: MemberSnapshot,
+  ): Promise<MemberLeftResult> {
+    const [rows] = await connection.execute<MembershipAccountRow[]>(
+      `SELECT
+         CAST(a.user_id AS CHAR) AS user_id,
+         a.user_name,
+         a.wallet,
+         CAST(a.left_core_member_roles AS CHAR) AS left_core_member_roles,
+         s.is_present AS state_is_present,
+         s.joined_at AS state_joined_at,
+         s.display_name AS state_display_name,
+         CAST(s.core_member_role_id AS CHAR) AS state_core_member_role_id
+       FROM accounts a
+       LEFT JOIN account_membership_states s ON s.user_id = a.user_id
+       WHERE a.user_id = ?
+       FOR UPDATE`,
+      [member.id],
+    );
+    const account = rows[0];
+    if (!account) {
+      return "account_not_found";
+    }
+    if (account.state_is_present === 0) {
+      return "duplicate";
+    }
+
+    const eventCoreMemberRole = this.getTrackedCoreRole(member);
+    const coreMemberRoleId =
+      eventCoreMemberRole ??
+      account.state_core_member_role_id ??
+      account.left_core_member_roles;
+    const displayName =
+      (member.partial === true ? null : member.displayName) ??
+      account.state_display_name ??
+      account.user_name;
+    const joinedAt = member.joinedAt ?? account.state_joined_at;
+
+    const [subAccountResult] = await connection.execute<ResultSetHeader>(
+      "DELETE FROM sub_accounts WHERE sub_user_id = ?",
+      [member.id],
+    );
+
+    if (subAccountResult.affectedRows === 0) {
+      await connection.execute<ResultSetHeader>(
+        `UPDATE accounts
+         SET left_wallet = wallet,
+             wallet = 0,
+             user_name = ?,
+             left_count = left_count + 1,
+             left_at = CURRENT_TIMESTAMP,
+             left_core_member_roles = ?
+         WHERE user_id = ?`,
+        [displayName, coreMemberRoleId, member.id],
+      );
+    }
+
+    await connection.execute<ResultSetHeader>(
+      `INSERT INTO account_membership_states
+         (user_id, is_present, joined_at, display_name, core_member_role_id)
+       VALUES (?, FALSE, ?, ?, ?)
+       ON DUPLICATE KEY UPDATE
+         is_present = FALSE,
+         joined_at = VALUES(joined_at),
+         display_name = VALUES(display_name),
+         core_member_role_id = COALESCE(
+           VALUES(core_member_role_id),
+           core_member_role_id
+         )`,
+      [member.id, joinedAt, displayName, coreMemberRoleId],
+    );
+
+    return subAccountResult.affectedRows > 0
+      ? "sub_account_unlinked"
+      : "recorded";
+  }
+
   /**
    * 口座取得
    * @param userId ユーザーID
@@ -59,44 +210,109 @@ export class AccountService {
    * サーバー脱退時のアカウント更新
    * @param member 脱退したメンバー
    */
-  static async handleMemberLeft(member: GuildMember | PartialGuildMember) {
-    const connection = await DbService.getConnection();
-    try {
-      // サブ垢が脱退した場合は紐づけだけ解除する。
-      // 口座本体は残し、通常メンバーの脱退履歴としても扱わない。
-      const [result] = await connection.execute<ResultSetHeader>(
-        "DELETE FROM sub_accounts WHERE sub_user_id = ?",
-        [member.id],
-      );
-      if (result.affectedRows > 0) {
-        return;
+  static async handleMemberLeft(
+    member: GuildMember | PartialGuildMember,
+    source = "gateway",
+  ): Promise<MemberLeftResult> {
+    return this.serializeMembershipMutation(async () => {
+      const connection = await DbService.getConnection();
+      try {
+        await connection.beginTransaction();
+        const result = await this.processMemberLeft(connection, member);
+        await connection.commit();
+        console.log("[AccountMembership] member left", {
+          userId: member.id,
+          source,
+          result,
+        });
+        return result;
+      } catch (error) {
+        await connection.rollback();
+        throw error;
+      } finally {
+        connection.release();
       }
+    });
+  }
 
-      const leftCoreMemberRole =
-        Object.values(ROLE_IDS.CORE_MEMBER_ROLES).find((roleId) =>
-          roleId !== ROLE_IDS.CORE_MEMBER_ROLES.MENSETUMATI &&
-          roleId !== ROLE_IDS.CORE_MEMBER_ROLES.DEMODORI &&
-          member.roles.cache.has(roleId),
-        ) ?? null;
-
-      if (!leftCoreMemberRole) {
-        return;
+  /** 在籍中の表示名・基本ロールを、退出通知がpartialでも使えるよう保存する。 */
+  static async syncMemberSnapshot(member: GuildMember): Promise<boolean> {
+    return this.serializeMembershipMutation(async () => {
+      const connection = await DbService.getConnection();
+      try {
+        return await this.upsertMembershipState(connection, member);
+      } finally {
+        connection.release();
       }
+    });
+  }
 
-      await connection.execute(
-        `UPDATE accounts
-         SET left_wallet = wallet,
-             wallet = 0,
-             user_name = ?,
-             left_count = left_count + 1,
-             left_at = CURRENT_TIMESTAMP,
-             left_core_member_roles = ?
-         WHERE user_id = ?`,
-        [member.displayName, leftCoreMemberRole, member.id],
-      );
-    } finally {
-      connection.release();
-    }
+  /** Bot停止中に発生した退出を、起動時の全件取得結果と照合して補完する。 */
+  static async reconcileMembership(
+    members: Iterable<GuildMember>,
+  ): Promise<{ synced: number; departures: number }> {
+    return this.serializeMembershipMutation(async () => {
+      const memberList = [...members];
+      const presentIds = new Set(memberList.map((member) => member.id));
+      const connection = await DbService.getConnection();
+      try {
+        await connection.beginTransaction();
+        let synced = 0;
+        for (const member of memberList) {
+          if (!member.user.bot && await this.upsertMembershipState(connection, member)) {
+            synced++;
+          }
+        }
+
+        const [stateRows] = await connection.execute<RowDataPacket[]>(
+          `SELECT CAST(user_id AS CHAR) AS user_id
+           FROM account_membership_states
+           WHERE is_present = TRUE
+           FOR UPDATE`,
+        );
+        const departedIds = stateRows
+          .map((row) => String(row.user_id))
+          .filter((userId) => !presentIds.has(userId));
+        const maximumAutomaticDepartures = Math.max(
+          10,
+          Math.ceil(stateRows.length * 0.05),
+        );
+        if (departedIds.length > maximumAutomaticDepartures) {
+          throw new Error(
+            `起動時の退出候補が安全上限を超えました: ${departedIds.length}/${stateRows.length}`,
+          );
+        }
+
+        let departures = 0;
+        for (const userId of departedIds) {
+          const result = await this.processMemberLeft(
+            connection,
+            {
+              id: userId,
+              displayName: "",
+              roles: { cache: new Map() } as GuildMember["roles"],
+              partial: true,
+            },
+          );
+          if (result === "recorded" || result === "sub_account_unlinked") {
+            departures++;
+          }
+        }
+
+        await connection.commit();
+        console.log("[AccountMembership] reconciliation complete", {
+          members: memberList.length,
+          synced,
+          departures,
+        });
+        return { synced, departures };
+      } catch (error) {
+        await connection.rollback();
+        throw error;
+      } finally {
+        connection.release();
+      }
+    });
   }
 
   /**

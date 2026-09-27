@@ -15,6 +15,7 @@ import {
   ChannelType,
   GuildMember,
   PartialGuildMember,
+  Partials,
 } from "discord.js";
 
 import { registerCommands } from "./registerCommands";
@@ -63,6 +64,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const client = new Client({
+  partials: [Partials.GuildMember],
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMembers,
@@ -79,6 +81,15 @@ client.once("clientReady", async () => {
   try {
     BotHealthMonitor.recordGatewayReady("clientReady");
     BotHealthMonitor.startWatchdog();
+    const guild = client.guilds.cache.get(process.env.GUILD_ID!);
+    if (guild) {
+      try {
+        const members = await GuildMemberCacheService.getMembers(guild);
+        await AccountService.reconcileMembership(members.values());
+      } catch (error) {
+        console.error("[AccountMembership] startup reconciliation failed", error);
+      }
+    }
     MeetingVcService.startCleanup(client);
     DiaryRebuildService.startRecovery(client);
     new ChannelCountService(client, process.env.GUILD_ID!).start();
@@ -361,6 +372,23 @@ client.on("messageCreate", async (message) => {
 });
 
 client.on(
+  "guildMemberAdd",
+  async (member: GuildMember) => {
+    if (member.user.bot) {
+      return;
+    }
+    try {
+      await AccountService.syncMemberSnapshot(member);
+    } catch (error) {
+      console.error("[AccountMembership] member add sync failed", {
+        userId: member.id,
+        error,
+      });
+    }
+  },
+);
+
+client.on(
   "guildMemberRemove",
   async (member: GuildMember | PartialGuildMember) => {
     if (member.user.bot) {
@@ -368,13 +396,13 @@ client.on(
     }
 
     try {
-      if (!(await AccountService.hasAccount(member.id))) {
-        return;
-      }
-
       await AccountService.handleMemberLeft(member);
     } catch (error) {
-      console.error(error);
+      console.error("[AccountMembership] member remove failed", {
+        userId: member.id,
+        partial: member.partial,
+        error,
+      });
     }
   },
 );
@@ -478,6 +506,14 @@ client.on(
     oldMember: GuildMember | PartialGuildMember,
     newMember: GuildMember,
   ) => {
+    try {
+      await AccountService.syncMemberSnapshot(newMember);
+    } catch (error: any) {
+      console.error("[AccountMembership] member update sync failed", {
+        userId: newMember.id,
+        error: error.message,
+      });
+    }
     try {
       await handleRoleChange(client, oldMember, newMember);
     } catch (error: any) {

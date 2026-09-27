@@ -62,6 +62,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
           targetMember.displayName,
           INITIAL_WALLET,
         );
+        await AccountService.syncMemberSnapshot(targetMember);
 
         successUsers.push(`<@${targetMember.id}>`);
       } catch (error: any) {

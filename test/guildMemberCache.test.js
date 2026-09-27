@@ -1,7 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('node:path');
-const { Client, Collection, GatewayIntentBits } = require('discord.js');
+const { Client, Collection, GatewayIntentBits, Partials } = require('discord.js');
 const { GatewayRateLimitError } = require('@discordjs/util');
 const { GuildMemberCacheService: cache } = require('../dist/service/system/guildMemberCacheService');
 const { SuperchatService } = require('../dist/service/market/superchatService');
@@ -45,6 +45,30 @@ function fixture(t, data = [packet()]) {
     },
   };
 }
+
+test('GuildMember partialを有効にすると未キャッシュ退出でもguildMemberRemoveが発火する', () => {
+  const client = new Client({
+    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers],
+    partials: [Partials.GuildMember],
+  });
+  client.user = client.users._add({ id: '100000000000000099', username: 'bot', discriminator: '0', bot: true });
+  const guild = client.guilds._add({
+    id: guildId,
+    name: 'test',
+    unavailable: false,
+    channels: [],
+    member_count: 1,
+    roles: [{ id: guildId, name: '@everyone', permissions: '0' }],
+  });
+  let removedMember = null;
+  client.on('guildMemberRemove', member => { removedMember = member; });
+  client.actions.GuildMemberRemove.handle(
+    { guild_id: guild.id, user: { id: userId, username: 'uncached', discriminator: '0', bot: false } },
+    shard,
+  );
+  assert.equal(removedMember.id, userId);
+  assert.equal(removedMember.partial, true);
+});
 
 test('startup and concurrent consumers share one complete fetch; snapshots cannot clear the shared cache', async t => {
   const f = fixture(t);

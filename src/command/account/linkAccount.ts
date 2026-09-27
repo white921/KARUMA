@@ -12,6 +12,7 @@ import {
   assertCanManageLinkAccount,
   LinkAccountService,
 } from "../../service/account/linkAccountService";
+import { AccountService } from "../../service/account/accountService";
 
 import { ROLE_IDS } from "../../constant/shared/id";
 import { COMMAND_NAMES } from "../../constant/shared/command";
@@ -64,6 +65,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       subMember!.id,
       subMember!.displayName
     );
+    await AccountService.syncMemberSnapshot(subMember!);
 
     await interaction.editReply({
       content: `<@${mainMember!.id}> と <@${subMember!.id}> の連携が完了しました。`,

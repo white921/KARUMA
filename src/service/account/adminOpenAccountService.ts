@@ -56,6 +56,7 @@ export class AdminOpenAccountService {
         member.displayName,
         INITIAL_WALLET,
       );
+      await AccountService.syncMemberSnapshot(member);
       openedMembers.push(member);
     }
 
