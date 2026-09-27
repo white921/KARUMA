@@ -1,6 +1,6 @@
 export const CHECK_NAME_MESSAGES = {
   NO_PERMISSION:
-    "❌ 見習い面接官、面接官、面接官統括または技術統括の権限がありません。",
+    "❌ 見習い案内官・案内官・案内官統括・英傑・皇帝・システム支配人のみ実行できます。",
   NOT_IN_VOICE_CHANNEL: "❌ VCに参加している状態で実行してください。",
   NO_TARGET_USERS:
     "❌ このVC内に名前チェック対象の「面接待ち」ユーザーがいません。",

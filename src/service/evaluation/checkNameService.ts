@@ -16,6 +16,8 @@ export class CheckNameService {
         !(await hasRole(user, ROLE_IDS.MENSTU_BUIGINNER)) &&
         !(await hasRole(user, ROLE_IDS.MENSTUKAN)) &&
         !(await hasRole(user, ROLE_IDS.MENSETU_LEADER)) &&
+        !(await hasRole(user, ROLE_IDS.KANRISYA)) &&
+        !(await hasRole(user, ROLE_IDS.SABANUSI)) &&
         !(await hasRole(user, ROLE_IDS.GIJUTU_LEADER))
       ) {
         throw new Error(CHECK_NAME_MESSAGES.NO_PERMISSION);
