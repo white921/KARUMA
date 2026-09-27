@@ -17,11 +17,15 @@ function interaction(operator = member([R.KANRISYA])) {
   return { id: 'operation', user: { id: operator.id }, guild: { members: { fetch: async () => operator } }, options: { getUser: () => null, getRole: () => null }, editReply: async () => {} };
 }
 
-test('管理4コマンドは英傑・皇帝・システム支配人だけを許可する', async () => {
+test('管理操作と他人の残高確認は英傑・皇帝・システム支配人だけを許可する', async () => {
   for (const role of [R.KANRISYA, R.SABANUSI, R.GIJUTU_LEADER]) assert.equal(hasManagementPermission(member([role])), true);
   for (const roles of [[], [R.CORE_MEMBER_ROLES.HONMEN], [R.GINKOU_STAFF], [R.GINKOU_LEADER], [R.SYSTEM_ASSISTANT]]) {
     assert.equal(hasManagementPermission(member(roles)), false);
-    for (const command of commands) await assert.rejects(command.execute(interaction(member(roles))), /英傑・皇帝・システム支配人/);
+    for (const command of commands) {
+      const i = interaction(member(roles));
+      i.options.getUser = () => ({ id: 'target' });
+      await assert.rejects(command.execute(i), /英傑・皇帝・システム支配人/);
+    }
   }
   for (const command of commands) await assert.rejects(command.execute({ guild: null }), /サーバー内/);
 });
@@ -86,6 +90,30 @@ test('残高確認の対象指定と省略時の自分が実際の口座参照�
   await commands[2].execute(i); assert.deepEqual(reads, ['target']); assert.match(reply.content, /target/);
   i.options.getUser = () => null;
   await commands[2].execute(i); assert.deepEqual(reads, ['target', 'operator']);
+});
+
+test('自分の残高はロールなしでも確認でき、自分を明示指定した場合も口座だけを検証する', async t => {
+  const reads = [];
+  t.mock.method(AccountService, 'hasAccount', async userId => { assert.equal(userId, 'operator'); return true; });
+  t.mock.method(AccountService, 'getAccountByUserId', async userId => { reads.push(userId); return [{ wallet: 123 }]; });
+  const i = interaction(member());
+  i.guild.members.fetch = async () => { throw new Error('自分の確認では管理ロールの取得は不要'); };
+  let reply; i.editReply = async value => { reply = value; };
+  await commands[2].execute(i);
+  i.options.getUser = () => ({ id: 'operator' });
+  await commands[2].execute(i);
+  assert.deepEqual(reads, ['operator', 'operator']);
+  assert.match(reply.content, /123/);
+});
+
+test('口座がない本人の残高確認と、権限のない他人の残高確認は口座内容を返さない', async t => {
+  const read = t.mock.method(AccountService, 'getAccountByUserId', async () => { throw new Error('残高を取得してはいけない'); });
+  t.mock.method(AccountService, 'hasAccount', async () => false);
+  const i = interaction(member());
+  await assert.rejects(commands[2].execute(i), /口座が見つかりません/);
+  i.options.getUser = () => ({ id: 'target' });
+  await assert.rejects(commands[2].execute(i), /英傑・皇帝・システム支配人/);
+  assert.equal(read.mock.callCount(), 0);
 });
 
 test('掃除権限は共用では貴族以上、Bot作成の部屋では部屋主または管理3ロール', () => {

@@ -15,8 +15,11 @@ export const data = new SlashCommandBuilder()
 
 export async function execute(interaction: ChatInputCommandInteraction) {
   try {
-    await assertManagementPermission(interaction);
+    if (!interaction.guild) throw new Error("サーバー内でのみ使用できます。");
     const user = interaction.options.getUser("ユーザー") ?? interaction.user;
+    if (user.id !== interaction.user.id) {
+      await assertManagementPermission(interaction);
+    }
     await ViewService.validateView(user.id);
     const [account] = await AccountService.getAccountByUserId(user.id);
     await interaction.editReply({
