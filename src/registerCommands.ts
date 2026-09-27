@@ -19,7 +19,6 @@ import { data as view } from "./command/currency/view";
 import { data as linkAccount } from "./command/account/linkAccount";
 import { data as ranking } from "./command/currency/ranking";
 import { data as changeName } from "./command/account/changeName";
-import { data as openAccount } from "./command/account/openAccount";
 import { data as adminOpenAccount } from "./command/account/adminOpenAccount";
 import { data as changeRole } from "./command/member/changeRole";
 import { data as checkName } from "./command/evaluation/checkName";
@@ -62,7 +61,6 @@ export async function registerCommands() {
     linkAccount.toJSON(),
     ranking.toJSON(),
     changeName.toJSON(),
-    openAccount.toJSON(),
     adminOpenAccount.toJSON(),
     // changeRole.toJSON(),
     checkName.toJSON(),

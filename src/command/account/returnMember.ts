@@ -8,10 +8,12 @@ import { ReturnMemberService } from "../../service/account/returnMemberService";
 
 import { COMMAND_NAMES } from "../../constant/shared/command";
 import { ACCOUNT_MESSAGES } from "../../constant/account/account";
+import { assertManagementPermission } from "../../util/shared/managementPermission";
 
 export const data = new SlashCommandBuilder()
   .setName(COMMAND_NAMES.RETURN_MEMBER)
   .setDescription("出戻り対応に必要な情報を表示します")
+  .setDMPermission(false)
   .addUserOption((option) =>
     option
       .setName("target_member")
@@ -20,6 +22,7 @@ export const data = new SlashCommandBuilder()
   );
 
 export async function execute(interaction: ChatInputCommandInteraction) {
+  await assertManagementPermission(interaction);
   const targetUser = interaction.options.getUser("target_member") as User | null;
   if (!targetUser) {
     throw new Error(ACCOUNT_MESSAGES.ACCOUNT_NOT_FOUND);

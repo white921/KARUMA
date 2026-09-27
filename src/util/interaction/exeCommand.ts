@@ -17,7 +17,6 @@ import { execute as roleBasedSend } from "../../command/currency/roleBasedSend";
 import { execute as view } from "../../command/currency/view";
 import { execute as linkAccount } from "../../command/account/linkAccount";
 import { execute as ranking } from "../../command/currency/ranking";
-import { execute as openAccount } from "../../command/account/openAccount";
 import { execute as adminOpenAccount } from "../../command/account/adminOpenAccount";
 import { execute as changeName } from "../../command/account/changeName";
 import { execute as changeRole } from "../../command/member/changeRole";
@@ -83,9 +82,6 @@ export async function exeCommand(
         break;
       case COMMAND_NAMES.RANKING:
         await ranking(interaction);
-        break;
-      case COMMAND_NAMES.OPEN_ACCOUNT:
-        await openAccount(interaction);
         break;
       case COMMAND_NAMES.ADMIN_OPEN_ACCOUNT:
         await adminOpenAccount(interaction);
