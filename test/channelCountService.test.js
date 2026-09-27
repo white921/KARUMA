@@ -2,15 +2,15 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const {EventEmitter} = require('node:events');
 const {Collection, ChannelType} = require('discord.js');
-const {ChannelCountService, CHANNEL_COUNT_UPDATE_INTERVAL_MS} = require('../dist/service/system/channelCountService');
-const {TEXT_CHANNEL_IDS} = require('../dist/constant/shared/id');
+const {ChannelCountService} = require('../dist/service/system/channelCountService');
+const {VC_IDS} = require('../dist/constant/shared/id');
 
 function setup(t) {
   const edits = [];
   let fetches = 0;
-  const target = {type: ChannelType.GuildText, name: 'チャンネル数', isThread: () => false, setName: async name => {edits.push(name); target.name = name;}};
+  const target = {type: ChannelType.GuildVoice, name: 'チャンネル数', isThread: () => false, setName: async name => {edits.push(name); target.name = name;}};
   const channels = new Collection([
-    [TEXT_CHANNEL_IDS.CHANNEL_COUNT, target],
+    [VC_IDS.CHANNEL_COUNT, target],
     ['category', {isThread: () => false}], ['voice', {isThread: () => false}],
     ['forum', {isThread: () => false}], ['thread', {isThread: () => true}], ['missing', null],
   ]);
@@ -24,25 +24,38 @@ function setup(t) {
 test('counter includes itself, categories, voice and forum but excludes threads and nulls', async t => {
   const s = setup(t);
   await s.service.refresh();
-  assert.deepEqual(s.edits, ['チャンネル数-4／500']);
+  assert.deepEqual(s.edits, ['チャンネル数 4/500']);
 });
 
-test('unchanged name is not written and rapid changes are coalesced', async t => {
+test('unchanged names are skipped and successive count changes have no fixed cooldown', async t => {
   const s = setup(t);
-  let now = 1000000;
-  t.mock.method(Date, 'now', () => now);
-  s.target.name = 'チャンネル数-4／500';
+  s.target.name = 'チャンネル数 4/500';
   await s.service.refresh();
   assert.equal(s.edits.length, 0);
   s.channels.set('new', {isThread: () => false});
   await s.service.refresh();
-  assert.deepEqual(s.edits, ['チャンネル数-5／500']);
   s.channels.delete('new');
   await s.service.refresh();
-  assert.deepEqual(s.edits, ['チャンネル数-5／500']);
-  now += CHANNEL_COUNT_UPDATE_INTERVAL_MS;
+  assert.deepEqual(s.edits, ['チャンネル数 5/500', 'チャンネル数 4/500']);
+});
+
+test('a count change while Discord is processing a rename gets reconciled afterwards', async t => {
+  const s = setup(t);
+  let release;
+  s.target.setName = async name => {
+    s.edits.push(name);
+    if (s.edits.length === 1) await new Promise(resolve => {release = resolve;});
+    s.target.name = name;
+  };
+  const first = s.service.refresh();
+  await new Promise(setImmediate);
+  s.channels.set('new', {isThread: () => false});
   await s.service.refresh();
-  assert.deepEqual(s.edits, ['チャンネル数-5／500', 'チャンネル数-4／500']);
+  assert.deepEqual(s.edits, ['チャンネル数 4/500']);
+  release();
+  await first;
+  await new Promise(resolve => setTimeout(resolve, 20));
+  assert.deepEqual(s.edits, ['チャンネル数 4/500', 'チャンネル数 5/500']);
 });
 
 test('startup registers create/delete events once and stopping removes them', async t => {

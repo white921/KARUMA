@@ -1,11 +1,10 @@
 import { ChannelType, Client, DMChannel, GuildChannel } from "discord.js";
-import { TEXT_CHANNEL_IDS } from "../../constant/shared/id";
+import { VC_IDS } from "../../constant/shared/id";
 
-export const CHANNEL_COUNT_UPDATE_INTERVAL_MS = 305_000;
-const EVENT_DELAY_MS = 5_000;
+const RECONCILE_INTERVAL_MS = 5 * 60 * 1000;
 
 export class ChannelCountService {
-  private lastRenameAt = -Infinity;
+  private rerun = false;
   private updating = false;
   private started = false;
   private pending: NodeJS.Timeout | null = null;
@@ -17,20 +16,23 @@ export class ChannelCountService {
     if ("guild" in channel && channel.guild.id === this.guildId) this.schedule();
   };
 
+  private onChannelUpdate = (channel: GuildChannel | DMChannel) => {
+    if (channel.id === VC_IDS.CHANNEL_COUNT) this.onChannelChange(channel);
+  };
+
   private schedule() {
     if (this.pending) return;
-    const delay = Math.max(EVENT_DELAY_MS, this.lastRenameAt + CHANNEL_COUNT_UPDATE_INTERVAL_MS - Date.now());
     this.pending = setTimeout(() => {
       this.pending = null;
       void this.refresh().catch(error => console.error("[ChannelCount] 更新失敗:", error));
-    }, delay);
+    }, 0);
     this.pending.unref();
   }
 
   async refresh() {
     if (!this.client.isReady()) return;
-    if (this.updating || Date.now() - this.lastRenameAt < CHANNEL_COUNT_UPDATE_INTERVAL_MS) {
-      this.schedule();
+    if (this.updating) {
+      this.rerun = true;
       return;
     }
     this.updating = true;
@@ -39,20 +41,22 @@ export class ChannelCountService {
       if (!guild.available) return;
       // GET /guilds/{id}/channels の結果だけを数える。スレッド入りのキャッシュは使わない。
       const channels = await guild.channels.fetch();
-      const target = channels.get(TEXT_CHANNEL_IDS.CHANNEL_COUNT);
-      if (!target || target.type !== ChannelType.GuildText) {
-        throw new Error("チャンネル数表示用のTCが見つかりません。");
+      const target = channels.get(VC_IDS.CHANNEL_COUNT);
+      if (!target || target.type !== ChannelType.GuildVoice) {
+        throw new Error("チャンネル数表示用のVCが見つかりません。");
       }
       const count = channels.filter(channel => channel !== null && !channel.isThread()).size;
-      // TC名では半角 / が除去され、空白は - になるため全角 ／ と - を使う。
-      const name = `チャンネル数-${count}／500`;
+      const name = `チャンネル数 ${count}/500`;
       if (target.name === name) return;
-      // リクエスト中のイベントや失敗時にも、名前変更が連続しないようにする。
-      this.lastRenameAt = Date.now();
+      // 固定の待機は設けない。Discordの429応答による待機・再試行はdiscord.jsに任せる。
       await target.setName(name, "サーバー全体のチャンネル数を更新（カテゴリー込み・スレッド除外）");
       console.log(`[ChannelCount] updated ${name}`);
     } finally {
       this.updating = false;
+      if (this.rerun) {
+        this.rerun = false;
+        this.schedule();
+      }
     }
   }
 
@@ -62,8 +66,8 @@ export class ChannelCountService {
     this.client.on("channelCreate", this.onChannelChange);
     this.client.on("channelDelete", this.onChannelChange);
     // 手動の名前変更も次回の更新で戻す。自分の名前変更による再確認は同名なら書き込まない。
-    this.client.on("channelUpdate", this.onChannelChange);
-    this.polling = setInterval(() => this.schedule(), CHANNEL_COUNT_UPDATE_INTERVAL_MS);
+    this.client.on("channelUpdate", this.onChannelUpdate);
+    this.polling = setInterval(() => this.schedule(), RECONCILE_INTERVAL_MS);
     this.polling.unref();
     void this.refresh().catch(error => console.error("[ChannelCount] 初回更新失敗:", error));
   }
@@ -71,7 +75,7 @@ export class ChannelCountService {
   stop() {
     this.client.off("channelCreate", this.onChannelChange);
     this.client.off("channelDelete", this.onChannelChange);
-    this.client.off("channelUpdate", this.onChannelChange);
+    this.client.off("channelUpdate", this.onChannelUpdate);
     if (this.pending) clearTimeout(this.pending);
     if (this.polling) clearInterval(this.polling);
     this.pending = this.polling = null;
