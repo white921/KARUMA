@@ -7,6 +7,7 @@ import {
 import { COMMAND_NAMES } from "../../constant/shared/command";
 import { EVALUATION_SHEET_MESSAGES } from "../../constant/evaluation/evaluationSheet";
 import { EvaluationService } from "../../service/evaluation/evaluationService";
+import { EvaluationSheetOperationLogService } from "../../service/evaluation/evaluationSheetOperationLogService";
 import { assertCanManageEvaluationSheetArchive } from "../../util/evaluation/evaluationSheetPermission";
 
 export const data = new SlashCommandBuilder()
@@ -35,6 +36,17 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     targetMember,
     introductionUrl,
     interaction.user.id,
+  );
+  await EvaluationSheetOperationLogService.sendRestore(
+    interaction.client,
+    interaction.guildId!,
+    {
+      operatorUserId: interaction.user.id,
+      targetUserId: user.id,
+      createdCount: result.createdForumIds.length,
+      restoredCount: result.restoredForumIds.length,
+      restoreFailureCount: result.restoreFailures.length,
+    },
   );
 
   await interaction.editReply({

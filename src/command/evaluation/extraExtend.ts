@@ -12,6 +12,7 @@ import { MAX_EVALUATION_EXTENSION_DAYS } from "../../constant/evaluation/evaluat
 import { EVALUATION_SHEET_MESSAGES } from "../../constant/evaluation/evaluationSheet";
 import { ROLE_IDS } from "../../constant/shared/id";
 import { hasOperatorRole } from "../../util/shared/operatorPermission";
+import { EvaluationSheetOperationLogService } from "../../service/evaluation/evaluationSheetOperationLogService";
 
 const ALLOWED_ROLE_IDS = [
   ROLE_IDS.EVALUATION_LEADER,
@@ -84,6 +85,19 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   }
 
   const { extendedCount, skipped, failed } = result;
+  await EvaluationSheetOperationLogService.sendExtension(
+    interaction.client,
+    interaction.guildId!,
+    {
+      operatorUserId: interaction.user.id,
+      targetUserId: targetMember?.id ?? null,
+      days,
+      extendedCount,
+      skippedCount: skipped.length,
+      failedCount: failed.length,
+      reason,
+    },
+  );
 
   const scope = targetMember ? `<@${targetMember.id}> の` : "";
   const operation = days < 0 ? "短縮" : "延長";

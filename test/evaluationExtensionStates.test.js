@@ -154,10 +154,13 @@ test('個別指定と全員指定の重複実行を防ぎ、失敗後は実行�
   const { execute } = require('../dist/command/evaluation/extraExtend');
   const { ROLE_IDS } = require('../dist/constant/shared/id');
   const interaction = targeted => ({
+    user: { id: 'operator' }, guildId: 'guild',
     member: { roles: [ROLE_IDS.EVALUATION_LEADER], displayName: '担当者' },
     guild: { members: { fetch: async () => ({ id: '123', displayName: '旅人' }) } },
     options: { getInteger: () => 1, getUser: () => targeted ? { id: '123' } : null, getString: () => null },
-    editReply: async () => {}, client: {},
+    editReply: async () => {}, client: { channels: { fetch: async () => ({
+      guildId: 'guild', isTextBased: () => true, send: async () => {},
+    }) } },
   });
   let release, started;
   const entered = new Promise(resolve => started = resolve);

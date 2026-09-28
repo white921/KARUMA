@@ -7,6 +7,7 @@ import {
 import { COMMAND_NAMES } from "../../constant/shared/command";
 import { EVALUATION_SHEET_MESSAGES } from "../../constant/evaluation/evaluationSheet";
 import { EvaluationSheetArchiveService } from "../../service/evaluation/evaluationSheetArchiveService";
+import { EvaluationSheetOperationLogService } from "../../service/evaluation/evaluationSheetOperationLogService";
 import {
   assertCanManageEvaluationSheetArchive,
   isDiscordUserId,
@@ -43,6 +44,16 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     userId,
     interaction.user.id,
     reason,
+  );
+  await EvaluationSheetOperationLogService.sendDelete(
+    interaction.client,
+    interaction.guildId!,
+    {
+      operatorUserId: interaction.user.id,
+      targetUserId: userId,
+      ...result,
+      reason,
+    },
   );
 
   const saved = result.savedCount > 0 ? `${result.savedCount}件を保存し、` : "すでに保存済みの評価シートを、";

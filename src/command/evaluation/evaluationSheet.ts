@@ -11,6 +11,7 @@ import { InterviewService } from "../../service/evaluation/interviewService";
 import { COMMAND_NAMES } from "../../constant/shared/command";
 import { EVALUATION_SHEET_MESSAGES } from "../../constant/evaluation/evaluationSheet";
 import { ACCOUNT_MESSAGES } from "../../constant/account/account";
+import { EvaluationSheetOperationLogService } from "../../service/evaluation/evaluationSheetOperationLogService";
 
 export const data = new SlashCommandBuilder()
   .setName(COMMAND_NAMES.EVALUATION_SHEET)
@@ -61,6 +62,20 @@ export async function execute(interaction: ChatInputCommandInteraction) {
           introductionMessageUrl,
           interaction.user.id,
         );
+
+        if (restoredForumIds.length > 0) {
+          await EvaluationSheetOperationLogService.sendRestore(
+            interaction.client,
+            interaction.guildId!,
+            {
+              operatorUserId: interaction.user.id,
+              targetUserId: targetMember.id,
+              createdCount: createdForumIds.length,
+              restoredCount: restoredForumIds.length,
+              restoreFailureCount: restoreFailures.length,
+            },
+          );
+        }
 
         const restoredText = restoredForumIds.length > 0
           ? `・過去評価 ${restoredForumIds.length}件を添付`
