@@ -62,13 +62,18 @@ export function visibleEvaluationLevels(member: GuildMember) {
   return highestLevel ? [highestLevel] : [];
 }
 
-export function buildSheetLinkResponsePages(page: ReminderPage, levels: readonly typeof EVALUATION_REMINDER_LEVELS[number][]) {
+export function buildSheetLinkResponsePages(
+  page: ReminderPage,
+  levels: readonly typeof EVALUATION_REMINDER_LEVELS[number][],
+  guildId: string,
+) {
   const pages: string[] = [];
   let content = "";
   for (const level of levels) {
     const lines = page.users.flatMap(userId => {
       const threadId = page.sheetLinks?.[userId]?.[level.key];
-      return threadId ? [`<@${userId}> → <#${threadId}>`] : [];
+      const url = `https://discord.com/channels/${guildId}/${threadId}`;
+      return threadId ? [`<@${userId}> → [評価シートを開く](${url})`] : [];
     });
     if (!lines.length) continue;
     const heading = `**${level.label}評価シート**`;
@@ -353,7 +358,7 @@ export class EvaluationDeadlineReminderService {
     if (!levels.length) {
       throw new Error("表示できる評価シートがありません。判定官の階級ロールを確認してください。");
     }
-    const responsePages = buildSheetLinkResponsePages(page, levels);
+    const responsePages = buildSheetLinkResponsePages(page, levels, interaction.guildId);
     if (!responsePages.length) throw new Error("表示できる評価シートがありません。");
     await interaction.editReply({ content: responsePages[0], allowedMentions: { parse: [] } });
     for (const content of responsePages.slice(1)) {
@@ -391,7 +396,7 @@ export class EvaluationDeadlineReminderService {
     const pages: ReminderPage[] = typeof row.pages === "string" ? JSON.parse(row.pages) : row.pages;
     const page = pages[Number(pageIndexText)];
     if (!page?.sheetLinks) throw new Error("この通知の評価シート情報が一致しません。");
-    const responsePages = buildSheetLinkResponsePages(page, [selectedLevel]);
+    const responsePages = buildSheetLinkResponsePages(page, [selectedLevel], interaction.guildId);
     if (!responsePages.length) throw new Error("表示できる評価シートがありません。");
     await interaction.editReply({ content: responsePages[0], components: [], allowedMentions: { parse: [] } });
     for (const content of responsePages.slice(1)) {

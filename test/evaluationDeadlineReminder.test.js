@@ -134,10 +134,12 @@ test('管理系向けの全リンクも2000文字以下に分割する', () => {
   const sheetLinks = Object.fromEntries(users.map((userId, i) => [userId, {
     upper: `u${i}`, middle: `m${i}`, lower: `l${i}`, beginner: `b${i}`,
   }]));
-  const responses = buildSheetLinkResponsePages({ content: '', users, roles: [], sheetLinks }, EVALUATION_REMINDER_LEVELS);
+  const responses = buildSheetLinkResponsePages(
+    { content: '', users, roles: [], sheetLinks }, EVALUATION_REMINDER_LEVELS, 'guild',
+  );
   assert.ok(responses.length > 1);
   assert.ok(responses.every(content => content.length <= 2000));
-  assert.equal(responses.join('\n').match(/→ <#/g).length, 400);
+  assert.equal(responses.join('\n').match(/\[評価シートを開く\]\(https:\/\/discord\.com\/channels\/guild\//g).length, 400);
 });
 
 test('アーカイブ一覧をページ送りし、2ページ目も対象にできる', async () => {
@@ -290,7 +292,7 @@ test('ボタンを押した上級判定官には上級リンクだけを本人�
   });
   assert.equal(replies.length, 1);
   assert.match(replies[0].content, /上級評価シート/);
-  assert.match(replies[0].content, /<#upper-thread>/);
+  assert.match(replies[0].content, /\[評価シートを開く\]\(https:\/\/discord\.com\/channels\/guild\/upper-thread\)/);
   assert.doesNotMatch(replies[0].content, /middle-thread|lower-thread|beginner-thread/);
   assert.deepEqual(replies[0].allowedMentions, { parse: [] });
 });
@@ -336,7 +338,7 @@ test('管理ロールのSelectでは選んだ1階級だけを表示する', asyn
   assert.deepEqual(events, ['deferUpdate']);
   assert.equal(replies.length, 1);
   assert.match(replies[0].content, /中級評価シート/);
-  assert.match(replies[0].content, /<#middle-thread>/);
+  assert.match(replies[0].content, /\[評価シートを開く\]\(https:\/\/discord\.com\/channels\/guild\/middle-thread\)/);
   assert.doesNotMatch(replies[0].content, /upper-thread|lower-thread|beginner-thread/);
   assert.deepEqual(replies[0].components, []);
 });
