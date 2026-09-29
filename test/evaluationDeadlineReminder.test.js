@@ -2,8 +2,11 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { Collection, ChannelType, PermissionFlagsBits, PermissionsBitField } = require('discord.js');
 const {
-  EvaluationDeadlineReminderService: service, reminderDate, selectReminderTargets, buildReminderPages,
+  EvaluationDeadlineReminderService: service, EVALUATION_REMINDER_LEVELS,
+  EVALUATION_REMINDER_SHEETS_PREFIX, reminderDate, selectReminderTargets, buildReminderPages,
+  buildSheetLinkResponsePages, visibleEvaluationLevels,
 } = require('../dist/service/evaluation/evaluationDeadlineReminderService');
+const { handlePanelButton } = require('../dist/handler/interaction/panelButtonHandler');
 const { EVALUATION_SHEET_FORUM_IDS: forums } = require('../dist/constant/evaluation/evaluationSheet');
 const { ROLE_IDS, TEXT_CHANNEL_IDS } = require('../dist/constant/shared/id');
 const { DbService } = require('../dist/service/system/dbService');
@@ -96,6 +99,43 @@ test('2000文字を超えた場合も全員を1回だけ掲載し、ロール通
   assert.deepEqual(pages.flatMap(p => p.users), users);
   assert.deepEqual(pages.flatMap(p => p.roles), [ROLE_IDS.EVALUATION_JUDGE, ROLE_IDS.EVALUATION_SUPPORT]);
   assert.ok(pages.every(p => /[12]日前/.test(p.content)));
+});
+
+test('通知本文を長くせず、各ユーザーの4階級スレッドを非表示データとして保持する', () => {
+  const links = {
+    '111': { upper: 'u1', middle: 'm1', lower: 'l1', beginner: 'b1' },
+    '222': { upper: 'u2', middle: 'm2', lower: 'l2', beginner: 'b2' },
+  };
+  const pages = buildReminderPages('2026-09-22', { twoDays: ['111'], oneDay: ['222'] }, links);
+  assert.doesNotMatch(pages[0].content, /<#/);
+  assert.deepEqual(pages[0].sheetLinks, links);
+});
+
+test('階級ロールは該当階級だけ、統括・侍従・管理系ロールは4階級を表示する', () => {
+  const member = (...roleIds) => ({ roles: { cache: new Collection(roleIds.map(id => [id, {}])) } });
+  assert.deepEqual(visibleEvaluationLevels(member(ROLE_IDS.EVALUATION_1KYUU)).map(level => level.label), ['上級']);
+  assert.deepEqual(visibleEvaluationLevels(member(ROLE_IDS.EVALUATION_2KYUU)).map(level => level.label), ['中級']);
+  assert.deepEqual(visibleEvaluationLevels(member(ROLE_IDS.EVALUATION_3KYUU)).map(level => level.label), ['下級']);
+  assert.deepEqual(visibleEvaluationLevels(member(ROLE_IDS.EVALUATION_BUIGINNER)).map(level => level.label), ['見習い']);
+  assert.deepEqual(visibleEvaluationLevels(member(
+    ROLE_IDS.EVALUATION_2KYUU, ROLE_IDS.EVALUATION_3KYUU,
+  )).map(level => level.label), ['中級']);
+  for (const roleId of [ROLE_IDS.EVALUATION_LEADER, ROLE_IDS.EVALUATION_SUPPORT,
+    ROLE_IDS.KANRISYA, ROLE_IDS.SABANUSI, ROLE_IDS.GIJUTU_LEADER]) {
+    assert.deepEqual(visibleEvaluationLevels(member(roleId)).map(level => level.label), ['上級', '中級', '下級', '見習い']);
+  }
+  assert.deepEqual(visibleEvaluationLevels(member(ROLE_IDS.EVALUATION_JUDGE)), []);
+});
+
+test('管理系向けの全リンクも2000文字以下に分割する', () => {
+  const users = Array.from({ length: 100 }, (_, i) => String(100000000000000000n + BigInt(i)));
+  const sheetLinks = Object.fromEntries(users.map((userId, i) => [userId, {
+    upper: `u${i}`, middle: `m${i}`, lower: `l${i}`, beginner: `b${i}`,
+  }]));
+  const responses = buildSheetLinkResponsePages({ content: '', users, roles: [], sheetLinks }, EVALUATION_REMINDER_LEVELS);
+  assert.ok(responses.length > 1);
+  assert.ok(responses.every(content => content.length <= 2000));
+  assert.equal(responses.join('\n').match(/→ <#/g).length, 400);
 });
 
 test('アーカイブ一覧をページ送りし、2ページ目も対象にできる', async () => {
@@ -213,6 +253,49 @@ test('送信記録により再実行・再起動しても当日の通知は1回�
   });
   assert.equal(f.published[0].payload.enforceNonce, true);
   assert.ok(f.published[0].payload.nonce.length <= 25);
+});
+
+test('評価シート情報がある通知には非公開表示ボタンを付ける', async t => {
+  const pages = [{
+    content: 'notice', users: ['111'], roles: [],
+    sheetLinks: { '111': { upper: 'upper-thread' } },
+  }];
+  const f = deliveryFixture(t, { pages });
+  await f.run();
+  const component = f.published[0].payload.components[0].toJSON().components[0];
+  assert.equal(component.label, '評価シートを表示');
+  assert.equal(component.custom_id, `${EVALUATION_REMINDER_SHEETS_PREFIX}:2026-09-22:0`);
+});
+
+test('ボタンを押した上級判定官には上級リンクだけを本人向けに返す', async t => {
+  process.env.GUILD_ID = 'guild';
+  const row = {
+    pages: [{ content: 'notice', users: ['111'], roles: [], sheetLinks: {
+      '111': { upper: 'upper-thread', middle: 'middle-thread', lower: 'lower-thread', beginner: 'beginner-thread' },
+    } }],
+    message_ids: ['message'], completed: 1,
+  };
+  const connection = { execute: async () => [[row]], release: () => {} };
+  t.mock.method(DbService, 'getConnection', async () => connection);
+  const replies = [];
+  await service.showSheetLinks({
+    customId: `${EVALUATION_REMINDER_SHEETS_PREFIX}:2026-09-22:0`,
+    guildId: 'guild', channelId: TEXT_CHANNEL_IDS.EVALUATION_DEADLINE_NOTICE_THREAD,
+    guild: { members: { fetch: async () => ({ roles: { cache: new Collection([[ROLE_IDS.EVALUATION_1KYUU, {}]]) } }) } },
+    user: { id: 'judge' }, message: { id: 'message' },
+    editReply: async payload => replies.push(payload), followUp: async payload => replies.push(payload),
+  });
+  assert.equal(replies.length, 1);
+  assert.match(replies[0].content, /上級評価シート/);
+  assert.match(replies[0].content, /<#upper-thread>/);
+  assert.doesNotMatch(replies[0].content, /middle-thread|lower-thread|beginner-thread/);
+  assert.deepEqual(replies[0].allowedMentions, { parse: [] });
+});
+
+test('評価シート表示ボタンは口座確認より先に専用処理へ渡す', async t => {
+  const handled = t.mock.method(service, 'showSheetLinks', async () => {});
+  await handlePanelButton({ customId: `${EVALUATION_REMINDER_SHEETS_PREFIX}:2026-09-22:0`, user: { id: 'judge' } });
+  assert.equal(handled.mock.callCount(), 1);
 });
 
 test('当日分の送信前にDBへ保存された前日分を削除する', async t => {

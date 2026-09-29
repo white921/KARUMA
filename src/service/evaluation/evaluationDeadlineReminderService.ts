@@ -2,7 +2,19 @@ import { createHash } from "node:crypto";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
-import { ChannelType, Client, Guild, PermissionFlagsBits, ThreadChannel } from "discord.js";
+import {
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonInteraction,
+  ButtonStyle,
+  ChannelType,
+  Client,
+  Guild,
+  GuildMember,
+  MessageFlags,
+  PermissionFlagsBits,
+  ThreadChannel,
+} from "discord.js";
 import type { RowDataPacket } from "mysql2/promise";
 import { EVALUATION_SHEET_FORUM_IDS } from "../../constant/evaluation/evaluationSheet";
 import { ROLE_IDS, TEXT_CHANNEL_IDS } from "../../constant/shared/id";
@@ -12,12 +24,64 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 const TZ = "Asia/Tokyo";
 export const EVALUATION_REMINDER_CRON = "*/5 23 * * *";
+export const EVALUATION_REMINDER_SHEETS_PREFIX = "evaluationReminderSheets";
+
+export const EVALUATION_REMINDER_LEVELS = [
+  { key: "upper", label: "上級", forumId: EVALUATION_SHEET_FORUM_IDS[2], roleId: ROLE_IDS.EVALUATION_1KYUU },
+  { key: "middle", label: "中級", forumId: EVALUATION_SHEET_FORUM_IDS[1], roleId: ROLE_IDS.EVALUATION_2KYUU },
+  { key: "lower", label: "下級", forumId: EVALUATION_SHEET_FORUM_IDS[0], roleId: ROLE_IDS.EVALUATION_3KYUU },
+  { key: "beginner", label: "見習い", forumId: EVALUATION_SHEET_FORUM_IDS[3], roleId: ROLE_IDS.EVALUATION_BUIGINNER },
+] as const;
+
+const EVALUATION_REMINDER_FULL_ACCESS_ROLE_IDS = [
+  ROLE_IDS.EVALUATION_LEADER,
+  ROLE_IDS.EVALUATION_SUPPORT,
+  ROLE_IDS.KANRISYA,
+  ROLE_IDS.SABANUSI,
+  ROLE_IDS.GIJUTU_LEADER,
+] as const;
 
 type CurrentSheet = { userId: string; forumId: string; threadId: string };
 type SheetThread = { id: string; parentId: string | null; name: string; createdTimestamp: number | null };
 export type ReminderTargets = { twoDays: string[]; oneDay: string[] };
-type ReminderPage = { content: string; users: string[]; roles: string[] };
+type EvaluationLevelKey = typeof EVALUATION_REMINDER_LEVELS[number]["key"];
+export type ReminderSheetLinks = Record<string, Partial<Record<EvaluationLevelKey, string>>>;
+type ReminderPage = { content: string; users: string[]; roles: string[]; sheetLinks?: ReminderSheetLinks };
 type DeliveryRow = RowDataPacket & { pages: string | ReminderPage[]; message_ids: string | string[]; completed: number };
+
+export function visibleEvaluationLevels(member: GuildMember) {
+  const hasFullAccess = EVALUATION_REMINDER_FULL_ACCESS_ROLE_IDS.some(roleId => member.roles.cache.has(roleId));
+  if (hasFullAccess) return [...EVALUATION_REMINDER_LEVELS];
+  const highestLevel = EVALUATION_REMINDER_LEVELS.find(level => member.roles.cache.has(level.roleId));
+  return highestLevel ? [highestLevel] : [];
+}
+
+export function buildSheetLinkResponsePages(page: ReminderPage, levels: readonly typeof EVALUATION_REMINDER_LEVELS[number][]) {
+  const pages: string[] = [];
+  let content = "";
+  for (const level of levels) {
+    const lines = page.users.flatMap(userId => {
+      const threadId = page.sheetLinks?.[userId]?.[level.key];
+      return threadId ? [`<@${userId}> → <#${threadId}>`] : [];
+    });
+    if (!lines.length) continue;
+    const heading = `**${level.label}評価シート**`;
+    const headingAddition = `${content ? "\n\n" : ""}${heading}`;
+    if (content.length + headingAddition.length > 2000) {
+      pages.push(content);
+      content = heading;
+    } else content += headingAddition;
+    for (const line of lines) {
+      const addition = `\n${line}`;
+      if (content.length + addition.length > 2000) {
+        pages.push(content);
+        content = `${heading}\n${line}`;
+      } else content += addition;
+    }
+  }
+  if (content) pages.push(content);
+  return pages;
+}
 
 export function reminderDate(now: Date): string | null {
   const local = dayjs(now).tz(TZ);
@@ -79,7 +143,9 @@ export function selectReminderTargets(
 }
 
 /** 通常は1投稿。2000文字を超えた場合のみ見出しを付けて分割し、ロール通知は最初だけ。 */
-export function buildReminderPages(date: string, targets: ReminderTargets): ReminderPage[] {
+export function buildReminderPages(
+  date: string, targets: ReminderTargets, sheetLinks: ReminderSheetLinks = {},
+): ReminderPage[] {
   if (!targets.twoDays.length && !targets.oneDay.length) return [];
   const label = `${dayjs.tz(date, TZ).format("M月D日")} 期限直前旅人一覧`;
   const notificationRoles = [ROLE_IDS.EVALUATION_JUDGE, ROLE_IDS.EVALUATION_SUPPORT];
@@ -98,7 +164,13 @@ export function buildReminderPages(date: string, targets: ReminderTargets): Remi
         pages.push(page);
         page = { content: `${label}（続き）\n\n${heading}\n${line}`, users: [], roles: [] };
       } else page.content += addition;
-      if (userId) page.users.push(userId);
+      if (userId) {
+        page.users.push(userId);
+        if (sheetLinks[userId]) {
+          page.sheetLinks ??= {};
+          page.sheetLinks[userId] = sheetLinks[userId];
+        }
+      }
     }
   }
   pages.push(page);
@@ -135,7 +207,16 @@ export class EvaluationDeadlineReminderService {
     } finally { connection.release(); }
     const threads = await this.fetchThreads(guild);
     const targets = selectReminderTargets(date, sheets, threads, travelers);
-    return { ...targets, pages: buildReminderPages(date, targets) };
+    const selectedUserIds = new Set([...targets.twoDays, ...targets.oneDay]);
+    const sheetLinks: ReminderSheetLinks = {};
+    for (const sheet of sheets) {
+      if (!selectedUserIds.has(sheet.userId)) continue;
+      const level = EVALUATION_REMINDER_LEVELS.find(candidate => candidate.forumId === sheet.forumId);
+      if (!level) continue;
+      sheetLinks[sheet.userId] ??= {};
+      sheetLinks[sheet.userId][level.key] = sheet.threadId;
+    }
+    return { ...targets, pages: buildReminderPages(date, targets, sheetLinks) };
   }
 
   static async fetchThreads(guild: Guild): Promise<Map<string, SheetThread>> {
@@ -223,6 +304,45 @@ export class EvaluationDeadlineReminderService {
     return deleted;
   }
 
+  static async showSheetLinks(interaction: ButtonInteraction) {
+    const match = interaction.customId.match(
+      new RegExp(`^${EVALUATION_REMINDER_SHEETS_PREFIX}:(\\d{4}-\\d{2}-\\d{2}):(\\d+)$`),
+    );
+    if (!match || interaction.guildId !== process.env.GUILD_ID ||
+      interaction.channelId !== TEXT_CHANNEL_IDS.EVALUATION_DEADLINE_NOTICE_THREAD || !interaction.guild) {
+      throw new Error("この評価期限通知から操作してください。");
+    }
+    const [, date, pageIndexText] = match;
+    const pageIndex = Number(pageIndexText);
+    const connection = await DbService.getConnection();
+    let row: DeliveryRow | undefined;
+    try {
+      const [rows] = await connection.execute<DeliveryRow[]>(
+        "SELECT pages, message_ids, completed FROM evaluation_deadline_reminders WHERE guild_id = ? AND notice_date = ?",
+        [interaction.guildId, date],
+      );
+      row = rows[0];
+    } finally { connection.release(); }
+    if (!row) throw new Error("この通知の評価シート情報が見つかりません。");
+    const pages: ReminderPage[] = typeof row.pages === "string" ? JSON.parse(row.pages) : row.pages;
+    const messageIds: string[] = typeof row.message_ids === "string" ? JSON.parse(row.message_ids) : row.message_ids;
+    const page = pages[pageIndex];
+    if (!page || messageIds[pageIndex] !== interaction.message.id || !page.sheetLinks) {
+      throw new Error("この通知の評価シート情報が一致しません。");
+    }
+    const member = await interaction.guild.members.fetch({ user: interaction.user.id, force: true });
+    const levels = visibleEvaluationLevels(member);
+    if (!levels.length) {
+      throw new Error("表示できる評価シートがありません。判定官の階級ロールを確認してください。");
+    }
+    const responsePages = buildSheetLinkResponsePages(page, levels);
+    if (!responsePages.length) throw new Error("表示できる評価シートがありません。");
+    await interaction.editReply({ content: responsePages[0], allowedMentions: { parse: [] } });
+    for (const content of responsePages.slice(1)) {
+      await interaction.followUp({ content, allowedMentions: { parse: [] }, flags: MessageFlags.Ephemeral });
+    }
+  }
+
   static async run(client: Client, now = new Date()) {
     const date = reminderDate(now);
     if (!date) return;
@@ -267,8 +387,16 @@ export class EvaluationDeadlineReminderService {
       for (let i = 0; i < pages.length; i++) {
         if (ids[i]) continue;
         const page = pages[i];
+        const button = page.sheetLinks && Object.keys(page.sheetLinks).length
+          ? [new ActionRowBuilder<ButtonBuilder>().addComponents(
+            new ButtonBuilder()
+              .setCustomId(`${EVALUATION_REMINDER_SHEETS_PREFIX}:${date}:${i}`)
+              .setLabel("評価シートを表示")
+              .setStyle(ButtonStyle.Primary),
+          )] : [];
         ids[i] = found.get(i) ?? (await channel.send({
           content: page.content,
+          components: button,
           allowedMentions: { parse: [], roles: page.roles, users: page.users },
           nonce: createHash("sha256").update(`${guildId}:${date}:${i}`).digest("hex").slice(0, 25),
           enforceNonce: true,

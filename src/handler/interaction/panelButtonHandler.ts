@@ -54,6 +54,10 @@ import { CreatorEmblemPaymentService } from "../../service/market/creatorEmblemP
 import { HazamaService } from "../../service/vc/hazamaService";
 import { SuperchatService } from "../../service/market/superchatService";
 import { SolitaryCellService } from "../../service/vc/solitaryCellService";
+import {
+  EVALUATION_REMINDER_SHEETS_PREFIX,
+  EvaluationDeadlineReminderService,
+} from "../../service/evaluation/evaluationDeadlineReminderService";
 
 import {
   ADMIN_PANEL_MESSAGES,
@@ -102,6 +106,11 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
   // 枚数調整は本人の下書きを検証し、DB照会を省く。確定時はサービス側で口座を再確認する。
   if (customId.startsWith(TICKET_EXCHANGE_STEP_PREFIX)) {
     await handleTicketExchangeButton(interaction);
+    return;
+  }
+
+  if (customId.startsWith(`${EVALUATION_REMINDER_SHEETS_PREFIX}:`)) {
+    await EvaluationDeadlineReminderService.showSheetLinks(interaction);
     return;
   }
 
