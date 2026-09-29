@@ -1,11 +1,11 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { Collection, ChannelType } = require('discord.js');
+const { Collection, ChannelType, PermissionFlagsBits, PermissionsBitField } = require('discord.js');
 const {
   EvaluationDeadlineReminderService: service, reminderDate, selectReminderTargets, buildReminderPages,
 } = require('../dist/service/evaluation/evaluationDeadlineReminderService');
 const { EVALUATION_SHEET_FORUM_IDS: forums } = require('../dist/constant/evaluation/evaluationSheet');
-const { ROLE_IDS } = require('../dist/constant/shared/id');
+const { ROLE_IDS, TEXT_CHANNEL_IDS } = require('../dist/constant/shared/id');
 const { DbService } = require('../dist/service/system/dbService');
 
 function sheetsFor(userId, deadline, { archived = false, created = '2026-09-10T00:00:00Z' } = {}) {
@@ -116,6 +116,36 @@ test('アーカイブ一覧をページ送りし、2ページ目も対象にで�
   assert.equal(threads.size, 9);
   assert.equal(calls.length, 8);
   assert.ok(forums.every(f => threads.has(f + 'old')));
+});
+
+test('評価期限通知は指定スレッドを取得し、スレッド送信権限を確認する', async () => {
+  process.env.GUILD_ID = 'guild';
+  const fetched = [];
+  const guild = {
+    roles: {
+      fetch: async () => {},
+      cache: new Collection([
+        [ROLE_IDS.EVALUATION_JUDGE, { mentionable: true }],
+        [ROLE_IDS.EVALUATION_SUPPORT, { mentionable: true }],
+      ]),
+    },
+    members: { fetchMe: async () => ({ id: 'bot' }) },
+  };
+  const permissions = new PermissionsBitField([
+    PermissionFlagsBits.ViewChannel,
+    PermissionFlagsBits.SendMessagesInThreads,
+    PermissionFlagsBits.ReadMessageHistory,
+  ]);
+  const thread = {
+    guildId: 'guild', guild,
+    isThread: () => true,
+    permissionsFor: () => permissions,
+  };
+  const client = { channels: { fetch: async id => { fetched.push(id); return thread; } } };
+
+  assert.equal(await service.getDestination(client), thread);
+  assert.deepEqual(fetched, [TEXT_CHANNEL_IDS.EVALUATION_DEADLINE_NOTICE_THREAD]);
+  assert.equal(TEXT_CHANNEL_IDS.EVALUATION_DEADLINE_NOTICE_THREAD, '1554425817893830686');
 });
 
 function deliveryFixture(t, { row = null, failSaveOnce = false, locked = true, failSendAt = -1, pages } = {}) {

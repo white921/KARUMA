@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
-import { ChannelType, Client, Guild, PermissionFlagsBits, TextChannel } from "discord.js";
+import { ChannelType, Client, Guild, PermissionFlagsBits, ThreadChannel } from "discord.js";
 import type { RowDataPacket } from "mysql2/promise";
 import { EVALUATION_SHEET_FORUM_IDS } from "../../constant/evaluation/evaluationSheet";
 import { ROLE_IDS, TEXT_CHANNEL_IDS } from "../../constant/shared/id";
@@ -158,9 +158,9 @@ export class EvaluationDeadlineReminderService {
     return threads;
   }
 
-  static async getDestination(client: Client): Promise<TextChannel> {
-    const channel = await client.channels.fetch(TEXT_CHANNEL_IDS.EVALUATION_DEADLINE_NOTICE, { force: true });
-    if (channel?.type !== ChannelType.GuildText || channel.guildId !== process.env.GUILD_ID) {
+  static async getDestination(client: Client): Promise<ThreadChannel> {
+    const channel = await client.channels.fetch(TEXT_CHANNEL_IDS.EVALUATION_DEADLINE_NOTICE_THREAD, { force: true });
+    if (!channel?.isThread() || channel.guildId !== process.env.GUILD_ID) {
       throw new Error("評価期限通知の送信先が不正です");
     }
     await channel.guild.roles.fetch();
@@ -168,7 +168,11 @@ export class EvaluationDeadlineReminderService {
     const permissions = channel.permissionsFor(me);
     const notificationRoles = [ROLE_IDS.EVALUATION_JUDGE, ROLE_IDS.EVALUATION_SUPPORT]
       .map(roleId => channel.guild.roles.cache.get(roleId));
-    if (!permissions?.has([PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory]) ||
+    if (!permissions?.has([
+      PermissionFlagsBits.ViewChannel,
+      PermissionFlagsBits.SendMessagesInThreads,
+      PermissionFlagsBits.ReadMessageHistory,
+    ]) ||
       notificationRoles.some(role => !role) ||
       (notificationRoles.some(role => !role!.mentionable) && !permissions.has(PermissionFlagsBits.MentionEveryone))) {
       throw new Error("評価期限通知の送信・履歴取得・判定官・侍従メンション権限が不足しています");
@@ -177,7 +181,7 @@ export class EvaluationDeadlineReminderService {
   }
 
   /** 送信成功後のDB更新失敗にも備え、23時以降のBot投稿を読み戻す。 */
-  static async findDeliveredPages(channel: TextChannel, date: string, pages: ReminderPage[]) {
+  static async findDeliveredPages(channel: ThreadChannel, date: string, pages: ReminderPage[]) {
     const since = dayjs.tz(`${date} 23:00`, TZ).valueOf();
     const found = new Map<number, string>();
     let before: string | undefined;
