@@ -148,13 +148,37 @@ test('評価期限通知は指定スレッドを取得し、スレッド送信�
   assert.equal(TEXT_CHANNEL_IDS.EVALUATION_DEADLINE_NOTICE_THREAD, '1554425817893830686');
 });
 
-function deliveryFixture(t, { row = null, failSaveOnce = false, locked = true, failSendAt = -1, pages } = {}) {
+test('前日分と一致するBot自身の通知だけを削除する', async () => {
+  const deleted = [];
+  const message = (id, authorId, content, created) => ({
+    id, author: { id: authorId }, content, createdTimestamp: Date.parse(created),
+    delete: async () => deleted.push(id),
+  });
+  const messages = new Collection([
+    ['current', message('current', 'bot', 'previous notice', '2026-09-22T14:00:00Z')],
+    ['previous', message('previous', 'bot', 'previous notice', '2026-09-21T14:00:00Z')],
+    ['other-author', message('other-author', 'other', 'previous notice', '2026-09-21T15:00:00Z')],
+    ['other-content', message('other-content', 'bot', 'chat', '2026-09-21T15:00:00Z')],
+  ]);
+  const channel = {
+    client: { user: { id: 'bot' } },
+    messages: { fetch: async () => messages },
+  };
+
+  assert.equal(await service.deletePreviousReminderMessages(
+    channel, '2026-09-22', [{ content: 'previous notice', users: [], roles: [] }],
+  ), 1);
+  assert.deepEqual(deleted, ['previous']);
+});
+
+function deliveryFixture(t, { row = null, previousRow = null, failSaveOnce = false, locked = true, failSendAt = -1, pages } = {}) {
   process.env.GUILD_ID = 'guild';
   let stored = row, released = false, unlocked = false, sends = 0;
   const published = [];
   const connection = { release: () => released = true, execute: async (sql, values) => {
     if (sql.includes('GET_LOCK')) return [[{ acquired: locked ? 1 : 0 }]];
     if (sql.includes('RELEASE_LOCK')) { unlocked = true; return [[]]; }
+    if (sql.startsWith('SELECT pages FROM')) return [previousRow ? [structuredClone(previousRow)] : []];
     if (sql.startsWith('SELECT pages')) return [stored ? [structuredClone(stored)] : []];
     if (sql.startsWith('INSERT')) { stored = { pages: JSON.parse(values[2]), message_ids: [], completed: 0 }; return [{}]; }
     if (sql.includes('SET message_ids')) {
@@ -189,6 +213,17 @@ test('送信記録により再実行・再起動しても当日の通知は1回�
   });
   assert.equal(f.published[0].payload.enforceNonce, true);
   assert.ok(f.published[0].payload.nonce.length <= 25);
+});
+
+test('当日分の送信前にDBへ保存された前日分を削除する', async t => {
+  const previousPages = [{ content: 'previous notice', users: ['333'], roles: [] }];
+  const f = deliveryFixture(t, { previousRow: { pages: previousPages } });
+  const cleanup = t.mock.method(service, 'deletePreviousReminderMessages', async () => 1);
+  await f.run();
+  assert.equal(cleanup.mock.callCount(), 1);
+  assert.equal(cleanup.mock.calls[0].arguments[1], '2026-09-22');
+  assert.deepEqual(cleanup.mock.calls[0].arguments[2], previousPages);
+  assert.equal(f.state().sends, 1);
 });
 
 test('送信成功・DB更新失敗からの再試行は投稿を読み戻し、二重メンションしない', async t => {

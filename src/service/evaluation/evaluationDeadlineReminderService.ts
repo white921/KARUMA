@@ -199,6 +199,30 @@ export class EvaluationDeadlineReminderService {
     return found;
   }
 
+  /** 前日分として保存した本文と一致する、このBot自身の投稿だけを削除する。 */
+  static async deletePreviousReminderMessages(channel: ThreadChannel, date: string, pages: ReminderPage[]) {
+    if (!pages.length) return 0;
+    const since = dayjs.tz(`${date} 23:00`, TZ).subtract(1, "day").valueOf();
+    const until = dayjs.tz(`${date} 23:00`, TZ).valueOf();
+    const contents = new Set(pages.map(page => page.content));
+    let deleted = 0;
+    let before: string | undefined;
+    while (true) {
+      const messages = await channel.messages.fetch({ limit: 100, before, cache: false });
+      for (const message of messages.values()) {
+        if (message.createdTimestamp >= since && message.createdTimestamp < until &&
+          message.author.id === channel.client.user!.id && contents.has(message.content)) {
+          await message.delete();
+          deleted++;
+        }
+      }
+      const last = messages.last();
+      if (messages.size < 100 || !last || last.createdTimestamp < since) break;
+      before = last.id;
+    }
+    return deleted;
+  }
+
   static async run(client: Client, now = new Date()) {
     const date = reminderDate(now);
     if (!date) return;
@@ -225,6 +249,17 @@ export class EvaluationDeadlineReminderService {
           [guildId, date, JSON.stringify(preview.pages)],
         );
         row = { pages: preview.pages, message_ids: [], completed: 0 } as unknown as DeliveryRow;
+      }
+      const previousDate = dayjs.tz(date, TZ).subtract(1, "day").format("YYYY-MM-DD");
+      const [previousRows] = await connection.execute<DeliveryRow[]>(
+        "SELECT pages FROM evaluation_deadline_reminders WHERE guild_id = ? AND notice_date = ?",
+        [guildId, previousDate],
+      );
+      if (previousRows[0]) {
+        const previousPages: ReminderPage[] = typeof previousRows[0].pages === "string"
+          ? JSON.parse(previousRows[0].pages) : previousRows[0].pages;
+        const deleted = await this.deletePreviousReminderMessages(channel, date, previousPages);
+        if (deleted) console.info("[EvaluationReminder] 前日分を削除", { date: previousDate, messages: deleted });
       }
       const pages: ReminderPage[] = typeof row.pages === "string" ? JSON.parse(row.pages) : row.pages;
       const ids: string[] = typeof row.message_ids === "string" ? JSON.parse(row.message_ids) : row.message_ids;
