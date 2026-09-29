@@ -282,7 +282,8 @@ test('ボタンを押した上級判定官には上級リンクだけを本人�
     customId: `${EVALUATION_REMINDER_SHEETS_PREFIX}:2026-09-22:0`,
     guildId: 'guild', channelId: TEXT_CHANNEL_IDS.EVALUATION_DEADLINE_NOTICE_THREAD,
     guild: { members: { fetch: async () => ({ roles: { cache: new Collection([[ROLE_IDS.EVALUATION_1KYUU, {}]]) } }) } },
-    user: { id: 'judge' }, message: { id: 'message' },
+    client: { user: { id: 'bot' } }, user: { id: 'judge' },
+    message: { id: 'reposted-message', author: { id: 'bot' }, content: 'notice' },
     editReply: async payload => replies.push(payload), followUp: async payload => replies.push(payload),
   });
   assert.equal(replies.length, 1);

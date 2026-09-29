@@ -318,16 +318,16 @@ export class EvaluationDeadlineReminderService {
     let row: DeliveryRow | undefined;
     try {
       const [rows] = await connection.execute<DeliveryRow[]>(
-        "SELECT pages, message_ids, completed FROM evaluation_deadline_reminders WHERE guild_id = ? AND notice_date = ?",
+        "SELECT pages FROM evaluation_deadline_reminders WHERE guild_id = ? AND notice_date = ?",
         [interaction.guildId, date],
       );
       row = rows[0];
     } finally { connection.release(); }
     if (!row) throw new Error("この通知の評価シート情報が見つかりません。");
     const pages: ReminderPage[] = typeof row.pages === "string" ? JSON.parse(row.pages) : row.pages;
-    const messageIds: string[] = typeof row.message_ids === "string" ? JSON.parse(row.message_ids) : row.message_ids;
     const page = pages[pageIndex];
-    if (!page || messageIds[pageIndex] !== interaction.message.id || !page.sheetLinks) {
+    if (!page || !page.sheetLinks || interaction.message.author.id !== interaction.client.user.id ||
+      interaction.message.content !== page.content) {
       throw new Error("この通知の評価シート情報が一致しません。");
     }
     const member = await interaction.guild.members.fetch({ user: interaction.user.id, force: true });
