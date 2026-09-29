@@ -27,6 +27,10 @@ import { RouletteBetKind, RouletteStage } from "../../type/casino/roulette";
 import { PANEL_COMMAND_NAMES } from "../../constant/shared/command";
 import { HOTEL_MESSAGES, HOTEL_PURCHASE_WAY_TYPE } from "../../constant/hotel/hotel";
 import { isShopTicketType, SHOP_TICKET_NONE } from "../../constant/market/shopTicket";
+import {
+  EVALUATION_REMINDER_LEVEL_PREFIX,
+  EvaluationDeadlineReminderService,
+} from "../../service/evaluation/evaluationDeadlineReminderService";
 
 /**
  * 文字列のプルダウンを選択した時のハンドラ
@@ -44,6 +48,10 @@ export async function handleStringSelectMenu(
     }
     if (customId.startsWith(HISTORY_FILTER_PREFIX)) {
       await HistoryService.handleFilter(interaction);
+      return;
+    }
+    if (customId.startsWith(`${EVALUATION_REMINDER_LEVEL_PREFIX}:`)) {
+      await EvaluationDeadlineReminderService.showSelectedSheetLevel(interaction);
       return;
     }
     if (customId.startsWith(`${CAST_PAYMENT_PREFIX}:`)) {

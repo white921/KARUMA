@@ -3,10 +3,12 @@ const assert = require('node:assert/strict');
 const { Collection, ChannelType, PermissionFlagsBits, PermissionsBitField } = require('discord.js');
 const {
   EvaluationDeadlineReminderService: service, EVALUATION_REMINDER_LEVELS,
-  EVALUATION_REMINDER_SHEETS_PREFIX, reminderDate, selectReminderTargets, buildReminderPages,
-  buildSheetLinkResponsePages, visibleEvaluationLevels,
+  EVALUATION_REMINDER_LEVEL_PREFIX, EVALUATION_REMINDER_SHEETS_PREFIX,
+  reminderDate, selectReminderTargets, buildReminderPages,
+  buildSheetLinkResponsePages, hasEvaluationReminderFullAccess, visibleEvaluationLevels,
 } = require('../dist/service/evaluation/evaluationDeadlineReminderService');
 const { handlePanelButton } = require('../dist/handler/interaction/panelButtonHandler');
+const { handleStringSelectMenu } = require('../dist/handler/interaction/stringSelectHandler');
 const { EVALUATION_SHEET_FORUM_IDS: forums } = require('../dist/constant/evaluation/evaluationSheet');
 const { ROLE_IDS, TEXT_CHANNEL_IDS } = require('../dist/constant/shared/id');
 const { DbService } = require('../dist/service/system/dbService');
@@ -293,9 +295,61 @@ test('ボタンを押した上級判定官には上級リンクだけを本人�
   assert.deepEqual(replies[0].allowedMentions, { parse: [] });
 });
 
+test('管理ロールでボタンを押すと4階級のSelectを本人向けに返す', async t => {
+  process.env.GUILD_ID = 'guild';
+  const row = {
+    pages: [{ content: 'notice', users: ['111'], roles: [], sheetLinks: {
+      '111': { upper: 'upper-thread', middle: 'middle-thread', lower: 'lower-thread', beginner: 'beginner-thread' },
+    } }],
+  };
+  t.mock.method(DbService, 'getConnection', async () => ({ execute: async () => [[row]], release: () => {} }));
+  const replies = [];
+  await service.showSheetLinks({
+    customId: `${EVALUATION_REMINDER_SHEETS_PREFIX}:2026-09-22:0`,
+    guildId: 'guild', channelId: TEXT_CHANNEL_IDS.EVALUATION_DEADLINE_NOTICE_THREAD,
+    guild: { members: { fetch: async () => ({ roles: { cache: new Collection([[ROLE_IDS.SABANUSI, {}]]) } }) } },
+    client: { user: { id: 'bot' } }, user: { id: '123' },
+    message: { author: { id: 'bot' }, content: 'notice' }, editReply: async payload => replies.push(payload),
+  });
+  assert.equal(replies.length, 1);
+  assert.match(replies[0].content, /階級を選択/);
+  const select = replies[0].components[0].toJSON().components[0];
+  assert.equal(select.custom_id, `${EVALUATION_REMINDER_LEVEL_PREFIX}:2026-09-22:0:123`);
+  assert.deepEqual(select.options.map(option => option.label), ['上級評価シート', '中級評価シート', '下級評価シート', '見習い評価シート']);
+  assert.equal(hasEvaluationReminderFullAccess({ roles: { cache: new Collection([[ROLE_IDS.SABANUSI, {}]]) } }), true);
+});
+
+test('管理ロールのSelectでは選んだ1階級だけを表示する', async t => {
+  process.env.GUILD_ID = 'guild';
+  const row = { pages: [{ content: 'notice', users: ['111'], roles: [], sheetLinks: {
+    '111': { upper: 'upper-thread', middle: 'middle-thread', lower: 'lower-thread', beginner: 'beginner-thread' },
+  } }] };
+  t.mock.method(DbService, 'getConnection', async () => ({ execute: async () => [[row]], release: () => {} }));
+  const events = [], replies = [];
+  await service.showSelectedSheetLevel({
+    customId: `${EVALUATION_REMINDER_LEVEL_PREFIX}:2026-09-22:0:123`, values: ['middle'],
+    guildId: 'guild', channelId: TEXT_CHANNEL_IDS.EVALUATION_DEADLINE_NOTICE_THREAD,
+    guild: { members: { fetch: async () => ({ roles: { cache: new Collection([[ROLE_IDS.EVALUATION_SUPPORT, {}]]) } }) } },
+    user: { id: '123' }, deferUpdate: async () => events.push('deferUpdate'),
+    editReply: async payload => replies.push(payload), followUp: async payload => replies.push(payload),
+  });
+  assert.deepEqual(events, ['deferUpdate']);
+  assert.equal(replies.length, 1);
+  assert.match(replies[0].content, /中級評価シート/);
+  assert.match(replies[0].content, /<#middle-thread>/);
+  assert.doesNotMatch(replies[0].content, /upper-thread|lower-thread|beginner-thread/);
+  assert.deepEqual(replies[0].components, []);
+});
+
 test('評価シート表示ボタンは口座確認より先に専用処理へ渡す', async t => {
   const handled = t.mock.method(service, 'showSheetLinks', async () => {});
   await handlePanelButton({ customId: `${EVALUATION_REMINDER_SHEETS_PREFIX}:2026-09-22:0`, user: { id: 'judge' } });
+  assert.equal(handled.mock.callCount(), 1);
+});
+
+test('評価階級Selectは専用処理へ渡す', async t => {
+  const handled = t.mock.method(service, 'showSelectedSheetLevel', async () => {});
+  await handleStringSelectMenu({ customId: `${EVALUATION_REMINDER_LEVEL_PREFIX}:2026-09-22:0:manager` });
   assert.equal(handled.mock.callCount(), 1);
 });
 

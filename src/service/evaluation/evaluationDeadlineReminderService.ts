@@ -13,6 +13,8 @@ import {
   GuildMember,
   MessageFlags,
   PermissionFlagsBits,
+  StringSelectMenuBuilder,
+  StringSelectMenuInteraction,
   ThreadChannel,
 } from "discord.js";
 import type { RowDataPacket } from "mysql2/promise";
@@ -25,6 +27,7 @@ dayjs.extend(timezone);
 const TZ = "Asia/Tokyo";
 export const EVALUATION_REMINDER_CRON = "*/5 23 * * *";
 export const EVALUATION_REMINDER_SHEETS_PREFIX = "evaluationReminderSheets";
+export const EVALUATION_REMINDER_LEVEL_PREFIX = "evaluationReminderLevel";
 
 export const EVALUATION_REMINDER_LEVELS = [
   { key: "upper", label: "上級", forumId: EVALUATION_SHEET_FORUM_IDS[2], roleId: ROLE_IDS.EVALUATION_1KYUU },
@@ -49,9 +52,12 @@ export type ReminderSheetLinks = Record<string, Partial<Record<EvaluationLevelKe
 type ReminderPage = { content: string; users: string[]; roles: string[]; sheetLinks?: ReminderSheetLinks };
 type DeliveryRow = RowDataPacket & { pages: string | ReminderPage[]; message_ids: string | string[]; completed: number };
 
+export function hasEvaluationReminderFullAccess(member: GuildMember) {
+  return EVALUATION_REMINDER_FULL_ACCESS_ROLE_IDS.some(roleId => member.roles.cache.has(roleId));
+}
+
 export function visibleEvaluationLevels(member: GuildMember) {
-  const hasFullAccess = EVALUATION_REMINDER_FULL_ACCESS_ROLE_IDS.some(roleId => member.roles.cache.has(roleId));
-  if (hasFullAccess) return [...EVALUATION_REMINDER_LEVELS];
+  if (hasEvaluationReminderFullAccess(member)) return [...EVALUATION_REMINDER_LEVELS];
   const highestLevel = EVALUATION_REMINDER_LEVELS.find(level => member.roles.cache.has(level.roleId));
   return highestLevel ? [highestLevel] : [];
 }
@@ -331,6 +337,18 @@ export class EvaluationDeadlineReminderService {
       throw new Error("この通知の評価シート情報が一致しません。");
     }
     const member = await interaction.guild.members.fetch({ user: interaction.user.id, force: true });
+    if (hasEvaluationReminderFullAccess(member)) {
+      const select = new StringSelectMenuBuilder()
+        .setCustomId(`${EVALUATION_REMINDER_LEVEL_PREFIX}:${date}:${pageIndex}:${interaction.user.id}`)
+        .setPlaceholder("表示する階級を選択")
+        .addOptions(EVALUATION_REMINDER_LEVELS.map(level => ({ label: `${level.label}評価シート`, value: level.key })));
+      await interaction.editReply({
+        content: "表示する評価シートの階級を選択してください。",
+        components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(select)],
+        allowedMentions: { parse: [] },
+      });
+      return;
+    }
     const levels = visibleEvaluationLevels(member);
     if (!levels.length) {
       throw new Error("表示できる評価シートがありません。判定官の階級ロールを確認してください。");
@@ -338,6 +356,44 @@ export class EvaluationDeadlineReminderService {
     const responsePages = buildSheetLinkResponsePages(page, levels);
     if (!responsePages.length) throw new Error("表示できる評価シートがありません。");
     await interaction.editReply({ content: responsePages[0], allowedMentions: { parse: [] } });
+    for (const content of responsePages.slice(1)) {
+      await interaction.followUp({ content, allowedMentions: { parse: [] }, flags: MessageFlags.Ephemeral });
+    }
+  }
+
+  static async showSelectedSheetLevel(interaction: StringSelectMenuInteraction) {
+    const match = interaction.customId.match(
+      new RegExp(`^${EVALUATION_REMINDER_LEVEL_PREFIX}:(\\d{4}-\\d{2}-\\d{2}):(\\d+):(\\d+)$`),
+    );
+    if (!match || interaction.guildId !== process.env.GUILD_ID ||
+      interaction.channelId !== TEXT_CHANNEL_IDS.EVALUATION_DEADLINE_NOTICE_THREAD || !interaction.guild ||
+      match[3] !== interaction.user.id) {
+      throw new Error("この評価期限通知から操作してください。");
+    }
+    await interaction.deferUpdate();
+    const [, date, pageIndexText] = match;
+    const selectedLevel = EVALUATION_REMINDER_LEVELS.find(level => level.key === interaction.values[0]);
+    if (!selectedLevel || interaction.values.length !== 1) throw new Error("表示する階級が不正です。");
+    const member = await interaction.guild.members.fetch({ user: interaction.user.id, force: true });
+    if (!hasEvaluationReminderFullAccess(member)) {
+      throw new Error("階級を選択できる管理ロールがありません。");
+    }
+    const connection = await DbService.getConnection();
+    let row: DeliveryRow | undefined;
+    try {
+      const [rows] = await connection.execute<DeliveryRow[]>(
+        "SELECT pages FROM evaluation_deadline_reminders WHERE guild_id = ? AND notice_date = ?",
+        [interaction.guildId, date],
+      );
+      row = rows[0];
+    } finally { connection.release(); }
+    if (!row) throw new Error("この通知の評価シート情報が見つかりません。");
+    const pages: ReminderPage[] = typeof row.pages === "string" ? JSON.parse(row.pages) : row.pages;
+    const page = pages[Number(pageIndexText)];
+    if (!page?.sheetLinks) throw new Error("この通知の評価シート情報が一致しません。");
+    const responsePages = buildSheetLinkResponsePages(page, [selectedLevel]);
+    if (!responsePages.length) throw new Error("表示できる評価シートがありません。");
+    await interaction.editReply({ content: responsePages[0], components: [], allowedMentions: { parse: [] } });
     for (const content of responsePages.slice(1)) {
       await interaction.followUp({ content, allowedMentions: { parse: [] }, flags: MessageFlags.Ephemeral });
     }
