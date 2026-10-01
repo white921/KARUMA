@@ -48,10 +48,7 @@ import { GameVcLifecycleService } from "./service/game/gameVcLifecycleService";
 import { DiaryService } from "./service/diary/diaryService";
 import { BotHealthMonitor } from "./service/system/botHealthMonitor";
 import { GuildMemberCacheService } from "./service/system/guildMemberCacheService";
-import {
-  getEvaluationCommandHandlerTimeoutMs,
-  getVcChannelEditHandlerTimeoutMs,
-} from "./util/interaction/interactionHealth";
+import { getEvaluationCommandHandlerTimeoutMs } from "./util/interaction/interactionHealth";
 import {
   shouldDeferButtonUpdate,
   shouldDeferVcModalReply,
@@ -142,9 +139,7 @@ client.on("interactionCreate", async (interaction) => {
         interaction.commandName,
         Boolean(interaction.options.getUser("user")),
       )
-    : interaction.isButton() || interaction.isModalSubmit()
-      ? getVcChannelEditHandlerTimeoutMs(interaction.customId)
-      : undefined;
+    : undefined;
   BotHealthMonitor.recordInteractionReceived(
     interactionContext,
     handlerTimeoutMs ? { handlerTimeoutMs } : {},

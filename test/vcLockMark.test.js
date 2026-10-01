@@ -126,6 +126,61 @@ test("empty status removes the voice status", async t => {
   assert.deepEqual(f.calls, [["defer"], ["reply"]]);
 });
 
+test("name rate limits fail fast with the exact retry delay and block repeated requests locally", async t => {
+  const previous = process.env.DISCORD_TOKEN;
+  process.env.DISCORD_TOKEN = "test-token";
+  t.after(() => {
+    if (previous === undefined) delete process.env.DISCORD_TOKEN;
+    else process.env.DISCORD_TOKEN = previous;
+  });
+  let requests = 0;
+  t.mock.method(globalThis, "fetch", async () => {
+    requests += 1;
+    return new Response(JSON.stringify({ retry_after: 125.2 }), {
+      status: 429,
+      headers: { "content-type": "application/json" },
+    });
+  });
+  const channel = { id: "rate-limited-vc" };
+  await assert.rejects(
+    VcService.updateVcName(channel, "変更後"),
+    /あと2分6秒ほどで再操作できます/,
+  );
+  await assert.rejects(
+    VcService.updateVcName(channel, "別名"),
+    /あと2分6秒ほどで再操作できます/,
+  );
+  assert.equal(requests, 1);
+});
+
+test("successful final name edit caches the reset time before another request", async t => {
+  const previous = process.env.DISCORD_TOKEN;
+  process.env.DISCORD_TOKEN = "test-token";
+  t.after(() => {
+    if (previous === undefined) delete process.env.DISCORD_TOKEN;
+    else process.env.DISCORD_TOKEN = previous;
+  });
+  let requests = 0;
+  t.mock.method(globalThis, "fetch", async () => {
+    requests += 1;
+    return new Response(JSON.stringify({ id: "vc" }), {
+      status: 200,
+      headers: {
+        "content-type": "application/json",
+        "x-ratelimit-remaining": "0",
+        "x-ratelimit-reset-after": "90",
+      },
+    });
+  });
+  const channel = { id: "last-allowed-vc" };
+  await VcService.updateVcName(channel, "変更後");
+  await assert.rejects(
+    VcService.updateVcName(channel, "別名"),
+    /あと1分30秒ほどで再操作できます/,
+  );
+  assert.equal(requests, 1);
+});
+
 test("concurrent lock clicks are rejected and failed renames can be retried", async t => {
   t.mock.method(VcService, "getVcTypeFromDb", async () => GAME_VC.TYPE);
   const f = fixture();

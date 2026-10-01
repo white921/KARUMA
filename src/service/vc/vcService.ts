@@ -30,6 +30,92 @@ export function isUserEditableManagedVc(
 
 export class VcService {
   private static readonly pendingNameChanges = new Set<string>();
+  private static readonly nameRateLimitedUntil = new Map<string, number>();
+
+  private static formatRetryAfter(milliseconds: number): string {
+    const totalSeconds = Math.max(1, Math.ceil(milliseconds / 1000));
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    if (minutes === 0) return `${seconds}秒`;
+    return seconds === 0 ? `${minutes}分` : `${minutes}分${seconds}秒`;
+  }
+
+  private static nameRateLimitError(channelId: string): Error | null {
+    const limitedUntil = this.nameRateLimitedUntil.get(channelId);
+    if (!limitedUntil) return null;
+    const remainingMs = limitedUntil - Date.now();
+    if (remainingMs <= 0) {
+      this.nameRateLimitedUntil.delete(channelId);
+      return null;
+    }
+    return new Error(
+      `DiscordのVC名変更上限に達しています。あと${this.formatRetryAfter(remainingMs)}ほどで再操作できます。`,
+    );
+  }
+
+  /** discord.jsの長時間キューを使わず、429の再試行時刻を利用者へ即時返却する。 */
+  static async updateVcName(channel: VoiceChannel, name: string): Promise<void> {
+    const cachedError = this.nameRateLimitError(channel.id);
+    if (cachedError) throw cachedError;
+
+    const token = process.env.DISCORD_TOKEN;
+    if (!token) {
+      await channel.setName(name);
+      return;
+    }
+
+    let response: Response;
+    try {
+      response = await fetch(`https://discord.com/api/v10/channels/${channel.id}`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bot ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name }),
+        signal: AbortSignal.timeout(10_000),
+      });
+    } catch (error) {
+      console.error("Discord VC名変更リクエスト失敗", {
+        channelId: channel.id,
+        error,
+      });
+      throw new Error("DiscordへのVC名変更リクエストがタイムアウトしました。もう一度お試しください。");
+    }
+
+    const resetAfterSeconds = Number(response.headers.get("x-ratelimit-reset-after"));
+    const body = await response.json().catch(() => ({})) as {
+      message?: string;
+      retry_after?: number;
+    };
+    if (response.status === 429) {
+      const retryAfterMs = Math.max(
+        1_000,
+        Math.ceil(Number(body.retry_after || resetAfterSeconds || 60) * 1000),
+      );
+      this.nameRateLimitedUntil.set(channel.id, Date.now() + retryAfterMs);
+      throw this.nameRateLimitError(channel.id)!;
+    }
+    if (!response.ok) {
+      console.error("Discord VC名変更APIエラー", {
+        channelId: channel.id,
+        status: response.status,
+        message: body.message,
+      });
+      throw new Error("VC名を変更できませんでした。Botのチャンネル管理権限をご確認ください。");
+    }
+
+    if (
+      response.headers.get("x-ratelimit-remaining") === "0" &&
+      Number.isFinite(resetAfterSeconds) &&
+      resetAfterSeconds > 0
+    ) {
+      this.nameRateLimitedUntil.set(
+        channel.id,
+        Date.now() + Math.ceil(resetAfterSeconds * 1000),
+      );
+    }
+  }
 
   /** 鍵は名前の目印のみ。チャンネルの権限には触れない。 */
   static async toggleVcLockMark(interaction: ButtonInteraction): Promise<void> {
@@ -48,14 +134,13 @@ export class VcService {
     }
     this.pendingNameChanges.add(channel.id);
     try {
-      const current = await channel.fetch(true);
-      const locked = current.name.startsWith("🔒");
-      const name = locked ? current.name.replace(/^🔒[\uFE0E\uFE0F]?\s*/, "") : `🔒 ${current.name}`;
+      const locked = channel.name.startsWith("🔒");
+      const name = locked ? channel.name.replace(/^🔒[\uFE0E\uFE0F]?\s*/, "") : `🔒 ${channel.name}`;
       if (!name.trim() || name.length > 100) {
         throw new Error("🔒を付け外しした後のVC名が1〜100文字になるように変更してください。");
       }
       await interaction.editReply({ content: "VC名の変更をDiscordへ申請しています…" });
-      await current.setName(name);
+      await this.updateVcName(channel, name);
       await interaction.editReply({ content: `VC名の先頭の🔒を${locked ? "外しました" : "付けました"}。` });
     } finally {
       this.pendingNameChanges.delete(channel.id);
@@ -225,7 +310,7 @@ export class VcService {
     this.pendingNameChanges.add(channel.id);
     try {
       await interaction.editReply({ content: "VC名の変更をDiscordへ申請しています…" });
-      await channel.setName(newName);
+      await this.updateVcName(channel, newName);
       await interaction.editReply({
         content: `VC名を${newName}に変更しました。`,
       });

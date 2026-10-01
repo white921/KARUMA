@@ -1,12 +1,10 @@
 const { LONG_RUNNING_EVALUATION_HANDLER_TIMEOUT_MS } = require("../dist/constant/evaluation/evaluationSheet.js");
-const { VC_CHANNEL_EDIT_HANDLER_TIMEOUT_MS } = require("../dist/constant/vc/vc.js");
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
 const { COMMAND_NAMES, PANEL_COMMAND_NAMES } = require("../dist/constant/shared/command.js");
 const {
   getEvaluationCommandHandlerTimeoutMs,
-  getVcChannelEditHandlerTimeoutMs,
 } = require("../dist/util/interaction/interactionHealth.js");
 const {
   shouldDeferButtonUpdate,
@@ -42,22 +40,6 @@ test("長時間になり得る評価シート操作だけ15分のhandler監視�
     getEvaluationCommandHandlerTimeoutMs(COMMAND_NAMES.EXTRA_EXTEND, true),
     LONG_RUNNING_EVALUATION_HANDLER_TIMEOUT_MS);
   assert.equal(getEvaluationCommandHandlerTimeoutMs(COMMAND_NAMES.VIEW, false), undefined);
-});
-
-test("VC名変更と鍵マーク変更はDiscordのレート制限待ちを許容する", () => {
-  for (const customId of [
-    PANEL_COMMAND_NAMES.CHANGE_VC_NAME,
-    PANEL_COMMAND_NAMES.TOGGLE_VC_LOCK_MARK,
-  ]) {
-    assert.equal(
-      getVcChannelEditHandlerTimeoutMs(customId),
-      VC_CHANNEL_EDIT_HANDLER_TIMEOUT_MS,
-    );
-  }
-  assert.equal(
-    getVcChannelEditHandlerTimeoutMs(PANEL_COMMAND_NAMES.CHANGE_VC_STATUS),
-    undefined,
-  );
 });
 
 test("VC名・ステータスのモーダルは処理前に応答を開始する", () => {

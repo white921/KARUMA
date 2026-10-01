@@ -21,9 +21,6 @@ export const VC_MESSAGES = {
     "このVCの人数制限は無制限に変更できません。",
 };
 
-/** Discordのチャンネル更新レート制限待ちをBot停止と誤判定しないための監視猶予。 */
-export const VC_CHANNEL_EDIT_HANDLER_TIMEOUT_MS = 12 * 60 * 1000;
-
 export const USER_EDITABLE_VC_TYPES = new Set<string>([
   GAME_VC.TYPE,
   ...Object.values(HOTEL_TYPE),
