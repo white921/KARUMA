@@ -265,6 +265,7 @@ test("game panel copy uses LEVELIA's play category name", () => {
   assert.match(GAME_PANEL_MESSAGES.DESCRIPTION, /ゲームパス/);
   assert.match(GAME_PANEL_MESSAGES.DESCRIPTION, /退出してから\*\*10分間戻らない場合\*\*/);
   assert.match(GAME_PANEL_MESSAGES.DESCRIPTION, /旅人以上・支配人：3,000LIA/);
+  assert.doesNotMatch(GAME_PANEL_MESSAGES.DESCRIPTION, /^>/m);
   assert.doesNotMatch(GAME_PANEL_MESSAGES.DESCRIPTION, /3時間|24時間有効/);
   assert.doesNotMatch(GAME_PANEL_MESSAGES.DESCRIPTION, /戯境/);
 });
