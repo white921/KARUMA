@@ -21,8 +21,7 @@ export function createTeamAssignmentPanelPayload() {
         .setTitle(TEAM_ASSIGNMENT_PANEL_TITLE)
         .setColor(COLOR.MAGENTA)
         .setDescription(
-          "参加するチームのボタンを押し、表示される画面であいことばを入力してください。\n" +
-          "あいことばが合っている場合、確認後にチームロールが付与されます。\n\n" +
+          "参加するチームのボタンを押し、表示される画面であいことばを入力してください。\n\n" +
           `**蒼組**\n大将：<@${TEAM_ASSIGNMENTS.blue.captainUserId}>\n副大将：<@${TEAM_ASSIGNMENTS.blue.viceCaptainUserId}>\n\n` +
           `**紅組**\n大将：<@${TEAM_ASSIGNMENTS.red.captainUserId}>\n副大将：<@${TEAM_ASSIGNMENTS.red.viceCaptainUserId}>\n\n` +
           "※一度チームが決まると、別のチームへ変更できません。",

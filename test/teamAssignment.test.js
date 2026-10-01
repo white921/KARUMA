@@ -124,6 +124,7 @@ test("panel shows the exact red and blue team buttons", () => {
   const description = payload.embeds[0].toJSON().description;
   assert.match(description, /変更できません/);
   assert.doesNotMatch(description, /切り替わります/);
+  assert.doesNotMatch(description, /あいことばが合っている場合、確認後にチームロールが付与されます/);
   assert.match(description, /\*\*蒼組\*\*[\s\S]*<@1508435688218169457>[\s\S]*<@1508895495873888452>/);
   assert.match(description, /\*\*紅組\*\*[\s\S]*<@1363509186461176121>[\s\S]*<@1536218537696165949>/);
   assert.ok(description.indexOf("**蒼組**") < description.indexOf("**紅組**"));
