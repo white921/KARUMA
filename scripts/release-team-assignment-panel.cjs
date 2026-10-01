@@ -40,8 +40,8 @@ const timeout = setTimeout(() => {
     assert.deepEqual(
       buttons.map((button) => button.customId),
       [
-        createTeamAssignmentCustomId("select", "red"),
         createTeamAssignmentCustomId("select", "blue"),
+        createTeamAssignmentCustomId("select", "red"),
       ],
     );
     console.log(JSON.stringify({

@@ -8,6 +8,7 @@ const {
 } = require("../dist/constant/shared/id.js");
 const {
   TEAM_ASSIGNMENT_PANEL_CHANNEL_ID,
+  TEAM_ASSIGNMENT_PANEL_TITLE,
   TEAM_ASSIGNMENT_PREFIX,
   TEAM_ASSIGNMENTS,
   createTeamAssignmentCustomId,
@@ -110,17 +111,22 @@ test("panel shows the exact red and blue team buttons", () => {
   );
   const payload = createTeamAssignmentPanelPayload();
   const buttons = payload.components[0].toJSON().components;
-  assert.deepEqual(buttons.map((button) => button.label), ["紅組", "蒼組"]);
+  assert.equal(TEAM_ASSIGNMENT_PANEL_TITLE, "第１回 LEVELIA双璧戦 チーム分けパネル");
+  assert.deepEqual(buttons.map((button) => button.label), ["蒼組", "紅組"]);
   assert.deepEqual(buttons.map((button) => button.custom_id), [
-    createTeamAssignmentCustomId("select", "red"),
     createTeamAssignmentCustomId("select", "blue"),
+    createTeamAssignmentCustomId("select", "red"),
   ]);
   assert.deepEqual(buttons.map((button) => button.style), [
-    ButtonStyle.Danger,
     ButtonStyle.Primary,
+    ButtonStyle.Danger,
   ]);
-  assert.match(payload.embeds[0].toJSON().description, /変更できません/);
-  assert.doesNotMatch(payload.embeds[0].toJSON().description, /切り替わります/);
+  const description = payload.embeds[0].toJSON().description;
+  assert.match(description, /変更できません/);
+  assert.doesNotMatch(description, /切り替わります/);
+  assert.match(description, /\*\*蒼組\*\*[\s\S]*<@1508435688218169457>[\s\S]*<@1508895495873888452>/);
+  assert.match(description, /\*\*紅組\*\*[\s\S]*<@1363509186461176121>[\s\S]*<@1536218537696165949>/);
+  assert.ok(description.indexOf("**蒼組**") < description.indexOf("**紅組**"));
 });
 
 test("team button opens a passphrase modal before the account requirement", async (t) => {
