@@ -10,13 +10,11 @@ export const TEAM_ASSIGNMENTS = {
   red: {
     label: "紅組",
     roleId: ROLE_IDS.TEAM_RED,
-    oppositeRoleId: ROLE_IDS.TEAM_BLUE,
     passphrase: "あか",
   },
   blue: {
     label: "蒼組",
     roleId: ROLE_IDS.TEAM_BLUE,
-    oppositeRoleId: ROLE_IDS.TEAM_RED,
     passphrase: "あお",
   },
 } as const;

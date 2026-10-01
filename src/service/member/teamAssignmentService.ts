@@ -23,6 +23,10 @@ import {
   type TeamAssignmentKey,
 } from "../../constant/member/teamAssignment";
 
+type TeamRoleHolder = {
+  roles: { cache: { has(roleId: string): boolean } };
+};
+
 type TeamAssignmentConfirmation = {
   id: string;
   userId: string;
@@ -55,6 +59,26 @@ function confirmationButtonId(
   return `${TEAM_ASSIGNMENT_PREFIX}:${action}:${confirmationId}`;
 }
 
+function hasTeamRole(member: TeamRoleHolder): boolean {
+  return (
+    member.roles.cache.has(TEAM_ASSIGNMENTS.red.roleId) ||
+    member.roles.cache.has(TEAM_ASSIGNMENTS.blue.roleId)
+  );
+}
+
+async function fetchEligibleMember(
+  interaction: ButtonInteraction | ModalSubmitInteraction,
+) {
+  if (!interaction.guild) {
+    throw new Error("サーバー情報を取得できませんでした。パネルからやり直してください。");
+  }
+  const member = await interaction.guild.members.fetch(interaction.user.id);
+  if (hasTeamRole(member)) {
+    throw new Error("すでにチームが決まっているため、別のチームへ変更できません。");
+  }
+  return member;
+}
+
 export class TeamAssignmentService {
   static readonly confirmations = new Map<string, TeamAssignmentConfirmation>();
 
@@ -73,6 +97,7 @@ export class TeamAssignmentService {
     if (interaction.channelId !== TEAM_ASSIGNMENT_PANEL_CHANNEL_ID) {
       throw new Error("この操作はチーム分けパネルでのみ利用できます。");
     }
+    await fetchEligibleMember(interaction);
     const team = parseTeamCustomId(interaction.customId, "select");
     const assignment = TEAM_ASSIGNMENTS[team];
     const input = new TextInputBuilder()
@@ -114,6 +139,7 @@ export class TeamAssignmentService {
     ) {
       throw new Error("この操作はサーバー内のチーム分けパネルでのみ利用できます。");
     }
+    await fetchEligibleMember(interaction);
 
     const now = Date.now();
     for (const [id, confirmation] of this.confirmations) {
@@ -139,7 +165,8 @@ export class TeamAssignmentService {
           .setColor(team === "red" ? COLOR.RED : COLOR.BLUE)
           .setDescription(
             `**${assignment.label}**に参加します。\n` +
-            "確定すると選択したチームのロールが付与され、反対側のチームロールは外れます。\n\n" +
+            "確定すると選択したチームのロールが付与されます。\n" +
+            "一度確定すると、別のチームへ変更できません。\n\n" +
             "よろしいですか？",
           ),
       ],
@@ -200,24 +227,26 @@ export class TeamAssignmentService {
       throw new Error("サーバー情報を取得できませんでした。パネルからやり直してください。");
     }
     const assignment = TEAM_ASSIGNMENTS[confirmation.team];
-    const [member, targetRole, oppositeRole] = await Promise.all([
-      guild.members.fetch(interaction.user.id),
+    const [member, targetRole] = await Promise.all([
+      guild.members.fetch({ user: interaction.user.id, force: true }),
       guild.roles.fetch(assignment.roleId),
-      guild.roles.fetch(assignment.oppositeRoleId),
     ]);
-    if (!targetRole || !oppositeRole) {
+    if (hasTeamRole(member)) {
+      await interaction.editReply({
+        content: "すでにチームが決まっているため、別のチームへ変更できません。",
+        embeds: [],
+        components: [],
+      });
+      return;
+    }
+    if (!targetRole) {
       throw new Error("チームロールが見つかりません。運営へご連絡ください。");
     }
-    if (!targetRole.editable || !oppositeRole.editable) {
+    if (!targetRole.editable) {
       throw new Error("チームロールを変更できません。運営へご連絡ください。");
     }
 
-    if (!member.roles.cache.has(targetRole.id)) {
-      await member.roles.add(targetRole, `対抗戦チーム分けパネル: ${assignment.label}`);
-    }
-    if (member.roles.cache.has(oppositeRole.id)) {
-      await member.roles.remove(oppositeRole, `対抗戦チーム分けパネル: ${assignment.label}へ変更`);
-    }
+    await member.roles.add(targetRole, `対抗戦チーム分けパネル: ${assignment.label}`);
 
     await interaction.editReply({
       content: `✅ ${assignment.label}に参加しました。`,

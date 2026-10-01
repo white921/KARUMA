@@ -32,11 +32,20 @@ test.beforeEach(() => TeamAssignmentService.confirmations.clear());
 
 function modalInteraction(team, passphrase, userId = "user") {
   const replies = [];
+  const roleIds = new Set();
   return {
     customId: createTeamAssignmentCustomId("modal", team),
     user: { id: userId },
     guildId: "guild",
     channelId: TEAM_ASSIGNMENT_PANEL_CHANNEL_ID,
+    guild: {
+      members: {
+        fetch: async (id) => {
+          assert.equal(id, userId);
+          return { roles: { cache: { has: (roleId) => roleIds.has(roleId) } } };
+        },
+      },
+    },
     fields: { getTextInputValue: () => passphrase },
     replies,
     reply: async (body) => replies.push(body),
@@ -70,7 +79,12 @@ function confirmationInteraction(customId, {
     guildId,
     channelId,
     guild: {
-      members: { fetch: async (id) => { assert.equal(id, userId); return member; } },
+      members: {
+        fetch: async (options) => {
+          assert.deepEqual(options, { user: userId, force: true });
+          return member;
+        },
+      },
       roles: { fetch: async (id) => roles.get(id) },
     },
     edits,
@@ -105,6 +119,8 @@ test("panel shows the exact red and blue team buttons", () => {
     ButtonStyle.Danger,
     ButtonStyle.Primary,
   ]);
+  assert.match(payload.embeds[0].toJSON().description, /変更できません/);
+  assert.doesNotMatch(payload.embeds[0].toJSON().description, /切り替わります/);
 });
 
 test("team button opens a passphrase modal before the account requirement", async (t) => {
@@ -115,6 +131,12 @@ test("team button opens a passphrase modal before the account requirement", asyn
   await handlePanelButton({
     customId: createTeamAssignmentCustomId("select", "red"),
     channelId: TEAM_ASSIGNMENT_PANEL_CHANNEL_ID,
+    user: { id: "user" },
+    guild: {
+      members: {
+        fetch: async () => ({ roles: { cache: { has: () => false } } }),
+      },
+    },
     showModal: async (value) => { modal = value.toJSON(); },
   });
   assert.equal(modal.title, "紅組のあいことば");
@@ -140,14 +162,12 @@ test("correct passphrase shows a private confirmation without changing roles", a
   assert.equal(shouldDeferButtonUpdate(cancelId), true);
 });
 
-test("confirmation adds the selected role, removes the opposite role, and cannot replay", async () => {
+test("confirmation adds the selected role once and cannot replay", async () => {
   const { confirmId } = await createConfirmation("red", "あか");
-  const interaction = confirmationInteraction(confirmId, {
-    heldRoleIds: [ROLE_IDS.TEAM_BLUE],
-  });
+  const interaction = confirmationInteraction(confirmId);
   await TeamAssignmentService.handleConfirmation(interaction);
   assert.deepEqual(interaction.added, [ROLE_IDS.TEAM_RED]);
-  assert.deepEqual(interaction.removed, [ROLE_IDS.TEAM_BLUE]);
+  assert.deepEqual(interaction.removed, []);
   assert.deepEqual([...interaction.roleIds], [ROLE_IDS.TEAM_RED]);
   assert.match(interaction.edits[0].content, /紅組に参加/);
   assert.equal(interaction.edits[0].components.length, 0);
@@ -155,6 +175,42 @@ test("confirmation adds the selected role, removes the opposite role, and cannot
     TeamAssignmentService.handleConfirmation(interaction),
     /期限切れ/,
   );
+});
+
+for (const existingRoleId of [ROLE_IDS.TEAM_RED, ROLE_IDS.TEAM_BLUE]) {
+  test(`existing team role ${existingRoleId} blocks both entry buttons`, async () => {
+    let shown = false;
+    const interaction = {
+      customId: createTeamAssignmentCustomId("select", "red"),
+      channelId: TEAM_ASSIGNMENT_PANEL_CHANNEL_ID,
+      user: { id: "user" },
+      guild: {
+        members: {
+          fetch: async () => ({
+            roles: { cache: { has: (roleId) => roleId === existingRoleId } },
+          }),
+        },
+      },
+      showModal: async () => { shown = true; },
+    };
+    await assert.rejects(
+      TeamAssignmentService.showPassphraseModal(interaction),
+      /すでにチームが決まっている/,
+    );
+    assert.equal(shown, false);
+  });
+}
+
+test("a team role granted after confirmation prevents the final assignment", async () => {
+  const { confirmId } = await createConfirmation("red", "あか");
+  const interaction = confirmationInteraction(confirmId, {
+    heldRoleIds: [ROLE_IDS.TEAM_BLUE],
+  });
+  await TeamAssignmentService.handleConfirmation(interaction);
+  assert.deepEqual(interaction.added, []);
+  assert.deepEqual(interaction.removed, []);
+  assert.match(interaction.edits[0].content, /変更できません/);
+  assert.equal(interaction.edits[0].components.length, 0);
 });
 
 test("confirmation is bound to its user, guild, and panel channel", async () => {
@@ -201,6 +257,7 @@ test("team selection can only start in the assigned panel thread", async () => {
     TeamAssignmentService.showPassphraseModal({
       customId: createTeamAssignmentCustomId("select", "red"),
       channelId: "other",
+      user: { id: "user" },
       showModal: async () => {},
     }),
     /チーム分けパネル/,
