@@ -28,7 +28,6 @@ test("game panel provides VC creation, game passes, and ticket confirmation", ()
   assert.ok(buttonIds.includes(PANEL_COMMAND_NAMES.GAME_PASS_TWO_WEEKS));
   assert.ok(buttonIds.includes(PANEL_COMMAND_NAMES.GAME_PASS_ONE_MONTH));
   assert.equal(GAME_PANEL_MESSAGES.TICKET_VIEW, "チケット確認");
-  assert.match(GAME_PANEL_MESSAGES.DESCRIPTION, /所持している全種類のチケット/);
-  assert.match(GAME_PANEL_MESSAGES.DESCRIPTION, /遊戯チケットは6人コースに1枚、人数フリーコースに2枚/);
-  assert.match(GAME_PANEL_MESSAGES.DESCRIPTION, /利用時間無制限/);
+  assert.match(GAME_PANEL_MESSAGES.DESCRIPTION, /6人コースは\*\*1枚\*\*、人数フリーコースは\*\*2枚\*\*/);
+  assert.match(GAME_PANEL_MESSAGES.DESCRIPTION, /時間無制限/);
 });

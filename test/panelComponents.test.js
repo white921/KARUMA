@@ -259,12 +259,12 @@ test("hotel panel buttons do not use icons", () => {
 test("game panel copy uses LEVELIA's play category name", () => {
   assert.equal(GAME_PANEL_MESSAGES.TITLE, "遊戯パネル");
   assert.equal(GAME_PANEL_MESSAGES.PASS_TWO_WEEKS, "ゲームパス（2週間）");
-  assert.match(GAME_PANEL_MESSAGES.DESCRIPTION, /^遊戯パネルです。利用時間無制限の遊戯VCを作成できます。/);
-  assert.match(GAME_PANEL_MESSAGES.DESCRIPTION, /遊戯パネルです。/);
-  assert.match(GAME_PANEL_MESSAGES.DESCRIPTION, /【VC作成料金】/);
+  assert.match(GAME_PANEL_MESSAGES.DESCRIPTION, /^遊戯VCは、すべて\*\*時間無制限\*\*です/);
+  assert.match(GAME_PANEL_MESSAGES.DESCRIPTION, /「VCを作成」から利用するコースを選択してください/);
+  assert.match(GAME_PANEL_MESSAGES.DESCRIPTION, /【料金】/);
   assert.match(GAME_PANEL_MESSAGES.DESCRIPTION, /ゲームパス/);
-  assert.match(GAME_PANEL_MESSAGES.DESCRIPTION, /退出して10分間戻らなければ/);
-  assert.match(GAME_PANEL_MESSAGES.DESCRIPTION, /6人 3,000LIA ／ 人数フリー 5,000LIA/);
+  assert.match(GAME_PANEL_MESSAGES.DESCRIPTION, /退出してから\*\*10分間戻らない場合\*\*/);
+  assert.match(GAME_PANEL_MESSAGES.DESCRIPTION, /旅人以上・支配人：3,000LIA/);
   assert.doesNotMatch(GAME_PANEL_MESSAGES.DESCRIPTION, /3時間|24時間有効/);
   assert.doesNotMatch(GAME_PANEL_MESSAGES.DESCRIPTION, /戯境/);
 });
