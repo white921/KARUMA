@@ -11,7 +11,7 @@ const {
   competitionEntryCustomId,
 } = require("../dist/constant/member/competitionEntry.js");
 const { TEAM_ASSIGNMENTS } = require("../dist/constant/member/teamAssignment.js");
-const { THREAD_IDS } = require("../dist/constant/shared/id.js");
+const { ROLE_IDS, THREAD_IDS } = require("../dist/constant/shared/id.js");
 const {
   createCompetitionEntryPanelPayload,
 } = require("../dist/panel/member/competitionEntryPanelService.js");
@@ -26,11 +26,14 @@ const {
 const { handlePanelButton } = require("../dist/handler/interaction/panelButtonHandler.js");
 const { AccountService } = require("../dist/service/account/accountService.js");
 
-function roleHolder(team) {
-  const roleId = team ? TEAM_ASSIGNMENTS[team].roleId : null;
+function roleHolder(team, gender = "male") {
+  const roleIds = new Set();
+  if (team) roleIds.add(TEAM_ASSIGNMENTS[team].roleId);
+  if (gender === "male" || gender === "both") roleIds.add(ROLE_IDS.BASIC_ROLE_IDS.OSU);
+  if (gender === "female" || gender === "both") roleIds.add(ROLE_IDS.BASIC_ROLE_IDS.MESU);
   return {
     displayName: "回答者",
-    roles: { cache: { has: (id) => id === roleId } },
+    roles: { cache: { has: (id) => roleIds.has(id) } },
   };
 }
 
@@ -50,8 +53,11 @@ test("panel has the recommended title and exactly two entry buttons", () => {
     ButtonStyle.Primary,
     ButtonStyle.Secondary,
   ]);
-  assert.match(embed.description, /回答した時点では出場確定ではありません/);
-  assert.match(payload.content, /大将・副大将が出場メンバーを調整します/);
+  assert.equal(payload.content, "");
+  assert.doesNotMatch(
+    embed.description,
+    /各組|人数未定|出場確定|双璧戦で参加|後から何度でも/,
+  );
   for (const discipline of Object.values(COMPETITION_DISCIPLINES)) {
     assert.match(embed.description, new RegExp(discipline.label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   }
@@ -132,19 +138,68 @@ test("mahjong modal uses Jantama rank, name and player ID fields", async (t) => 
   assert.match(inputs[1].placeholder, /雀傑2/);
 });
 
-test("modal submission normalizes singing category and saves the current team", async (t) => {
+test("each discipline only asks for identifiers that the game actually uses", async (t) => {
+  t.mock.method(CompetitionEntryStore, "findByUser", async () => []);
+  const expected = {
+    singing: ["availability", "notes"],
+    unite: ["availability", "rank_name", "game_name", "game_id", "notes"],
+    free: ["availability", "game_name", "game_id", "notes"],
+    gf: ["availability", "rank_name", "game_name", "notes"],
+    mahjong: ["availability", "rank_name", "game_name", "game_id", "notes"],
+    fall_guys: ["availability", "rank_name", "game_name", "notes"],
+    valorant: ["availability", "rank_name", "game_name", "notes"],
+    lol: ["availability", "rank_name", "game_name", "notes"],
+    minecraft: ["availability", "game_name", "notes"],
+  };
+
+  for (const [discipline, inputIds] of Object.entries(expected)) {
+    let modal;
+    await CompetitionEntryService.showDisciplineModal({
+      customId: competitionEntryCustomId("edit", discipline),
+      user: { id: "user" },
+      guild: { members: { fetch: async () => roleHolder("red") } },
+      showModal: async (value) => { modal = value.toJSON(); },
+    });
+    assert.deepEqual(
+      modal.components.map((row) => row.components[0].custom_id),
+      inputIds,
+      discipline,
+    );
+  }
+
+  assert.equal(COMPETITION_DISCIPLINES.gf.gameNameLabel, "預言者の名前");
+  assert.equal(COMPETITION_DISCIPLINES.fall_guys.gameIdLabel, null);
+  assert.match(COMPETITION_DISCIPLINES.valorant.gameNameLabel, /#タグライン/);
+  assert.equal(COMPETITION_DISCIPLINES.valorant.gameIdLabel, null);
+  assert.equal(COMPETITION_DISCIPLINES.lol.gameIdLabel, null);
+  assert.equal(COMPETITION_DISCIPLINES.minecraft.gameIdLabel, null);
+});
+
+test("singing modal omits category input and submission uses the gender role", async (t) => {
+  t.mock.method(CompetitionEntryStore, "findByUser", async () => []);
+  let modal;
+  await CompetitionEntryService.showDisciplineModal({
+    customId: competitionEntryCustomId("edit", "singing"),
+    user: { id: "user" },
+    guild: { members: { fetch: async () => roleHolder("red", "female") } },
+    showModal: async (value) => { modal = value.toJSON(); },
+  });
+  assert.deepEqual(
+    modal.components.map((row) => row.components[0].custom_id),
+    [COMPETITION_ENTRY_INPUT_IDS.AVAILABILITY, COMPETITION_ENTRY_INPUT_IDS.NOTES],
+  );
+
   let saved;
   t.mock.method(CompetitionEntryStore, "upsert", async (entry) => { saved = entry; });
   const values = new Map([
     [COMPETITION_ENTRY_INPUT_IDS.AVAILABILITY, " 出れる "],
-    [COMPETITION_ENTRY_INPUT_IDS.GAME_NAME, "男性"],
     [COMPETITION_ENTRY_INPUT_IDS.NOTES, "高音"],
   ]);
   const replies = [];
   await CompetitionEntryService.submit({
     customId: competitionEntryCustomId("modal", "singing"),
     user: { id: "user" },
-    guild: { members: { fetch: async () => roleHolder("red") } },
+    guild: { members: { fetch: async () => roleHolder("red", "female") } },
     fields: {
       fields: { has: (id) => values.has(id) },
       getTextInputValue: (id) => values.get(id),
@@ -160,11 +215,26 @@ test("modal submission normalizes singing category and saves the current team", 
     discipline: "singing",
     availability: "available",
     rankName: "",
-    gameName: "♂",
+    gameName: "♀",
     gameId: "",
     notes: "高音",
   });
   assert.match(replies[1][1].content, /保存しました/);
+});
+
+test("singing rejects missing or duplicated gender roles", async (t) => {
+  t.mock.method(CompetitionEntryStore, "findByUser", async () => []);
+  for (const gender of [null, "both"]) {
+    await assert.rejects(
+      CompetitionEntryService.showDisciplineModal({
+        customId: competitionEntryCustomId("edit", "singing"),
+        user: { id: "user" },
+        guild: { members: { fetch: async () => roleHolder("red", gender) } },
+        showModal: async () => {},
+      }),
+      /ロール/,
+    );
+  }
 });
 
 test("competition buttons bypass the normal account requirement", async (t) => {

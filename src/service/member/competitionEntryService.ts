@@ -23,6 +23,7 @@ import {
   type CompetitionDisciplineKey,
 } from "../../constant/member/competitionEntry";
 import { TEAM_ASSIGNMENTS } from "../../constant/member/teamAssignment";
+import { ROLE_IDS } from "../../constant/shared/id";
 import type {
   CompetitionAvailability,
   CompetitionEntry,
@@ -51,6 +52,19 @@ function getTeam(member: RoleHolder): CompetitionTeam {
     );
   }
   return red ? "red" : "blue";
+}
+
+function getSingingCategory(member: RoleHolder): "♂" | "♀" {
+  const male = member.roles.cache.has(ROLE_IDS.BASIC_ROLE_IDS.OSU);
+  const female = member.roles.cache.has(ROLE_IDS.BASIC_ROLE_IDS.MESU);
+  if (male === female) {
+    throw new Error(
+      male
+        ? "♂・♀ロールが両方付いているため、歌の出場区分を判定できません。運営へご連絡ください。"
+        : "♂・♀ロールが未設定のため、歌の出場区分を判定できません。先にロールを設定してください。",
+    );
+  }
+  return male ? "♂" : "♀";
 }
 
 export function parseCompetitionAvailability(
@@ -122,13 +136,32 @@ function textInput(
   return new ActionRowBuilder<TextInputBuilder>().addComponents(input);
 }
 
-function formatEntry(entry: CompetitionEntry | undefined): string {
+function displayFieldLabel(label: string): string {
+  return label.replace(/（任意）/g, "").trim();
+}
+
+function formatEntry(
+  disciplineKey: CompetitionDisciplineKey,
+  entry: CompetitionEntry | undefined,
+): string {
   if (!entry) return "**未回答**";
+  const discipline = COMPETITION_DISCIPLINES[disciplineKey];
   const lines = [`出場可否：**${AVAILABILITY_LABELS[entry.availability]}**`];
-  if (entry.rankName) lines.push(`ランク・段位：${entry.rankName}`);
-  if (entry.gameName) lines.push(`ゲーム内ネーム等：${entry.gameName}`);
-  if (entry.gameId) lines.push(`ID：${entry.gameId}`);
-  if (entry.notes) lines.push(`備考：${entry.notes}`);
+  if (entry.rankName && discipline.rankLabel) {
+    lines.push(`${displayFieldLabel(discipline.rankLabel)}：${entry.rankName}`);
+  }
+  if (entry.gameName) {
+    const label = disciplineKey === "singing"
+      ? "出場区分"
+      : discipline.gameNameLabel ?? "ゲーム内ネーム等";
+    lines.push(`${displayFieldLabel(label)}：${entry.gameName}`);
+  }
+  if (entry.gameId && discipline.gameIdLabel) {
+    lines.push(`${displayFieldLabel(discipline.gameIdLabel)}：${entry.gameId}`);
+  }
+  if (entry.notes) {
+    lines.push(`${displayFieldLabel(discipline.notesLabel)}：${entry.notes}`);
+  }
   return lines.join("\n");
 }
 
@@ -241,6 +274,7 @@ export class CompetitionEntryService {
       CompetitionEntryStore.findByUser(interaction.user.id),
     ]);
     getTeam(member);
+    if (disciplineKey === "singing") getSingingCategory(member);
     const existing = entries.find((entry) => entry.discipline === disciplineKey);
     const discipline = COMPETITION_DISCIPLINES[disciplineKey];
     const rows: ActionRowBuilder<TextInputBuilder>[] = [
@@ -313,19 +347,16 @@ export class CompetitionEntryService {
     const availability = parseCompetitionAvailability(
       interaction.fields.getTextInputValue(COMPETITION_ENTRY_INPUT_IDS.AVAILABILITY),
     );
-    let gameName = optionalField(
+    const submittedGameName = optionalField(
       interaction,
       COMPETITION_ENTRY_INPUT_IDS.GAME_NAME,
     );
-    if (discipline === "singing" && gameName) {
-      const normalizedCategory = gameName.normalize("NFKC").trim();
-      if (["男", "男性", "♂"].includes(normalizedCategory)) gameName = "♂";
-      else if (["女", "女性", "♀"].includes(normalizedCategory)) gameName = "♀";
-      else throw new Error("歌の出場区分は「♂」または「♀」で入力してください。");
-    }
 
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     const member = await interaction.guild.members.fetch(interaction.user.id);
+    const gameName = discipline === "singing"
+      ? getSingingCategory(member)
+      : submittedGameName;
     const entry: CompetitionEntry = {
       userId: interaction.user.id,
       displayName: member.displayName,
@@ -358,8 +389,11 @@ export class CompetitionEntryService {
       )
       .addFields(
         Object.entries(COMPETITION_DISCIPLINES).map(([key, discipline]) => ({
-          name: `${discipline.label}｜${discipline.capacity}`,
-          value: formatEntry(byDiscipline.get(key)),
+          name: discipline.label,
+          value: formatEntry(
+            key as CompetitionDisciplineKey,
+            byDiscipline.get(key),
+          ),
           inline: false,
         })),
       );
