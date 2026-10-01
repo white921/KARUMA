@@ -101,7 +101,6 @@ export const PANEL_COMMAND_NAMES = {
   GAME_SHORT_EXTEND: "gameShortExtend",
   GAME_PASS: "gamePass",
   GAME_VC_CREATE: "gameVcCreate",
-  GAME_VC_DURATION_SELECT: "gameVcDurationSelect",
   GAME_VC_CREATE_TICKET: "gameVcCreateTicket",
   GAME_VC_CREATE_MONEY: "gameVcCreateMoney",
   GAME_CRIMINAL_ACCESS_PURCHASE: "gameCriminalAccessPurchase",

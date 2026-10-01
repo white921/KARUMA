@@ -2,8 +2,6 @@ import type { RowDataPacket } from "mysql2";
 
 export type GameVcPayment = "money" | "ticket" | "pass" | "staff";
 
-export type GameVcDurationHours = 3 | 6 | 24;
-
 export type GamePassPlan = "twoWeeks" | "oneMonth";
 
 export type GameVcTier = {

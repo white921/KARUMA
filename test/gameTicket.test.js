@@ -29,8 +29,6 @@ test("game panel provides VC creation, game passes, and ticket confirmation", ()
   assert.ok(buttonIds.includes(PANEL_COMMAND_NAMES.GAME_PASS_ONE_MONTH));
   assert.equal(GAME_PANEL_MESSAGES.TICKET_VIEW, "チケット確認");
   assert.match(GAME_PANEL_MESSAGES.DESCRIPTION, /所持している全種類のチケット/);
-  assert.match(GAME_PANEL_MESSAGES.DESCRIPTION, /遊戯チケットは24時間VCの作成時に1枚使用/);
+  assert.match(GAME_PANEL_MESSAGES.DESCRIPTION, /遊戯チケットを所持している場合/);
   assert.match(GAME_PANEL_MESSAGES.DESCRIPTION, /24時間/);
-  assert.match(GAME_PANEL_MESSAGES.DESCRIPTION, /3時間：1,000LIA/);
-  assert.match(GAME_PANEL_MESSAGES.DESCRIPTION, /6時間：3,000LIA/);
 });
