@@ -88,8 +88,12 @@ CREATE TABLE IF NOT EXISTS vcs (
   is_bonus BOOLEAN DEFAULT FALSE COMMENT '特典(ロール)を利用して作成したかどうか',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT '作成日時',
   expire_at TIMESTAMP DEFAULT NULL COMMENT '有償VCの場合の有効期限',
+  game_plan VARCHAR(16) DEFAULT NULL COMMENT '新遊戯VCのlimitedまたはunlimited。NULLは旧仕様',
+  owner_has_joined BOOLEAN NOT NULL DEFAULT FALSE COMMENT '新遊戯VCで部屋主が一度以上入室したか',
+  owner_left_at TIMESTAMP DEFAULT NULL COMMENT '新遊戯VCで部屋主が最後に退出した日時',
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL COMMENT '更新日時',
-  PRIMARY KEY (id)
+  PRIMARY KEY (id),
+  KEY idx_vcs_game_owner_cleanup (type, is_active, game_plan, owner_left_at)
 )
 COMMENT='VC情報';
 
@@ -113,6 +117,16 @@ CREATE TABLE IF NOT EXISTS item_users (
 )
 COMMENT='ユーザーのアイテム所持情報';
 
+CREATE TABLE IF NOT EXISTS game_ticket_rollouts (
+  rollout_key VARCHAR(32) NOT NULL,
+  affected_user_count INTEGER NOT NULL DEFAULT 0,
+  before_quantity BIGINT NOT NULL DEFAULT 0,
+  after_quantity BIGINT NOT NULL DEFAULT 0,
+  completed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (rollout_key)
+)
+COMMENT='遊戯チケット一括移行の重複実行防止';
+
 INSERT INTO items (item_key, name, description) VALUES
   ('CAST_TWOSHOT_FIRST_FREE', '執事・メイドツーショ30分初回無料チケット', 'ツーショ30分を無料で利用できる券。ガチャコイン15枚で1人1回のみ交換可能'),
   ('HOTEL_NORMAL_FREE', '通常ホテル無料券', '通常ホテル（12時間）を無料で利用できる券'),
@@ -120,7 +134,7 @@ INSERT INTO items (item_key, name, description) VALUES
   ('HOTEL_FREEDOM_FREE', 'フリーダム無料券', 'フリーダム（12時間）を無料で利用できる券'),
   ('SHOP_DISCOUNT_5', '市場割引券 5%OFF', '100万LIA未満の市場支払いに使える5%割引券'),
   ('SHOP_DISCOUNT_10', '市場割引券 10%OFF', '100万LIA未満の市場支払いに使える10%割引券'),
-  ('GAME_SHORT_FREE', '遊戯チケット', '遊戯VCを1部屋（24時間）無料で作成できる券'),
+  ('GAME_SHORT_FREE', '遊戯チケット', '時間無制限の遊戯VC作成に使用できる券'),
   ('HAZAMA_FREE', '辺境の狭間無料券', '辺境の狭間の滞在許可証（12時間）を無料で取得できる券'),
   ('SOLITARY_CELL_FREE', '独房無料券', '独房を1部屋（12時間）無料で作成できる券')
 ON DUPLICATE KEY UPDATE

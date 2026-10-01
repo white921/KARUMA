@@ -165,6 +165,24 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
       await PrivateHotelService.handleButton(interaction);
       return;
     }
+    if (
+      customId.startsWith(`${PANEL_COMMAND_NAMES.GAME_VC_CREATE_MONEY}:`) ||
+      customId.startsWith(`${PANEL_COMMAND_NAMES.GAME_VC_CREATE_TICKET}:`) ||
+      customId.startsWith(`${PANEL_COMMAND_NAMES.GAME_VC_CREATE_BENEFIT}:`)
+    ) {
+      const [paymentId, confirmationId, plan, tierKind, expectedValue] = customId.split(":");
+      const payment = paymentId === PANEL_COMMAND_NAMES.GAME_VC_CREATE_MONEY
+        ? "money"
+        : paymentId === PANEL_COMMAND_NAMES.GAME_VC_CREATE_TICKET
+          ? "ticket"
+          : "benefit";
+      await GameVcService.createVc(interaction, confirmationId, payment, plan, tierKind, expectedValue);
+      return;
+    }
+    if (customId.startsWith(`${PANEL_COMMAND_NAMES.GAME_VC_CREATE_CANCEL}:`)) {
+      await GameVcService.cancelCreate(interaction, customId.split(":")[1]);
+      return;
+    }
     if (customId.startsWith("rouletteBetStart_")) {
       const stage = Number(customId.split("_")[1]);
       if (stage !== 1 && stage !== 2 && stage !== 3) {
@@ -435,13 +453,7 @@ export async function handlePanelButton(interaction: ButtonInteraction) {
         await showConfirmButton(interaction, customId);
         break;
       case PANEL_COMMAND_NAMES.GAME_VC_CREATE:
-        await GameVcService.showCreateConfirmation(interaction);
-        break;
-      case PANEL_COMMAND_NAMES.GAME_VC_CREATE_TICKET:
-        await GameVcService.createVc(interaction, "ticket");
-        break;
-      case PANEL_COMMAND_NAMES.GAME_VC_CREATE_MONEY:
-        await GameVcService.createVc(interaction, "money");
+        await GameVcService.showPlanSelection(interaction);
         break;
       case PANEL_COMMAND_NAMES.GAME_CRIMINAL_ACCESS_PURCHASE:
         await GameVcService.showCriminalAccessConfirmation(interaction);

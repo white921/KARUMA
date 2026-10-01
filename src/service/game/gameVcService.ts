@@ -11,6 +11,8 @@ import {
   GuildMember,
   OverwriteType,
   PermissionsBitField,
+  StringSelectMenuBuilder,
+  StringSelectMenuInteraction,
   ThreadChannel,
 } from "discord.js";
 import type { ResultSetHeader } from "mysql2";
@@ -36,7 +38,9 @@ import {
 } from "../../constant/shared/id";
 import type {
   GamePassPlan,
+  GameVcPlan,
   GameVcPayment,
+  GameVcRequestedPayment,
   GameVcTier,
   PassRow,
   WalletRow,
@@ -52,6 +56,16 @@ import { VcPanelService } from "../../panel/vc/vcPanelService";
 dayjs.extend(utc);
 
 dayjs.extend(timezone);
+
+const GAME_VC_CREATE_CONFIRMATION_TTL_MS = 10 * 60 * 1000;
+
+type GameVcCreateConfirmation = {
+  userId: string;
+  channelId: string;
+  plan: GameVcPlan;
+  tierKind: GameVcTier["kind"];
+  expectedValues: Partial<Record<GameVcRequestedPayment, string>>;
+};
 
 /** 遊戯VC用の権限。空位者は旅人以上と同じ接続権限、罪人は接続権限購入時のみ接続できる。 */
 export function createGameVcPermissionOverwrites(
@@ -100,19 +114,19 @@ export function createGameVcPermissionOverwrites(
 
 export function getGameVcTier(member: GuildMember): GameVcTier {
   if (member.roles.cache.has(ROLE_IDS.GAME_STAFF)) {
-    return { label: "歓楽師", price: 0 };
+    return { label: "歓楽師", kind: "staff" };
   }
   if (TRAVELER_OR_ABOVE_ROLE_IDS.some((roleId) => member.roles.cache.has(roleId))) {
-    return { label: "旅人以上", price: GAME_VC.PRICES.TRAVELER_OR_ABOVE };
+    return { label: "旅人以上", kind: "regular" };
   }
   if (member.roles.cache.has(ROLE_IDS.HOTEL_LEADER)) {
-    return { label: "支配人", price: GAME_VC.PRICES.TRAVELER_OR_ABOVE };
+    return { label: "支配人", kind: "regular" };
   }
   if (member.roles.cache.has(ROLE_IDS.CORE_MEMBER_ROLES.JUNMEN)) {
-    return { label: "空位者", price: GAME_VC.PRICES.VACANT };
+    return { label: "空位者", kind: "vacant" };
   }
   if (member.roles.cache.has(ROLE_IDS.CORE_MEMBER_ROLES.HYOKAOTI)) {
-    return { label: "罪人", price: GAME_VC.PRICES.CRIMINAL };
+    return { label: "罪人", kind: "criminal" };
   }
   throw new Error(GAME_MESSAGES.NO_ELIGIBLE_ROLE);
 }
@@ -141,20 +155,56 @@ export function calculateGameCriminalAccessExpireAt(
 }
 
 export function getGameVcCreateActionType(tier: GameVcTier): string {
-  return tier.label === "罪人"
+  return tier.kind === "criminal"
     ? ACTION_TYPES.GAME_CRIMINAL_VC_CREATE
     : ACTION_TYPES.GAME_VC_CREATE;
 }
 
+export function parseGameVcPlan(value: string): GameVcPlan {
+  if (value === GAME_VC.PLANS.LIMITED || value === GAME_VC.PLANS.UNLIMITED) {
+    return value;
+  }
+  throw new Error(GAME_MESSAGES.INVALID_GAME_TYPE);
+}
+
+export function getGameVcPrice(tier: GameVcTier, plan: GameVcPlan): number {
+  if (tier.kind === "staff") return 0;
+  const prices = tier.kind === "criminal"
+    ? GAME_VC.PRICES.CRIMINAL
+    : tier.kind === "vacant"
+      ? GAME_VC.PRICES.VACANT
+      : GAME_VC.PRICES.REGULAR;
+  return prices[plan];
+}
+
+export function getGameVcTicketCost(tier: GameVcTier, plan: GameVcPlan): number {
+  const costs = tier.kind === "criminal"
+    ? GAME_VC.TICKET_COSTS.CRIMINAL
+    : tier.kind === "vacant"
+      ? GAME_VC.TICKET_COSTS.VACANT
+      : GAME_VC.TICKET_COSTS.REGULAR;
+  return costs[plan];
+}
+
+export function getGameVcPlanLabel(plan: GameVcPlan): string {
+  return plan === GAME_VC.PLANS.LIMITED ? "6人コース" : "人数フリーコース";
+}
+
 export function buildGameVcCreateConfirmationDescription(
   tier: GameVcTier,
-  isFree: boolean,
+  plan: GameVcPlan,
+  isBenefit: boolean,
 ): string {
+  const price = getGameVcPrice(tier, plan);
+  const ticketCost = getGameVcTicketCost(tier, plan);
   return (
-    `利用時間：${GAME_VC.DURATION_HOURS}時間\n` +
-    (isFree
-      ? "料金：**無料**"
-      : `料金：**${formatNumber(tier.price)}${CURRENCY_NAMES}**`)
+    `コース：**${getGameVcPlanLabel(plan)}**\n` +
+    `人数：${plan === GAME_VC.PLANS.LIMITED ? `人間${GAME_VC.LIMITED_HUMAN_LIMIT}人まで（部屋主を含む・Botは人数外）` : "無制限"}\n` +
+    "利用時間：**無制限**\n" +
+    (isBenefit
+      ? "料金：**無料**\n"
+      : `料金：**${formatNumber(price)}${CURRENCY_NAMES}** または **遊戯チケット${ticketCost}枚**\n`) +
+    `部屋主が一度入室した後、退出して${GAME_VC.OWNER_ABSENCE_DELETE_MINUTES}分間戻らなければ、ほかの利用者がいてもVCは削除されます。`
   );
 }
 
@@ -175,55 +225,119 @@ function getPassPlanDetail(plan: GamePassPlan) {
 }
 
 export class GameVcService {
-  static async showCreateConfirmation(interaction: ButtonInteraction): Promise<void> {
+  private static readonly createConfirmations = new Map<string, GameVcCreateConfirmation>();
+
+  static async showPlanSelection(interaction: ButtonInteraction): Promise<void> {
     const member = interaction.member as GuildMember;
     this.assertCreatePanelAccess(interaction, member);
     const tier = getGameVcTier(member);
-    const isFree =
-      tier.price === 0 || member.roles.cache.has(ROLE_IDS.GAME_PASS);
+    if (tier.kind === "staff" || member.roles.cache.has(ROLE_IDS.GAME_PASS)) {
+      await this.showCreateConfirmation(interaction, GAME_VC.PLANS.UNLIMITED);
+      return;
+    }
+
+    const select = new StringSelectMenuBuilder()
+      .setCustomId(PANEL_COMMAND_NAMES.GAME_VC_PLAN_SELECT)
+      .setPlaceholder("コースを選択してください")
+      .setMinValues(1)
+      .setMaxValues(1)
+      .addOptions(
+        [GAME_VC.PLANS.LIMITED, GAME_VC.PLANS.UNLIMITED].map((plan) => ({
+          label: getGameVcPlanLabel(plan),
+          value: plan,
+          description:
+            `${formatNumber(getGameVcPrice(tier, plan))}${CURRENCY_NAMES} / ` +
+            `遊戯チケット${getGameVcTicketCost(tier, plan)}枚`,
+        })),
+      );
+
+    await interaction.editReply({
+      content: "",
+      embeds: [
+        new EmbedBuilder()
+          .setTitle("遊戯VCのコースを選択")
+          .setDescription(
+            `**6人コース**：人間${GAME_VC.LIMITED_HUMAN_LIMIT}人まで（部屋主を含む・Botは人数外）\n` +
+            "**人数フリーコース**：人数無制限\n\nどちらも利用時間は無制限です。",
+          )
+          .setColor(COLOR.YELLOW),
+      ],
+      components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(select)],
+    });
+  }
+
+  static async showCreateConfirmation(
+    interaction: ButtonInteraction | StringSelectMenuInteraction,
+    requestedPlan: string,
+  ): Promise<void> {
+    const member = interaction.member as GuildMember;
+    this.assertCreatePanelAccess(interaction, member);
+    const tier = getGameVcTier(member);
+    const plan = parseGameVcPlan(requestedPlan);
+    const isBenefit = tier.kind === "staff" || member.roles.cache.has(ROLE_IDS.GAME_PASS);
+    if (isBenefit && plan !== GAME_VC.PLANS.UNLIMITED) {
+      throw new Error(GAME_MESSAGES.CREATE_CONDITIONS_CHANGED);
+    }
+    const ticketCost = getGameVcTicketCost(tier, plan);
     const hasTicket =
-      !isFree &&
+      !isBenefit &&
       (await GameFreeTicketService.hasTicket(
         interaction.user.id,
         PANEL_COMMAND_NAMES.GAME_VC_CREATE,
+        ticketCost,
       ));
 
     const buttons: ButtonBuilder[] = [];
-    if (isFree) {
+    const expectedValues: GameVcCreateConfirmation["expectedValues"] = {};
+    const confirmationId = interaction.id;
+    if (isBenefit) {
+      expectedValues.benefit = "0";
       buttons.push(
         new ButtonBuilder()
-          .setCustomId(PANEL_COMMAND_NAMES.GAME_VC_CREATE_MONEY)
+          .setCustomId(`${PANEL_COMMAND_NAMES.GAME_VC_CREATE_BENEFIT}:${confirmationId}:${plan}:${tier.kind}:0`)
           .setLabel("無料で作成")
           .setStyle(ButtonStyle.Success),
       );
     } else {
       if (hasTicket) {
+        expectedValues.ticket = String(ticketCost);
         buttons.push(
           new ButtonBuilder()
-            .setCustomId(PANEL_COMMAND_NAMES.GAME_VC_CREATE_TICKET)
-            .setLabel("チケットで作成")
+            .setCustomId(`${PANEL_COMMAND_NAMES.GAME_VC_CREATE_TICKET}:${confirmationId}:${plan}:${tier.kind}:${ticketCost}`)
+            .setLabel(`チケット${ticketCost}枚で作成`)
             .setStyle(ButtonStyle.Success),
         );
       }
+      const price = getGameVcPrice(tier, plan);
+      expectedValues.money = String(price);
       buttons.push(
         new ButtonBuilder()
-          .setCustomId(PANEL_COMMAND_NAMES.GAME_VC_CREATE_MONEY)
-          .setLabel(`${formatNumber(tier.price)}${CURRENCY_NAMES}で作成`)
+          .setCustomId(`${PANEL_COMMAND_NAMES.GAME_VC_CREATE_MONEY}:${confirmationId}:${plan}:${tier.kind}:${price}`)
+          .setLabel(`${formatNumber(price)}${CURRENCY_NAMES}で作成`)
           .setStyle(ButtonStyle.Primary),
       );
     }
     buttons.push(
       new ButtonBuilder()
-        .setCustomId("cancel")
+        .setCustomId(`${PANEL_COMMAND_NAMES.GAME_VC_CREATE_CANCEL}:${confirmationId}`)
         .setLabel("キャンセル")
         .setStyle(ButtonStyle.Secondary),
     );
+
+    this.createConfirmations.set(confirmationId, {
+      userId: interaction.user.id,
+      channelId: interaction.channelId,
+      plan,
+      tierKind: tier.kind,
+      expectedValues,
+    });
+    setTimeout(() => this.createConfirmations.delete(confirmationId), GAME_VC_CREATE_CONFIRMATION_TTL_MS).unref();
 
     await interaction.editReply({
       embeds: [
         new EmbedBuilder()
           .setTitle("遊戯VCを作成しますか？")
-          .setDescription(buildGameVcCreateConfirmationDescription(tier, isFree))
+          .setDescription(buildGameVcCreateConfirmationDescription(tier, plan, isBenefit))
           .setColor(COLOR.YELLOW),
       ],
       components: [new ActionRowBuilder<ButtonBuilder>().addComponents(buttons)],
@@ -232,19 +346,35 @@ export class GameVcService {
 
   static async createVc(
     interaction: ButtonInteraction,
-    requestedPayment: "money" | "ticket",
+    confirmationId: string,
+    requestedPayment: GameVcRequestedPayment,
+    requestedPlan: string,
+    expectedTierKind: string,
+    expectedValue: string,
   ): Promise<void> {
+    this.consumeCreateConfirmation(
+      confirmationId,
+      interaction,
+      requestedPayment,
+      requestedPlan,
+      expectedTierKind,
+      expectedValue,
+    );
     const guild = interaction.guild;
     if (!guild) throw new Error("この操作はサーバー内でのみ実行できます。");
 
     const member = interaction.member as GuildMember;
     this.assertCreatePanelAccess(interaction, member);
     const tier = getGameVcTier(member);
+    const plan = parseGameVcPlan(requestedPlan);
     const payment = await this.resolvePayment(
       member,
       interaction.user.id,
       tier,
       requestedPayment,
+      plan,
+      expectedTierKind,
+      expectedValue,
     );
     await interaction.editReply({
       content: "遊戯VCを作成しています…",
@@ -261,20 +391,19 @@ export class GameVcService {
       name: `遊戯 - ${member.displayName}`,
       type: ChannelType.GuildVoice,
       parent: category.id,
+      userLimit: plan === GAME_VC.PLANS.LIMITED ? GAME_VC.LIMITED_HUMAN_LIMIT : 0,
       permissionOverwrites: createGameVcPermissionOverwrites(
         guild.id,
         interaction.user.id,
       ),
     });
-    const expireAt = new Date(Date.now() + GAME_VC.DURATION_HOURS * 60 * 60 * 1000);
-
     try {
       await this.recordVcCreation(
         interaction.user.id,
         voiceChannel.id,
         tier,
         payment,
-        expireAt,
+        plan,
       );
     } catch (error) {
       await voiceChannel.delete().catch((deleteError) =>
@@ -283,24 +412,54 @@ export class GameVcService {
       throw error;
     }
 
-    const expiryText = expireAt.toLocaleString("ja-JP", {
-      timeZone: "Asia/Tokyo",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
     try {
-      await voiceChannel.send(await VcPanelService.createGameVcPanel(expiryText));
+      await voiceChannel.send(await VcPanelService.createGameVcPanel(getGameVcPlanLabel(plan)));
     } catch (error) {
       console.error("遊戯VCへの操作パネル送信に失敗しました:", error);
     }
-    await this.sendVcLog(interaction, tier, payment, voiceChannel.id, expiryText);
+    await this.sendVcLog(interaction, tier, payment, plan, voiceChannel.id);
     await interaction.editReply({
       content:
         `✅ 遊戯VCを作成しました。\n<#${voiceChannel.id}>\n` +
-        `${this.paymentLabel(payment)}\n有効期限：${expiryText}`,
+        `コース：${getGameVcPlanLabel(plan)}\n${this.paymentLabel(payment, tier, plan)}\n` +
+        `利用時間：無制限\n部屋主の初回入室後、退出から${GAME_VC.OWNER_ABSENCE_DELETE_MINUTES}分不在で削除されます。`,
     });
+  }
+
+  static async cancelCreate(interaction: ButtonInteraction, confirmationId: string): Promise<void> {
+    const confirmation = this.createConfirmations.get(confirmationId);
+    if (
+      !confirmation || confirmation.userId !== interaction.user.id ||
+      confirmation.channelId !== interaction.channelId
+    ) {
+      throw new Error("この確認画面は期限切れです。遊戯パネルからやり直してください。");
+    }
+    this.createConfirmations.delete(confirmationId);
+    await interaction.editReply({
+      content: "遊戯VCの作成をキャンセルしました。",
+      embeds: [],
+      components: [],
+    });
+  }
+
+  private static consumeCreateConfirmation(
+    confirmationId: string,
+    interaction: ButtonInteraction,
+    requestedPayment: GameVcRequestedPayment,
+    requestedPlan: string,
+    expectedTierKind: string,
+    expectedValue: string,
+  ): void {
+    const confirmation = this.createConfirmations.get(confirmationId);
+    this.createConfirmations.delete(confirmationId);
+    if (
+      !confirmation || confirmation.userId !== interaction.user.id ||
+      confirmation.channelId !== interaction.channelId ||
+      confirmation.plan !== requestedPlan || confirmation.tierKind !== expectedTierKind ||
+      confirmation.expectedValues[requestedPayment] !== expectedValue
+    ) {
+      throw new Error("この確認画面は期限切れ、処理済み、または内容が不正です。遊戯パネルからやり直してください。");
+    }
   }
 
   static async showPassConfirmation(
@@ -469,7 +628,7 @@ export class GameVcService {
   }
 
   private static assertCreatePanelAccess(
-    interaction: ButtonInteraction,
+    interaction: ButtonInteraction | StringSelectMenuInteraction,
     member: GuildMember,
   ): void {
     if (hasSystemAdminRole(member)) return;
@@ -481,7 +640,7 @@ export class GameVcService {
   }
 
   private static assertRegularPanel(
-    interaction: ButtonInteraction,
+    interaction: ButtonInteraction | StringSelectMenuInteraction,
     member: GuildMember,
   ): void {
     if (hasSystemAdminRole(member)) return;
@@ -494,7 +653,7 @@ export class GameVcService {
   }
 
   private static assertCriminalPanel(
-    interaction: ButtonInteraction,
+    interaction: ButtonInteraction | StringSelectMenuInteraction,
     member: GuildMember,
   ): void {
     if (hasSystemAdminRole(member)) return;
@@ -510,17 +669,38 @@ export class GameVcService {
     member: GuildMember,
     userId: string,
     tier: GameVcTier,
-    requestedPayment: "money" | "ticket",
+    requestedPayment: GameVcRequestedPayment,
+    plan: GameVcPlan,
+    expectedTierKind: string,
+    expectedValue: string,
   ): Promise<GameVcPayment> {
-    if (tier.price === 0) return "staff";
-    if (member.roles.cache.has(ROLE_IDS.GAME_PASS)) return "pass";
+    if (tier.kind !== expectedTierKind) {
+      throw new Error(GAME_MESSAGES.CREATE_CONDITIONS_CHANGED);
+    }
+    const hasPass = member.roles.cache.has(ROLE_IDS.GAME_PASS);
+    const hasBenefit = tier.kind === "staff" || hasPass;
+    if (requestedPayment === "benefit") {
+      if (!hasBenefit || plan !== GAME_VC.PLANS.UNLIMITED || Number(expectedValue) !== 0) {
+        throw new Error(GAME_MESSAGES.CREATE_CONDITIONS_CHANGED);
+      }
+      return tier.kind === "staff" ? "staff" : "pass";
+    }
+    if (hasBenefit) throw new Error(GAME_MESSAGES.CREATE_CONDITIONS_CHANGED);
     if (requestedPayment === "ticket") {
+      const ticketCost = getGameVcTicketCost(tier, plan);
+      if (Number(expectedValue) !== ticketCost) {
+        throw new Error(GAME_MESSAGES.CREATE_CONDITIONS_CHANGED);
+      }
       const hasTicket = await GameFreeTicketService.hasTicket(
         userId,
         PANEL_COMMAND_NAMES.GAME_VC_CREATE,
+        ticketCost,
       );
-      if (!hasTicket) throw new Error(GAME_MESSAGES.HAS_NOT_TICKET);
+      if (!hasTicket) throw new Error(`遊戯チケットが不足しています。必要枚数：${ticketCost}枚`);
       return "ticket";
+    }
+    if (Number(expectedValue) !== getGameVcPrice(tier, plan)) {
+      throw new Error(GAME_MESSAGES.CREATE_CONDITIONS_CHANGED);
     }
     return "money";
   }
@@ -530,7 +710,7 @@ export class GameVcService {
     voiceChannelId: string,
     tier: GameVcTier,
     payment: GameVcPayment,
-    expireAt: Date,
+    plan: GameVcPlan,
   ): Promise<number> {
     const connection = await DbService.getConnection();
     try {
@@ -542,24 +722,27 @@ export class GameVcService {
       const account = accountRows[0];
       if (!account) throw new Error("口座が見つかりません。");
 
-      const price = payment === "money" ? tier.price : 0;
+      const price = payment === "money" ? getGameVcPrice(tier, plan) : 0;
       if (account.wallet < price) throw new Error(GAME_MESSAGES.NOT_ENOUGH_BALANCE);
       if (payment === "ticket") {
+        const ticketCost = getGameVcTicketCost(tier, plan);
         const consumed = await ItemService.consume(
           connection,
           userId,
           GameFreeTicketService.getItemKey(GAME_FREE_TICKET_TYPE.VC_CREATE),
+          ticketCost,
         );
-        if (!consumed) throw new Error(GAME_MESSAGES.HAS_NOT_TICKET);
+        if (!consumed) throw new Error(`遊戯チケットが不足しています。必要枚数：${ticketCost}枚`);
       }
       const afterWallet = account.wallet - price;
       if (price > 0) {
         await connection.execute("UPDATE accounts SET wallet = ? WHERE user_id = ?", [afterWallet, userId]);
       }
       await connection.execute(
-        `INSERT INTO vcs (channel_id, owner_id, guest_id, type, is_ticket, is_bonus, expire_at)
-         VALUES (?, ?, NULL, ?, ?, ?, ?)`,
-        [voiceChannelId, userId, GAME_VC.TYPE, payment === "ticket", payment === "pass" || payment === "staff", expireAt],
+        `INSERT INTO vcs
+         (channel_id, owner_id, guest_id, type, is_ticket, is_bonus, expire_at, game_plan, owner_has_joined, owner_left_at)
+         VALUES (?, ?, NULL, ?, ?, ?, NULL, ?, FALSE, NULL)`,
+        [voiceChannelId, userId, GAME_VC.TYPE, payment === "ticket", payment === "pass" || payment === "staff", plan],
       );
       const [botRows] = await connection.execute<WalletRow[]>(
         "SELECT wallet FROM accounts WHERE user_id = ?",
@@ -576,7 +759,7 @@ export class GameVcService {
           BOT_ID,
           afterWallet,
           botRows[0]?.wallet ?? 0,
-          `遊戯VCを${GAME_VC.DURATION_HOURS}時間作成しました。`,
+          `遊戯VC（${getGameVcPlanLabel(plan)}・時間無制限）を作成しました。`,
         ],
       );
       await connection.commit();
@@ -803,10 +986,14 @@ export class GameVcService {
     }
   }
 
-  private static paymentLabel(payment: GameVcPayment): string {
+  private static paymentLabel(
+    payment: GameVcPayment,
+    tier: GameVcTier,
+    plan: GameVcPlan,
+  ): string {
     switch (payment) {
       case "ticket":
-        return "料金：遊戯チケットを1枚消費";
+        return `料金：遊戯チケットを${getGameVcTicketCost(tier, plan)}枚消費`;
       case "pass":
         return "料金：ゲームパスにより無料";
       case "staff":
@@ -820,12 +1007,12 @@ export class GameVcService {
     interaction: ButtonInteraction,
     tier: GameVcTier,
     payment: GameVcPayment,
+    plan: GameVcPlan,
     voiceChannelId: string,
-    expiryText: string,
   ): Promise<void> {
     try {
       const threadId =
-        tier.label === "罪人"
+        tier.kind === "criminal"
           ? THREAD_IDS.GAME_CRIMINAL_VC_CREATE_LOG_THREAD
           : THREAD_IDS.GAME_VC_CREATE_LOG_THREAD;
       const thread = await interaction.client.channels.fetch(threadId);
@@ -833,9 +1020,10 @@ export class GameVcService {
         throw new Error("VC作成ログスレッドが見つかりません。");
       }
       await (thread as ThreadChannel).send(
-        `**${tier.label === "罪人" ? "罪人用遊戯VC作成" : "遊戯VC作成"}**\n<@${interaction.user.id}>\n` +
-          `対象ロール: ${tier.label}\n${this.paymentLabel(payment)}\n` +
-          `作成VC: <#${voiceChannelId}>\n有効期限: ${expiryText}`,
+        `**${tier.kind === "criminal" ? "罪人用遊戯VC作成" : "遊戯VC作成"}**\n<@${interaction.user.id}>\n` +
+          `対象ロール: ${tier.label}\nコース: ${getGameVcPlanLabel(plan)}\n` +
+          `${this.paymentLabel(payment, tier, plan)}\n作成VC: <#${voiceChannelId}>\n` +
+          `利用時間: 無制限\n部屋主退出後${GAME_VC.OWNER_ABSENCE_DELETE_MINUTES}分で削除`,
       );
     } catch (error) {
       console.error("遊戯VC作成ログの送信に失敗しました:", error);

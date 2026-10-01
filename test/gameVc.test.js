@@ -22,6 +22,8 @@ const {
   calculateGamePassExpireAt,
   calculateGameCriminalAccessExpireAt,
   getGameVcCreateActionType,
+  getGameVcPrice,
+  getGameVcTicketCost,
   buildGameVcCreateConfirmationDescription,
   createGameVcPermissionOverwrites,
 } = require("../dist/service/game/gameVcService.js");
@@ -33,24 +35,35 @@ function memberWithRoles(roleIds) {
 test("game VC prices follow traveler, vacant, criminal, and game-staff rules", () => {
   assert.deepEqual(
     getGameVcTier(memberWithRoles([ROLE_IDS.CORE_MEMBER_ROLES.KARIMEN])),
-    { label: "旅人以上", price: GAME_VC.PRICES.TRAVELER_OR_ABOVE },
+    { label: "旅人以上", kind: "regular" },
   );
   assert.deepEqual(
     getGameVcTier(memberWithRoles([ROLE_IDS.CORE_MEMBER_ROLES.JUNMEN])),
-    { label: "空位者", price: GAME_VC.PRICES.VACANT },
+    { label: "空位者", kind: "vacant" },
   );
   assert.deepEqual(
     getGameVcTier(memberWithRoles([ROLE_IDS.CORE_MEMBER_ROLES.HYOKAOTI])),
-    { label: "罪人", price: GAME_VC.PRICES.CRIMINAL },
+    { label: "罪人", kind: "criminal" },
   );
   assert.deepEqual(
     getGameVcTier(memberWithRoles([ROLE_IDS.GAME_STAFF])),
-    { label: "歓楽師", price: 0 },
+    { label: "歓楽師", kind: "staff" },
   );
   assert.deepEqual(
     getGameVcTier(memberWithRoles([ROLE_IDS.HOTEL_LEADER])),
-    { label: "支配人", price: GAME_VC.PRICES.TRAVELER_OR_ABOVE },
+    { label: "支配人", kind: "regular" },
   );
+  const tiers = {
+    regular: { label: "旅人以上", kind: "regular" },
+    vacant: { label: "空位者", kind: "vacant" },
+    criminal: { label: "罪人", kind: "criminal" },
+  };
+  assert.deepEqual([getGameVcPrice(tiers.regular, "limited"), getGameVcPrice(tiers.regular, "unlimited")], [3000, 5000]);
+  assert.deepEqual([getGameVcPrice(tiers.vacant, "limited"), getGameVcPrice(tiers.vacant, "unlimited")], [4000, 6000]);
+  assert.deepEqual([getGameVcPrice(tiers.criminal, "limited"), getGameVcPrice(tiers.criminal, "unlimited")], [6000, 10000]);
+  assert.deepEqual([getGameVcTicketCost(tiers.regular, "limited"), getGameVcTicketCost(tiers.regular, "unlimited")], [1, 2]);
+  assert.deepEqual([getGameVcTicketCost(tiers.vacant, "limited"), getGameVcTicketCost(tiers.vacant, "unlimited")], [1, 2]);
+  assert.deepEqual([getGameVcTicketCost(tiers.criminal, "limited"), getGameVcTicketCost(tiers.criminal, "unlimited")], [2, 4]);
 });
 
 test("traveler or above and hotel manager can purchase a game pass", () => {
@@ -65,8 +78,9 @@ test("traveler or above and hotel manager can purchase a game pass", () => {
   assert.equal(canPurchaseGamePass(memberWithRoles([ROLE_IDS.HOTEL_LEADER])), true);
 });
 
-test("game VC and its ticket use a 24-hour duration", () => {
-  assert.equal(GAME_VC.DURATION_HOURS, 24);
+test("new game VCs are unlimited while the legacy duration remains identifiable", () => {
+  assert.equal(GAME_VC.LEGACY_DURATION_HOURS, 24);
+  assert.equal(GAME_VC.OWNER_ABSENCE_DELETE_MINUTES, 10);
 });
 
 test("criminal game panel provides VC creation, access purchase, and balance view", () => {
@@ -102,13 +116,16 @@ test("criminal game panel provides VC creation, access purchase, and balance vie
 
 test("game VC confirmation omits the creator's role", () => {
   const description = buildGameVcCreateConfirmationDescription(
-    { label: "支配人", price: GAME_VC.PRICES.TRAVELER_OR_ABOVE },
+    { label: "支配人", kind: "regular" },
+    "unlimited",
     false,
   );
 
   assert.doesNotMatch(description, /対象ロール|支配人/);
-  assert.match(description, /利用時間：24時間/);
+  assert.match(description, /利用時間：\*\*無制限\*\*/);
   assert.match(description, /料金：\*\*5,000LIA\*\*/);
+  assert.match(description, /遊戯チケット2枚/);
+  assert.match(description, /退出して10分間/);
 });
 
 test("game pass periods are two weeks and one calendar month", () => {
@@ -133,11 +150,11 @@ test("criminal access lasts for 24 hours", () => {
 
 test("criminal VC creation uses a separate action type for monthly sales", () => {
   assert.equal(
-    getGameVcCreateActionType({ label: "罪人", price: 10000 }),
+    getGameVcCreateActionType({ label: "罪人", kind: "criminal" }),
     ACTION_TYPES.GAME_CRIMINAL_VC_CREATE,
   );
   assert.equal(
-    getGameVcCreateActionType({ label: "旅人以上", price: 5000 }),
+    getGameVcCreateActionType({ label: "旅人以上", kind: "regular" }),
     ACTION_TYPES.GAME_VC_CREATE,
   );
 });
@@ -170,7 +187,7 @@ test("vacant role has the same VC connection permissions as traveler or above", 
 
 const { GameVcService } = require("../dist/service/game/gameVcService.js");
 
-test("遊戯の全ログで残高を表示せず、利用内容と期限を残す", async () => {
+test("遊戯の全ログで残高を表示せず、利用内容を残す", async () => {
   const sent = [];
   const interaction = {
     user: { id: "buyer" },
@@ -180,13 +197,14 @@ test("遊戯の全ログで残高を表示せず、利用内容と期限を残�
     }) } },
   };
   const expiry = "09/26 12:00";
-  for (const label of ["旅人以上", "罪人"]) {
+  for (const [label, kind] of [["旅人以上", "regular"], ["罪人", "criminal"]]) {
     for (const payment of ["money", "ticket", "pass", "staff"]) {
-      await GameVcService.sendVcLog(interaction, { label, price: 5000 }, payment, "vc", expiry);
+      await GameVcService.sendVcLog(interaction, { label, kind }, payment, "unlimited", "vc");
       const message = sent.at(-1);
       assert.equal(message.id, label === "罪人" ? THREAD_IDS.GAME_CRIMINAL_VC_CREATE_LOG_THREAD : THREAD_IDS.GAME_VC_CREATE_LOG_THREAD);
       assert.match(message.content, /作成VC: <#vc>/);
       assert.match(message.content, /料金：/);
+      assert.match(message.content, /利用時間: 無制限/);
     }
   }
   await GameVcService.sendCriminalAccessLog(interaction, expiry);
@@ -200,7 +218,7 @@ test("遊戯の全ログで残高を表示せず、利用内容と期限を残�
   assert.equal(sent.length, 11);
   for (const { content } of sent) {
     assert.doesNotMatch(content, /残高|wallet|balance|undefined/);
-    assert.ok(content.includes(`有効期限: ${expiry}`));
     assert.match(content, /<@buyer>/);
   }
+  for (const { content } of sent.slice(-3)) assert.ok(content.includes(`有効期限: ${expiry}`));
 });

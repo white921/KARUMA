@@ -21,6 +21,8 @@ test('承認済み22景品と確率、基本料金・回数', () => {
   });
   assert.equal(prizes.reduce((sum,p)=>sum+p.probability,0),100);
   assert.equal(new Set(prizes.map(p=>p.key)).size,22);
+  assert.deepEqual([prize('game_free_1').quantity, prize('game_free_3').quantity], [2, 5]);
+  assert.deepEqual([prize('game_free_1').label, prize('game_free_3').label], ['遊戯チケット2枚', '遊戯チケット5枚']);
 });
 
 test('0.5%刻みの全抽選区間と境界を検証', () => {

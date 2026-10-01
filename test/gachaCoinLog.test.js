@@ -83,7 +83,7 @@ test('別サーバーや通常チャンネルにはログを送信しない', as
 test('パネル交換ではコマンド用の増減ログを送信しない', async t => {
   t.mock.method(GachaCoinExchangeLogService, 'send', async () => {});
   const log = t.mock.method(GachaCoinLogService, 'send', async () => {});
-  t.mock.method(GachaCoinService, 'redeem', async () => ({ reward: { label: '遊戯24時間チケット' }, balance: 20, alreadyCompleted: false }));
+  t.mock.method(GachaCoinService, 'redeem', async () => ({ reward: { label: '遊戯チケット' }, balance: 20, alreadyCompleted: false }));
   await handleGachaCoinButton({ customId: 'gachaCoin:confirm:123', user: { id: 'target' }, editReply: async () => {} });
   assert.equal(log.mock.callCount(), 0);
 });

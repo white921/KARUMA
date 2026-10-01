@@ -35,6 +35,10 @@ export function shouldDeferButtonUpdate(customId: string): boolean {
     customId.startsWith(`${PAYMENT_CONFIRMATION_PREFIX}:`) ||
     customId.startsWith(`${TICKET_EXCHANGE_PREFIX}:confirm:`) ||
     customId.startsWith(`${TICKET_EXCHANGE_PREFIX}:cancel:`) ||
+    customId.startsWith(`${PANEL_COMMAND_NAMES.GAME_VC_CREATE_MONEY}:`) ||
+    customId.startsWith(`${PANEL_COMMAND_NAMES.GAME_VC_CREATE_TICKET}:`) ||
+    customId.startsWith(`${PANEL_COMMAND_NAMES.GAME_VC_CREATE_BENEFIT}:`) ||
+    customId.startsWith(`${PANEL_COMMAND_NAMES.GAME_VC_CREATE_CANCEL}:`) ||
     (customId.startsWith(PRIVATE_HOTEL_PREFIX) && customId.split(":").length > 2) ||
     customId.startsWith("history_page_") ||
     customId.startsWith(HISTORY_FILTER_PREFIX) ||

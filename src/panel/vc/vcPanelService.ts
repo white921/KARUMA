@@ -93,12 +93,13 @@ export class VcPanelService {
     return panel;
   }
 
-  static async createGameVcPanel(expiryText: string) {
+  static async createGameVcPanel(planLabel: string) {
     const panel = (await this.createVcPanel(false, true, true, true))!;
     panel.embeds[0]
       .setTitle("遊戯VC操作パネル")
       .setDescription(
-        `有効期限: ${expiryText}\n期限になるとVCは削除されます。\n\n` +
+        `コース: ${planLabel}\n利用時間: 無制限\n` +
+        "部屋主が一度入室した後、退出して10分間戻らなければ、ほかの利用者がいてもVCは削除されます。\n\n" +
         "VC内にいる方が操作できます。\n" +
         "🔒付け外しはVC名の先頭に🔒を付け外しします。接続権限は変わりません。",
       )

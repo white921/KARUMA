@@ -22,11 +22,11 @@ export class GameFreeTicketService {
     throw new Error(GAME_MESSAGES.HAS_NOT_TICKET);
   }
 
-  static async hasTicket(userId: string, commandId: string): Promise<boolean> {
+  static async hasTicket(userId: string, commandId: string, quantity = 1): Promise<boolean> {
     const ticketType = this.getTicketType(commandId);
     if (!ticketType) return false;
-
-    return ItemService.hasItem(userId, this.getItemKey(ticketType));
+    const itemKey = this.getItemKey(ticketType);
+    return ((await ItemService.getQuantities(userId, [itemKey])).get(itemKey) ?? 0) >= quantity;
   }
 
   static async getTicketQuantities(

@@ -14,7 +14,7 @@ const GROUPS: readonly { title: string; tickets: readonly { key: ItemKey; label:
     { key: ITEM_KEY.SHOP_DISCOUNT_10, label: "市場割引 10%OFF" },
   ] },
   { title: "遊戯チケット", tickets: [
-    { key: ITEM_KEY.GAME_SHORT_FREE, label: "VC作成（24時間）" },
+    { key: ITEM_KEY.GAME_SHORT_FREE, label: "時間無制限VC作成用" },
   ] },
   { title: "狭間・独房無料券", tickets: [
     { key: ITEM_KEY.HAZAMA_FREE, label: "辺境の狭間（12時間）" },

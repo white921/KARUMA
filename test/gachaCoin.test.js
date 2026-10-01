@@ -57,10 +57,10 @@ test('不正な枚数はDBに接続せず拒否する', async () => {
 });
 
 test('パネルは4券種の時間とレート、手動交換の全景品、残高確認を表示する', () => {
-  assert.deepEqual(GACHA_COIN_REWARDS.map(r => r.cost), [10, 15, 20, 25]);
+  assert.deepEqual(GACHA_COIN_REWARDS.map(r => r.cost), [5, 15, 20, 25]);
   const payload = createGachaCoinPanelPayload();
   const embed = payload.embeds[0].toJSON();
-  assert.match(embed.fields[0].value, /遊戯24時間/);
+  assert.match(embed.fields[0].value, /遊戯チケット：\*\*5枚\*\*/);
   assert.match(embed.fields[0].value, /シクレ12時間/);
   assert.match(embed.fields[0].value, /フリーダム12時間/);
   assert.match(embed.fields[0].value, /執事・メイドツーショ30分初回無料チケット：\*\*15枚\*\*（1人1回限定）/);
@@ -87,7 +87,7 @@ test('選択は確認画面だけを作り、確定・キャンセルは本人�
   assert.equal(menu.type, 3);
   assert.equal(menu.custom_id, 'gachaCoin:select');
   assert.deepEqual(menu.options.map(option => option.value), ['game', 'cast_first', 'secret', 'freedom']);
-  assert.deepEqual(menu.options.map(option => option.description), ['10コインで1枚と交換', '15コインで1枚と交換（1人1回限定）', '20コインで1枚と交換', '25コインで1枚と交換']);
+  assert.deepEqual(menu.options.map(option => option.description), ['5コインで1枚と交換', '15コインで1枚と交換（1人1回限定）', '20コインで1枚と交換', '25コインで1枚と交換']);
   assert.match(replies[0].embeds[0].data.description, /50枚/);
   assert.equal(shouldDeferButtonUpdate('gachaCoin:start'), false);
   replies.length = 0;

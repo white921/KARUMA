@@ -46,7 +46,7 @@ export function marketGachaInstructions(prize: MarketGachaPrize, audioAsset?: Ma
     case "voice_message_nomination": return `${nominees} の誰か1人にボイスメッセージを録ってもらうことができます。\n\n${guidance}`;
     case "letter": return `${nominees} の誰か1人にお手紙を書いてもらうことができます。\n\n${guidance}`;
     case "private_call": return `${nominees} の誰か1人と15分ツーショすることができます。\n\n${guidance}`;
-    case "game_free_1": case "game_free_3": return "次回遊戯24hを使用時に、優先的にチケットが消費されるようになります。";
+    case "game_free_1": case "game_free_3": return "遊戯VC作成時に、選択したコースに応じた枚数のチケットを使用できます。";
     case "secret_free_1": case "secret_free_3": return "次回シークレットを使用時に、優先的にチケットが消費されるようになります。";
     case "freedom_free_1": return "次回フリーダムを使用時に、優先的にチケットが消費されるようになります。";
     case "normal_hotel_free_1": return "次回通常ホテルを使用時に、優先的にチケットが消費されるようになります。";

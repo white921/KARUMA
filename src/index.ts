@@ -44,6 +44,7 @@ import {
 } from "./service/vc/teleportVcService";
 import { AccountService } from "./service/account/accountService";
 import { VcService } from "./service/vc/vcService";
+import { GameVcLifecycleService } from "./service/game/gameVcLifecycleService";
 import { DiaryService } from "./service/diary/diaryService";
 import { BotHealthMonitor } from "./service/system/botHealthMonitor";
 import { GuildMemberCacheService } from "./service/system/guildMemberCacheService";
@@ -449,6 +450,12 @@ client.on(
         ) {
           await VcService.adjustVcLimitByDelta(newChannel, 1);
         }
+        if (oldChannel?.type === ChannelType.GuildVoice && oldChannel.parentId === CATEGORY_IDS.GAME) {
+          await GameVcLifecycleService.adjustLimitedVcLimit(oldChannel);
+        }
+        if (newChannel?.type === ChannelType.GuildVoice && newChannel.parentId === CATEGORY_IDS.GAME) {
+          await GameVcLifecycleService.adjustLimitedVcLimit(newChannel);
+        }
         return;
       }
 
@@ -458,6 +465,10 @@ client.on(
       const newInGame = newChannel?.parentId === CATEGORY_IDS.GAME;
       const oldInTeleportVc = isTeleportCategory(oldChannel?.parentId ?? null);
       const newInTeleportVc = isTeleportCategory(newChannel?.parentId ?? null);
+
+      if (oldInGame || newInGame) {
+        await GameVcLifecycleService.handleVoiceStateUpdate(oldState, newState);
+      }
 
       // ホテル・遊戯カテゴリーの空室処理
       if (oldInHotel || newInHotel || oldInGame || newInGame) {

@@ -67,7 +67,7 @@ test("システム支配人は説明会外でも面接・評価・チャンネ�
 });
 
 test("システム支配人は遊戯・罪人用パネル・ゲームパス・独房を利用できる", () => {
-  assert.deepEqual(getGameVcTier(member()), { label: "旅人以上", price: GAME_VC.PRICES.TRAVELER_OR_ABOVE });
+  assert.deepEqual(getGameVcTier(member()), { label: "旅人以上", kind: "regular" });
   assert.equal(canPurchaseGamePass(member()), true);
   assert.doesNotThrow(() => GameVcService.assertCreatePanelAccess(interaction(), member()));
   assert.doesNotThrow(() => GameVcService.assertRegularPanel(interaction(), member()));

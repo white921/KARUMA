@@ -108,7 +108,7 @@ export const CASINO_PANEL_MESSAGES = {
 
 export const GAME_PANEL_MESSAGES = {
   TITLE: "遊戯パネル",
-  DESCRIPTION: `遊戯パネルです。24時間有効な遊戯VCを作成できます。\n\n**【遊戯案内】**\n**VC作成料金**\n・旅人以上：5,000${CURRENCY_NAMES}\n・空位者：6,000${CURRENCY_NAMES}\n・歓楽師：無料（全員退出後に自動削除）\n\n旅人以上・空位者はVCへ接続できます。\n遊戯チケットを所持している場合は、チケットを消費してVCを作成できます。\n\n**【ゲームパス】**\n旅人以上はゲームパスを購入できます。所持中は無料でVCを作成でき、全員退出後に自動削除されます。\n・2週間：50,000${CURRENCY_NAMES}\n・1か月：100,000${CURRENCY_NAMES}\n\n**・チケット確認**：所持している全種類のチケットと枚数を確認できます。\n\n**・残高確認**：現在の${CURRENCY_NAMES}残高を確認できます。`,
+  DESCRIPTION: `遊戯パネルです。利用時間無制限の遊戯VCを作成できます。\n\n**【VC作成料金】**\n・旅人以上・支配人：6人 3,000${CURRENCY_NAMES} ／ 人数フリー 5,000${CURRENCY_NAMES}\n・空位者：6人 4,000${CURRENCY_NAMES} ／ 人数フリー 6,000${CURRENCY_NAMES}\n・歓楽師：人数フリーを無料\n\n6人コースは部屋主を含む人間6人までで、Botは人数に含みません。\n旅人以上・空位者はVCへ接続できます。\n遊戯チケットは6人コースに1枚、人数フリーコースに2枚使用できます。\n\n**【部屋主不在時の削除】**\n部屋主が一度入室した後、退出して10分間戻らなければ、ほかの利用者がいてもVCは削除されます。10分以内に戻るとタイマーは解除され、次の退出時に最初から計測します。\n\n**【ゲームパス】**\n旅人以上はゲームパスを購入できます。所持中は人数フリーコースが自動で選ばれ、無料で作成できます。\n・2週間：50,000${CURRENCY_NAMES}\n・1か月：100,000${CURRENCY_NAMES}\n\n**・チケット確認**：所持している全種類のチケットと枚数を確認できます。\n\n**・残高確認**：現在の${CURRENCY_NAMES}残高を確認できます。`,
   CREATE_VC: "VCを作成",
   PASS_TWO_WEEKS: "ゲームパス（2週間）",
   PASS_ONE_MONTH: "ゲームパス（1か月）",
@@ -117,7 +117,7 @@ export const GAME_PANEL_MESSAGES = {
 
 export const GAME_CRIMINAL_PANEL_MESSAGES = {
   TITLE: "罪人用遊戯パネル",
-  DESCRIPTION: `罪人用の遊戯パネルです。24時間有効な遊戯VCを作成できます。\n\n**【VC作成】**\n・料金：10,000${CURRENCY_NAMES}\n・遊戯チケットを所持している場合は、チケットを消費してVCを作成できます。\n\n**【VC接続権限】**\n・料金：5,000${CURRENCY_NAMES}\n・購入すると、24時間だけ他の遊戯VCへ接続できます。\n\n**・残高確認**：現在の${CURRENCY_NAMES}残高を確認できます。`,
+  DESCRIPTION: `罪人用の遊戯パネルです。利用時間無制限の遊戯VCを作成できます。\n\n**【VC作成】**\n・6人コース：6,000${CURRENCY_NAMES} または遊戯チケット2枚\n・人数フリーコース：10,000${CURRENCY_NAMES} または遊戯チケット4枚\n\n6人コースは部屋主を含む人間6人までで、Botは人数に含みません。\n部屋主が一度入室した後、退出して10分間戻らなければ、ほかの利用者がいてもVCは削除されます。\n\n**【VC接続権限】**\n・料金：5,000${CURRENCY_NAMES}\n・購入すると、24時間だけ他の遊戯VCへ接続できます。\n\n**・残高確認**：現在の${CURRENCY_NAMES}残高を確認できます。`,
   CREATE_VC: "VCを作成",
   PURCHASE_ACCESS: `接続権限を購入（5,000${CURRENCY_NAMES}）`,
   ERROR: "罪人用遊戯パネルチャンネルが見つからないか、無効な型です。",

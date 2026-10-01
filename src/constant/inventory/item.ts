@@ -42,7 +42,7 @@ export const ITEM_DEFINITIONS: readonly {
   {
     key: ITEM_KEY.GAME_SHORT_FREE,
     name: "遊戯チケット",
-    description: "遊戯VCを1部屋（24時間）無料で作成できる券",
+    description: "時間無制限の遊戯VC作成に使用できる券",
   },
   { key: ITEM_KEY.HAZAMA_FREE, name: "辺境の狭間無料券", description: "辺境の狭間の滞在許可証（12時間）を無料で取得できる券" },
   { key: ITEM_KEY.SOLITARY_CELL_FREE, name: "独房無料券", description: "独房を1部屋（12時間）無料で作成できる券" },

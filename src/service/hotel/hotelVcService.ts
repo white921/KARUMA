@@ -13,6 +13,7 @@ import {
   VoiceChannel,
 } from "discord.js";
 import { PANEL_COMMAND_NAMES } from "../../constant/shared/command";
+import { GAME_VC } from "../../constant/game/game";
 import { CURRENCY_NAMES } from "../../constant/currency/currency";
 import {
   HOTEL_CHAT_PERMISSION_BITS,
@@ -35,6 +36,7 @@ import { ActionService } from "../currency/actionService";
 import { DbService } from "../system/dbService";
 import { VcPanelService } from "../../panel/vc/vcPanelService";
 import { HotelFreeTicketService } from "./hotelFreeTicketService";
+import { GameVcLifecycleService } from "../game/gameVcLifecycleService";
 
 export class HotelVcService {
   private static expiredVcCheckerStarted = false;
@@ -780,7 +782,7 @@ export class HotelVcService {
   }
 
   /**
-   * 空になった無料VCを即時削除
+   * 空になった旧仕様の無料VCを即時削除
    * @param voiceChannel 空になった無料VCチャンネル
    * @returns 削除したかどうか
    */
@@ -790,12 +792,15 @@ export class HotelVcService {
     const connection = await DbService.getConnection();
     try {
       const [rows] = await connection.execute<any[]>(
-        `SELECT is_bonus FROM vcs 
+        `SELECT is_bonus, type, game_plan FROM vcs
          WHERE channel_id = ? AND is_active = TRUE`,
         [voiceChannel.id],
       );
 
-      if (!rows || rows.length === 0 || !rows[0].is_bonus) {
+      if (
+        !rows || rows.length === 0 || !rows[0].is_bonus ||
+        (rows[0].type === GAME_VC.TYPE && rows[0].game_plan !== null)
+      ) {
         return false;
       }
 
@@ -850,18 +855,20 @@ export class HotelVcService {
   }
 
   /**
-   * 空になった無料VCをチェックして削除
+   * 空になった旧仕様の無料VCをチェックして削除
    * 通常はvoiceStateUpdateで即時削除されるが、イベント取りこぼし時の保険として動かす。
    * @param client Discordクライアント
    */
   static async deleteEmptyBonusVcs(client: Client) {
     const connection = await DbService.getConnection();
     try {
-      // 全無料VCを取得
+      // 新仕様の遊戯VCを除く無料VCを取得
       const [rows] = await connection.execute<any[]>(
         `SELECT channel_id FROM vcs 
          WHERE is_active = TRUE 
-         AND is_bonus = TRUE`,
+         AND is_bonus = TRUE
+         AND (type <> ? OR game_plan IS NULL)`,
+        [GAME_VC.TYPE],
       );
 
       if (!rows || rows.length === 0) {
@@ -931,6 +938,7 @@ export class HotelVcService {
         try {
           await this.deleteExpiredVcs(client);
           await this.deleteEmptyBonusVcs(client);
+          await GameVcLifecycleService.reconcileAndDelete(client);
         } catch (error) {
           console.error("expired VC checker error:", error);
         } finally {

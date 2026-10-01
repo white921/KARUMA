@@ -15,7 +15,10 @@ function createConnection(rows, statements) {
   return {
     execute: async (sql, params) => {
       statements.push({ sql, params });
-      if (sql.includes("SELECT is_bonus FROM vcs")) {
+      if (
+        sql.includes("SELECT is_bonus") ||
+        sql.includes("SELECT channel_id FROM vcs")
+      ) {
         return [rows];
       }
       return [{}];
@@ -88,7 +91,7 @@ test("deletes an empty bonus VC immediately and marks it inactive", async () => 
   assert.equal(deleted, true);
   assert.equal(channel.deleted, true);
   assert.equal(statements.length, 2);
-  assert.match(statements[0].sql, /SELECT is_bonus FROM vcs/);
+  assert.match(statements[0].sql, /SELECT is_bonus, type, game_plan FROM vcs/);
   assert.deepEqual(statements[0].params, [channel.id]);
   assert.match(statements[1].sql, /UPDATE vcs SET is_active = \?/);
   assert.deepEqual(statements[1].params, [false, channel.id]);
@@ -105,6 +108,27 @@ test("does not delete a paid hotel VC when it becomes empty", async () => {
   assert.equal(deleted, false);
   assert.equal(channel.deleted, false);
   assert.equal(statements.length, 1);
+});
+
+test("does not use the legacy empty-room deletion for a new unlimited game VC", async () => {
+  const statements = [];
+  const channel = createVoiceChannel("new-game-vc");
+  DbService.getConnection = async () =>
+    createConnection([{ is_bonus: true, type: "GAME", game_plan: "unlimited" }], statements);
+
+  const deleted = await HotelVcService.deleteEmptyBonusVcNow(channel);
+
+  assert.equal(deleted, false);
+  assert.equal(channel.deleted, false);
+  assert.equal(statements.length, 1);
+});
+
+test("periodic legacy cleanup keeps old game VCs eligible and excludes only new game plans", async () => {
+  const statements = [];
+  DbService.getConnection = async () => createConnection([], statements);
+  await HotelVcService.deleteEmptyBonusVcs({ channels: { fetch: async () => null } });
+  assert.match(statements[0].sql, /type <> \? OR game_plan IS NULL/);
+  assert.deepEqual(statements[0].params, ["GAME"]);
 });
 
 test("hotel manager can create a normal hotel as a bonus VC", async () => {

@@ -51,12 +51,16 @@ export class ItemService {
     }
   }
 
-  /** 呼び出し元のトランザクション中で1個消費する。 */
+  /** 呼び出し元のトランザクション中で指定個数を消費する。 */
   static async consume(
     connection: PoolConnection,
     userId: string,
     itemKey: ItemKey,
+    quantity = 1,
   ): Promise<boolean> {
+    if (!Number.isSafeInteger(quantity) || quantity <= 0) {
+      throw new Error("消費数が不正です。");
+    }
     const [rows] = await connection.execute<ItemInventoryRow[]>(
       `SELECT items.id AS item_id, items.item_key, item_users.quantity
        FROM item_users
@@ -66,13 +70,13 @@ export class ItemService {
       [userId, itemKey],
     );
     const item = rows[0];
-    if (!item || Number(item.quantity) < 1) return false;
+    if (!item || Number(item.quantity) < quantity) return false;
 
     await connection.execute(
       `UPDATE item_users
-       SET quantity = quantity - 1
+       SET quantity = quantity - ?
        WHERE user_id = ? AND item_id = ?`,
-      [userId, item.item_id],
+      [quantity, userId, item.item_id],
     );
     return true;
   }

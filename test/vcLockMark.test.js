@@ -137,6 +137,7 @@ test("VC creation sends the panel after settlement and still succeeds if send fa
     await t.test(`send failure: ${failSend}`, async t => {
       const steps = [];
       t.mock.method(GameVcService, "assertCreatePanelAccess", () => {});
+      t.mock.method(GameVcService, "consumeCreateConfirmation", () => {});
       t.mock.method(GameVcService, "resolvePayment", async () => "money");
       t.mock.method(GameVcService, "recordVcCreation", async () => { steps.push("paid"); return 1000; });
       t.mock.method(GameVcService, "sendVcLog", async () => {});
@@ -146,7 +147,9 @@ test("VC creation sends the panel after settlement and still succeeds if send fa
         member: { displayName: "テスト", roles: { cache: { has: id => id === ROLE_IDS.CORE_MEMBER_ROLES.KARIMEN } } },
         guild: { id: "guild", channels: {
           async fetch() { return { id: "category", type: ChannelType.GuildCategory }; },
-          async create() { return { id: "vc", async send(panel) {
+          async create(options) {
+            assert.equal(options.userLimit, 6);
+            return { id: "vc", async send(panel) {
             assert.deepEqual(steps, ["paid"]);
             assert.equal(panel.components[0].toJSON().components.length, 3);
             steps.push("panel");
@@ -155,7 +158,7 @@ test("VC creation sends the panel after settlement and still succeeds if send fa
         } },
         async editReply(body) { if (body.content.startsWith("✅")) steps.push("success"); },
       };
-      await GameVcService.createVc(interaction, "money");
+      await GameVcService.createVc(interaction, "confirmation", "money", "limited", "regular", "3000");
       assert.deepEqual(steps, ["paid", "panel", "success"]);
     });
   }

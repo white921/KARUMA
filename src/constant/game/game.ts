@@ -9,11 +9,40 @@ export const GAME_PRICE = {
 
 export const GAME_VC = {
   TYPE: "GAME",
-  DURATION_HOURS: 24,
+  LEGACY_DURATION_HOURS: 24,
+  OWNER_ABSENCE_DELETE_MINUTES: 10,
+  LIMITED_HUMAN_LIMIT: 6,
+  PLANS: {
+    LIMITED: "limited",
+    UNLIMITED: "unlimited",
+  },
   PRICES: {
-    TRAVELER_OR_ABOVE: 5000,
-    VACANT: 6000,
-    CRIMINAL: 10000,
+    REGULAR: {
+      limited: 3000,
+      unlimited: 5000,
+    },
+    VACANT: {
+      limited: 4000,
+      unlimited: 6000,
+    },
+    CRIMINAL: {
+      limited: 6000,
+      unlimited: 10000,
+    },
+  },
+  TICKET_COSTS: {
+    REGULAR: {
+      limited: 1,
+      unlimited: 2,
+    },
+    VACANT: {
+      limited: 1,
+      unlimited: 2,
+    },
+    CRIMINAL: {
+      limited: 2,
+      unlimited: 4,
+    },
   },
   PASS_PRICES: {
     TWO_WEEKS: 50000,
@@ -30,6 +59,7 @@ export const GAME_MESSAGES = {
   GAME_PASS: "ゲームパス",
   NOT_ENOUGH_BALANCE: "残高が不足しています。",
   INVALID_GAME_TYPE: "無効な遊戯タイプです。",
+  CREATE_CONDITIONS_CHANGED: "ロール・料金・チケット枚数が変更されました。遊戯パネルから選び直してください。",
   INVALID_ROLE: "無効なロールです。",
   ALREADY_HAS_ROLE: "既にロールが付与されています。",
   INVALID_EXPIRE_AT: "有効期限が無効です。",
