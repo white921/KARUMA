@@ -14,7 +14,7 @@ import {
   ThreadChannel,
 } from "discord.js";
 import type { ResultSetHeader } from "mysql2";
-import { toActionType } from "../../constant/currency/action";
+import { ACTION_TYPES, toActionType } from "../../constant/currency/action";
 import { COLOR } from "../../constant/shared/color";
 import { PANEL_COMMAND_NAMES } from "../../constant/shared/command";
 import { CURRENCY_NAMES } from "../../constant/currency/currency";
@@ -138,6 +138,12 @@ export function calculateGameCriminalAccessExpireAt(
   now = dayjs(),
 ): Dayjs {
   return now.add(GAME_VC.CRIMINAL_ACCESS_DURATION_HOURS, "hour");
+}
+
+export function getGameVcCreateActionType(tier: GameVcTier): string {
+  return tier.label === "罪人"
+    ? ACTION_TYPES.GAME_CRIMINAL_VC_CREATE
+    : ACTION_TYPES.GAME_VC_CREATE;
 }
 
 export function buildGameVcCreateConfirmationDescription(
@@ -266,8 +272,8 @@ export class GameVcService {
       await this.recordVcCreation(
         interaction.user.id,
         voiceChannel.id,
+        tier,
         payment,
-        tier.price,
         expireAt,
       );
     } catch (error) {
@@ -522,8 +528,8 @@ export class GameVcService {
   private static async recordVcCreation(
     userId: string,
     voiceChannelId: string,
+    tier: GameVcTier,
     payment: GameVcPayment,
-    tierPrice: number,
     expireAt: Date,
   ): Promise<number> {
     const connection = await DbService.getConnection();
@@ -536,7 +542,7 @@ export class GameVcService {
       const account = accountRows[0];
       if (!account) throw new Error("口座が見つかりません。");
 
-      const price = payment === "money" ? tierPrice : 0;
+      const price = payment === "money" ? tier.price : 0;
       if (account.wallet < price) throw new Error(GAME_MESSAGES.NOT_ENOUGH_BALANCE);
       if (payment === "ticket") {
         const consumed = await ItemService.consume(
@@ -564,7 +570,7 @@ export class GameVcService {
          (command_name, amount, from_user_id, to_user_id, from_after_wallet, to_after_wallet, comment)
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [
-          toActionType(PANEL_COMMAND_NAMES.GAME_VC_CREATE),
+          getGameVcCreateActionType(tier),
           price,
           userId,
           BOT_ID,

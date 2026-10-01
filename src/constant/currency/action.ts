@@ -38,6 +38,7 @@ export const ACTION_TYPES = {
   GAME_SHORT_EXTEND: "game_short_extend",
   GAME_PASS: "game_pass",
   GAME_VC_CREATE: "game_vc_create",
+  GAME_CRIMINAL_VC_CREATE: "game_criminal_vc_create",
   GAME_CRIMINAL_ACCESS: "game_criminal_access",
   GAME_PASS_TWO_WEEKS: "game_pass_two_weeks",
   GAME_PASS_ONE_MONTH: "game_pass_one_month",

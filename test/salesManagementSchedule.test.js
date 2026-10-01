@@ -6,8 +6,12 @@ const path = require("node:path");
 const {
   SalesManagementService,
 } = require("../dist/service/market/salesManagementService.js");
+const { THREAD_IDS } = require("../dist/constant/shared/id.js");
 
 test("monthly sales report skips safely when its destination is not configured", async (t) => {
+  const destination = THREAD_IDS.SALES_DATA_THREAD;
+  THREAD_IDS.SALES_DATA_THREAD = "";
+  t.after(() => { THREAD_IDS.SALES_DATA_THREAD = destination; });
   const fetch = t.mock.fn(async () => {
     assert.fail("an empty destination must not fetch all guild channels");
   });

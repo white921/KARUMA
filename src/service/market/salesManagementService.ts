@@ -6,12 +6,33 @@ import { Action } from "../../type/currency/action";
 import { salesData } from "../../type/market/salesManagement";
 
 import { DbService } from "../system/dbService";
-import { GameService } from "../game/gameService";
 
-import { SALES_DATA_COMMAND_NAMES } from "../../constant/shared/command";
-import { toActionType } from "../../constant/currency/action";
+import { ACTION_TYPES } from "../../constant/currency/action";
 import { CURRENCY_NAMES } from "../../constant/currency/currency";
 import { THREAD_IDS } from "../../constant/shared/id";
+
+export const MONTHLY_GAME_SALES_CATEGORIES = [
+  {
+    label: "遊戯VC作成",
+    actionTypes: [ACTION_TYPES.GAME_VC_CREATE],
+  },
+  {
+    label: "ゲームパス（1か月）",
+    actionTypes: [ACTION_TYPES.GAME_PASS_ONE_MONTH, ACTION_TYPES.GAME_PASS],
+  },
+  {
+    label: "ゲームパス（2週間）",
+    actionTypes: [ACTION_TYPES.GAME_PASS_TWO_WEEKS],
+  },
+  {
+    label: "罪人用VC接続権限購入",
+    actionTypes: [ACTION_TYPES.GAME_CRIMINAL_ACCESS],
+  },
+  {
+    label: "罪人用VC作成",
+    actionTypes: [ACTION_TYPES.GAME_CRIMINAL_VC_CREATE],
+  },
+] as const;
 
 export class SalesManagementService {
   /**
@@ -52,16 +73,20 @@ export class SalesManagementService {
    */
   static async getSalesDataByType(): Promise<Map<string, salesData>> {
     const salesDataMap = new Map<string, salesData>();
-    for (const commandName of Object.values(SALES_DATA_COMMAND_NAMES)) {
-      const actionsByType = await this.getSalesDataLastMonth(
-        toActionType(commandName),
-      );
+    for (const category of MONTHLY_GAME_SALES_CATEGORIES) {
+      const actionsByType = (
+        await Promise.all(
+          category.actionTypes.map((actionType) =>
+            this.getSalesDataLastMonth(actionType),
+          ),
+        )
+      ).flat();
       const totalAmountOfThisType = actionsByType.reduce(
         (acc: number, action: Action) => acc + action.amount,
         0
       );
       const count = actionsByType.length;
-      salesDataMap.set(commandName, { totalAmountOfThisType, count });
+      salesDataMap.set(category.label, { totalAmountOfThisType, count });
     }
     return salesDataMap;
   }
@@ -74,12 +99,11 @@ export class SalesManagementService {
     salesDataMap: Map<string, salesData>
   ): Promise<string[]> {
     const messages: string[] = [];
-    const commandNames = Array.from(salesDataMap.keys());
+    const categoryLabels = Array.from(salesDataMap.keys());
     let totalAmount = 0;
-    for (const commandName of commandNames) {
-      const typeMessage = await GameService.getGameComment(commandName);
-      const { totalAmountOfThisType, count } = salesDataMap.get(commandName)!;
-      const message = `${typeMessage}\n${count}件 ${totalAmountOfThisType.toLocaleString(
+    for (const categoryLabel of categoryLabels) {
+      const { totalAmountOfThisType, count } = salesDataMap.get(categoryLabel)!;
+      const message = `${categoryLabel}\n${count}件 ${totalAmountOfThisType.toLocaleString(
         "ja-JP"
       )} ${CURRENCY_NAMES}\n`;
       messages.push(message);

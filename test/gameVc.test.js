@@ -6,6 +6,7 @@ const { PermissionsBitField } = require("discord.js");
 const { ROLE_IDS, TEXT_CHANNEL_IDS, THREAD_IDS } = require("../dist/constant/shared/id.js");
 const { PANEL_COMMAND_NAMES } = require("../dist/constant/shared/command.js");
 const { GAME_VC } = require("../dist/constant/game/game.js");
+const { ACTION_TYPES } = require("../dist/constant/currency/action.js");
 const {
   GAME_CRIMINAL_PANEL_MESSAGES,
   GAME_PANEL_MESSAGES,
@@ -20,6 +21,7 @@ const {
   canPurchaseGamePass,
   calculateGamePassExpireAt,
   calculateGameCriminalAccessExpireAt,
+  getGameVcCreateActionType,
   buildGameVcCreateConfirmationDescription,
   createGameVcPermissionOverwrites,
 } = require("../dist/service/game/gameVcService.js");
@@ -126,6 +128,17 @@ test("criminal access lasts for 24 hours", () => {
   assert.equal(
     calculateGameCriminalAccessExpireAt(now).toISOString(),
     "2026-09-02T03:00:00.000Z",
+  );
+});
+
+test("criminal VC creation uses a separate action type for monthly sales", () => {
+  assert.equal(
+    getGameVcCreateActionType({ label: "罪人", price: 10000 }),
+    ACTION_TYPES.GAME_CRIMINAL_VC_CREATE,
+  );
+  assert.equal(
+    getGameVcCreateActionType({ label: "旅人以上", price: 5000 }),
+    ACTION_TYPES.GAME_VC_CREATE,
   );
 });
 
