@@ -30,8 +30,8 @@ test("lock mark toggles only the name, with acknowledgement before API work", as
   assert.equal(channel.name, "🔒 遊戯 - テスト");
   await VcService.toggleVcLockMark(interaction);
   assert.equal(channel.name, "遊戯 - テスト");
-  assert.deepEqual(calls, [["defer"], ["name", "🔒 遊戯 - テスト"], ["reply"],
-    ["defer"], ["name", "遊戯 - テスト"], ["reply"]]);
+  assert.deepEqual(calls, [["defer"], ["reply"], ["name", "🔒 遊戯 - テスト"], ["reply"],
+    ["defer"], ["reply"], ["name", "遊戯 - テスト"], ["reply"]]);
 });
 
 test("lock mark supports every hotel type without changing permissions", async t => {
@@ -68,7 +68,7 @@ test("lock button handler accepts the acknowledgement already sent by the entryp
   f.interaction.deferred = true;
   f.interaction.customId = PANEL_COMMAND_NAMES.TOGGLE_VC_LOCK_MARK;
   await handlePanelButton(f.interaction);
-  assert.deepEqual(f.calls, [["name", "🔒 遊戯 - テスト"], ["reply"]]);
+  assert.deepEqual(f.calls, [["reply"], ["name", "🔒 遊戯 - テスト"], ["reply"]]);
 });
 
 test("lock mark does not truncate long names or rename a lock-only VC to empty", async t => {
@@ -107,6 +107,22 @@ test("status modal updates the channel after acknowledgement", async t => {
     assert.deepEqual(options.body, { status: "参加者募集中" });
   });
   await VcService.changeVcStatus(f.interaction, " 参加者募集中 ");
+  assert.deepEqual(f.calls, [["defer"], ["reply"]]);
+});
+
+test("empty status removes the voice status", async t => {
+  const f = fixture();
+  const previous = process.env.DISCORD_TOKEN;
+  process.env.DISCORD_TOKEN = "test-token";
+  t.after(() => {
+    if (previous === undefined) delete process.env.DISCORD_TOKEN;
+    else process.env.DISCORD_TOKEN = previous;
+  });
+  t.mock.method(REST.prototype, "put", async (route, options) => {
+    assert.equal(route, "/channels/vc/voice-status");
+    assert.deepEqual(options.body, { status: null });
+  });
+  await VcService.changeVcStatus(f.interaction, "   ");
   assert.deepEqual(f.calls, [["defer"], ["reply"]]);
 });
 

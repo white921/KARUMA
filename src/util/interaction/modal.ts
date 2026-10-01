@@ -244,11 +244,10 @@ export async function showVcStatusModal(
     .setTitle(commandDescription);
   const statusInput = new TextInputBuilder()
     .setCustomId("new_status")
-    .setLabel("新しいVCステータス")
+    .setLabel("新しいVCステータス（空欄で削除）")
     .setStyle(TextInputStyle.Paragraph)
-    .setPlaceholder("VCの現在の状況を入力してください")
-    .setRequired(true)
-    .setMinLength(1)
+    .setPlaceholder("空欄のまま送信するとステータスを削除します")
+    .setRequired(false)
     .setMaxLength(500);
 
   modal.addComponents(

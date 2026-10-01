@@ -17,10 +17,12 @@ export const VC_MESSAGES = {
   CHANGE_VC_NAME: "VC名変更",
   CHANGE_VC_STATUS: "VCステータス変更",
   NO_NEW_NAME_INPUT: "新しいVC名が入力されていません。",
-  NO_NEW_STATUS_INPUT: "新しいVCステータスが入力されていません。",
   DO_NOT_UPDATE_VC_LIMIT_TO_INFINITY:
     "このVCの人数制限は無制限に変更できません。",
 };
+
+/** Discordのチャンネル更新レート制限待ちをBot停止と誤判定しないための監視猶予。 */
+export const VC_CHANNEL_EDIT_HANDLER_TIMEOUT_MS = 12 * 60 * 1000;
 
 export const USER_EDITABLE_VC_TYPES = new Set<string>([
   GAME_VC.TYPE,

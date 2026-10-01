@@ -23,6 +23,7 @@ const {
 const { createCreatorEmblemPanelActionRow } = require("../dist/panel/market/creatorEmblemPanelService.js");
 const { CreatorEmblemPaymentService } = require("../dist/service/market/creatorEmblemPaymentService.js");
 const { VcPanelService } = require("../dist/panel/vc/vcPanelService.js");
+const { showVcStatusModal } = require("../dist/util/interaction/modal.js");
 const {
   GAME_PANEL_MESSAGES,
   HOTEL_VC_PANEL_MESSAGES,
@@ -237,6 +238,20 @@ test("game VC panel has name, lock mark and status controls with expiry", async 
   ]);
   assert.match(panel.embeds[0].data.description, /09\/25 12:00/);
   assert.match(panel.embeds[0].data.description, /接続権限は変わりません/);
+});
+
+test("VC status modal allows an empty submission to remove the status", async () => {
+  let actual;
+  await showVcStatusModal(
+    { async showModal(modal) { actual = modal.toJSON(); } },
+    "VCステータス変更",
+    PANEL_COMMAND_NAMES.CHANGE_VC_STATUS,
+  );
+  const input = actual.components[0].components[0];
+  assert.equal(input.custom_id, "new_status");
+  assert.equal(input.required, false);
+  assert.equal(input.min_length, undefined);
+  assert.match(input.label, /空欄で削除/);
 });
 
 test("hotel VC panel preserves name and limit controls and adds status and lock", async () => {

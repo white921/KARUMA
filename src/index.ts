@@ -48,8 +48,14 @@ import { GameVcLifecycleService } from "./service/game/gameVcLifecycleService";
 import { DiaryService } from "./service/diary/diaryService";
 import { BotHealthMonitor } from "./service/system/botHealthMonitor";
 import { GuildMemberCacheService } from "./service/system/guildMemberCacheService";
-import { getEvaluationCommandHandlerTimeoutMs } from "./util/interaction/interactionHealth";
-import { shouldDeferButtonUpdate } from "./util/interaction/interactionAck";
+import {
+  getEvaluationCommandHandlerTimeoutMs,
+  getVcChannelEditHandlerTimeoutMs,
+} from "./util/interaction/interactionHealth";
+import {
+  shouldDeferButtonUpdate,
+  shouldDeferVcModalReply,
+} from "./util/interaction/interactionAck";
 
 import { COMMAND_NAMES, PANEL_COMMAND_NAMES } from "./constant/shared/command";
 import {
@@ -136,7 +142,9 @@ client.on("interactionCreate", async (interaction) => {
         interaction.commandName,
         Boolean(interaction.options.getUser("user")),
       )
-    : undefined;
+    : interaction.isButton() || interaction.isModalSubmit()
+      ? getVcChannelEditHandlerTimeoutMs(interaction.customId)
+      : undefined;
   BotHealthMonitor.recordInteractionReceived(
     interactionContext,
     handlerTimeoutMs ? { handlerTimeoutMs } : {},
@@ -307,9 +315,23 @@ client.on("interactionCreate", async (interaction) => {
       }
     }
   } else if (interaction.isModalSubmit()) {
+    if (shouldDeferVcModalReply(interaction.customId)) {
+      try {
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+        BotHealthMonitor.recordAckSuccess(`${interactionContext}:deferReply`);
+      } catch (error) {
+        BotHealthMonitor.recordAckFailure(
+          `${interactionContext}:deferReply`,
+          error,
+        );
+        return;
+      }
+    }
     try {
       await handleModalSubmit(interaction);
-      BotHealthMonitor.recordAckSuccess(`${interactionContext}:handler`);
+      if (!interaction.deferred) {
+        BotHealthMonitor.recordAckSuccess(`${interactionContext}:handler`);
+      }
     } catch (error: any) {
       console.error(error);
       if (interaction.deferred) {

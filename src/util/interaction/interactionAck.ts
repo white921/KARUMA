@@ -49,3 +49,11 @@ export function shouldDeferButtonUpdate(customId: string): boolean {
     customId === PANEL_COMMAND_NAMES.GAME_PASS_CANCEL
   );
 }
+
+/** VC操作モーダルはDiscord API処理の前に本人限定応答を開始する。 */
+export function shouldDeferVcModalReply(customId: string): boolean {
+  return (
+    customId === PANEL_COMMAND_NAMES.CHANGE_VC_NAME ||
+    customId === PANEL_COMMAND_NAMES.CHANGE_VC_STATUS
+  );
+}

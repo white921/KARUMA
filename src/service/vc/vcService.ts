@@ -29,7 +29,7 @@ export function isUserEditableManagedVc(
 }
 
 export class VcService {
-  private static readonly pendingLockMarks = new Set<string>();
+  private static readonly pendingNameChanges = new Set<string>();
 
   /** 鍵は名前の目印のみ。チャンネルの権限には触れない。 */
   static async toggleVcLockMark(interaction: ButtonInteraction): Promise<void> {
@@ -43,10 +43,10 @@ export class VcService {
     if (vcType !== GAME_VC.TYPE && !Object.values(HOTEL_TYPE).includes(vcType ?? "")) {
       throw new Error("遊戯・ホテルVCの操作パネルで使用してください。");
     }
-    if (this.pendingLockMarks.has(channel.id)) {
-      throw new Error("🔒を変更中です。しばらくお待ちください。");
+    if (this.pendingNameChanges.has(channel.id)) {
+      throw new Error("VC名を変更中です。しばらくお待ちください。");
     }
-    this.pendingLockMarks.add(channel.id);
+    this.pendingNameChanges.add(channel.id);
     try {
       const current = await channel.fetch(true);
       const locked = current.name.startsWith("🔒");
@@ -54,10 +54,11 @@ export class VcService {
       if (!name.trim() || name.length > 100) {
         throw new Error("🔒を付け外しした後のVC名が1〜100文字になるように変更してください。");
       }
+      await interaction.editReply({ content: "VC名の変更をDiscordへ申請しています…" });
       await current.setName(name);
       await interaction.editReply({ content: `VC名の先頭の🔒を${locked ? "外しました" : "付けました"}。` });
     } finally {
-      this.pendingLockMarks.delete(channel.id);
+      this.pendingNameChanges.delete(channel.id);
     }
   }
 
@@ -209,15 +210,27 @@ export class VcService {
     interaction: ModalSubmitInteraction,
     newName: string
   ) {
-    try {
+    if (!interaction.deferred) {
       await interaction.deferReply({ ephemeral: true });
-      await this.validateVcMember(interaction);
-      await (interaction.channel as VoiceChannel).setName(newName);
+    }
+    await this.validateVcMember(interaction);
+    const channel = interaction.channel;
+    if (!channel || channel.type !== ChannelType.GuildVoice) {
+      throw new Error(VC_MESSAGES.ERROR);
+    }
+    if (this.pendingNameChanges.has(channel.id)) {
+      throw new Error("VC名を変更中です。しばらくお待ちください。");
+    }
+
+    this.pendingNameChanges.add(channel.id);
+    try {
+      await interaction.editReply({ content: "VC名の変更をDiscordへ申請しています…" });
+      await channel.setName(newName);
       await interaction.editReply({
         content: `VC名を${newName}に変更しました。`,
       });
-    } catch (error) {
-      throw error;
+    } finally {
+      this.pendingNameChanges.delete(channel.id);
     }
   }
 
@@ -226,12 +239,11 @@ export class VcService {
     interaction: ModalSubmitInteraction,
     newStatus: string,
   ) {
-    await interaction.deferReply({ ephemeral: true });
+    if (!interaction.deferred) {
+      await interaction.deferReply({ ephemeral: true });
+    }
     await this.validateVcMember(interaction);
     const status = newStatus.trim();
-    if (!status) {
-      throw new Error(VC_MESSAGES.NO_NEW_STATUS_INPUT);
-    }
 
     const voiceChannel = interaction.channel;
     if (!voiceChannel || voiceChannel.type !== ChannelType.GuildVoice) {
@@ -242,10 +254,12 @@ export class VcService {
       process.env.DISCORD_TOKEN!,
     );
     await rest.put(`/channels/${voiceChannel.id}/voice-status`, {
-      body: { status },
+      body: { status: status || null },
     });
     await interaction.editReply({
-      content: `VCステータスを「${status}」に変更しました。`,
+      content: status
+        ? `VCステータスを「${status}」に変更しました。`
+        : "VCステータスを削除しました。",
     });
   }
 
