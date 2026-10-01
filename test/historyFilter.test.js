@@ -193,16 +193,19 @@ test('market combines purchases, stamps, ticket exchange and name changes and mi
 });
 
 
-test('merged transfer and adjustment groups preserve income/expense and old selections', async t => {
+test('merged transfer and adjustment/salary groups preserve income/expense and old selections', async t => {
   const rows = [action(1, A.TRANSFER), action(2, A.SUPERCHAT),
     action(3, A.ROLE_BASED_GRANT), action(4, A.ADMIN_MINT),
     action(5, A.ADMIN_BURN, { from_user_id: user, to_user_id: other }),
-    action(6, A.CASINO_GF)];
+    action(6, A.SALARY_PAYMENT), action(7, A.CASINO_GF)];
   const events = await withHistory(t, rows);
+  const adjustmentSalary = groups.findIndex(group => group.label === '付与・剥奪・給与' && !group.hidden);
   for (const [oldGroup, currentGroup, label, income, expense] of [
     [0, 0, '送金', [2, 1], []], [6, 0, '送金', [2, 1], []],
-    [14, 15, '付与・剥奪', [4, 3], [5]], [15, 15, '付与・剥奪', [4, 3], [5]],
-    [16, 15, '付与・剥奪', [4, 3], [5]],
+    [11, adjustmentSalary, '付与・剥奪・給与', [6, 4, 3], [5]],
+    [14, adjustmentSalary, '付与・剥奪・給与', [6, 4, 3], [5]],
+    [15, adjustmentSalary, '付与・剥奪・給与', [6, 4, 3], [5]],
+    [16, adjustmentSalary, '付与・剥奪・給与', [6, 4, 3], [5]],
   ]) {
     assert.deepEqual(HistoryService.filterActions(rows, user, filters({ groups: [oldGroup], direction: 'income' })).map(row => row.id), income);
     assert.deepEqual(HistoryService.filterActions(rows, user, filters({ groups: [oldGroup], direction: 'expense' })).map(row => row.id), expense);
@@ -211,5 +214,5 @@ test('merged transfer and adjustment groups preserve income/expense and old sele
     assert.ok(i.payload.embeds[0].data.description.includes(`種類：${label}`));
     assert.deepEqual(parseHistoryCustomId(components(i)[1].components[0].custom_id, user).filters.groups, [currentGroup]);
   }
-  assert.equal(groups.filter(group => !group.hidden).length, 15);
+  assert.equal(groups.filter(group => !group.hidden).length, 14);
 });
