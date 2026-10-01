@@ -14,6 +14,14 @@ test("resolves bank panel channel to the bank panel target", () => {
   assert.equal(target, PANEL_INSTALL_TARGETS.BANK);
 });
 
+test("resolves the team assignment panel thread", () => {
+  assert.equal(THREAD_IDS.TEAM_ASSIGNMENT_PANEL, "1555252105445642251");
+  assert.equal(
+    resolvePanelInstallTarget(THREAD_IDS.TEAM_ASSIGNMENT_PANEL),
+    PANEL_INSTALL_TARGETS.TEAM_ASSIGNMENT,
+  );
+});
+
 test("resolves admin bank panel thread to the admin bank panel target", () => {
   assert.equal(THREAD_IDS.ADMIN_PANEL_THREAD, "1536708811899932704");
 

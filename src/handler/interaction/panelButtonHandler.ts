@@ -1,4 +1,5 @@
 import { DiaryRebuildService } from "../../service/diary/diaryRebuildService";
+import { TeamAssignmentService } from "../../service/member/teamAssignmentService";
 import { MARKET_GACHA_CONFIRMATION_PREFIX } from "../../constant/market/marketGacha";
 import { NORMAL_HOTEL_CONFIRMATION_PREFIX } from "../../constant/hotel/hotel";
 import { NormalHotelService } from "../../service/hotel/normalHotelService";
@@ -82,6 +83,14 @@ import { DIARY_MESSAGES } from "../../constant/diary/diary";
  */
 export async function handlePanelButton(interaction: ButtonInteraction) {
   const customId = interaction.customId;
+  if (TeamAssignmentService.isSelectButton(customId)) {
+    await TeamAssignmentService.showPassphraseModal(interaction);
+    return;
+  }
+  if (TeamAssignmentService.isConfirmationButton(customId)) {
+    await TeamAssignmentService.handleConfirmation(interaction);
+    return;
+  }
   if (customId.startsWith(HISTORY_FILTER_PREFIX)) {
     await HistoryService.handleFilter(interaction);
     return;

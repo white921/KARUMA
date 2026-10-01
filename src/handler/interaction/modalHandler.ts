@@ -1,4 +1,6 @@
 import { DiaryRebuildService } from "../../service/diary/diaryRebuildService";
+import { TeamAssignmentService } from "../../service/member/teamAssignmentService";
+import { TEAM_ASSIGNMENT_PREFIX } from "../../constant/member/teamAssignment";
 import { CastPaymentService } from "../../service/cast/castPaymentService";
 import { CAST_PAYMENT_PREFIX } from "../../constant/cast/castPayment";
 import { DARK_MESSAGE_PREFIX } from "../../constant/market/darkMessage";
@@ -39,6 +41,10 @@ function getModalFieldValue(
  */
 export async function handleModalSubmit(interaction: ModalSubmitInteraction) {
   const customId = interaction.customId;
+  if (customId.startsWith(`${TEAM_ASSIGNMENT_PREFIX}:modal:`)) {
+    await TeamAssignmentService.submitPassphrase(interaction);
+    return;
+  }
   if (customId.startsWith(`${CAST_PAYMENT_PREFIX}:`)) {
     await CastPaymentService.handle(interaction);
     return;
