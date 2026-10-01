@@ -29,9 +29,13 @@ export async function handleSchedule(client: Client) {
 
   cron.schedule(
     "30 0 1 * *",
-    () => {
+    async () => {
       // 毎月1日0:30に実行される処理
-      SalesManagementService.executeSalesDataMessage(guild!);
+      try {
+        await SalesManagementService.executeSalesDataMessage(guild!);
+      } catch (err) {
+        console.error("schedule monthly sales report error:", err);
+      }
     },
     { timezone: "Asia/Tokyo" },
   );

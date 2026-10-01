@@ -96,24 +96,30 @@ export class SalesManagementService {
    * @param guild サーバー
    */
   static async executeSalesDataMessage(guild: Guild): Promise<void> {
-    try {
-      const salesDataMap = await this.getSalesDataByType();
-      const messages = await this.createSalesDataMessage(salesDataMap);
-
-      const thread = await guild.channels.fetch(
-        THREAD_IDS.SALES_DATA_THREAD
+    const threadId = THREAD_IDS.SALES_DATA_THREAD.trim();
+    if (!threadId) {
+      console.info(
+        "[SalesManagement] monthly sales report skipped: SALES_DATA_THREAD is not configured",
       );
-      const nowJST = dayjs().tz("Asia/Tokyo");
-      const lastMonthJST = nowJST.subtract(1, "month");
-      const summaryTitle = lastMonthJST.format("YYYY年MM月");
-
-      if (thread && thread.isThread() && thread.isTextBased()) {
-        await (thread as ThreadChannel).send(
-          `**${summaryTitle}**\n${messages.join("\n")}`
-        );
-      }
-    } catch (error: any) {
-      throw error;
+      return;
     }
+
+    const salesDataMap = await this.getSalesDataByType();
+    const messages = await this.createSalesDataMessage(salesDataMap);
+
+    const thread = await guild.channels.fetch(threadId);
+    if (!thread?.isThread() || !thread.isTextBased()) {
+      throw new Error(
+        `[SalesManagement] configured destination is not a text thread: ${threadId}`,
+      );
+    }
+
+    const nowJST = dayjs().tz("Asia/Tokyo");
+    const lastMonthJST = nowJST.subtract(1, "month");
+    const summaryTitle = lastMonthJST.format("YYYY年MM月");
+
+    await (thread as ThreadChannel).send(
+      `**${summaryTitle}**\n${messages.join("\n")}`,
+    );
   }
 }
