@@ -1,0 +1,229 @@
+const test = require("node:test");
+const assert = require("node:assert/strict");
+const { ButtonStyle, MessageFlags } = require("discord.js");
+
+const {
+  COMPETITION_DISCIPLINES,
+  COMPETITION_ENTRY_ACTIONS,
+  COMPETITION_ENTRY_INPUT_IDS,
+  COMPETITION_ENTRY_PANEL_CHANNEL_ID,
+  COMPETITION_ENTRY_PANEL_TITLE,
+  competitionEntryCustomId,
+} = require("../dist/constant/member/competitionEntry.js");
+const { TEAM_ASSIGNMENTS } = require("../dist/constant/member/teamAssignment.js");
+const { THREAD_IDS } = require("../dist/constant/shared/id.js");
+const {
+  createCompetitionEntryPanelPayload,
+} = require("../dist/panel/member/competitionEntryPanelService.js");
+const {
+  CompetitionEntryService,
+  createCompetitionEntriesCsv,
+  parseCompetitionAvailability,
+} = require("../dist/service/member/competitionEntryService.js");
+const {
+  CompetitionEntryStore,
+} = require("../dist/service/member/competitionEntryStore.js");
+const { handlePanelButton } = require("../dist/handler/interaction/panelButtonHandler.js");
+const { AccountService } = require("../dist/service/account/accountService.js");
+
+function roleHolder(team) {
+  const roleId = team ? TEAM_ASSIGNMENTS[team].roleId : null;
+  return {
+    displayName: "回答者",
+    roles: { cache: { has: (id) => id === roleId } },
+  };
+}
+
+test("panel has the recommended title and exactly two entry buttons", () => {
+  const payload = createCompetitionEntryPanelPayload();
+  const embed = payload.embeds[0].toJSON();
+  const buttons = payload.components[0].toJSON().components;
+  assert.equal(COMPETITION_ENTRY_PANEL_TITLE, "第１回 LEVELIA双璧戦 競技エントリーシート");
+  assert.equal(COMPETITION_ENTRY_PANEL_CHANNEL_ID, "1555266461604384898");
+  assert.equal(COMPETITION_ENTRY_PANEL_CHANNEL_ID, THREAD_IDS.COMPETITION_ENTRY_PANEL);
+  assert.deepEqual(buttons.map((button) => button.label), ["回答・編集", "回答確認"]);
+  assert.deepEqual(buttons.map((button) => button.custom_id), [
+    COMPETITION_ENTRY_ACTIONS.OPEN,
+    COMPETITION_ENTRY_ACTIONS.REVIEW,
+  ]);
+  assert.deepEqual(buttons.map((button) => button.style), [
+    ButtonStyle.Primary,
+    ButtonStyle.Secondary,
+  ]);
+  assert.match(embed.description, /回答した時点では出場確定ではありません/);
+  assert.match(payload.content, /大将・副大将が出場メンバーを調整します/);
+  for (const discipline of Object.values(COMPETITION_DISCIPLINES)) {
+    assert.match(embed.description, new RegExp(discipline.label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  }
+});
+
+test("availability accepts common Japanese answers and rejects ambiguous text", () => {
+  for (const value of ["出場できる", "出れる", "可", "○", "Ｏ"]) {
+    assert.equal(parseCompetitionAvailability(value), "available");
+  }
+  for (const value of ["条件付き", "要相談", "△"]) {
+    assert.equal(parseCompetitionAvailability(value), "conditional");
+  }
+  for (const value of ["出場できない", "出れない", "不可", "×"]) {
+    assert.equal(parseCompetitionAvailability(value), "unavailable");
+  }
+  assert.throws(() => parseCompetitionAvailability("たぶん"), /いずれか/);
+});
+
+test("editor lists all nine disciplines and marks saved answers", async (t) => {
+  t.mock.method(CompetitionEntryStore, "findByUser", async () => [{
+    userId: "user",
+    displayName: "回答者",
+    team: "red",
+    discipline: "mahjong",
+    availability: "available",
+    rankName: "雀豪1",
+    gameName: "雀士A",
+    gameId: "123",
+    notes: "",
+  }]);
+  let reply;
+  await CompetitionEntryService.showEditor({
+    user: { id: "user" },
+    guild: { members: { fetch: async () => roleHolder("red") } },
+    editReply: async (body) => { reply = body; },
+  });
+  const buttons = reply.components.flatMap((row) => row.toJSON().components);
+  assert.equal(buttons.length, 9);
+  const mahjong = buttons.find((button) => button.custom_id.endsWith(":mahjong"));
+  assert.equal(mahjong.label, "✓ 麻雀（雀魂）");
+  assert.equal(mahjong.style, ButtonStyle.Success);
+});
+
+test("answering requires exactly one team role", async (t) => {
+  t.mock.method(CompetitionEntryStore, "findByUser", async () => []);
+  await assert.rejects(
+    CompetitionEntryService.showEditor({
+      user: { id: "user" },
+      guild: { members: { fetch: async () => roleHolder(null) } },
+      editReply: async () => {},
+    }),
+    /先に対抗戦の所属チーム/,
+  );
+});
+
+test("mahjong modal uses Jantama rank, name and player ID fields", async (t) => {
+  t.mock.method(CompetitionEntryStore, "findByUser", async () => [{
+    userId: "user", displayName: "回答者", team: "blue", discipline: "mahjong",
+    availability: "available", rankName: "雀傑2", gameName: "じゃんし", gameId: "9988", notes: "夜のみ",
+  }]);
+  let modal;
+  await CompetitionEntryService.showDisciplineModal({
+    customId: competitionEntryCustomId("edit", "mahjong"),
+    user: { id: "user" },
+    guild: { members: { fetch: async () => roleHolder("blue") } },
+    showModal: async (value) => { modal = value.toJSON(); },
+  });
+  assert.equal(modal.title, "麻雀（雀魂）の回答");
+  const inputs = modal.components.map((row) => row.components[0]);
+  assert.deepEqual(inputs.map((input) => input.custom_id), [
+    COMPETITION_ENTRY_INPUT_IDS.AVAILABILITY,
+    COMPETITION_ENTRY_INPUT_IDS.RANK,
+    COMPETITION_ENTRY_INPUT_IDS.GAME_NAME,
+    COMPETITION_ENTRY_INPUT_IDS.GAME_ID,
+    COMPETITION_ENTRY_INPUT_IDS.NOTES,
+  ]);
+  assert.equal(inputs[1].value, "雀傑2");
+  assert.match(inputs[1].placeholder, /雀傑2/);
+});
+
+test("modal submission normalizes singing category and saves the current team", async (t) => {
+  let saved;
+  t.mock.method(CompetitionEntryStore, "upsert", async (entry) => { saved = entry; });
+  const values = new Map([
+    [COMPETITION_ENTRY_INPUT_IDS.AVAILABILITY, " 出れる "],
+    [COMPETITION_ENTRY_INPUT_IDS.GAME_NAME, "男性"],
+    [COMPETITION_ENTRY_INPUT_IDS.NOTES, "高音"],
+  ]);
+  const replies = [];
+  await CompetitionEntryService.submit({
+    customId: competitionEntryCustomId("modal", "singing"),
+    user: { id: "user" },
+    guild: { members: { fetch: async () => roleHolder("red") } },
+    fields: {
+      fields: { has: (id) => values.has(id) },
+      getTextInputValue: (id) => values.get(id),
+    },
+    deferReply: async (body) => replies.push(["defer", body]),
+    editReply: async (body) => replies.push(["edit", body]),
+  });
+  assert.equal(replies[0][1].flags, MessageFlags.Ephemeral);
+  assert.deepEqual(saved, {
+    userId: "user",
+    displayName: "回答者",
+    team: "red",
+    discipline: "singing",
+    availability: "available",
+    rankName: "",
+    gameName: "♂",
+    gameId: "",
+    notes: "高音",
+  });
+  assert.match(replies[1][1].content, /保存しました/);
+});
+
+test("competition buttons bypass the normal account requirement", async (t) => {
+  t.mock.method(AccountService, "hasAccount", async () => {
+    throw new Error("account check must not run");
+  });
+  t.mock.method(CompetitionEntryStore, "findByUser", async () => []);
+  let reply;
+  await handlePanelButton({
+    customId: COMPETITION_ENTRY_ACTIONS.OPEN,
+    user: { id: "user" },
+    guild: { members: { fetch: async () => roleHolder("blue") } },
+    editReply: async (body) => { reply = body; },
+  });
+  assert.equal(reply.components.flatMap((row) => row.toJSON().components).length, 9);
+});
+
+test("CSV is UTF-8 BOM prefixed, escaped, and uses readable labels", () => {
+  const csv = createCompetitionEntriesCsv([{
+    userId: "123",
+    displayName: '名前,"改行\nあり',
+    team: "blue",
+    discipline: "mahjong",
+    availability: "conditional",
+    rankName: "雀豪1",
+    gameName: "雀士",
+    gameId: "999",
+    notes: "夜のみ",
+    updatedAt: "2026-10-02T00:00:00Z",
+  }]).toString("utf8");
+  assert.equal(csv.charCodeAt(0), 0xFEFF);
+  assert.match(csv, /"蒼組"/);
+  assert.match(csv, /"麻雀（雀魂）"/);
+  assert.match(csv, /"条件付き・要相談"/);
+  assert.match(csv, /"名前,""改行 あり"/);
+});
+
+test("leader export only returns the leader's own team", async (t) => {
+  let requestedTeam;
+  t.mock.method(CompetitionEntryStore, "findByTeam", async (team) => {
+    requestedTeam = team;
+    return [];
+  });
+  let reply;
+  await CompetitionEntryService.exportForLeader({
+    user: { id: TEAM_ASSIGNMENTS.blue.captainUserId },
+    guild: {},
+    editReply: async (body) => { reply = body; },
+  });
+  assert.equal(requestedTeam, "blue");
+  assert.match(reply.content, /蒼組/);
+  assert.equal(reply.files[0].name, "双璧戦_競技回答_蒼組.csv");
+
+  await assert.rejects(
+    CompetitionEntryService.exportForLeader({
+      user: { id: "not-a-leader" },
+      guild: {},
+      editReply: async () => {},
+    }),
+    /大将または副大将/,
+  );
+});

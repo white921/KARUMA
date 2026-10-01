@@ -42,6 +42,7 @@ export const COMMAND_NAMES = {
   GACHA_COIN_DEDUCT: "ガチャコイン減算",
   INVITE_POINT_ADD: "招待ポイント追加",
   ROOM_NAME_CHANGE: "部屋名変更",
+  COMPETITION_ENTRY_EXPORT: "対抗戦回答出力",
 };
 
 // 再開時は対象をここから外す。登録と実行の両方に適用する。

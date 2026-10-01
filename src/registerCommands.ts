@@ -33,6 +33,7 @@ import { data as vc } from "./command/vc/vc";
 import { data as vcClean } from "./command/vc/vcClean";
 import { data as balanceStatistics } from "./command/currency/balanceStatistics";
 import { data as ticketGrant } from "./command/market/ticketGrant";
+import { data as competitionEntryExport } from "./command/member/competitionEntryExport";
 
 dotenv.config();
 
@@ -77,6 +78,7 @@ export async function registerCommands() {
     vcClean.toJSON(),
     balanceStatistics.toJSON(),
     ticketGrant.toJSON(),
+    competitionEntryExport.toJSON(),
   ].filter((command) => !DISABLED_COMMAND_NAMES.has(command.name));
 
   const rest = new REST({ version: "10" }).setToken(

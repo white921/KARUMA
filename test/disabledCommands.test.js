@@ -22,7 +22,7 @@ test("roulette commands are omitted from the guild registration request", async 
     for (const name of ["残高確認", "チケット付与", "口座発行", "0名前チェック"]) {
       assert.ok(names.includes(name), name);
     }
-    assert.equal(names.length, 26);
+    assert.equal(names.length, 27);
   });
 
   await registerCommands();

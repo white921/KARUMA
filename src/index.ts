@@ -7,6 +7,7 @@ import { CAST_PAYMENT_PREFIX } from "./constant/cast/castPayment";
 import { DARK_MESSAGE_PREFIX } from "./constant/market/darkMessage";
 import { PRIVATE_HOTEL_PREFIX } from "./constant/hotel/privateHotel";
 import { TEAM_ASSIGNMENT_PREFIX } from "./constant/member/teamAssignment";
+import { CompetitionEntryService } from "./service/member/competitionEntryService";
 import { DEFAULT_PUBLIC_COMMAND } from "./constant/shared/command";
 import {
   Client,
@@ -181,6 +182,7 @@ client.on("interactionCreate", async (interaction) => {
     try {
       // モーダルを表示するボタンの場合はdeferReplyをスキップ
       if (
+        !CompetitionEntryService.isModalOpeningButton(interaction.customId) &&
         !interaction.customId.startsWith(`${TEAM_ASSIGNMENT_PREFIX}:select:`) &&
         !interaction.customId.startsWith(`${CAST_PAYMENT_PREFIX}:option:`) &&
         interaction.customId !== PANEL_COMMAND_NAMES.SHOP_SEND &&
