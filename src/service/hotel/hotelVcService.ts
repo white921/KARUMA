@@ -780,8 +780,8 @@ export class HotelVcService {
   }
 
   /**
-   * 空になった無料ホテルVCを即時削除
-   * @param voiceChannel 空になったVCチャンネル
+   * 空になった無料VCを即時削除
+   * @param voiceChannel 空になった無料VCチャンネル
    * @returns 削除したかどうか
    */
   static async deleteEmptyBonusVcNow(

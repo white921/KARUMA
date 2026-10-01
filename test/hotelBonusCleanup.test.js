@@ -77,7 +77,7 @@ test.afterEach(() => {
   Date.now = originals.dateNow;
 });
 
-test("deletes an empty bonus hotel VC immediately and marks it inactive", async () => {
+test("deletes an empty bonus VC immediately and marks it inactive", async () => {
   const statements = [];
   const channel = createVoiceChannel("1234567890");
   DbService.getConnection = async () =>

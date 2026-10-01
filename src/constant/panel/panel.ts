@@ -108,7 +108,7 @@ export const CASINO_PANEL_MESSAGES = {
 
 export const GAME_PANEL_MESSAGES = {
   TITLE: "遊戯パネル",
-  DESCRIPTION: `遊戯パネルです。24時間有効な遊戯VCを作成できます。\n\n**【遊戯案内】**\n**VC作成料金**\n・旅人以上：5,000${CURRENCY_NAMES}\n・空位者：6,000${CURRENCY_NAMES}\n・歓楽師：無料\n\n旅人以上・空位者はVCへ接続できます。\n遊戯チケットを所持している場合は、チケットを消費してVCを作成できます。\n\n**【ゲームパス】**\n旅人以上はゲームパスを購入できます。所持中は無料でVCを作成できます。\n・2週間：50,000${CURRENCY_NAMES}\n・1か月：100,000${CURRENCY_NAMES}\n\n**・チケット確認**：所持している全種類のチケットと枚数を確認できます。\n\n**・残高確認**：現在の${CURRENCY_NAMES}残高を確認できます。`,
+  DESCRIPTION: `遊戯パネルです。3時間・6時間・24時間から選んで遊戯VCを作成できます。\n\n**【遊戯案内】**\n**VC作成料金**\n・3時間：1,000${CURRENCY_NAMES}\n・6時間：3,000${CURRENCY_NAMES}\n・24時間（旅人以上）：5,000${CURRENCY_NAMES}\n・24時間（空位者）：6,000${CURRENCY_NAMES}\n・歓楽師：全時間無料（全員退出後に自動削除）\n\n旅人以上・空位者はVCへ接続できます。\n遊戯チケットは24時間VCの作成時に1枚使用できます。\n\n**【ゲームパス】**\n旅人以上はゲームパスを購入できます。所持中は全時間無料でVCを作成でき、全員退出後に自動削除されます。\n・2週間：50,000${CURRENCY_NAMES}\n・1か月：100,000${CURRENCY_NAMES}\n\n**・チケット確認**：所持している全種類のチケットと枚数を確認できます。\n\n**・残高確認**：現在の${CURRENCY_NAMES}残高を確認できます。`,
   CREATE_VC: "VCを作成",
   PASS_TWO_WEEKS: "ゲームパス（2週間）",
   PASS_ONE_MONTH: "ゲームパス（1か月）",
@@ -117,7 +117,7 @@ export const GAME_PANEL_MESSAGES = {
 
 export const GAME_CRIMINAL_PANEL_MESSAGES = {
   TITLE: "罪人用遊戯パネル",
-  DESCRIPTION: `罪人用の遊戯パネルです。24時間有効な遊戯VCを作成できます。\n\n**【VC作成】**\n・料金：10,000${CURRENCY_NAMES}\n・遊戯チケットを所持している場合は、チケットを消費してVCを作成できます。\n\n**【VC接続権限】**\n・料金：5,000${CURRENCY_NAMES}\n・購入すると、24時間だけ他の遊戯VCへ接続できます。\n\n**・残高確認**：現在の${CURRENCY_NAMES}残高を確認できます。`,
+  DESCRIPTION: `罪人用の遊戯パネルです。3時間・6時間・24時間から選んで遊戯VCを作成できます。\n\n**【VC作成】**\n・3時間：1,000${CURRENCY_NAMES}\n・6時間：3,000${CURRENCY_NAMES}\n・24時間：10,000${CURRENCY_NAMES}\n・遊戯チケットは24時間VCの作成時に1枚使用できます。\n\n**【VC接続権限】**\n・料金：5,000${CURRENCY_NAMES}\n・購入すると、24時間だけ他の遊戯VCへ接続できます。\n\n**・残高確認**：現在の${CURRENCY_NAMES}残高を確認できます。`,
   CREATE_VC: "VCを作成",
   PURCHASE_ACCESS: `接続権限を購入（5,000${CURRENCY_NAMES}）`,
   ERROR: "罪人用遊戯パネルチャンネルが見つからないか、無効な型です。",

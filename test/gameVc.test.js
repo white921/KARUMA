@@ -22,6 +22,8 @@ const {
   calculateGamePassExpireAt,
   calculateGameCriminalAccessExpireAt,
   getGameVcCreateActionType,
+  getGameVcPrice,
+  parseGameVcDuration,
   buildGameVcCreateConfirmationDescription,
   createGameVcPermissionOverwrites,
 } = require("../dist/service/game/gameVcService.js");
@@ -65,8 +67,19 @@ test("traveler or above and hotel manager can purchase a game pass", () => {
   assert.equal(canPurchaseGamePass(memberWithRoles([ROLE_IDS.HOTEL_LEADER])), true);
 });
 
-test("game VC and its ticket use a 24-hour duration", () => {
+test("game VC offers 3, 6, and 24 hours while its ticket remains 24 hours", () => {
   assert.equal(GAME_VC.DURATION_HOURS, 24);
+  assert.deepEqual(GAME_VC.PLANS.map(plan => [plan.durationHours, plan.price]), [
+    [3, 1000], [6, 3000], [24, null],
+  ]);
+  const traveler = { label: "旅人以上", price: 5000 };
+  const criminal = { label: "罪人", price: 10000 };
+  assert.equal(getGameVcPrice(traveler, 3), 1000);
+  assert.equal(getGameVcPrice(traveler, 6), 3000);
+  assert.equal(getGameVcPrice(traveler, 24), 5000);
+  assert.equal(getGameVcPrice(criminal, 24), 10000);
+  assert.equal(parseGameVcDuration("3"), 3);
+  assert.throws(() => parseGameVcDuration("12"), /無効な遊戯タイプ/);
 });
 
 test("criminal game panel provides VC creation, access purchase, and balance view", () => {
@@ -109,6 +122,14 @@ test("game VC confirmation omits the creator's role", () => {
   assert.doesNotMatch(description, /対象ロール|支配人/);
   assert.match(description, /利用時間：24時間/);
   assert.match(description, /料金：\*\*5,000LIA\*\*/);
+  assert.match(
+    buildGameVcCreateConfirmationDescription(
+      { label: "罪人", price: GAME_VC.PRICES.CRIMINAL },
+      false,
+      6,
+    ),
+    /利用時間：6時間\n料金：\*\*3,000LIA\*\*/,
+  );
 });
 
 test("game pass periods are two weeks and one calendar month", () => {

@@ -19,6 +19,7 @@ import { showSelectUserMenu } from "../../util/interaction/select";
 
 import { RouletteService } from "../../service/casino/rouletteService";
 import { HotelFreeTicketService } from "../../service/hotel/hotelFreeTicketService";
+import { GameVcService } from "../../service/game/gameVcService";
 import { CreatorEmblemPaymentService } from "../../service/market/creatorEmblemPaymentService";
 import { SuperchatService } from "../../service/market/superchatService";
 import { VcService } from "../../service/vc/vcService";
@@ -44,6 +45,10 @@ export async function handleStringSelectMenu(
     const customId = interaction.customId;
     if (customId === MEETING_SELECT_ID) {
       await MeetingVcService.create(interaction);
+      return;
+    }
+    if (customId === PANEL_COMMAND_NAMES.GAME_VC_DURATION_SELECT) {
+      await GameVcService.showCreateConfirmation(interaction);
       return;
     }
     if (customId.startsWith(HISTORY_FILTER_PREFIX)) {

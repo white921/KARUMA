@@ -454,17 +454,19 @@ client.on(
 
       const oldInHotel = oldChannel?.parentId === CATEGORY_IDS.HOTEL;
       const newInHotel = newChannel?.parentId === CATEGORY_IDS.HOTEL;
+      const oldInGame = oldChannel?.parentId === CATEGORY_IDS.GAME;
+      const newInGame = newChannel?.parentId === CATEGORY_IDS.GAME;
       const oldInTeleportVc = isTeleportCategory(oldChannel?.parentId ?? null);
       const newInTeleportVc = isTeleportCategory(newChannel?.parentId ?? null);
 
-      // ホテルカテゴリーの処理
-      if (oldInHotel || newInHotel) {
+      // ホテル・遊戯カテゴリーの空室処理
+      if (oldInHotel || newInHotel || oldInGame || newInGame) {
         if (oldChannel && oldChannel.type === ChannelType.GuildVoice) {
           const membersCount = getVcMembersCount(oldChannel);
 
           if (membersCount === 0) {
             const deleted = await HotelVcService.deleteEmptyBonusVcNow(oldChannel);
-            if (!deleted) {
+            if (!deleted && oldInHotel) {
               await HotelVcService.disconnectBotsFromEmptyPaidHotelVc(oldChannel);
             }
           }
