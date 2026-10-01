@@ -1,5 +1,7 @@
 import { RowDataPacket } from "mysql2";
 import dayjs from "dayjs";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
 import { Guild, ThreadChannel } from "discord.js";
 
 import { Action } from "../../type/currency/action";
@@ -10,6 +12,9 @@ import { DbService } from "../system/dbService";
 import { ACTION_TYPES } from "../../constant/currency/action";
 import { CURRENCY_NAMES } from "../../constant/currency/currency";
 import { THREAD_IDS } from "../../constant/shared/id";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 export const MONTHLY_GAME_SALES_CATEGORIES = [
   {

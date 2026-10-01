@@ -3,6 +3,7 @@ const assert = require("node:assert/strict");
 
 const { ACTION_TYPES } = require("../dist/constant/currency/action.js");
 const { THREAD_IDS } = require("../dist/constant/shared/id.js");
+const { DbService } = require("../dist/service/system/dbService.js");
 const {
   MONTHLY_GAME_SALES_CATEGORIES,
   SalesManagementService,
@@ -20,6 +21,26 @@ test("monthly game sales use the five current categories and destination", () =>
       "罪人用VC作成",
     ],
   );
+});
+
+test("monthly sales can calculate the previous Japan month without import side effects", async (t) => {
+  let queryParameters;
+  let released = false;
+  t.mock.method(DbService, "getConnection", async () => ({
+    async execute(_sql, parameters) {
+      queryParameters = parameters;
+      return [[]];
+    },
+    release() { released = true; },
+  }));
+
+  await SalesManagementService.getSalesDataLastMonth(ACTION_TYPES.GAME_VC_CREATE);
+
+  assert.equal(queryParameters[0], ACTION_TYPES.GAME_VC_CREATE);
+  assert.ok(queryParameters[1] instanceof Date);
+  assert.ok(queryParameters[2] instanceof Date);
+  assert.ok(queryParameters[1].getTime() < queryParameters[2].getTime());
+  assert.equal(released, true);
 });
 
 test("monthly game sales aggregate current and legacy one-month pass actions", async (t) => {
