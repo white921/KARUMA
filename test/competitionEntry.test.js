@@ -38,6 +38,12 @@ function roleHolder(team, gender = "male") {
   };
 }
 
+function modalInputs(modal) {
+  return modal.components.map((component) =>
+    component.component ?? component.components[0]
+  );
+}
+
 test("panel has the recommended title and exactly two entry buttons", () => {
   const payload = createCompetitionEntryPanelPayload();
   const embed = payload.embeds[0].toJSON();
@@ -151,9 +157,7 @@ test("schedule modal selects day 1 to 3 and saves overall notes", async (t) => {
     showModal: async (value) => { modal = value.toJSON(); },
   });
   assert.equal(modal.title, "日程・全体備考の回答");
-  const inputs = modal.components.map((component) =>
-    component.component ?? component.components[0]
-  );
+  const inputs = modalInputs(modal);
   assert.deepEqual(inputs.map((input) => input.custom_id), [
     COMPETITION_ENTRY_INPUT_IDS.DAY1,
     COMPETITION_ENTRY_INPUT_IDS.DAY2,
@@ -225,13 +229,21 @@ test("mahjong modal uses Jantama rank, name and player ID fields", async (t) => 
     showModal: async (value) => { modal = value.toJSON(); },
   });
   assert.equal(modal.title, "麻雀（雀魂）の回答");
-  const inputs = modal.components.map((row) => row.components[0]);
+  const inputs = modalInputs(modal);
   assert.deepEqual(inputs.map((input) => input.custom_id), [
     COMPETITION_ENTRY_INPUT_IDS.AVAILABILITY,
     COMPETITION_ENTRY_INPUT_IDS.RANK,
     COMPETITION_ENTRY_INPUT_IDS.GAME_NAME,
     COMPETITION_ENTRY_INPUT_IDS.GAME_ID,
     COMPETITION_ENTRY_INPUT_IDS.NOTES,
+  ]);
+  assert.equal(inputs[0].type, 3);
+  assert.equal(
+    inputs[0].options.find((option) => option.default)?.value,
+    "available",
+  );
+  assert.deepEqual(inputs[0].options.map((option) => option.label), [
+    "出場できる", "条件付き・要相談", "出場できない",
   ]);
   assert.equal(inputs[1].value, "雀傑2");
   assert.match(inputs[1].placeholder, /雀傑2/);
@@ -253,55 +265,55 @@ test("each discipline only asks for identifiers that the game actually uses", as
   };
   const expectedPlaceholders = {
     singing: [
-      "出場できる / 条件付き / 出場できない",
+      "出場可否を選択",
       "例：得意な音域、参加可能な時間帯",
     ],
     unite: [
-      "出場できる / 条件付き / 出場できない",
+      "出場可否を選択",
       "例：マスター（レート1400）",
       "例：UNITEで公開されている名前",
       "プロフィールに表示されるトレーナーID",
       "例：得意レーン、よく使うポケモン、参加可能時間",
     ],
     free: [
-      "出場できる / 条件付き / 出場できない",
+      "出場可否を選択",
       "例：スマブラ、クイズ企画",
       "例：PlayerName#1234、フレンドコード",
       "例：希望ルール、必要人数、参加可能時間",
     ],
     gf: [
-      "出場できる / 条件付き / 出場できない",
+      "出場可否を選択",
       "例：1500",
       "GFで使用する預言者の名前",
       "例：参加可能な時間帯",
     ],
     mahjong: [
-      "出場できる / 条件付き / 出場できない",
+      "出場可否を選択",
       "例：雀傑2、雀豪1",
       "雀魂で表示される名前",
       "プロフィールに表示される数字のプレイヤーID",
       "例：四麻／三麻、参加可能な時間帯",
     ],
     fall_guys: [
-      "出場できる / 条件付き / 出場できない",
+      "出場可否を選択",
       "例：Gold、Ace、Superstar",
       "PC・SwitchはEpic表示名、PS・Xboxは各ID",
       "例：PC、Switch、PlayStation、Xbox",
     ],
     valorant: [
-      "出場できる / 条件付き / 出場できない",
+      "出場可否を選択",
       "例：ゴールド2、ダイヤモンド1",
       "例：PlayerName#JP1",
       "例：メインロール、使用エージェント、参加可能時間",
     ],
     lol: [
-      "出場できる / 条件付き / 出場できない",
+      "出場可否を選択",
       "例：ゴールドIV、エメラルドII",
       "例：PlayerName#JP1",
       "例：TOP、JG、MID、ADC、SUP",
     ],
     minecraft: [
-      "出場できる / 条件付き / 出場できない",
+      "出場可否を選択",
       "Javaはプロフィール名、統合版はゲーマータグ",
       "例：Java版、統合版、どちらも参加可能",
     ],
@@ -316,12 +328,12 @@ test("each discipline only asks for identifiers that the game actually uses", as
       showModal: async (value) => { modal = value.toJSON(); },
     });
     assert.deepEqual(
-      modal.components.map((row) => row.components[0].custom_id),
+      modalInputs(modal).map((input) => input.custom_id),
       inputIds,
       discipline,
     );
     assert.deepEqual(
-      modal.components.map((row) => row.components[0].placeholder),
+      modalInputs(modal).map((input) => input.placeholder),
       expectedPlaceholders[discipline],
       `${discipline} placeholders`,
     );
@@ -345,14 +357,14 @@ test("singing modal omits category input and submission uses the gender role", a
     showModal: async (value) => { modal = value.toJSON(); },
   });
   assert.deepEqual(
-    modal.components.map((row) => row.components[0].custom_id),
+    modalInputs(modal).map((input) => input.custom_id),
     [COMPETITION_ENTRY_INPUT_IDS.AVAILABILITY, COMPETITION_ENTRY_INPUT_IDS.NOTES],
   );
 
   let saved;
   t.mock.method(CompetitionEntryStore, "upsert", async (entry) => { saved = entry; });
   const values = new Map([
-    [COMPETITION_ENTRY_INPUT_IDS.AVAILABILITY, " 出れる "],
+    [COMPETITION_ENTRY_INPUT_IDS.AVAILABILITY, "available"],
     [COMPETITION_ENTRY_INPUT_IDS.NOTES, "高音"],
   ]);
   const replies = [];
@@ -363,6 +375,7 @@ test("singing modal omits category input and submission uses the gender role", a
     fields: {
       fields: { has: (id) => values.has(id) },
       getTextInputValue: (id) => values.get(id),
+      getStringSelectValues: (id) => [values.get(id)],
     },
     deferReply: async (body) => replies.push(["defer", body]),
     editReply: async (body) => replies.push(["edit", body]),

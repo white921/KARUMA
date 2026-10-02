@@ -81,13 +81,13 @@ export function parseCompetitionAvailability(
 ): CompetitionAvailability {
   const value = rawValue.normalize("NFKC").trim().toLowerCase();
   const available = new Set([
-    "出場できる", "出れる", "出場可", "参加可能", "可能", "可", "○", "◯", "〇", "o",
+    "available", "出場できる", "出れる", "出場可", "参加可能", "可能", "可", "○", "◯", "〇", "o",
   ]);
   const conditional = new Set([
-    "条件付き", "条件付き・要相談", "要相談", "相談", "△",
+    "conditional", "条件付き", "条件付き・要相談", "要相談", "相談", "△",
   ]);
   const unavailable = new Set([
-    "出場できない", "出れない", "出場不可", "参加不可", "不可", "×", "✕", "✖", "x",
+    "unavailable", "出場できない", "出れない", "出場不可", "参加不可", "不可", "×", "✕", "✖", "x",
   ]);
 
   if (available.has(value)) return "available";
@@ -192,6 +192,37 @@ function scheduleSelect(
     );
   return new LabelBuilder()
     .setLabel(label)
+    .setStringSelectMenuComponent(select);
+}
+
+function competitionAvailabilitySelect(
+  selected?: CompetitionAvailability,
+): LabelBuilder {
+  const select = new StringSelectMenuBuilder()
+    .setCustomId(COMPETITION_ENTRY_INPUT_IDS.AVAILABILITY)
+    .setPlaceholder("出場可否を選択")
+    .setRequired(true)
+    .setMinValues(1)
+    .setMaxValues(1)
+    .addOptions(
+      {
+        label: "出場できる",
+        value: "available",
+        default: selected === "available",
+      },
+      {
+        label: "条件付き・要相談",
+        value: "conditional",
+        default: selected === "conditional",
+      },
+      {
+        label: "出場できない",
+        value: "unavailable",
+        default: selected === "unavailable",
+      },
+    );
+  return new LabelBuilder()
+    .setLabel("出場可否")
     .setStringSelectMenuComponent(select);
 }
 
@@ -430,18 +461,10 @@ export class CompetitionEntryService {
     if (disciplineKey === "singing") getSingingCategory(member);
     const existing = entries.find((entry) => entry.discipline === disciplineKey);
     const discipline = COMPETITION_DISCIPLINES[disciplineKey];
-    const rows: ActionRowBuilder<TextInputBuilder>[] = [
-      textInput(
-        COMPETITION_ENTRY_INPUT_IDS.AVAILABILITY,
-        "出場可否",
-        {
-          value: existing ? AVAILABILITY_LABELS[existing.availability] : undefined,
-          placeholder: "出場できる / 条件付き / 出場できない",
-          required: true,
-          maxLength: 20,
-        },
-      ),
-    ];
+    const availabilityField = competitionAvailabilitySelect(
+      existing?.availability,
+    );
+    const rows: ActionRowBuilder<TextInputBuilder>[] = [];
     if (discipline.rankLabel) {
       rows.push(
         textInput(COMPETITION_ENTRY_INPUT_IDS.RANK, discipline.rankLabel, {
@@ -483,7 +506,7 @@ export class CompetitionEntryService {
         ),
       );
     }
-    if (rows.length < 5) {
+    if (rows.length < 4) {
       rows.push(
         textInput(COMPETITION_ENTRY_INPUT_IDS.NOTES, discipline.notesLabel, {
           value: existing?.notes,
@@ -498,6 +521,7 @@ export class CompetitionEntryService {
       new ModalBuilder()
         .setCustomId(competitionEntryCustomId("modal", disciplineKey))
         .setTitle(`${discipline.label}の回答`)
+        .addLabelComponents(availabilityField)
         .addComponents(rows),
     );
   }
@@ -510,7 +534,9 @@ export class CompetitionEntryService {
     const discipline = parseDisciplineCustomId(interaction.customId, "modal");
     if (!interaction.guild) throw new Error("サーバー内でのみ回答できます。");
     const availability = parseCompetitionAvailability(
-      interaction.fields.getTextInputValue(COMPETITION_ENTRY_INPUT_IDS.AVAILABILITY),
+      interaction.fields.getStringSelectValues(
+        COMPETITION_ENTRY_INPUT_IDS.AVAILABILITY,
+      )[0] ?? "",
     );
     const submittedGameName = optionalField(
       interaction,
