@@ -30,6 +30,7 @@ export const HISTORY_FILTER_GROUPS: { label: string; types: string[]; hidden?: b
   { label: "遊戯の間", types: [A.GAME_SHORT, A.GAME_LONG, A.GAME_SHORT_EXTEND, A.GAME_PASS, A.GAME_VC_CREATE, A.GAME_CRIMINAL_VC_CREATE, A.GAME_CRIMINAL_ACCESS, A.GAME_PASS_TWO_WEEKS, A.GAME_PASS_ONE_MONTH, A.MINECRAFT_PASS] },
   { label: "辺境の狭間", types: [A.HAZAMA_ACCESS] },
   { label: "ルーレット", types: [A.ROULETTE_BET, A.ROULETTE_PAYOUT, A.ROULETTE_BONUS] },
+  { label: "LEVELIA Game", types: [A.HIGH_LOW_BET, A.HIGH_LOW_PAYOUT] },
 ];
 
 export interface HistoryFilters {
@@ -57,7 +58,7 @@ export function historyActionType(action: Action): string {
 }
 
 const transfers = new Set<string>([A.TRANSFER, A.CREATOR_EMBLEM_PAYMENT, A.SUPERCHAT, A.CAST_PAYMENT, A.CASINO_GF, A.CASINO_MAHJONG, A.CASINO_OTHER]);
-const credits = new Set<string>([A.TICKET_EXCHANGE, A.SALARY_PAYMENT, A.SERVER_BOOST_REWARD, A.VC_REWARD, A.ROLE_BASED_GRANT, A.ADMIN_MINT, A.OMIKUJI_DRAW, A.ROULETTE_PAYOUT, A.ROULETTE_BONUS]);
+const credits = new Set<string>([A.TICKET_EXCHANGE, A.SALARY_PAYMENT, A.SERVER_BOOST_REWARD, A.VC_REWARD, A.ROLE_BASED_GRANT, A.ADMIN_MINT, A.OMIKUJI_DRAW, A.ROULETTE_PAYOUT, A.ROULETTE_BONUS, A.HIGH_LOW_PAYOUT]);
 const knownTypes = new Set<string>(Object.values(A));
 
 /** Match the account actually changed, excluding grant/burn operators and system-only sides. */

@@ -48,6 +48,8 @@ const HISTORY_TITLE_BY_COMMAND_NAME = {
   [ROULETTE_ACTION_NAMES.BET]: "【ルーレット】ベット",
   [ROULETTE_ACTION_NAMES.PAYOUT]: "【ルーレット】配当",
   [ROULETTE_ACTION_NAMES.BONUS]: "【ルーレット】参加ボーナス",
+  [ACTION_TYPES.HIGH_LOW_BET]: "【LEVELIA Game】ハイ＆ロー賭け金",
+  [ACTION_TYPES.HIGH_LOW_PAYOUT]: "LEVELIA Gameからの送金",
 };
 
 export const HISTORY_TITLE_MAPPER: Record<string, string> = Object.fromEntries(

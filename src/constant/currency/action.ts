@@ -47,6 +47,8 @@ export const ACTION_TYPES = {
   ROULETTE_BET: "roulette_bet",
   ROULETTE_PAYOUT: "roulette_payout",
   ROULETTE_BONUS: "roulette_bonus",
+  HIGH_LOW_BET: "high_low_bet",
+  HIGH_LOW_PAYOUT: "high_low_payout",
 } as const;
 
 const ACTION_TYPE_BY_COMMAND_NAME: Record<string, string> = {

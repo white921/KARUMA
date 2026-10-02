@@ -78,7 +78,9 @@ export class HistoryService {
     if (!effect) return null;
     const titleText = HISTORY_TITLE_MAPPER[type] || "不明な取引";
     const sign = effect.delta > 0 ? "+" : effect.delta < 0 ? "-" : "";
-    let value = `<@${effect.counterparty}> ${effect.delta < 0 ? "へ" : "から"}\n${sign}${Math.abs(effect.delta).toLocaleString()}${CURRENCY_NAMES}　　　残高: ${effect.wallet.toLocaleString()}${CURRENCY_NAMES}`;
+    const isLeveliaGame = type === ACTION_TYPES.HIGH_LOW_BET || type === ACTION_TYPES.HIGH_LOW_PAYOUT;
+    const counterparty = isLeveliaGame ? "LEVELIA Game" : `<@${effect.counterparty}> `;
+    let value = `${counterparty}${effect.delta < 0 ? "へ" : "から"}\n${sign}${Math.abs(effect.delta).toLocaleString()}${CURRENCY_NAMES}　　　残高: ${effect.wallet.toLocaleString()}${CURRENCY_NAMES}`;
 
     if (action.comment) {
       if (type === ACTION_TYPES.DISPLAY_NAME_CHANGE) {

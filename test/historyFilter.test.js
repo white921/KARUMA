@@ -67,6 +67,23 @@ test('every known action has exactly one filter group and renders for its affect
   }
 });
 
+test('LEVELIA Game wagers and payouts render without pretending the Bot wallet moved', () => {
+  const bet = action(1, A.HIGH_LOW_BET, {
+    from_user_id: user, to_user_id: BOT_ID, from_after_wallet: 900, to_after_wallet: 5000,
+  });
+  const payout = action(2, A.HIGH_LOW_PAYOUT, {
+    from_user_id: BOT_ID, to_user_id: user, from_after_wallet: 5000, to_after_wallet: 2400, amount: 1500,
+  });
+  const betText = HistoryService.createHistoryString(bet, user);
+  const payoutText = HistoryService.createHistoryString(payout, user);
+  assert.match(betText, /LEVELIA Gameへ/);
+  assert.match(betText, /-100LIA/);
+  assert.match(payoutText, /LEVELIA Gameからの送金/);
+  assert.match(payoutText, /LEVELIA Gameから/);
+  assert.match(payoutText, /\+1,500LIA/);
+  assert.doesNotMatch(`${betText}${payoutText}`, new RegExp(`<@${BOT_ID}>`));
+});
+
 test('all filter state fits component IDs and survives roundtrip without a server session', () => {
   const selected = filters({ counterparty: other, groups: groups.map((_, index) => index), direction: 'expense' });
   for (const control of ['counterparty', 'groups', 'direction', 'page', 'reset']) {
@@ -211,5 +228,5 @@ test('merged transfer and adjustment groups preserve income/expense and old sele
     assert.ok(i.payload.embeds[0].data.description.includes(`種類：${label}`));
     assert.deepEqual(parseHistoryCustomId(components(i)[1].components[0].custom_id, user).filters.groups, [currentGroup]);
   }
-  assert.equal(groups.filter(group => !group.hidden).length, 15);
+  assert.equal(groups.filter(group => !group.hidden).length, 16);
 });
