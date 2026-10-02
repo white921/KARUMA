@@ -615,6 +615,7 @@ CREATE TABLE IF NOT EXISTS competition_entries (
   rank_name VARCHAR(64) DEFAULT NULL COMMENT 'ランク帯・雀魂段位・GFレーティング',
   rank_division VARCHAR(16) DEFAULT NULL COMMENT 'クラス・段階・ディビジョン等の数値',
   rank_details JSON DEFAULT NULL COMMENT 'ロール別など複数ランクの構造化情報',
+  game_details JSON DEFAULT NULL COMMENT '競技固有の複数選択などの構造化情報',
   game_name VARCHAR(64) DEFAULT NULL COMMENT 'ゲーム内ネームまたは競技固有情報',
   game_id VARCHAR(100) DEFAULT NULL COMMENT 'ゲーム内ID',
   notes VARCHAR(200) DEFAULT NULL COMMENT '備考',
