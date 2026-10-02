@@ -36,6 +36,9 @@ export const EVALUATION_REMINDER_LEVELS = [
   { key: "beginner", label: "見習い", forumId: EVALUATION_SHEET_FORUM_IDS[3], roleId: ROLE_IDS.EVALUATION_BUIGINNER },
 ] as const;
 
+// 1階級分の「ユーザー → 評価シート」一覧がDiscordの2000文字以内に収まる上限。
+export const EVALUATION_REMINDER_MAX_USERS_PER_PAGE = 40;
+
 const EVALUATION_REMINDER_FULL_ACCESS_ROLE_IDS = [
   ROLE_IDS.EVALUATION_LEADER,
   ROLE_IDS.EVALUATION_SUPPORT,
@@ -46,7 +49,7 @@ const EVALUATION_REMINDER_FULL_ACCESS_ROLE_IDS = [
 
 type CurrentSheet = { userId: string; forumId: string; threadId: string };
 type SheetThread = { id: string; parentId: string | null; name: string; createdTimestamp: number | null };
-export type ReminderTargets = { twoDays: string[]; oneDay: string[] };
+export type ReminderTargets = { twoDays: string[]; oneDay: string[]; today: string[] };
 type EvaluationLevelKey = typeof EVALUATION_REMINDER_LEVELS[number]["key"];
 export type ReminderSheetLinks = Record<string, Partial<Record<EvaluationLevelKey, string>>>;
 type ReminderPage = { content: string; users: string[]; roles: string[]; sheetLinks?: ReminderSheetLinks };
@@ -102,7 +105,7 @@ export function selectReminderTargets(
   date: string, sheets: CurrentSheet[], threads: Map<string, SheetThread>, travelers: Set<string>,
 ) {
   const today = dayjs.tz(date, TZ).startOf("day");
-  const targets: ReminderTargets = { twoDays: [], oneDay: [] };
+  const targets: ReminderTargets = { twoDays: [], oneDay: [], today: [] };
   const issues: { userId: string; reason: string }[] = [];
   const grouped = new Map<string, CurrentSheet[]>();
   for (const sheet of sheets) {
@@ -145,17 +148,19 @@ export function selectReminderTargets(
     }
     if (dates[0] === today.add(2, "day").format("MM/DD")) targets.twoDays.push(userId);
     else if (dates[0] === today.add(1, "day").format("MM/DD")) targets.oneDay.push(userId);
+    else if (dates[0] === today.format("MM/DD")) targets.today.push(userId);
   }
   targets.twoDays.sort();
   targets.oneDay.sort();
+  targets.today.sort();
   return { ...targets, issues };
 }
 
-/** 通常は1投稿。2000文字を超えた場合のみ見出しを付けて分割し、ロール通知は最初だけ。 */
+/** 評価シート一覧も2000文字以内に収まる人数で分割し、ロール通知は最初だけ。 */
 export function buildReminderPages(
   date: string, targets: ReminderTargets, sheetLinks: ReminderSheetLinks = {},
 ): ReminderPage[] {
-  if (!targets.twoDays.length && !targets.oneDay.length) return [];
+  if (!targets.twoDays.length && !targets.oneDay.length && !targets.today.length) return [];
   const label = `${dayjs.tz(date, TZ).format("M月D日")} 期限直前旅人一覧`;
   const notificationRoles = [ROLE_IDS.EVALUATION_JUDGE, ROLE_IDS.EVALUATION_SUPPORT];
   const pages: ReminderPage[] = [];
@@ -163,13 +168,18 @@ export function buildReminderPages(
     content: `${notificationRoles.map(roleId => `<@&${roleId}>`).join("\n")}\n${label}`,
     users: [], roles: notificationRoles,
   };
-  for (const [heading, users] of [["2日前", targets.twoDays], ["1日前", targets.oneDay]] as const) {
+  for (const [heading, users] of [
+    ["2日前", targets.twoDays],
+    ["1日前", targets.oneDay],
+    ["当日", targets.today],
+  ] as const) {
     const lines = users.length ? users : [null];
     for (let i = 0; i < lines.length; i++) {
       const userId = lines[i];
       const line = userId ? `<@${userId}>` : "該当者なし";
       const addition = `${i === 0 ? `\n\n${heading}` : ""}\n${line}`;
-      if (page.content.length + addition.length > 2000 || (userId && page.users.length >= 100)) {
+      if (page.content.length + addition.length > 2000 ||
+        (userId && page.users.length >= EVALUATION_REMINDER_MAX_USERS_PER_PAGE)) {
         pages.push(page);
         page = { content: `${label}（続き）\n\n${heading}\n${line}`, users: [], roles: [] };
       } else page.content += addition;
@@ -216,7 +226,7 @@ export class EvaluationDeadlineReminderService {
     } finally { connection.release(); }
     const threads = await this.fetchThreads(guild);
     const targets = selectReminderTargets(date, sheets, threads, travelers);
-    const selectedUserIds = new Set([...targets.twoDays, ...targets.oneDay]);
+    const selectedUserIds = new Set([...targets.twoDays, ...targets.oneDay, ...targets.today]);
     const sheetLinks: ReminderSheetLinks = {};
     for (const sheet of sheets) {
       if (!selectedUserIds.has(sheet.userId)) continue;

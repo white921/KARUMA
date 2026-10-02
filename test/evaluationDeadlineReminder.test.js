@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const { Collection, ChannelType, PermissionFlagsBits, PermissionsBitField } = require('discord.js');
 const {
   EvaluationDeadlineReminderService: service, EVALUATION_REMINDER_LEVELS,
+  EVALUATION_REMINDER_MAX_USERS_PER_PAGE,
   EVALUATION_REMINDER_LEVEL_PREFIX, EVALUATION_REMINDER_SHEETS_PREFIX,
   reminderDate, selectReminderTargets, buildReminderPages,
   buildSheetLinkResponsePages, hasEvaluationReminderFullAccess, visibleEvaluationLevels,
@@ -33,25 +34,32 @@ test('アーカイブ済みを含む4枚を1人にまとめ、同名の別ユー
   const a = sheetsFor('a', '09/24', { archived: true });
   const b = sheetsFor('b', '9/23');
   const result = selectReminderTargets('2026-09-22', [...a.sheets, ...b.sheets], new Map([...a.threads, ...b.threads]), new Set(['a', 'b']));
-  assert.deepEqual(result, { twoDays: ['a'], oneDay: ['b'], issues: [] });
+  assert.deepEqual(result, { twoDays: ['a'], oneDay: ['b'], today: [], issues: [] });
 });
 
 test('手動作成シートの全角チルダとゼロ埋めなし日付も同じ期限として判定する', () => {
   const a = sheetsFor('a', '09/24', { archived: true });
   a.threads.values().next().value.name = '名前～9/24';
   assert.deepEqual(selectReminderTargets('2026-09-22', a.sheets, a.threads, new Set(['a'])), {
-    twoDays: ['a'], oneDay: [], issues: [],
+    twoDays: ['a'], oneDay: [], today: [], issues: [],
   });
 });
 
-test('退会・旅人以外、当日・期限切れ・3日後は含めない', () => {
-  for (const deadline of ['09/21', '09/22', '09/25']) {
+test('当日を含め、退会・旅人以外、期限切れ・3日後は含めない', () => {
+  const today = sheetsFor('today', '09/22');
+  assert.deepEqual(selectReminderTargets(
+    '2026-09-22', today.sheets, today.threads, new Set(['today']),
+  ).today, ['today']);
+  for (const deadline of ['09/21', '09/25']) {
     const a = sheetsFor('a', deadline);
     assert.deepEqual(selectReminderTargets('2026-09-22', a.sheets, a.threads, new Set(['a'])).twoDays, []);
     assert.deepEqual(selectReminderTargets('2026-09-22', a.sheets, a.threads, new Set(['a'])).oneDay, []);
+    assert.deepEqual(selectReminderTargets('2026-09-22', a.sheets, a.threads, new Set(['a'])).today, []);
   }
   const a = sheetsFor('left', '09/24');
-  assert.deepEqual(selectReminderTargets('2026-09-22', a.sheets, a.threads, new Set()), { twoDays: [], oneDay: [], issues: [] });
+  assert.deepEqual(selectReminderTargets('2026-09-22', a.sheets, a.threads, new Set()), {
+    twoDays: [], oneDay: [], today: [], issues: [],
+  });
 });
 
 test('年越し・月末・うるう年の1日後と2日後を判定する', () => {
@@ -81,26 +89,58 @@ test('4枚の期限不一致・欠落・親フォーラム相違・古いシー�
     assert.equal(result.issues.length, 1);
     assert.deepEqual(result.twoDays, []);
     assert.deepEqual(result.oneDay, []);
+    assert.deepEqual(result.today, []);
   }
 });
 
-test('指定の本文・実メンション、片方0人・両方0人', () => {
-  assert.deepEqual(buildReminderPages('2026-09-22', { twoDays: ['111'], oneDay: ['222'] }), [{
-    content: `<@&${ROLE_IDS.EVALUATION_JUDGE}>\n<@&${ROLE_IDS.EVALUATION_SUPPORT}>\n9月22日 期限直前旅人一覧\n\n2日前\n<@111>\n\n1日前\n<@222>`,
+test('指定の本文・実メンション、一部0人・全区分0人', () => {
+  assert.deepEqual(buildReminderPages('2026-09-22', {
+    twoDays: ['111'], oneDay: ['222'], today: [],
+  }), [{
+    content: `<@&${ROLE_IDS.EVALUATION_JUDGE}>\n<@&${ROLE_IDS.EVALUATION_SUPPORT}>\n9月22日 期限直前旅人一覧\n\n2日前\n<@111>\n\n1日前\n<@222>\n\n当日\n該当者なし`,
     users: ['111', '222'], roles: [ROLE_IDS.EVALUATION_JUDGE, ROLE_IDS.EVALUATION_SUPPORT],
   }]);
-  assert.match(buildReminderPages('2026-09-22', { twoDays: [], oneDay: ['222'] })[0].content, /2日前\n該当者なし/);
-  assert.deepEqual(buildReminderPages('2026-09-22', { twoDays: [], oneDay: [] }), []);
+  assert.match(buildReminderPages('2026-09-22', {
+    twoDays: [], oneDay: ['222'], today: [],
+  })[0].content, /2日前\n該当者なし/);
+  assert.deepEqual(buildReminderPages('2026-09-22', {
+    twoDays: [], oneDay: [], today: [],
+  }), []);
 });
 
 test('2000文字を超えた場合も全員を1回だけ掲載し、ロール通知は1回だけ', () => {
   const users = Array.from({ length: 250 }, (_, i) => String(100000000000000000n + BigInt(i)));
-  const pages = buildReminderPages('2026-09-22', { twoDays: users.slice(0, 180), oneDay: users.slice(180) });
+  const pages = buildReminderPages('2026-09-22', {
+    twoDays: users.slice(0, 180), oneDay: users.slice(180), today: [],
+  });
   assert.ok(pages.length > 1);
-  assert.ok(pages.every(p => p.content.length <= 2000 && p.users.length <= 100));
+  assert.ok(pages.every(p => p.content.length <= 2000 &&
+    p.users.length <= EVALUATION_REMINDER_MAX_USERS_PER_PAGE));
   assert.deepEqual(pages.flatMap(p => p.users), users);
   assert.deepEqual(pages.flatMap(p => p.roles), [ROLE_IDS.EVALUATION_JUDGE, ROLE_IDS.EVALUATION_SUPPORT]);
-  assert.ok(pages.every(p => /[12]日前/.test(p.content)));
+  assert.ok(pages.every(p => /[12]日前|当日/.test(p.content)));
+});
+
+test('実運用相当の70人を40人と30人に分け、各ボタンの1階級分を1投稿に収める', () => {
+  const users = Array.from({ length: 70 }, (_, i) => String(1000000000000000000n + BigInt(i)));
+  const targets = {
+    twoDays: users.slice(0, 25), oneDay: users.slice(25, 51), today: users.slice(51),
+  };
+  const sheetLinks = Object.fromEntries(users.map((userId, i) => [userId, {
+    upper: String(2000000000000000000n + BigInt(i)),
+  }]));
+  const pages = buildReminderPages('2026-10-02', targets, sheetLinks);
+  assert.deepEqual(pages.map(page => page.users.length), [40, 30]);
+  assert.deepEqual(pages.flatMap(page => page.users), users);
+  assert.match(pages[0].content, /2日前/);
+  assert.match(pages[0].content, /1日前/);
+  assert.match(pages[1].content, /1日前/);
+  assert.match(pages[1].content, /当日/);
+  for (const page of pages) {
+    const responses = buildSheetLinkResponsePages(page, [EVALUATION_REMINDER_LEVELS[0]]);
+    assert.equal(responses.length, 1);
+    assert.ok(responses[0].length <= 2000);
+  }
 });
 
 test('通知本文を長くせず、各ユーザーの4階級スレッドを非表示データとして保持する', () => {
@@ -108,7 +148,9 @@ test('通知本文を長くせず、各ユーザーの4階級スレッドを非�
     '111': { upper: 'u1', middle: 'm1', lower: 'l1', beginner: 'b1' },
     '222': { upper: 'u2', middle: 'm2', lower: 'l2', beginner: 'b2' },
   };
-  const pages = buildReminderPages('2026-09-22', { twoDays: ['111'], oneDay: ['222'] }, links);
+  const pages = buildReminderPages('2026-09-22', {
+    twoDays: ['111'], oneDay: ['222'], today: [],
+  }, links);
   assert.doesNotMatch(pages[0].content, /<#/);
   assert.deepEqual(pages[0].sheetLinks, links);
 });
@@ -242,7 +284,11 @@ function deliveryFixture(t, { row = null, previousRow = null, failSaveOnce = fal
     },
   };
   const destination = t.mock.method(service, 'getDestination', async () => channel);
-  const preview = t.mock.method(service, 'preview', async () => ({ issues: [], pages: pages ?? buildReminderPages('2026-09-22', { twoDays: ['111'], oneDay: ['222'] }) }));
+  const preview = t.mock.method(service, 'preview', async () => ({
+    issues: [], pages: pages ?? buildReminderPages('2026-09-22', {
+      twoDays: ['111'], oneDay: ['222'], today: [],
+    }),
+  }));
   return { run: () => service.run({}, new Date('2026-09-22T14:00:00Z')), state: () => ({ stored, released, unlocked, sends }), published, destination, preview };
 }
 

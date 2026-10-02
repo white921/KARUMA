@@ -46,7 +46,9 @@ test('評価期限通知 MySQL統合: 排他・再起動・送信後DB失敗・�
   t.mock.method(service, 'preview', async () => {
     previews++;
     await new Promise(resolve => setTimeout(resolve, 30));
-    return { issues: [], pages: buildReminderPages('2026-09-22', { twoDays: ['111'], oneDay: ['222'] }) };
+    return { issues: [], pages: buildReminderPages('2026-09-22', {
+      twoDays: ['111'], oneDay: ['222'], today: [],
+    }) };
   });
   const run = () => service.run({}, new Date('2026-09-22T14:00:00Z'));
   const first = await Promise.allSettled([run(), run()]);
