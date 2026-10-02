@@ -3,7 +3,6 @@ const assert = require('node:assert/strict');
 const { Collection, ChannelType, PermissionFlagsBits, PermissionsBitField } = require('discord.js');
 const {
   EvaluationDeadlineReminderService: service, EVALUATION_REMINDER_LEVELS,
-  EVALUATION_REMINDER_MAX_USERS_PER_PAGE,
   EVALUATION_REMINDER_LEVEL_PREFIX, EVALUATION_REMINDER_SHEETS_PREFIX,
   reminderDate, selectReminderTargets, buildReminderPages,
   buildSheetLinkResponsePages, hasEvaluationReminderFullAccess, visibleEvaluationLevels,
@@ -114,33 +113,32 @@ test('2000文字を超えた場合も全員を1回だけ掲載し、ロール通
     twoDays: users.slice(0, 180), oneDay: users.slice(180), today: [],
   });
   assert.ok(pages.length > 1);
-  assert.ok(pages.every(p => p.content.length <= 2000 &&
-    p.users.length <= EVALUATION_REMINDER_MAX_USERS_PER_PAGE));
+  assert.ok(pages.every(p => p.content.length <= 2000 && p.users.length <= 100));
   assert.deepEqual(pages.flatMap(p => p.users), users);
   assert.deepEqual(pages.flatMap(p => p.roles), [ROLE_IDS.EVALUATION_JUDGE, ROLE_IDS.EVALUATION_SUPPORT]);
   assert.ok(pages.every(p => /[12]日前|当日/.test(p.content)));
 });
 
-test('実運用相当の70人を40人と30人に分け、各ボタンの1階級分を1投稿に収める', () => {
-  const users = Array.from({ length: 70 }, (_, i) => String(1000000000000000000n + BigInt(i)));
+test('期限前45人と当日13人を分け、長い評価シート表示は安全に分割する', () => {
+  const users = Array.from({ length: 58 }, (_, i) => String(1000000000000000000n + BigInt(i)));
   const targets = {
-    twoDays: users.slice(0, 25), oneDay: users.slice(25, 51), today: users.slice(51),
+    twoDays: users.slice(0, 26), oneDay: users.slice(26, 45), today: users.slice(45),
   };
   const sheetLinks = Object.fromEntries(users.map((userId, i) => [userId, {
     upper: String(2000000000000000000n + BigInt(i)),
   }]));
   const pages = buildReminderPages('2026-10-02', targets, sheetLinks);
-  assert.deepEqual(pages.map(page => page.users.length), [40, 30]);
+  assert.deepEqual(pages.map(page => page.users.length), [45, 13]);
   assert.deepEqual(pages.flatMap(page => page.users), users);
   assert.match(pages[0].content, /2日前/);
   assert.match(pages[0].content, /1日前/);
-  assert.match(pages[1].content, /1日前/);
+  assert.doesNotMatch(pages[0].content, /当日/);
+  assert.doesNotMatch(pages[1].content, /[12]日前/);
   assert.match(pages[1].content, /当日/);
-  for (const page of pages) {
-    const responses = buildSheetLinkResponsePages(page, [EVALUATION_REMINDER_LEVELS[0]]);
-    assert.equal(responses.length, 1);
-    assert.ok(responses[0].length <= 2000);
-  }
+  const responses = pages.map(page =>
+    buildSheetLinkResponsePages(page, [EVALUATION_REMINDER_LEVELS[0]]));
+  assert.deepEqual(responses.map(result => result.length), [2, 1]);
+  assert.ok(responses.flat().every(content => content.length <= 2000));
 });
 
 test('通知本文を長くせず、各ユーザーの4階級スレッドを非表示データとして保持する', () => {
