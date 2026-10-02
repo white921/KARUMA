@@ -48,7 +48,7 @@ const EVALUATION_REMINDER_FULL_ACCESS_ROLE_IDS = [
 
 type CurrentSheet = { userId: string; forumId: string; threadId: string };
 type SheetThread = { id: string; parentId: string | null; name: string; createdTimestamp: number | null };
-export type ReminderTargets = { twoDays: string[]; oneDay: string[]; today: string[] };
+export type ReminderTargets = { oneDay: string[]; today: string[] };
 type EvaluationLevelKey = typeof EVALUATION_REMINDER_LEVELS[number]["key"];
 export type ReminderSheetLinks = Record<string, Partial<Record<EvaluationLevelKey, string>>>;
 type ReminderPage = { content: string; users: string[]; roles: string[]; sheetLinks?: ReminderSheetLinks };
@@ -104,7 +104,7 @@ export function selectReminderTargets(
   date: string, sheets: CurrentSheet[], threads: Map<string, SheetThread>, travelers: Set<string>,
 ) {
   const today = dayjs.tz(date, TZ).startOf("day");
-  const targets: ReminderTargets = { twoDays: [], oneDay: [], today: [] };
+  const targets: ReminderTargets = { oneDay: [], today: [] };
   const issues: { userId: string; reason: string }[] = [];
   const grouped = new Map<string, CurrentSheet[]>();
   for (const sheet of sheets) {
@@ -145,11 +145,9 @@ export function selectReminderTargets(
       issues.push({ userId, reason: issue ?? `4フォーラムで期限が一致しません: ${dates.join(", ")}` });
       continue;
     }
-    if (dates[0] === today.add(2, "day").format("MM/DD")) targets.twoDays.push(userId);
-    else if (dates[0] === today.add(1, "day").format("MM/DD")) targets.oneDay.push(userId);
+    if (dates[0] === today.add(1, "day").format("MM/DD")) targets.oneDay.push(userId);
     else if (dates[0] === today.format("MM/DD")) targets.today.push(userId);
   }
-  targets.twoDays.sort();
   targets.oneDay.sort();
   targets.today.sort();
   return { ...targets, issues };
@@ -159,7 +157,7 @@ export function selectReminderTargets(
 export function buildReminderPages(
   date: string, targets: ReminderTargets, sheetLinks: ReminderSheetLinks = {},
 ): ReminderPage[] {
-  if (!targets.twoDays.length && !targets.oneDay.length && !targets.today.length) return [];
+  if (!targets.oneDay.length && !targets.today.length) return [];
   const label = `${dayjs.tz(date, TZ).format("M月D日")} 期限直前旅人一覧`;
   const notificationRoles = [ROLE_IDS.EVALUATION_JUDGE, ROLE_IDS.EVALUATION_SUPPORT];
   const pages: ReminderPage[] = [];
@@ -168,7 +166,6 @@ export function buildReminderPages(
     users: [], roles: notificationRoles,
   };
   for (const [heading, users] of [
-    ["2日前", targets.twoDays],
     ["1日前", targets.oneDay],
     ["当日", targets.today],
   ] as const) {
@@ -230,7 +227,7 @@ export class EvaluationDeadlineReminderService {
     } finally { connection.release(); }
     const threads = await this.fetchThreads(guild);
     const targets = selectReminderTargets(date, sheets, threads, travelers);
-    const selectedUserIds = new Set([...targets.twoDays, ...targets.oneDay, ...targets.today]);
+    const selectedUserIds = new Set([...targets.oneDay, ...targets.today]);
     const sheetLinks: ReminderSheetLinks = {};
     for (const sheet of sheets) {
       if (!selectedUserIds.has(sheet.userId)) continue;
