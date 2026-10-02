@@ -1,6 +1,4 @@
 import { MeetingPanelService } from "./vc/meetingPanelService";
-import { TeamAssignmentPanelService } from "./member/teamAssignmentPanelService";
-import { CompetitionEntryPanelService } from "./member/competitionEntryPanelService";
 import { CastPaymentPanelService } from "./cast/castPaymentPanelService";
 import { GachaCoinPanelService } from "./market/gachaCoinPanelService";
 import { TicketExchangePanelService } from "./inventory/ticketExchangePanelService";
@@ -58,12 +56,6 @@ async function installTargetPanel(
   target: PanelInstallTarget,
 ): Promise<void> {
   switch (target) {
-    case PANEL_INSTALL_TARGETS.TEAM_ASSIGNMENT:
-      await TeamAssignmentPanelService.createPanel(client);
-      return;
-    case PANEL_INSTALL_TARGETS.COMPETITION_ENTRY:
-      await CompetitionEntryPanelService.createPanel(client);
-      return;
     case PANEL_INSTALL_TARGETS.MEETING:
       await MeetingPanelService.createPanel(client);
       return;

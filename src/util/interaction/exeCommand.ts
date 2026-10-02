@@ -31,7 +31,6 @@ import { execute as vc } from "../../command/vc/vc";
 import { execute as vcClean } from "../../command/vc/vcClean";
 import { execute as balanceStatistics } from "../../command/currency/balanceStatistics";
 import { execute as ticketGrant } from "../../command/market/ticketGrant";
-import { execute as competitionEntryExport } from "../../command/member/competitionEntryExport";
 
 import { COMMAND_MESSAGES, COMMAND_NAMES, DISABLED_COMMAND_NAMES } from "../../constant/shared/command";
 
@@ -135,9 +134,6 @@ export async function exeCommand(
         break;
       case COMMAND_NAMES.TICKET_GRANT:
         await ticketGrant(interaction);
-        break;
-      case COMMAND_NAMES.COMPETITION_ENTRY_EXPORT:
-        await competitionEntryExport(interaction);
         break;
       default:
         throw new Error(COMMAND_MESSAGES.UNKNOWN_COMMAND);

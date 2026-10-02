@@ -9,14 +9,11 @@ import { PRIVATE_HOTEL_PREFIX } from "../../constant/hotel/privateHotel";
 import { CREATOR_EMBLEM_CANCEL_ID, CREATOR_EMBLEM_CONFIRM_PREFIX } from "../../constant/market/creatorEmblem";
 import { PANEL_COMMAND_NAMES } from "../../constant/shared/command";
 import { PAYMENT_CONFIRMATION_PREFIX } from "../../constant/currency/paymentConfirmation";
-import { TEAM_ASSIGNMENT_PREFIX } from "../../constant/member/teamAssignment";
 
 /** ボタンが付いているメッセージを更新して応答するかどうかを判定する。 */
 export function shouldDeferButtonUpdate(customId: string): boolean {
   return (
     customId.startsWith("diaryRebuild:") ||
-    customId.startsWith(`${TEAM_ASSIGNMENT_PREFIX}:confirm:`) ||
-    customId.startsWith(`${TEAM_ASSIGNMENT_PREFIX}:cancel:`) ||
     customId.startsWith(`${MARKET_GACHA_CONFIRMATION_PREFIX}:`) ||
     customId.startsWith(`${NORMAL_HOTEL_CONFIRMATION_PREFIX}:`) ||
     customId.startsWith(`${PANEL_COMMAND_NAMES.HAZAMA_CONFIRM}:`) ||
