@@ -609,7 +609,7 @@ CREATE TABLE IF NOT EXISTS ticket_grants (
 CREATE TABLE IF NOT EXISTS competition_entries (
   user_id BIGINT NOT NULL COMMENT '回答者のDiscordユーザーID',
   display_name VARCHAR(64) NOT NULL COMMENT '回答時点のサーバー表示名',
-  team_key ENUM('red', 'blue') NOT NULL COMMENT '回答者の所属チーム',
+  team_key ENUM('red', 'blue', 'management') NOT NULL COMMENT '回答者の所属チームまたは運営確認',
   discipline VARCHAR(32) NOT NULL COMMENT '競技識別子',
   availability ENUM('available', 'conditional', 'unavailable') NOT NULL COMMENT '出場可否',
   rank_name VARCHAR(64) DEFAULT NULL COMMENT 'ランク帯・雀魂段位・GFレーティング',
@@ -631,7 +631,7 @@ COMMENT='双璧戦の競技別出場アンケート回答';
 CREATE TABLE IF NOT EXISTS competition_entry_profiles (
   user_id BIGINT NOT NULL COMMENT '回答者のDiscordユーザーID',
   display_name VARCHAR(64) NOT NULL COMMENT '回答時点のサーバー表示名',
-  team_key ENUM('red', 'blue') NOT NULL COMMENT '回答者の所属チーム',
+  team_key ENUM('red', 'blue', 'management') NOT NULL COMMENT '回答者の所属チームまたは運営確認',
   day1_availability ENUM('available', 'conditional', 'unavailable') NOT NULL COMMENT '1日目の参加可否',
   day2_availability ENUM('available', 'conditional', 'unavailable') NOT NULL COMMENT '2日目の参加可否',
   day3_availability ENUM('available', 'conditional', 'unavailable') NOT NULL COMMENT '3日目の参加可否',
