@@ -440,6 +440,30 @@ test("Overwatch stores independent tank, damage and support ranks", async (t) =>
   });
 });
 
+test("Overwatch button opens a four-part editor before showing any modal", async (t) => {
+  t.mock.method(CompetitionEntryStore, "findByUser", async () => []);
+  let reply;
+  let modalOpened = false;
+  await CompetitionEntryService.handleButton({
+    customId: competitionEntryCustomId("edit", "ow"),
+    user: { id: "user" },
+    guild: { members: { fetch: async () => roleHolder("red") } },
+    reply: async (body) => { reply = body; },
+    showModal: async () => { modalOpened = true; },
+  });
+  assert.equal(modalOpened, false);
+  assert.match(reply.content, /Overwatchの回答・編集/);
+  const buttons = reply.components[0].toJSON().components;
+  assert.deepEqual(buttons.map((button) => button.label), [
+    "基本情報",
+    "タンクのランク",
+    "ダメージのランク",
+    "サポートのランク",
+  ]);
+  assert.equal(buttons[0].disabled ?? false, false);
+  assert.deepEqual(buttons.slice(1).map((button) => button.disabled), [true, true, true]);
+});
+
 test("singing modal omits category input and submission uses the gender role", async (t) => {
   t.mock.method(CompetitionEntryStore, "findByUser", async () => []);
   let modal;

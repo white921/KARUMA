@@ -293,17 +293,23 @@ function overwatchRankTierSelect(
     .setStringSelectMenuComponent(select);
 }
 
-function overwatchRoleButtons(
+function overwatchEditorButtons(
   entry?: CompetitionEntry,
 ): ActionRowBuilder<ButtonBuilder> {
+  const basic = new ButtonBuilder()
+    .setCustomId(COMPETITION_ENTRY_ACTIONS.OW_BASIC_EDIT)
+    .setLabel(`${entry ? "✓ " : ""}基本情報`)
+    .setStyle(entry ? ButtonStyle.Success : ButtonStyle.Primary);
   return new ActionRowBuilder<ButtonBuilder>().addComponents(
-    (Object.entries(OVERWATCH_ROLES) as Array<[OverwatchRoleKey, string]>).map(
+    basic,
+    ...(Object.entries(OVERWATCH_ROLES) as Array<[OverwatchRoleKey, string]>).map(
       ([role, label]) => {
         const answered = Boolean(entry?.rankDetails?.[role]?.tier);
         return new ButtonBuilder()
           .setCustomId(competitionOwRoleCustomId("edit", role))
           .setLabel(`${answered ? "✓ " : ""}${label}のランク`)
-          .setStyle(answered ? ButtonStyle.Success : ButtonStyle.Secondary);
+          .setStyle(answered ? ButtonStyle.Success : ButtonStyle.Secondary)
+          .setDisabled(!entry);
       },
     ),
   );
@@ -546,6 +552,7 @@ export class CompetitionEntryService {
   static isModalOpeningButton(customId: string): boolean {
     return (
       customId.startsWith(`${COMPETITION_ENTRY_PREFIX}:edit:`) ||
+      customId === COMPETITION_ENTRY_ACTIONS.OW_BASIC_EDIT ||
       customId.startsWith(`${COMPETITION_ENTRY_ACTIONS.OW_ROLE_EDIT_PREFIX}:`) ||
       customId === COMPETITION_ENTRY_ACTIONS.SCHEDULE_EDIT
     );
@@ -562,6 +569,14 @@ export class CompetitionEntryService {
     }
     if (interaction.customId === COMPETITION_ENTRY_ACTIONS.SCHEDULE_EDIT) {
       await this.showScheduleModal(interaction);
+      return;
+    }
+    if (interaction.customId === competitionEntryCustomId("edit", "ow")) {
+      await this.showOverwatchEditor(interaction);
+      return;
+    }
+    if (interaction.customId === COMPETITION_ENTRY_ACTIONS.OW_BASIC_EDIT) {
+      await this.showDisciplineModalForKey(interaction, "ow");
       return;
     }
     if (interaction.customId.startsWith(`${COMPETITION_ENTRY_ACTIONS.OW_ROLE_EDIT_PREFIX}:`)) {
@@ -656,6 +671,13 @@ export class CompetitionEntryService {
     interaction: ButtonInteraction,
   ): Promise<void> {
     const disciplineKey = parseDisciplineCustomId(interaction.customId, "edit");
+    await this.showDisciplineModalForKey(interaction, disciplineKey);
+  }
+
+  static async showDisciplineModalForKey(
+    interaction: ButtonInteraction,
+    disciplineKey: CompetitionDisciplineKey,
+  ): Promise<void> {
     if (!interaction.guild) throw new Error("サーバー内でのみ回答できます。");
     const [member, entries] = await Promise.all([
       interaction.guild.members.fetch(interaction.user.id),
@@ -739,6 +761,26 @@ export class CompetitionEntryService {
     );
   }
 
+  static async showOverwatchEditor(
+    interaction: ButtonInteraction,
+  ): Promise<void> {
+    if (!interaction.guild) throw new Error("サーバー内でのみ回答できます。");
+    const [member, entries] = await Promise.all([
+      interaction.guild.members.fetch(interaction.user.id),
+      CompetitionEntryStore.findByUser(interaction.user.id),
+    ]);
+    getTeam(member);
+    const existing = entries.find((entry) => entry.discipline === "ow");
+    await interaction.reply({
+      content:
+        "**Overwatchの回答・編集**\n" +
+        "最初に「基本情報」で出場可否とBattleTagを保存してください。\n" +
+        "その後、タンク・ダメージ・サポートのランクを個別に回答できます。",
+      components: [overwatchEditorButtons(existing)],
+      flags: MessageFlags.Ephemeral,
+    });
+  }
+
   static async showOverwatchRoleModal(
     interaction: ButtonInteraction,
   ): Promise<void> {
@@ -751,7 +793,7 @@ export class CompetitionEntryService {
     getTeam(member);
     const existing = entries.find((entry) => entry.discipline === "ow");
     if (!existing) {
-      throw new Error("先にOverwatch 2の出場可否とBattleTagを保存してください。");
+      throw new Error("先にOverwatchの出場可否とBattleTagを保存してください。");
     }
     const rank = existing.rankDetails?.[role];
     await interaction.showModal(
@@ -823,7 +865,7 @@ export class CompetitionEntryService {
         : existing?.notes ?? "",
     };
     await CompetitionEntryStore.upsert(entry);
-    const components = discipline === "ow" ? [overwatchRoleButtons(entry)] : [];
+    const components = discipline === "ow" ? [overwatchEditorButtons(entry)] : [];
     await interaction.editReply({
       content:
         `✅ **${COMPETITION_DISCIPLINES[discipline].label}**の回答を保存しました。\n` +
@@ -853,7 +895,7 @@ export class CompetitionEntryService {
     ]);
     const existing = entries.find((entry) => entry.discipline === "ow");
     if (!existing) {
-      throw new Error("先にOverwatch 2の出場可否とBattleTagを保存してください。");
+      throw new Error("先にOverwatchの出場可否とBattleTagを保存してください。");
     }
     const rankDetails = { ...(existing.rankDetails ?? {}) };
     if (tier) rankDetails[role] = { tier, division };
@@ -869,7 +911,7 @@ export class CompetitionEntryService {
       content: tier
         ? `✅ OWの${OVERWATCH_ROLES[role]}ランクを **${tier} ${division}** で保存しました。`
         : `✅ OWの${OVERWATCH_ROLES[role]}ランクを未回答に戻しました。`,
-      components: [overwatchRoleButtons(entry)],
+      components: [overwatchEditorButtons(entry)],
     });
   }
 

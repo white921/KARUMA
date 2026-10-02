@@ -11,6 +11,7 @@ export const COMPETITION_ENTRY_ACTIONS = {
   REVIEW: `${COMPETITION_ENTRY_PREFIX}:review`,
   SCHEDULE_EDIT: `${COMPETITION_ENTRY_PREFIX}:schedule:edit`,
   SCHEDULE_MODAL: `${COMPETITION_ENTRY_PREFIX}:schedule:modal`,
+  OW_BASIC_EDIT: `${COMPETITION_ENTRY_PREFIX}:ow-basic:edit`,
   OW_ROLE_EDIT_PREFIX: `${COMPETITION_ENTRY_PREFIX}:ow-role:edit`,
   OW_ROLE_MODAL_PREFIX: `${COMPETITION_ENTRY_PREFIX}:ow-role:modal`,
   EDIT: "edit",
@@ -93,7 +94,7 @@ export const COMPETITION_DISCIPLINES = {
     notesPlaceholder: "例：メインロール、使用エージェント、参加可能時間",
   },
   ow: {
-    label: "Overwatch 2",
+    label: "Overwatch",
     rankLabel: null,
     gameNameLabel: "BattleTag",
     gameNamePlaceholder: "例：PlayerName#12345",
