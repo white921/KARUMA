@@ -151,6 +151,61 @@ test("each discipline only asks for identifiers that the game actually uses", as
     lol: ["availability", "rank_name", "game_name", "notes"],
     minecraft: ["availability", "game_name", "notes"],
   };
+  const expectedPlaceholders = {
+    singing: [
+      "出場できる / 条件付き / 出場できない",
+      "例：得意な音域、参加可能な時間帯",
+    ],
+    unite: [
+      "出場できる / 条件付き / 出場できない",
+      "例：マスター（レート1400）",
+      "例：UNITEで公開されている名前",
+      "プロフィールに表示されるトレーナーID",
+      "例：得意レーン、よく使うポケモン、参加可能時間",
+    ],
+    free: [
+      "出場できる / 条件付き / 出場できない",
+      "例：スマブラ、クイズ企画",
+      "例：PlayerName#1234、フレンドコード",
+      "例：希望ルール、必要人数、参加可能時間",
+    ],
+    gf: [
+      "出場できる / 条件付き / 出場できない",
+      "例：1500",
+      "GFで使用する預言者の名前",
+      "例：参加可能な時間帯",
+    ],
+    mahjong: [
+      "出場できる / 条件付き / 出場できない",
+      "例：雀傑2、雀豪1",
+      "雀魂で表示される名前",
+      "プロフィールに表示される数字のプレイヤーID",
+      "例：四麻／三麻、参加可能な時間帯",
+    ],
+    fall_guys: [
+      "出場できる / 条件付き / 出場できない",
+      "例：Gold、Ace、Superstar",
+      "PC・SwitchはEpic表示名、PS・Xboxは各ID",
+      "例：PC、Switch、PlayStation、Xbox",
+    ],
+    valorant: [
+      "出場できる / 条件付き / 出場できない",
+      "例：ゴールド2、ダイヤモンド1",
+      "例：PlayerName#JP1",
+      "例：メインロール、使用エージェント、参加可能時間",
+    ],
+    lol: [
+      "出場できる / 条件付き / 出場できない",
+      "例：ゴールドIV、エメラルドII",
+      "例：PlayerName#JP1",
+      "例：TOP、JG、MID、ADC、SUP",
+    ],
+    minecraft: [
+      "出場できる / 条件付き / 出場できない",
+      "Javaはプロフィール名、統合版はゲーマータグ",
+      "例：Java版、統合版、どちらも参加可能",
+    ],
+  };
 
   for (const [discipline, inputIds] of Object.entries(expected)) {
     let modal;
@@ -164,6 +219,11 @@ test("each discipline only asks for identifiers that the game actually uses", as
       modal.components.map((row) => row.components[0].custom_id),
       inputIds,
       discipline,
+    );
+    assert.deepEqual(
+      modal.components.map((row) => row.components[0].placeholder),
+      expectedPlaceholders[discipline],
+      `${discipline} placeholders`,
     );
   }
 

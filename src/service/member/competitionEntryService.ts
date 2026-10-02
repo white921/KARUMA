@@ -296,7 +296,7 @@ export class CompetitionEntryService {
           placeholder:
             "rankPlaceholder" in discipline
               ? discipline.rankPlaceholder
-              : "例：ゴールド、マスター",
+              : undefined,
           maxLength: 64,
         }),
       );
@@ -319,7 +319,14 @@ export class CompetitionEntryService {
         textInput(
           COMPETITION_ENTRY_INPUT_IDS.GAME_ID,
           discipline.gameIdLabel,
-          { value: existing?.gameId, maxLength: 100 },
+          {
+            value: existing?.gameId,
+            placeholder:
+              "gameIdPlaceholder" in discipline
+                ? discipline.gameIdPlaceholder
+                : undefined,
+            maxLength: 100,
+          },
         ),
       );
     }
@@ -327,6 +334,7 @@ export class CompetitionEntryService {
       rows.push(
         textInput(COMPETITION_ENTRY_INPUT_IDS.NOTES, discipline.notesLabel, {
           value: existing?.notes,
+          placeholder: discipline.notesPlaceholder,
           maxLength: 200,
           style: TextInputStyle.Paragraph,
         }),
