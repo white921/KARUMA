@@ -4,7 +4,7 @@
 
 パネル設置は Bot 起動時の自動投稿ではなく、対応チャンネルで `/panel` を実行する運用です。
 
-双璧戦の競技エントリーパネルは、1日目・2日目・3日目の参加可否（◯・△・✕）と全体備考、各競技の出場可否、そのタイトルで実際に使うランク・公開名・共有用IDだけを回答・編集できます。ランク制の競技はランク帯（ティア）を選択し、クラス・段階・ディビジョン等の数字を別欄へ入力します。Overwatchは出場可否だけで基本情報を保存でき、BattleTagやタンク・ダメージ・サポートのランクは後から個別に追記できます。Minecraftは担当できる役割を複数選択し、アピールポイントを自由記述できます。歌の♂・♀区分はDiscordロールから自動取得します。回答には紅組または蒼組のチームロールが必要です。大将・副大将は `/対抗戦回答出力` で自チーム分だけをGoogleスプレッドシート取込用CSVとして取得できます。既存DBには `src/sql/20261002_competition_entries.sql`、`src/sql/20261002_competition_entry_profiles.sql`、`src/sql/20261002_competition_entry_rank_divisions.sql`、`src/sql/20261002_competition_entry_rank_details.sql`、`src/sql/20261002_competition_entry_game_details.sql` を順に適用してください。
+双璧戦の競技エントリーパネルは、1日目・2日目・3日目の参加可否（◯・△・✕）と全体備考、各競技の出場可否、そのタイトルで実際に使うランク・公開名・共有用IDだけを回答・編集できます。ランク制の競技はランク帯（ティア）を選択し、クラス・段階・ディビジョン等の数字を別欄へ入力します。Overwatchは出場可否だけで基本情報を保存でき、BattleTagやタンク・ダメージ・サポートのランクは後から個別に追記できます。Minecraftは担当できる役割を複数選択し、アピールポイントを自由記述できます。歌の♂・♀区分はDiscordロールから自動取得します。回答には紅組または蒼組のチームロールが必要ですが、英傑・皇帝・システム支配人はチーム未所属でも「運営確認」として回答できます。運営確認の回答は紅組・蒼組の出力へ混ぜません。大将・副大将は `/対抗戦回答出力` で自チーム分だけをGoogleスプレッドシート取込用CSVとして取得できます。既存DBには `src/sql/20261002_competition_entries.sql`、`src/sql/20261002_competition_entry_profiles.sql`、`src/sql/20261002_competition_entry_rank_divisions.sql`、`src/sql/20261002_competition_entry_rank_details.sql`、`src/sql/20261002_competition_entry_game_details.sql`、`src/sql/20261002_competition_entry_management_team.sql` を順に適用してください。
 
 遊戯パネルのゲームパス（2週間・1か月）は、期間と料金を確認して「購入を確定」を押すと購入されます。「キャンセル」では料金は発生しません。ゲームパスを所持している場合は確認画面を表示せず、購入を拒否します。確定時にも所持状態を再確認し、有効なパスの追加購入・延長は行いません。
 

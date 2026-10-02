@@ -15,6 +15,7 @@ const {
   competitionEntryCustomId,
 } = require("../dist/constant/member/competitionEntry.js");
 const { TEAM_ASSIGNMENTS } = require("../dist/constant/member/teamAssignment.js");
+const { MANAGEMENT_ROLE_IDS } = require("../dist/constant/shared/management.js");
 const { ROLE_IDS, THREAD_IDS } = require("../dist/constant/shared/id.js");
 const {
   createCompetitionEntryPanelPayload,
@@ -33,11 +34,12 @@ const {
 const { handlePanelButton } = require("../dist/handler/interaction/panelButtonHandler.js");
 const { AccountService } = require("../dist/service/account/accountService.js");
 
-function roleHolder(team, gender = "male") {
+function roleHolder(team, gender = "male", extraRoleIds = []) {
   const roleIds = new Set();
   if (team) roleIds.add(TEAM_ASSIGNMENTS[team].roleId);
   if (gender === "male" || gender === "both") roleIds.add(ROLE_IDS.BASIC_ROLE_IDS.OSU);
   if (gender === "female" || gender === "both") roleIds.add(ROLE_IDS.BASIC_ROLE_IDS.MESU);
+  for (const roleId of extraRoleIds) roleIds.add(roleId);
   return {
     displayName: "回答者",
     roles: { cache: { has: (id) => roleIds.has(id) } },
@@ -148,6 +150,65 @@ test("answering requires exactly one team role", async (t) => {
     }),
     /先に対抗戦の所属チーム/,
   );
+});
+
+test("each management role can answer without a red or blue team role", async (t) => {
+  const savedProfiles = [];
+  t.mock.method(CompetitionEntryStore, "upsertProfile", async (profile) => {
+    savedProfiles.push(profile);
+  });
+  const values = new Map([
+    [COMPETITION_ENTRY_INPUT_IDS.DAY1, "available"],
+    [COMPETITION_ENTRY_INPUT_IDS.DAY2, "conditional"],
+    [COMPETITION_ENTRY_INPUT_IDS.DAY3, "unavailable"],
+    [COMPETITION_ENTRY_INPUT_IDS.OVERALL_NOTES, "運営確認"],
+  ]);
+  for (const roleId of MANAGEMENT_ROLE_IDS) {
+    await CompetitionEntryService.submit({
+      customId: COMPETITION_ENTRY_ACTIONS.SCHEDULE_MODAL,
+      user: { id: roleId },
+      guild: {
+        members: { fetch: async () => roleHolder(null, "male", [roleId]) },
+      },
+      fields: {
+        fields: { has: (id) => values.has(id) },
+        getTextInputValue: (id) => values.get(id),
+        getStringSelectValues: (id) => [values.get(id)],
+      },
+      deferReply: async () => {},
+      editReply: async () => {},
+    });
+  }
+  assert.deepEqual(savedProfiles.map((profile) => profile.team), [
+    "management", "management", "management",
+  ]);
+});
+
+test("management members with one team role remain assigned to that team", async (t) => {
+  let saved;
+  t.mock.method(CompetitionEntryStore, "upsert", async (entry) => { saved = entry; });
+  t.mock.method(CompetitionEntryStore, "findByUser", async () => []);
+  const values = new Map([
+    [COMPETITION_ENTRY_INPUT_IDS.AVAILABILITY, "unavailable"],
+    [COMPETITION_ENTRY_INPUT_IDS.NOTES, ""],
+  ]);
+  await CompetitionEntryService.submit({
+    customId: competitionEntryCustomId("modal", "singing"),
+    user: { id: "manager" },
+    guild: {
+      members: {
+        fetch: async () => roleHolder("blue", "male", [MANAGEMENT_ROLE_IDS[0]]),
+      },
+    },
+    fields: {
+      fields: { has: (id) => values.has(id) },
+      getTextInputValue: (id) => values.get(id),
+      getStringSelectValues: (id) => [values.get(id)],
+    },
+    deferReply: async () => {},
+    editReply: async () => {},
+  });
+  assert.equal(saved.team, "blue");
 });
 
 test("schedule modal selects day 1 to 3 and saves overall notes", async (t) => {

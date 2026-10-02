@@ -32,6 +32,7 @@ import {
 } from "../../constant/member/competitionEntry";
 import { TEAM_ASSIGNMENTS } from "../../constant/member/teamAssignment";
 import { ROLE_IDS } from "../../constant/shared/id";
+import { hasManagementPermission } from "../../util/shared/managementPermission";
 import type {
   CompetitionAvailability,
   CompetitionEntry,
@@ -59,12 +60,12 @@ type RoleHolder = {
 function getTeam(member: RoleHolder): CompetitionTeam {
   const red = member.roles.cache.has(TEAM_ASSIGNMENTS.red.roleId);
   const blue = member.roles.cache.has(TEAM_ASSIGNMENTS.blue.roleId);
-  if (red === blue) {
-    throw new Error(
-      red
-        ? "所属チームを1つに決めてから回答してください。"
-        : "先に対抗戦の所属チームを決めてから回答してください。",
-    );
+  if (red && blue) {
+    throw new Error("所属チームを1つに決めてから回答してください。");
+  }
+  if (!red && !blue) {
+    if (hasManagementPermission(member)) return "management";
+    throw new Error("先に対抗戦の所属チームを決めてから回答してください。");
   }
   return red ? "red" : "blue";
 }
@@ -518,7 +519,7 @@ export function createCompetitionEntriesCsv(
       : "";
     const profile = profilesByUser.get(entry.userId);
     return [
-      entry.team === "red" ? "紅組" : "蒼組",
+      entry.team === "red" ? "紅組" : entry.team === "blue" ? "蒼組" : "運営確認",
       entry.displayName,
       entry.userId,
       profile ? SCHEDULE_AVAILABILITY_LABELS[profile.day1Availability] : "",
@@ -551,7 +552,7 @@ export function createCompetitionEntriesCsv(
       ? new Date(profile.updatedAt).toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" })
       : "";
     rows.push([
-      profile.team === "red" ? "紅組" : "蒼組",
+      profile.team === "red" ? "紅組" : profile.team === "blue" ? "蒼組" : "運営確認",
       profile.displayName,
       profile.userId,
       SCHEDULE_AVAILABILITY_LABELS[profile.day1Availability],
@@ -1035,7 +1036,7 @@ export class CompetitionEntryService {
   ): Promise<void> {
     if (!interaction.guild) throw new Error("サーバー内でのみ使用できます。");
     const leaderTeam = (Object.entries(TEAM_ASSIGNMENTS) as Array<
-      [CompetitionTeam, (typeof TEAM_ASSIGNMENTS)[CompetitionTeam]]
+      [keyof typeof TEAM_ASSIGNMENTS, (typeof TEAM_ASSIGNMENTS)[keyof typeof TEAM_ASSIGNMENTS]]
     >).find(([, assignment]) =>
       assignment.captainUserId === interaction.user.id ||
       assignment.viceCaptainUserId === interaction.user.id,

@@ -1,4 +1,4 @@
-export type CompetitionTeam = "red" | "blue";
+export type CompetitionTeam = "red" | "blue" | "management";
 
 export type CompetitionAvailability =
   | "available"
