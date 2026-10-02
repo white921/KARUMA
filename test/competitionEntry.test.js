@@ -19,6 +19,7 @@ const {
   CompetitionEntryService,
   createCompetitionEntriesCsv,
   parseCompetitionAvailability,
+  parseScheduleAvailability,
 } = require("../dist/service/member/competitionEntryService.js");
 const {
   CompetitionEntryStore,
@@ -74,9 +75,13 @@ test("availability accepts common Japanese answers and rejects ambiguous text", 
     assert.equal(parseCompetitionAvailability(value), "unavailable");
   }
   assert.throws(() => parseCompetitionAvailability("たぶん"), /いずれか/);
+  assert.equal(parseScheduleAvailability("◯"), "available");
+  assert.equal(parseScheduleAvailability("△"), "conditional");
+  assert.equal(parseScheduleAvailability("✕"), "unavailable");
+  assert.throws(() => parseScheduleAvailability("未定"), /◯.*△.*✕/);
 });
 
-test("editor lists all nine disciplines and marks saved answers", async (t) => {
+test("editor lists schedule and all nine disciplines and marks saved answers", async (t) => {
   t.mock.method(CompetitionEntryStore, "findByUser", async () => [{
     userId: "user",
     displayName: "回答者",
@@ -88,6 +93,11 @@ test("editor lists all nine disciplines and marks saved answers", async (t) => {
     gameId: "123",
     notes: "",
   }]);
+  t.mock.method(CompetitionEntryStore, "findProfileByUser", async () => ({
+    userId: "user", displayName: "回答者", team: "red",
+    day1Availability: "available", day2Availability: "conditional",
+    day3Availability: "unavailable", overallNotes: "2日目は夜から",
+  }));
   let reply;
   await CompetitionEntryService.showEditor({
     user: { id: "user" },
@@ -95,7 +105,12 @@ test("editor lists all nine disciplines and marks saved answers", async (t) => {
     editReply: async (body) => { reply = body; },
   });
   const buttons = reply.components.flatMap((row) => row.toJSON().components);
-  assert.equal(buttons.length, 9);
+  assert.equal(buttons.length, 10);
+  const schedule = buttons.find(
+    (button) => button.custom_id === COMPETITION_ENTRY_ACTIONS.SCHEDULE_EDIT,
+  );
+  assert.equal(schedule.label, "✓ 日程・全体備考");
+  assert.equal(schedule.style, ButtonStyle.Success);
   const mahjong = buttons.find((button) => button.custom_id.endsWith(":mahjong"));
   assert.equal(mahjong.label, "✓ 麻雀（雀魂）");
   assert.equal(mahjong.style, ButtonStyle.Success);
@@ -103,6 +118,7 @@ test("editor lists all nine disciplines and marks saved answers", async (t) => {
 
 test("answering requires exactly one team role", async (t) => {
   t.mock.method(CompetitionEntryStore, "findByUser", async () => []);
+  t.mock.method(CompetitionEntryStore, "findProfileByUser", async () => undefined);
   await assert.rejects(
     CompetitionEntryService.showEditor({
       user: { id: "user" },
@@ -111,6 +127,68 @@ test("answering requires exactly one team role", async (t) => {
     }),
     /先に対抗戦の所属チーム/,
   );
+});
+
+test("schedule modal saves day 1 to 3 as circle triangle cross and overall notes", async (t) => {
+  t.mock.method(CompetitionEntryStore, "findProfileByUser", async () => ({
+    userId: "user", displayName: "回答者", team: "blue",
+    day1Availability: "available", day2Availability: "conditional",
+    day3Availability: "unavailable", overallNotes: "2日目は夜から",
+  }));
+  let modal;
+  await CompetitionEntryService.showScheduleModal({
+    user: { id: "user" },
+    guild: { members: { fetch: async () => roleHolder("blue") } },
+    showModal: async (value) => { modal = value.toJSON(); },
+  });
+  assert.equal(modal.title, "日程・全体備考の回答");
+  const inputs = modal.components.map((row) => row.components[0]);
+  assert.deepEqual(inputs.map((input) => input.custom_id), [
+    COMPETITION_ENTRY_INPUT_IDS.DAY1,
+    COMPETITION_ENTRY_INPUT_IDS.DAY2,
+    COMPETITION_ENTRY_INPUT_IDS.DAY3,
+    COMPETITION_ENTRY_INPUT_IDS.OVERALL_NOTES,
+  ]);
+  assert.deepEqual(inputs.slice(0, 3).map((input) => input.value), ["◯", "△", "✕"]);
+  assert.deepEqual(inputs.slice(0, 3).map((input) => input.placeholder), [
+    "◯ / △ / ✕", "◯ / △ / ✕", "◯ / △ / ✕",
+  ]);
+  assert.match(inputs[3].placeholder, /2日目/);
+
+  let saved;
+  t.mock.method(CompetitionEntryStore, "upsertProfile", async (profile) => {
+    saved = profile;
+  });
+  const values = new Map([
+    [COMPETITION_ENTRY_INPUT_IDS.DAY1, "◯"],
+    [COMPETITION_ENTRY_INPUT_IDS.DAY2, "△"],
+    [COMPETITION_ENTRY_INPUT_IDS.DAY3, "✕"],
+    [COMPETITION_ENTRY_INPUT_IDS.OVERALL_NOTES, " 2日目は21時以降 "],
+  ]);
+  const replies = [];
+  await CompetitionEntryService.submit({
+    customId: COMPETITION_ENTRY_ACTIONS.SCHEDULE_MODAL,
+    user: { id: "user" },
+    guild: { members: { fetch: async () => roleHolder("blue") } },
+    fields: {
+      fields: { has: (id) => values.has(id) },
+      getTextInputValue: (id) => values.get(id),
+    },
+    deferReply: async (body) => replies.push(["defer", body]),
+    editReply: async (body) => replies.push(["edit", body]),
+  });
+  assert.deepEqual(saved, {
+    userId: "user",
+    displayName: "回答者",
+    team: "blue",
+    day1Availability: "available",
+    day2Availability: "conditional",
+    day3Availability: "unavailable",
+    overallNotes: "2日目は21時以降",
+  });
+  assert.match(replies[1][1].content, /1日目：\*\*◯\*\*/);
+  assert.match(replies[1][1].content, /2日目：\*\*△\*\*/);
+  assert.match(replies[1][1].content, /3日目：\*\*✕\*\*/);
 });
 
 test("mahjong modal uses Jantama rank, name and player ID fields", async (t) => {
@@ -140,6 +218,7 @@ test("mahjong modal uses Jantama rank, name and player ID fields", async (t) => 
 
 test("each discipline only asks for identifiers that the game actually uses", async (t) => {
   t.mock.method(CompetitionEntryStore, "findByUser", async () => []);
+  t.mock.method(CompetitionEntryStore, "findProfileByUser", async () => undefined);
   const expected = {
     singing: ["availability", "notes"],
     unite: ["availability", "rank_name", "game_name", "game_id", "notes"],
@@ -302,6 +381,7 @@ test("competition buttons bypass the normal account requirement", async (t) => {
     throw new Error("account check must not run");
   });
   t.mock.method(CompetitionEntryStore, "findByUser", async () => []);
+  t.mock.method(CompetitionEntryStore, "findProfileByUser", async () => undefined);
   let reply;
   await handlePanelButton({
     customId: COMPETITION_ENTRY_ACTIONS.OPEN,
@@ -309,10 +389,10 @@ test("competition buttons bypass the normal account requirement", async (t) => {
     guild: { members: { fetch: async () => roleHolder("blue") } },
     editReply: async (body) => { reply = body; },
   });
-  assert.equal(reply.components.flatMap((row) => row.toJSON().components).length, 9);
+  assert.equal(reply.components.flatMap((row) => row.toJSON().components).length, 10);
 });
 
-test("CSV is UTF-8 BOM prefixed, escaped, and uses readable labels", () => {
+test("CSV includes schedule, overall notes and readable discipline labels", () => {
   const csv = createCompetitionEntriesCsv([{
     userId: "123",
     displayName: '名前,"改行\nあり',
@@ -324,12 +404,23 @@ test("CSV is UTF-8 BOM prefixed, escaped, and uses readable labels", () => {
     gameId: "999",
     notes: "夜のみ",
     updatedAt: "2026-10-02T00:00:00Z",
+  }], [{
+    userId: "123",
+    displayName: "回答者",
+    team: "blue",
+    day1Availability: "available",
+    day2Availability: "conditional",
+    day3Availability: "unavailable",
+    overallNotes: "2日目は夜から",
+    updatedAt: "2026-10-02T00:00:00Z",
   }]).toString("utf8");
   assert.equal(csv.charCodeAt(0), 0xFEFF);
   assert.match(csv, /"蒼組"/);
   assert.match(csv, /"麻雀（雀魂）"/);
   assert.match(csv, /"条件付き・要相談"/);
   assert.match(csv, /"名前,""改行 あり"/);
+  assert.match(csv, /"1日目","2日目","3日目","全体備考"/);
+  assert.match(csv, /"◯","△","✕","2日目は夜から"/);
 });
 
 test("leader export only returns the leader's own team", async (t) => {
@@ -338,6 +429,7 @@ test("leader export only returns the leader's own team", async (t) => {
     requestedTeam = team;
     return [];
   });
+  t.mock.method(CompetitionEntryStore, "findProfilesByTeam", async () => []);
   let reply;
   await CompetitionEntryService.exportForLeader({
     user: { id: TEAM_ASSIGNMENTS.blue.captainUserId },

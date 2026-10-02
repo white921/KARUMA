@@ -9,6 +9,8 @@ export const COMPETITION_ENTRY_PANEL_CHANNEL_ID =
 export const COMPETITION_ENTRY_ACTIONS = {
   OPEN: `${COMPETITION_ENTRY_PREFIX}:open`,
   REVIEW: `${COMPETITION_ENTRY_PREFIX}:review`,
+  SCHEDULE_EDIT: `${COMPETITION_ENTRY_PREFIX}:schedule:edit`,
+  SCHEDULE_MODAL: `${COMPETITION_ENTRY_PREFIX}:schedule:modal`,
   EDIT: "edit",
   MODAL: "modal",
 } as const;
@@ -19,6 +21,10 @@ export const COMPETITION_ENTRY_INPUT_IDS = {
   GAME_NAME: "game_name",
   GAME_ID: "game_id",
   NOTES: "notes",
+  DAY1: "day_1",
+  DAY2: "day_2",
+  DAY3: "day_3",
+  OVERALL_NOTES: "overall_notes",
 } as const;
 
 export const COMPETITION_DISCIPLINES = {

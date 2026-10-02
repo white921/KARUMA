@@ -17,3 +17,14 @@ export type CompetitionEntry = {
   notes: string;
   updatedAt?: Date | string;
 };
+
+export type CompetitionEntryProfile = {
+  userId: string;
+  displayName: string;
+  team: CompetitionTeam;
+  day1Availability: CompetitionAvailability;
+  day2Availability: CompetitionAvailability;
+  day3Availability: CompetitionAvailability;
+  overallNotes: string;
+  updatedAt?: Date | string;
+};
