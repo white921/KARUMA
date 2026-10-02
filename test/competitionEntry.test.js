@@ -9,6 +9,8 @@ const {
   COMPETITION_ENTRY_PANEL_CHANNEL_ID,
   COMPETITION_ENTRY_PANEL_TITLE,
   COMPETITION_RANK_CONFIGS,
+  OVERWATCH_RANK_TIERS,
+  competitionOwRoleCustomId,
   competitionEntryCustomId,
 } = require("../dist/constant/member/competitionEntry.js");
 const { TEAM_ASSIGNMENTS } = require("../dist/constant/member/teamAssignment.js");
@@ -22,6 +24,7 @@ const {
   parseCompetitionAvailability,
   parseScheduleAvailability,
   validateCompetitionRank,
+  validateOverwatchRank,
 } = require("../dist/service/member/competitionEntryService.js");
 const {
   CompetitionEntryStore,
@@ -263,11 +266,11 @@ test("each discipline only asks for identifiers that the game actually uses", as
   const expected = {
     singing: ["availability", "notes"],
     unite: ["availability", "rank_name", "rank_division", "game_name", "game_id"],
-    free: ["availability", "game_name", "game_id", "notes"],
     gf: ["availability", "rank_name", "game_name", "notes"],
     mahjong: ["availability", "rank_name", "rank_division", "game_name", "game_id"],
     fall_guys: ["availability", "rank_name", "rank_division", "game_name", "notes"],
     valorant: ["availability", "rank_name", "rank_division", "game_name", "notes"],
+    ow: ["availability", "game_name", "notes"],
     lol: ["availability", "rank_name", "rank_division", "game_name", "notes"],
     minecraft: ["availability", "game_name", "notes"],
   };
@@ -282,12 +285,6 @@ test("each discipline only asks for identifiers that the game actually uses", as
       "クラスは1～5、マスターはレート（例：1400）",
       "例：UNITEで公開されている名前",
       "プロフィールに表示されるトレーナーID",
-    ],
-    free: [
-      "出場可否を選択",
-      "例：スマブラ、クイズ企画",
-      "例：PlayerName#1234、フレンドコード",
-      "例：希望ルール、必要人数、参加可能時間",
     ],
     gf: [
       "出場可否を選択",
@@ -315,6 +312,11 @@ test("each discipline only asks for identifiers that the game actually uses", as
       "1～3（レディアントは空欄）",
       "例：PlayerName#JP1",
       "例：メインロール、使用エージェント、参加可能時間",
+    ],
+    ow: [
+      "出場可否を選択",
+      "例：PlayerName#12345",
+      "例：得意なロール、使用ヒーロー、参加可能時間",
     ],
     lol: [
       "出場可否を選択",
@@ -383,6 +385,59 @@ test("rank tier and numeric division rules match each game", () => {
 
   assert.doesNotThrow(() => validateCompetitionRank("gf", "1500", ""));
   assert.throws(() => validateCompetitionRank("gf", "高い", ""), /半角数字/);
+
+  assert.doesNotThrow(() => validateOverwatchRank("エメラルド", "5"));
+  assert.doesNotThrow(() => validateOverwatchRank("チャンピオン", "1"));
+  assert.throws(() => validateOverwatchRank("プラチナ", "6"), /1～5/);
+  assert.throws(() => validateOverwatchRank("トップ500", "1"), /選択/);
+});
+
+test("Overwatch stores independent tank, damage and support ranks", async (t) => {
+  const existing = {
+    userId: "user", displayName: "回答者", team: "red", discipline: "ow",
+    availability: "available", rankName: "", rankDivision: "",
+    rankDetails: { tank: { tier: "プラチナ", division: "3" } },
+    gameName: "Player#12345", gameId: "", notes: "サポート希望",
+  };
+  t.mock.method(CompetitionEntryStore, "findByUser", async () => [existing]);
+  let modal;
+  await CompetitionEntryService.showOverwatchRoleModal({
+    customId: competitionOwRoleCustomId("edit", "tank"),
+    user: { id: "user" },
+    guild: { members: { fetch: async () => roleHolder("red") } },
+    showModal: async (value) => { modal = value.toJSON(); },
+  });
+  const inputs = modalInputs(modal);
+  assert.deepEqual(inputs.map((input) => input.custom_id), [
+    COMPETITION_ENTRY_INPUT_IDS.RANK,
+    COMPETITION_ENTRY_INPUT_IDS.RANK_DIVISION,
+  ]);
+  assert.deepEqual(inputs[0].options.map((option) => option.label), OVERWATCH_RANK_TIERS);
+  assert.equal(inputs[0].options.find((option) => option.default)?.value, "プラチナ");
+  assert.equal(inputs[1].value, "3");
+
+  let saved;
+  t.mock.method(CompetitionEntryStore, "upsert", async (entry) => { saved = entry; });
+  const values = new Map([
+    [COMPETITION_ENTRY_INPUT_IDS.RANK, "エメラルド"],
+    [COMPETITION_ENTRY_INPUT_IDS.RANK_DIVISION, "2"],
+  ]);
+  await CompetitionEntryService.submit({
+    customId: competitionOwRoleCustomId("modal", "damage"),
+    user: { id: "user" },
+    guild: { members: { fetch: async () => roleHolder("red") } },
+    fields: {
+      fields: { has: (id) => values.has(id) },
+      getTextInputValue: (id) => values.get(id),
+      getStringSelectValues: (id) => [values.get(id)],
+    },
+    deferReply: async () => {},
+    editReply: async () => {},
+  });
+  assert.deepEqual(saved.rankDetails, {
+    tank: { tier: "プラチナ", division: "3" },
+    damage: { tier: "エメラルド", division: "2" },
+  });
 });
 
 test("singing modal omits category input and submission uses the gender role", async (t) => {
@@ -497,6 +552,22 @@ test("CSV includes schedule, overall notes and readable discipline labels", () =
   assert.match(csv, /"ランク帯・レーティング","クラス・ディビジョン"/);
   assert.match(csv, /"雀豪","1"/);
   assert.match(csv, /"◯","△","✕","2日目は夜から"/);
+});
+
+test("CSV omits entries for removed disciplines", () => {
+  const csv = createCompetitionEntriesCsv([{
+    userId: "123",
+    displayName: "回答者",
+    team: "red",
+    discipline: "free",
+    availability: "available",
+    rankName: "",
+    rankDivision: "",
+    gameName: "企画",
+    gameId: "",
+    notes: "",
+  }]).toString("utf8");
+  assert.doesNotMatch(csv, /"free"|"企画"|"回答者"/);
 });
 
 test("leader export only returns the leader's own team", async (t) => {

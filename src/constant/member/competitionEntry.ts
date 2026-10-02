@@ -11,6 +11,8 @@ export const COMPETITION_ENTRY_ACTIONS = {
   REVIEW: `${COMPETITION_ENTRY_PREFIX}:review`,
   SCHEDULE_EDIT: `${COMPETITION_ENTRY_PREFIX}:schedule:edit`,
   SCHEDULE_MODAL: `${COMPETITION_ENTRY_PREFIX}:schedule:modal`,
+  OW_ROLE_EDIT_PREFIX: `${COMPETITION_ENTRY_PREFIX}:ow-role:edit`,
+  OW_ROLE_MODAL_PREFIX: `${COMPETITION_ENTRY_PREFIX}:ow-role:modal`,
   EDIT: "edit",
   MODAL: "modal",
 } as const;
@@ -48,16 +50,6 @@ export const COMPETITION_DISCIPLINES = {
     gameIdPlaceholder: "プロフィールに表示されるトレーナーID",
     notesLabel: "備考（任意）",
     notesPlaceholder: "例：得意レーン、よく使うポケモン、参加可能時間",
-  },
-  free: {
-    label: "フリー枠",
-    rankLabel: null,
-    gameNameLabel: "希望する競技・企画",
-    gameNamePlaceholder: "例：スマブラ、クイズ企画",
-    gameIdLabel: "その競技のネーム・ID等（任意）",
-    gameIdPlaceholder: "例：PlayerName#1234、フレンドコード",
-    notesLabel: "補足（任意）",
-    notesPlaceholder: "例：希望ルール、必要人数、参加可能時間",
   },
   gf: {
     label: "GF",
@@ -99,6 +91,15 @@ export const COMPETITION_DISCIPLINES = {
     gameIdLabel: null,
     notesLabel: "備考（任意）",
     notesPlaceholder: "例：メインロール、使用エージェント、参加可能時間",
+  },
+  ow: {
+    label: "Overwatch 2",
+    rankLabel: null,
+    gameNameLabel: "BattleTag",
+    gameNamePlaceholder: "例：PlayerName#12345",
+    gameIdLabel: null,
+    notesLabel: "備考（任意）",
+    notesPlaceholder: "例：得意なロール、使用ヒーロー、参加可能時間",
   },
   lol: {
     label: "League of Legends",
@@ -172,6 +173,33 @@ export const COMPETITION_RANK_CONFIGS = {
     }
   >
 >;
+
+export const OVERWATCH_RANK_TIERS = [
+  "ブロンズ",
+  "シルバー",
+  "ゴールド",
+  "プラチナ",
+  "エメラルド",
+  "ダイヤモンド",
+  "マスター",
+  "グランドマスター",
+  "チャンピオン",
+] as const;
+
+export const OVERWATCH_ROLES = {
+  tank: "タンク",
+  damage: "ダメージ",
+  support: "サポート",
+} as const;
+
+export type OverwatchRoleKey = keyof typeof OVERWATCH_ROLES;
+
+export function competitionOwRoleCustomId(
+  action: "edit" | "modal",
+  role: OverwatchRoleKey,
+): string {
+  return `${COMPETITION_ENTRY_PREFIX}:ow-role:${action}:${role}`;
+}
 
 export type CompetitionDisciplineKey = keyof typeof COMPETITION_DISCIPLINES;
 

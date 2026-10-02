@@ -5,6 +5,13 @@ export type CompetitionAvailability =
   | "conditional"
   | "unavailable";
 
+export type CompetitionRoleRank = {
+  tier: string;
+  division: string;
+};
+
+export type CompetitionRankDetails = Record<string, CompetitionRoleRank>;
+
 export type CompetitionEntry = {
   userId: string;
   displayName: string;
@@ -13,6 +20,7 @@ export type CompetitionEntry = {
   availability: CompetitionAvailability;
   rankName: string;
   rankDivision: string;
+  rankDetails?: CompetitionRankDetails;
   gameName: string;
   gameId: string;
   notes: string;

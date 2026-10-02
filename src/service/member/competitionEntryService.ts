@@ -21,9 +21,13 @@ import {
   COMPETITION_ENTRY_INPUT_IDS,
   COMPETITION_ENTRY_PREFIX,
   COMPETITION_RANK_CONFIGS,
+  OVERWATCH_RANK_TIERS,
+  OVERWATCH_ROLES,
+  competitionOwRoleCustomId,
   competitionEntryCustomId,
   isCompetitionDisciplineKey,
   type CompetitionDisciplineKey,
+  type OverwatchRoleKey,
 } from "../../constant/member/competitionEntry";
 import { TEAM_ASSIGNMENTS } from "../../constant/member/teamAssignment";
 import { ROLE_IDS } from "../../constant/shared/id";
@@ -130,6 +134,23 @@ function parseDisciplineCustomId(
     throw new Error("競技の回答情報が不正です。パネルからやり直してください。");
   }
   return discipline;
+}
+
+function parseOverwatchRoleCustomId(
+  customId: string,
+  expectedAction: "edit" | "modal",
+): OverwatchRoleKey {
+  const [prefix, feature, action, role, extra] = customId.split(":");
+  if (
+    prefix !== COMPETITION_ENTRY_PREFIX ||
+    feature !== "ow-role" ||
+    action !== expectedAction ||
+    extra !== undefined ||
+    !(role in OVERWATCH_ROLES)
+  ) {
+    throw new Error("OWのロール回答情報が不正です。パネルからやり直してください。");
+  }
+  return role as OverwatchRoleKey;
 }
 
 function optionalField(
@@ -250,6 +271,58 @@ function rankTierSelect(
     .setStringSelectMenuComponent(select);
 }
 
+function overwatchRankTierSelect(
+  role: OverwatchRoleKey,
+  selected?: string,
+): LabelBuilder {
+  const select = new StringSelectMenuBuilder()
+    .setCustomId(COMPETITION_ENTRY_INPUT_IDS.RANK)
+    .setPlaceholder("ランク帯（ティア）を選択（任意）")
+    .setRequired(false)
+    .setMinValues(0)
+    .setMaxValues(1)
+    .addOptions(
+      OVERWATCH_RANK_TIERS.map((tier) => ({
+        label: tier,
+        value: tier,
+        default: selected === tier,
+      })),
+    );
+  return new LabelBuilder()
+    .setLabel(`${OVERWATCH_ROLES[role]}のランク帯（ティア）`)
+    .setStringSelectMenuComponent(select);
+}
+
+function overwatchRoleButtons(
+  entry?: CompetitionEntry,
+): ActionRowBuilder<ButtonBuilder> {
+  return new ActionRowBuilder<ButtonBuilder>().addComponents(
+    (Object.entries(OVERWATCH_ROLES) as Array<[OverwatchRoleKey, string]>).map(
+      ([role, label]) => {
+        const answered = Boolean(entry?.rankDetails?.[role]?.tier);
+        return new ButtonBuilder()
+          .setCustomId(competitionOwRoleCustomId("edit", role))
+          .setLabel(`${answered ? "✓ " : ""}${label}のランク`)
+          .setStyle(answered ? ButtonStyle.Success : ButtonStyle.Secondary);
+      },
+    ),
+  );
+}
+
+export function validateOverwatchRank(tier: string, division: string): void {
+  if (!tier && !division) return;
+  if (!(OVERWATCH_RANK_TIERS as readonly string[]).includes(tier)) {
+    throw new Error("OWのランク帯（ティア）を選択してください。");
+  }
+  if (!/^\d+$/.test(division)) {
+    throw new Error("OWのディビジョンを1～5の半角数字で入力してください。");
+  }
+  const value = Number(division);
+  if (value < 1 || value > 5) {
+    throw new Error("OWのディビジョンは1～5で入力してください。");
+  }
+}
+
 function hasRankConfig(
   discipline: CompetitionDisciplineKey,
 ): discipline is keyof typeof COMPETITION_RANK_CONFIGS {
@@ -337,7 +410,14 @@ function formatEntry(
   if (!entry) return "**未回答**";
   const discipline = COMPETITION_DISCIPLINES[disciplineKey];
   const lines = [`出場可否：**${AVAILABILITY_LABELS[entry.availability]}**`];
-  if (hasRankConfig(disciplineKey)) {
+  if (disciplineKey === "ow") {
+    for (const [role, label] of Object.entries(OVERWATCH_ROLES) as Array<
+      [OverwatchRoleKey, string]
+    >) {
+      const rank = entry.rankDetails?.[role];
+      lines.push(`${label}：${rank?.tier ? `${rank.tier} ${rank.division}` : "未回答"}`);
+    }
+  } else if (hasRankConfig(disciplineKey)) {
     const rankConfig = COMPETITION_RANK_CONFIGS[disciplineKey];
     if (entry.rankName) lines.push(`${rankConfig.tierLabel}：${entry.rankName}`);
     if (entry.rankDivision) {
@@ -385,15 +465,20 @@ export function createCompetitionEntriesCsv(
     "チーム", "表示名", "DiscordユーザーID",
     "1日目", "2日目", "3日目", "全体備考",
     "競技", "出場可否",
-    "ランク帯・レーティング", "クラス・ディビジョン", "ゲーム内ネーム等", "ゲームID", "備考", "最終更新",
+    "ランク帯・レーティング", "クラス・ディビジョン",
+    "OWタンク：ランク帯", "OWタンク：ディビジョン",
+    "OWダメージ：ランク帯", "OWダメージ：ディビジョン",
+    "OWサポート：ランク帯", "OWサポート：ディビジョン",
+    "ゲーム内ネーム等", "ゲームID", "備考", "最終更新",
   ];
   const profilesByUser = new Map(
     profiles.map((profile) => [profile.userId, profile]),
   );
-  const rows = entries.map((entry) => {
-    const discipline = isCompetitionDisciplineKey(entry.discipline)
-      ? COMPETITION_DISCIPLINES[entry.discipline].label
-      : entry.discipline;
+  const supportedEntries = entries.filter((entry) =>
+    isCompetitionDisciplineKey(entry.discipline),
+  );
+  const rows = supportedEntries.map((entry) => {
+    const discipline = COMPETITION_DISCIPLINES[entry.discipline as CompetitionDisciplineKey].label;
     const updatedAt = entry.updatedAt
       ? new Date(entry.updatedAt).toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" })
       : "";
@@ -410,13 +495,19 @@ export function createCompetitionEntriesCsv(
       AVAILABILITY_LABELS[entry.availability],
       entry.rankName,
       entry.rankDivision,
+      entry.rankDetails?.tank?.tier ?? "",
+      entry.rankDetails?.tank?.division ?? "",
+      entry.rankDetails?.damage?.tier ?? "",
+      entry.rankDetails?.damage?.division ?? "",
+      entry.rankDetails?.support?.tier ?? "",
+      entry.rankDetails?.support?.division ?? "",
       entry.gameName,
       entry.gameId,
       entry.notes,
       updatedAt,
     ];
   });
-  const entryUserIds = new Set(entries.map((entry) => entry.userId));
+  const entryUserIds = new Set(supportedEntries.map((entry) => entry.userId));
   for (const profile of profiles) {
     if (entryUserIds.has(profile.userId)) continue;
     const updatedAt = profile.updatedAt
@@ -430,7 +521,7 @@ export function createCompetitionEntriesCsv(
       SCHEDULE_AVAILABILITY_LABELS[profile.day2Availability],
       SCHEDULE_AVAILABILITY_LABELS[profile.day3Availability],
       profile.overallNotes,
-      "", "", "", "", "", "", "", updatedAt,
+      "", "", "", "", "", "", "", "", "", "", "", "", "", updatedAt,
     ]);
   }
   const csv = [header, ...rows]
@@ -447,6 +538,7 @@ export class CompetitionEntryService {
   static isModal(customId: string): boolean {
     return (
       customId.startsWith(`${COMPETITION_ENTRY_PREFIX}:modal:`) ||
+      customId.startsWith(`${COMPETITION_ENTRY_ACTIONS.OW_ROLE_MODAL_PREFIX}:`) ||
       customId === COMPETITION_ENTRY_ACTIONS.SCHEDULE_MODAL
     );
   }
@@ -454,6 +546,7 @@ export class CompetitionEntryService {
   static isModalOpeningButton(customId: string): boolean {
     return (
       customId.startsWith(`${COMPETITION_ENTRY_PREFIX}:edit:`) ||
+      customId.startsWith(`${COMPETITION_ENTRY_ACTIONS.OW_ROLE_EDIT_PREFIX}:`) ||
       customId === COMPETITION_ENTRY_ACTIONS.SCHEDULE_EDIT
     );
   }
@@ -469,6 +562,10 @@ export class CompetitionEntryService {
     }
     if (interaction.customId === COMPETITION_ENTRY_ACTIONS.SCHEDULE_EDIT) {
       await this.showScheduleModal(interaction);
+      return;
+    }
+    if (interaction.customId.startsWith(`${COMPETITION_ENTRY_ACTIONS.OW_ROLE_EDIT_PREFIX}:`)) {
+      await this.showOverwatchRoleModal(interaction);
       return;
     }
     if (this.isModalOpeningButton(interaction.customId)) {
@@ -642,9 +739,43 @@ export class CompetitionEntryService {
     );
   }
 
+  static async showOverwatchRoleModal(
+    interaction: ButtonInteraction,
+  ): Promise<void> {
+    const role = parseOverwatchRoleCustomId(interaction.customId, "edit");
+    if (!interaction.guild) throw new Error("サーバー内でのみ回答できます。");
+    const [member, entries] = await Promise.all([
+      interaction.guild.members.fetch(interaction.user.id),
+      CompetitionEntryStore.findByUser(interaction.user.id),
+    ]);
+    getTeam(member);
+    const existing = entries.find((entry) => entry.discipline === "ow");
+    if (!existing) {
+      throw new Error("先にOverwatch 2の出場可否とBattleTagを保存してください。");
+    }
+    const rank = existing.rankDetails?.[role];
+    await interaction.showModal(
+      new ModalBuilder()
+        .setCustomId(competitionOwRoleCustomId("modal", role))
+        .setTitle(`OW：${OVERWATCH_ROLES[role]}のランク`)
+        .addLabelComponents(overwatchRankTierSelect(role, rank?.tier))
+        .addComponents(
+          textInput(COMPETITION_ENTRY_INPUT_IDS.RANK_DIVISION, "ディビジョン", {
+            value: rank?.division,
+            placeholder: "1～5（例：プラチナ3なら「3」）",
+            maxLength: 1,
+          }),
+        ),
+    );
+  }
+
   static async submit(interaction: ModalSubmitInteraction): Promise<void> {
     if (interaction.customId === COMPETITION_ENTRY_ACTIONS.SCHEDULE_MODAL) {
       await this.submitSchedule(interaction);
+      return;
+    }
+    if (interaction.customId.startsWith(`${COMPETITION_ENTRY_ACTIONS.OW_ROLE_MODAL_PREFIX}:`)) {
+      await this.submitOverwatchRoleRank(interaction);
       return;
     }
     const discipline = parseDisciplineCustomId(interaction.customId, "modal");
@@ -684,6 +815,7 @@ export class CompetitionEntryService {
       availability,
       rankName,
       rankDivision,
+      ...(existing?.rankDetails ? { rankDetails: existing.rankDetails } : {}),
       gameName,
       gameId: optionalField(interaction, COMPETITION_ENTRY_INPUT_IDS.GAME_ID),
       notes: interaction.fields.fields.has(COMPETITION_ENTRY_INPUT_IDS.NOTES)
@@ -691,10 +823,53 @@ export class CompetitionEntryService {
         : existing?.notes ?? "",
     };
     await CompetitionEntryStore.upsert(entry);
+    const components = discipline === "ow" ? [overwatchRoleButtons(entry)] : [];
     await interaction.editReply({
       content:
         `✅ **${COMPETITION_DISCIPLINES[discipline].label}**の回答を保存しました。\n` +
-        `出場可否：**${AVAILABILITY_LABELS[availability]}**`,
+        `出場可否：**${AVAILABILITY_LABELS[availability]}**` +
+        (discipline === "ow" ? "\n続けて、ロールごとのランクを回答してください。" : ""),
+      components,
+    });
+  }
+
+  static async submitOverwatchRoleRank(
+    interaction: ModalSubmitInteraction,
+  ): Promise<void> {
+    const role = parseOverwatchRoleCustomId(interaction.customId, "modal");
+    if (!interaction.guild) throw new Error("サーバー内でのみ回答できます。");
+    const tier = interaction.fields.getStringSelectValues(
+      COMPETITION_ENTRY_INPUT_IDS.RANK,
+    )[0] ?? "";
+    const division = optionalField(
+      interaction,
+      COMPETITION_ENTRY_INPUT_IDS.RANK_DIVISION,
+    );
+    validateOverwatchRank(tier, division);
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    const [member, entries] = await Promise.all([
+      interaction.guild.members.fetch(interaction.user.id),
+      CompetitionEntryStore.findByUser(interaction.user.id),
+    ]);
+    const existing = entries.find((entry) => entry.discipline === "ow");
+    if (!existing) {
+      throw new Error("先にOverwatch 2の出場可否とBattleTagを保存してください。");
+    }
+    const rankDetails = { ...(existing.rankDetails ?? {}) };
+    if (tier) rankDetails[role] = { tier, division };
+    else delete rankDetails[role];
+    const entry: CompetitionEntry = {
+      ...existing,
+      displayName: member.displayName,
+      team: getTeam(member),
+      rankDetails,
+    };
+    await CompetitionEntryStore.upsert(entry);
+    await interaction.editReply({
+      content: tier
+        ? `✅ OWの${OVERWATCH_ROLES[role]}ランクを **${tier} ${division}** で保存しました。`
+        : `✅ OWの${OVERWATCH_ROLES[role]}ランクを未回答に戻しました。`,
+      components: [overwatchRoleButtons(entry)],
     });
   }
 
@@ -784,22 +959,25 @@ export class CompetitionEntryService {
       CompetitionEntryStore.findByTeam(leaderTeam),
       CompetitionEntryStore.findProfilesByTeam(leaderTeam),
     ]);
+    const supportedEntries = entries.filter((entry) =>
+      isCompetitionDisciplineKey(entry.discipline),
+    );
     const teamLabel = leaderTeam === "red" ? "紅組" : "蒼組";
     const file = new AttachmentBuilder(
-      createCompetitionEntriesCsv(entries, profiles),
+      createCompetitionEntriesCsv(supportedEntries, profiles),
       {
         name: `双璧戦_競技回答_${teamLabel}.csv`,
         description: `${teamLabel}のGoogleスプレッドシート取込用回答一覧`,
       },
     );
     const respondentCount = new Set([
-      ...entries.map((entry) => entry.userId),
+      ...supportedEntries.map((entry) => entry.userId),
       ...profiles.map((profile) => profile.userId),
     ]).size;
     await interaction.editReply({
       content:
         `**${teamLabel}**の回答を出力しました` +
-        `（回答者${respondentCount}人・競技回答${entries.length}件）。\n` +
+        `（回答者${respondentCount}人・競技回答${supportedEntries.length}件）。\n` +
         "Googleスプレッドシートで「ファイル → インポート → アップロード」から読み込めます。",
       files: [file],
     });
