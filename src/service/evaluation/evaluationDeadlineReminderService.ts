@@ -169,11 +169,6 @@ export function buildReminderPages(
     ["1日前", targets.oneDay],
     ["当日", targets.today],
   ] as const) {
-    // 期限前の対象と当日の対象は、人数にかかわらず別の通知にまとめる。
-    if (heading === "当日" && users.length && page.users.length) {
-      pages.push(page);
-      page = { content: `${label}（続き）`, users: [], roles: [] };
-    }
     const lines = users.length ? users : [null];
     for (let i = 0; i < lines.length; i++) {
       const userId = lines[i];

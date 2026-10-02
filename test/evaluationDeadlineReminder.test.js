@@ -115,7 +115,7 @@ test('2000文字を超えた場合も全員を1回だけ掲載し、ロール通
   assert.ok(pages.every(p => /1日前|当日/.test(p.content)));
 });
 
-test('1日前19人と当日13人を別投稿にまとめる', () => {
+test('1日前19人と当日13人を1投稿にまとめる', () => {
   const users = Array.from({ length: 32 }, (_, i) => String(1000000000000000000n + BigInt(i)));
   const targets = {
     oneDay: users.slice(0, 19), today: users.slice(19),
@@ -124,15 +124,14 @@ test('1日前19人と当日13人を別投稿にまとめる', () => {
     upper: String(2000000000000000000n + BigInt(i)),
   }]));
   const pages = buildReminderPages('2026-10-02', targets, sheetLinks);
-  assert.deepEqual(pages.map(page => page.users.length), [19, 13]);
+  assert.deepEqual(pages.map(page => page.users.length), [32]);
   assert.deepEqual(pages.flatMap(page => page.users), users);
   assert.match(pages[0].content, /1日前/);
-  assert.doesNotMatch(pages[0].content, /当日/);
-  assert.doesNotMatch(pages[1].content, /[12]日前/);
-  assert.match(pages[1].content, /当日/);
+  assert.match(pages[0].content, /当日/);
+  assert.doesNotMatch(pages[0].content, /2日前/);
   const responses = pages.map(page =>
     buildSheetLinkResponsePages(page, [EVALUATION_REMINDER_LEVELS[0]]));
-  assert.deepEqual(responses.map(result => result.length), [1, 1]);
+  assert.deepEqual(responses.map(result => result.length), [1]);
   assert.ok(responses.flat().every(content => content.length <= 2000));
 });
 
