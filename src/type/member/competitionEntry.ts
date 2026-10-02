@@ -12,6 +12,10 @@ export type CompetitionRoleRank = {
 
 export type CompetitionRankDetails = Record<string, CompetitionRoleRank>;
 
+export type CompetitionGameDetails = {
+  minecraftRoles?: string[];
+};
+
 export type CompetitionEntry = {
   userId: string;
   displayName: string;
@@ -21,6 +25,7 @@ export type CompetitionEntry = {
   rankName: string;
   rankDivision: string;
   rankDetails?: CompetitionRankDetails;
+  gameDetails?: CompetitionGameDetails;
   gameName: string;
   gameId: string;
   notes: string;

@@ -24,6 +24,7 @@ export const COMPETITION_ENTRY_INPUT_IDS = {
   RANK_DIVISION: "rank_division",
   GAME_NAME: "game_name",
   GAME_ID: "game_id",
+  MINECRAFT_ROLES: "minecraft_roles",
   NOTES: "notes",
   DAY1: "day_1",
   DAY2: "day_2",
@@ -115,13 +116,24 @@ export const COMPETITION_DISCIPLINES = {
   minecraft: {
     label: "Minecraft",
     rankLabel: null,
-    gameNameLabel: "プロフィール名／ゲーマータグ",
-    gameNamePlaceholder: "Javaはプロフィール名、統合版はゲーマータグ",
+    gameNameLabel: "マイクラ内の名前（任意）",
+    gameNamePlaceholder: "例：ゲーム内で表示される名前",
     gameIdLabel: null,
-    notesLabel: "エディション等（任意）",
-    notesPlaceholder: "例：Java版、統合版、どちらも参加可能",
+    notesLabel: "マイクラのアピールポイント（任意）",
+    notesPlaceholder: "例：大規模建築が得意、自動仕分け機を作れます",
   },
 } as const;
+
+export const MINECRAFT_ROLES = {
+  exploration: "攻略・探索",
+  building: "建築",
+  automation: "自動機・装置作成",
+  groundwork: "整地・採掘などの単純作業",
+  gathering: "資材収集",
+  other: "その他",
+} as const;
+
+export type MinecraftRoleKey = keyof typeof MINECRAFT_ROLES;
 
 export const COMPETITION_RANK_CONFIGS = {
   unite: {

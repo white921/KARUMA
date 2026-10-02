@@ -21,6 +21,7 @@ import {
   COMPETITION_ENTRY_INPUT_IDS,
   COMPETITION_ENTRY_PREFIX,
   COMPETITION_RANK_CONFIGS,
+  MINECRAFT_ROLES,
   OVERWATCH_RANK_TIERS,
   OVERWATCH_ROLES,
   competitionOwRoleCustomId,
@@ -271,6 +272,26 @@ function rankTierSelect(
     .setStringSelectMenuComponent(select);
 }
 
+function minecraftRolesSelect(selected: readonly string[] = []): LabelBuilder {
+  const selectedRoles = new Set(selected);
+  const select = new StringSelectMenuBuilder()
+    .setCustomId(COMPETITION_ENTRY_INPUT_IDS.MINECRAFT_ROLES)
+    .setPlaceholder("できる役割を選択（複数可・任意）")
+    .setRequired(false)
+    .setMinValues(0)
+    .setMaxValues(Object.keys(MINECRAFT_ROLES).length)
+    .addOptions(
+      Object.entries(MINECRAFT_ROLES).map(([value, label]) => ({
+        label,
+        value,
+        default: selectedRoles.has(value),
+      })),
+    );
+  return new LabelBuilder()
+    .setLabel("担当できる役割（複数選択可）")
+    .setStringSelectMenuComponent(select);
+}
+
 function overwatchRankTierSelect(
   role: OverwatchRoleKey,
   selected?: string,
@@ -320,6 +341,7 @@ export function validateOverwatchRank(tier: string, division: string): void {
   if (!(OVERWATCH_RANK_TIERS as readonly string[]).includes(tier)) {
     throw new Error("OWのランク帯（ティア）を選択してください。");
   }
+  if (!division) return;
   if (!/^\d+$/.test(division)) {
     throw new Error("OWのディビジョンを1～5の半角数字で入力してください。");
   }
@@ -438,6 +460,12 @@ function formatEntry(
       : discipline.gameNameLabel ?? "ゲーム内ネーム等";
     lines.push(`${displayFieldLabel(label)}：${entry.gameName}`);
   }
+  if (disciplineKey === "minecraft" && entry.gameDetails?.minecraftRoles?.length) {
+    const labels = entry.gameDetails.minecraftRoles.map(
+      (role) => MINECRAFT_ROLES[role as keyof typeof MINECRAFT_ROLES] ?? role,
+    );
+    lines.push(`担当できる役割：${labels.join("、")}`);
+  }
   if (entry.gameId && discipline.gameIdLabel) {
     lines.push(`${displayFieldLabel(discipline.gameIdLabel)}：${entry.gameId}`);
   }
@@ -475,7 +503,7 @@ export function createCompetitionEntriesCsv(
     "OWタンク：ランク帯", "OWタンク：ディビジョン",
     "OWダメージ：ランク帯", "OWダメージ：ディビジョン",
     "OWサポート：ランク帯", "OWサポート：ディビジョン",
-    "ゲーム内ネーム等", "ゲームID", "備考", "最終更新",
+    "Minecraftの役割", "ゲーム内ネーム等", "ゲームID", "備考", "最終更新",
   ];
   const profilesByUser = new Map(
     profiles.map((profile) => [profile.userId, profile]),
@@ -507,6 +535,9 @@ export function createCompetitionEntriesCsv(
       entry.rankDetails?.damage?.division ?? "",
       entry.rankDetails?.support?.tier ?? "",
       entry.rankDetails?.support?.division ?? "",
+      entry.gameDetails?.minecraftRoles?.map(
+        (role) => MINECRAFT_ROLES[role as keyof typeof MINECRAFT_ROLES] ?? role,
+      ).join("、") ?? "",
       entry.gameName,
       entry.gameId,
       entry.notes,
@@ -527,7 +558,7 @@ export function createCompetitionEntriesCsv(
       SCHEDULE_AVAILABILITY_LABELS[profile.day2Availability],
       SCHEDULE_AVAILABILITY_LABELS[profile.day3Availability],
       profile.overallNotes,
-      "", "", "", "", "", "", "", "", "", "", "", "", "", updatedAt,
+      "", "", "", "", "", "", "", "", "", "", "", "", "", "", updatedAt,
     ]);
   }
   const csv = [header, ...rows]
@@ -712,6 +743,11 @@ export class CompetitionEntryService {
         }),
       );
     }
+    if (disciplineKey === "minecraft") {
+      labelFields.push(
+        minecraftRolesSelect(existing?.gameDetails?.minecraftRoles ?? []),
+      );
+    }
     if (discipline.gameNameLabel) {
       rows.push(
         textInput(
@@ -774,8 +810,8 @@ export class CompetitionEntryService {
     await interaction.reply({
       content:
         "**Overwatchの回答・編集**\n" +
-        "最初に「基本情報」で出場可否とBattleTagを保存してください。\n" +
-        "その後、タンク・ダメージ・サポートのランクを個別に回答できます。",
+        "「基本情報」は出場可否だけで保存できます。BattleTag・備考は後から追加できます。\n" +
+        "保存後は、タンク・ダメージ・サポートを好きな順で回答できます。ランクも途中までで保存できます。",
       components: [overwatchEditorButtons(existing)],
       flags: MessageFlags.Ephemeral,
     });
@@ -846,6 +882,11 @@ export class CompetitionEntryService {
       COMPETITION_ENTRY_INPUT_IDS.RANK_DIVISION,
     );
     validateCompetitionRank(discipline, rankName, rankDivision);
+    const minecraftRoles = discipline === "minecraft"
+      ? interaction.fields.getStringSelectValues(
+        COMPETITION_ENTRY_INPUT_IDS.MINECRAFT_ROLES,
+      ).filter((role) => role in MINECRAFT_ROLES)
+      : existing?.gameDetails?.minecraftRoles ?? [];
     const gameName = discipline === "singing"
       ? getSingingCategory(member)
       : submittedGameName;
@@ -858,6 +899,11 @@ export class CompetitionEntryService {
       rankName,
       rankDivision,
       ...(existing?.rankDetails ? { rankDetails: existing.rankDetails } : {}),
+      ...(discipline === "minecraft"
+        ? { gameDetails: { minecraftRoles } }
+        : existing?.gameDetails
+          ? { gameDetails: existing.gameDetails }
+          : {}),
       gameName,
       gameId: optionalField(interaction, COMPETITION_ENTRY_INPUT_IDS.GAME_ID),
       notes: interaction.fields.fields.has(COMPETITION_ENTRY_INPUT_IDS.NOTES)
@@ -909,7 +955,7 @@ export class CompetitionEntryService {
     await CompetitionEntryStore.upsert(entry);
     await interaction.editReply({
       content: tier
-        ? `✅ OWの${OVERWATCH_ROLES[role]}ランクを **${tier} ${division}** で保存しました。`
+        ? `✅ OWの${OVERWATCH_ROLES[role]}ランクを **${tier}${division ? ` ${division}` : ""}** で保存しました。`
         : `✅ OWの${OVERWATCH_ROLES[role]}ランクを未回答に戻しました。`,
       components: [overwatchEditorButtons(entry)],
     });

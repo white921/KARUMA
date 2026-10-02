@@ -9,6 +9,7 @@ const {
   COMPETITION_ENTRY_PANEL_CHANNEL_ID,
   COMPETITION_ENTRY_PANEL_TITLE,
   COMPETITION_RANK_CONFIGS,
+  MINECRAFT_ROLES,
   OVERWATCH_RANK_TIERS,
   competitionOwRoleCustomId,
   competitionEntryCustomId,
@@ -272,7 +273,7 @@ test("each discipline only asks for identifiers that the game actually uses", as
     valorant: ["availability", "rank_name", "rank_division", "game_name", "notes"],
     ow: ["availability", "game_name", "notes"],
     lol: ["availability", "rank_name", "rank_division", "game_name", "notes"],
-    minecraft: ["availability", "game_name", "notes"],
+    minecraft: ["availability", "minecraft_roles", "game_name", "notes"],
   };
   const expectedPlaceholders = {
     singing: [
@@ -327,8 +328,9 @@ test("each discipline only asks for identifiers that the game actually uses", as
     ],
     minecraft: [
       "出場可否を選択",
-      "Javaはプロフィール名、統合版はゲーマータグ",
-      "例：Java版、統合版、どちらも参加可能",
+      "できる役割を選択（複数可・任意）",
+      "例：ゲーム内で表示される名前",
+      "例：大規模建築が得意、自動仕分け機を作れます",
     ],
   };
 
@@ -360,6 +362,62 @@ test("each discipline only asks for identifiers that the game actually uses", as
   assert.equal(COMPETITION_DISCIPLINES.minecraft.gameIdLabel, null);
 });
 
+test("Minecraft modal accepts multiple roles and stores an optional appeal", async (t) => {
+  t.mock.method(CompetitionEntryStore, "findByUser", async () => [{
+    userId: "user", displayName: "回答者", team: "red", discipline: "minecraft",
+    availability: "conditional", rankName: "", rankDivision: "", rankDetails: {},
+    gameDetails: { minecraftRoles: ["building", "automation"] },
+    gameName: "Builder123", gameId: "", notes: "大規模建築が得意",
+  }]);
+  let modal;
+  await CompetitionEntryService.showDisciplineModal({
+    customId: competitionEntryCustomId("edit", "minecraft"),
+    user: { id: "user" },
+    guild: { members: { fetch: async () => roleHolder("red") } },
+    showModal: async (value) => { modal = value.toJSON(); },
+  });
+  const inputs = modalInputs(modal);
+  const roles = inputs[1];
+  assert.equal(roles.type, 3);
+  assert.equal(roles.required, false);
+  assert.equal(roles.min_values, 0);
+  assert.equal(roles.max_values, Object.keys(MINECRAFT_ROLES).length);
+  assert.deepEqual(
+    roles.options.map((option) => option.label),
+    Object.values(MINECRAFT_ROLES),
+  );
+  assert.deepEqual(
+    roles.options.filter((option) => option.default).map((option) => option.value),
+    ["building", "automation"],
+  );
+
+  let saved;
+  t.mock.method(CompetitionEntryStore, "upsert", async (entry) => { saved = entry; });
+  const textValues = new Map([
+    [COMPETITION_ENTRY_INPUT_IDS.GAME_NAME, " Crafter "],
+    [COMPETITION_ENTRY_INPUT_IDS.NOTES, " 自動仕分け機を作れます "],
+  ]);
+  await CompetitionEntryService.submit({
+    customId: competitionEntryCustomId("modal", "minecraft"),
+    user: { id: "user" },
+    guild: { members: { fetch: async () => roleHolder("red") } },
+    fields: {
+      fields: { has: (id) => textValues.has(id) },
+      getTextInputValue: (id) => textValues.get(id),
+      getStringSelectValues: (id) => id === COMPETITION_ENTRY_INPUT_IDS.AVAILABILITY
+        ? ["available"]
+        : ["exploration", "building", "invalid-role"],
+    },
+    deferReply: async () => {},
+    editReply: async () => {},
+  });
+  assert.deepEqual(saved.gameDetails, {
+    minecraftRoles: ["exploration", "building"],
+  });
+  assert.equal(saved.gameName, "Crafter");
+  assert.equal(saved.notes, "自動仕分け機を作れます");
+});
+
 test("rank tier and numeric division rules match each game", () => {
   assert.doesNotThrow(() => validateCompetitionRank("unite", "ビギナー", "3"));
   assert.throws(() => validateCompetitionRank("unite", "ビギナー", "4"), /1～3/);
@@ -388,6 +446,7 @@ test("rank tier and numeric division rules match each game", () => {
 
   assert.doesNotThrow(() => validateOverwatchRank("エメラルド", "5"));
   assert.doesNotThrow(() => validateOverwatchRank("チャンピオン", "1"));
+  assert.doesNotThrow(() => validateOverwatchRank("プラチナ", ""));
   assert.throws(() => validateOverwatchRank("プラチナ", "6"), /1～5/);
   assert.throws(() => validateOverwatchRank("トップ500", "1"), /選択/);
 });
@@ -415,6 +474,8 @@ test("Overwatch stores independent tank, damage and support ranks", async (t) =>
   assert.deepEqual(inputs[0].options.map((option) => option.label), OVERWATCH_RANK_TIERS);
   assert.equal(inputs[0].options.find((option) => option.default)?.value, "プラチナ");
   assert.equal(inputs[1].value, "3");
+  assert.equal(inputs[0].required, false);
+  assert.equal(inputs[1].required, false);
 
   let saved;
   t.mock.method(CompetitionEntryStore, "upsert", async (entry) => { saved = entry; });
@@ -453,6 +514,8 @@ test("Overwatch button opens a four-part editor before showing any modal", async
   });
   assert.equal(modalOpened, false);
   assert.match(reply.content, /Overwatchの回答・編集/);
+  assert.match(reply.content, /出場可否だけで保存/);
+  assert.match(reply.content, /BattleTag・備考は後から/);
   const buttons = reply.components[0].toJSON().components;
   assert.deepEqual(buttons.map((button) => button.label), [
     "基本情報",
