@@ -81,6 +81,15 @@ test("availability accepts common Japanese answers and rejects ambiguous text", 
   assert.throws(() => parseScheduleAvailability("未定"), /◯.*△.*✕/);
 });
 
+test("schedule button is treated as a modal-opening button", () => {
+  assert.equal(
+    CompetitionEntryService.isModalOpeningButton(
+      COMPETITION_ENTRY_ACTIONS.SCHEDULE_EDIT,
+    ),
+    true,
+  );
+});
+
 test("editor lists schedule and all nine disciplines and marks saved answers", async (t) => {
   t.mock.method(CompetitionEntryStore, "findByUser", async () => [{
     userId: "user",

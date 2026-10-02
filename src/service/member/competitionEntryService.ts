@@ -272,7 +272,10 @@ export class CompetitionEntryService {
   }
 
   static isModalOpeningButton(customId: string): boolean {
-    return customId.startsWith(`${COMPETITION_ENTRY_PREFIX}:edit:`);
+    return (
+      customId.startsWith(`${COMPETITION_ENTRY_PREFIX}:edit:`) ||
+      customId === COMPETITION_ENTRY_ACTIONS.SCHEDULE_EDIT
+    );
   }
 
   static async handleButton(interaction: ButtonInteraction): Promise<void> {
