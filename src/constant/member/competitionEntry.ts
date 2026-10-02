@@ -18,6 +18,7 @@ export const COMPETITION_ENTRY_ACTIONS = {
 export const COMPETITION_ENTRY_INPUT_IDS = {
   AVAILABILITY: "availability",
   RANK: "rank_name",
+  RANK_DIVISION: "rank_division",
   GAME_NAME: "game_name",
   GAME_ID: "game_id",
   NOTES: "notes",
@@ -119,6 +120,58 @@ export const COMPETITION_DISCIPLINES = {
     notesPlaceholder: "例：Java版、統合版、どちらも参加可能",
   },
 } as const;
+
+export const COMPETITION_RANK_CONFIGS = {
+  unite: {
+    tierLabel: "ランク帯（ティア）",
+    tiers: ["ビギナー", "スーパー", "ハイパー", "エリート", "エキスパート", "マスター"],
+    divisionLabel: "クラス／マスターレート",
+    divisionPlaceholder: "クラスは1～5、マスターはレート（例：1400）",
+  },
+  mahjong: {
+    tierLabel: "雀魂の段位",
+    tiers: ["初心", "雀士", "雀傑", "雀豪", "雀聖", "魂天"],
+    divisionLabel: "段階",
+    divisionPlaceholder: "初心～雀聖は1～3、魂天は1～20",
+  },
+  fall_guys: {
+    tierLabel: "ランク帯（ティア）",
+    tiers: [
+      "ルーキー", "挑戦者", "ブロンズ", "シルバー",
+      "ゴールド", "エース", "スター", "スーパースター",
+    ],
+    divisionLabel: "サブランク",
+    divisionPlaceholder: "1～3または1～5（スーパースターは空欄）",
+  },
+  valorant: {
+    tierLabel: "ランク帯（ティア）",
+    tiers: [
+      "アイアン", "ブロンズ", "シルバー", "ゴールド", "プラチナ",
+      "ダイヤモンド", "アセンダント", "イモータル", "レディアント",
+    ],
+    divisionLabel: "ディビジョン",
+    divisionPlaceholder: "1～3（レディアントは空欄）",
+  },
+  lol: {
+    tierLabel: "ランク帯（ティア）",
+    tiers: [
+      "アイアン", "ブロンズ", "シルバー", "ゴールド", "プラチナ",
+      "エメラルド", "ダイヤモンド", "マスター", "グランドマスター", "チャレンジャー",
+    ],
+    divisionLabel: "ディビジョン",
+    divisionPlaceholder: "1～4（マスター以上は空欄）",
+  },
+} as const satisfies Partial<
+  Record<
+    keyof typeof COMPETITION_DISCIPLINES,
+    {
+      tierLabel: string;
+      tiers: readonly string[];
+      divisionLabel: string;
+      divisionPlaceholder: string;
+    }
+  >
+>;
 
 export type CompetitionDisciplineKey = keyof typeof COMPETITION_DISCIPLINES;
 

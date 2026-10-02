@@ -12,6 +12,7 @@ export type CompetitionEntry = {
   discipline: string;
   availability: CompetitionAvailability;
   rankName: string;
+  rankDivision: string;
   gameName: string;
   gameId: string;
   notes: string;

@@ -8,6 +8,7 @@ const {
   COMPETITION_ENTRY_INPUT_IDS,
   COMPETITION_ENTRY_PANEL_CHANNEL_ID,
   COMPETITION_ENTRY_PANEL_TITLE,
+  COMPETITION_RANK_CONFIGS,
   competitionEntryCustomId,
 } = require("../dist/constant/member/competitionEntry.js");
 const { TEAM_ASSIGNMENTS } = require("../dist/constant/member/teamAssignment.js");
@@ -20,6 +21,7 @@ const {
   createCompetitionEntriesCsv,
   parseCompetitionAvailability,
   parseScheduleAvailability,
+  validateCompetitionRank,
 } = require("../dist/service/member/competitionEntryService.js");
 const {
   CompetitionEntryStore,
@@ -219,7 +221,7 @@ test("schedule modal selects day 1 to 3 and saves overall notes", async (t) => {
 test("mahjong modal uses Jantama rank, name and player ID fields", async (t) => {
   t.mock.method(CompetitionEntryStore, "findByUser", async () => [{
     userId: "user", displayName: "回答者", team: "blue", discipline: "mahjong",
-    availability: "available", rankName: "雀傑2", gameName: "じゃんし", gameId: "9988", notes: "夜のみ",
+    availability: "available", rankName: "雀傑", rankDivision: "2", gameName: "じゃんし", gameId: "9988", notes: "夜のみ",
   }]);
   let modal;
   await CompetitionEntryService.showDisciplineModal({
@@ -233,9 +235,9 @@ test("mahjong modal uses Jantama rank, name and player ID fields", async (t) => 
   assert.deepEqual(inputs.map((input) => input.custom_id), [
     COMPETITION_ENTRY_INPUT_IDS.AVAILABILITY,
     COMPETITION_ENTRY_INPUT_IDS.RANK,
+    COMPETITION_ENTRY_INPUT_IDS.RANK_DIVISION,
     COMPETITION_ENTRY_INPUT_IDS.GAME_NAME,
     COMPETITION_ENTRY_INPUT_IDS.GAME_ID,
-    COMPETITION_ENTRY_INPUT_IDS.NOTES,
   ]);
   assert.equal(inputs[0].type, 3);
   assert.equal(
@@ -245,8 +247,14 @@ test("mahjong modal uses Jantama rank, name and player ID fields", async (t) => 
   assert.deepEqual(inputs[0].options.map((option) => option.label), [
     "出場できる", "条件付き・要相談", "出場できない",
   ]);
-  assert.equal(inputs[1].value, "雀傑2");
-  assert.match(inputs[1].placeholder, /雀傑2/);
+  assert.equal(inputs[1].type, 3);
+  assert.equal(inputs[1].options.find((option) => option.default)?.value, "雀傑");
+  assert.deepEqual(
+    inputs[1].options.map((option) => option.label),
+    COMPETITION_RANK_CONFIGS.mahjong.tiers,
+  );
+  assert.equal(inputs[2].value, "2");
+  assert.match(inputs[2].placeholder, /1～20/);
 });
 
 test("each discipline only asks for identifiers that the game actually uses", async (t) => {
@@ -254,13 +262,13 @@ test("each discipline only asks for identifiers that the game actually uses", as
   t.mock.method(CompetitionEntryStore, "findProfileByUser", async () => undefined);
   const expected = {
     singing: ["availability", "notes"],
-    unite: ["availability", "rank_name", "game_name", "game_id", "notes"],
+    unite: ["availability", "rank_name", "rank_division", "game_name", "game_id"],
     free: ["availability", "game_name", "game_id", "notes"],
     gf: ["availability", "rank_name", "game_name", "notes"],
-    mahjong: ["availability", "rank_name", "game_name", "game_id", "notes"],
-    fall_guys: ["availability", "rank_name", "game_name", "notes"],
-    valorant: ["availability", "rank_name", "game_name", "notes"],
-    lol: ["availability", "rank_name", "game_name", "notes"],
+    mahjong: ["availability", "rank_name", "rank_division", "game_name", "game_id"],
+    fall_guys: ["availability", "rank_name", "rank_division", "game_name", "notes"],
+    valorant: ["availability", "rank_name", "rank_division", "game_name", "notes"],
+    lol: ["availability", "rank_name", "rank_division", "game_name", "notes"],
     minecraft: ["availability", "game_name", "notes"],
   };
   const expectedPlaceholders = {
@@ -270,10 +278,10 @@ test("each discipline only asks for identifiers that the game actually uses", as
     ],
     unite: [
       "出場可否を選択",
-      "例：マスター（レート1400）",
+      "ランク帯（ティア）を選択（任意）",
+      "クラスは1～5、マスターはレート（例：1400）",
       "例：UNITEで公開されている名前",
       "プロフィールに表示されるトレーナーID",
-      "例：得意レーン、よく使うポケモン、参加可能時間",
     ],
     free: [
       "出場可否を選択",
@@ -289,26 +297,29 @@ test("each discipline only asks for identifiers that the game actually uses", as
     ],
     mahjong: [
       "出場可否を選択",
-      "例：雀傑2、雀豪1",
+      "雀魂の段位を選択（任意）",
+      "初心～雀聖は1～3、魂天は1～20",
       "雀魂で表示される名前",
       "プロフィールに表示される数字のプレイヤーID",
-      "例：四麻／三麻、参加可能な時間帯",
     ],
     fall_guys: [
       "出場可否を選択",
-      "例：Gold、Ace、Superstar",
+      "ランク帯（ティア）を選択（任意）",
+      "1～3または1～5（スーパースターは空欄）",
       "PC・SwitchはEpic表示名、PS・Xboxは各ID",
       "例：PC、Switch、PlayStation、Xbox",
     ],
     valorant: [
       "出場可否を選択",
-      "例：ゴールド2、ダイヤモンド1",
+      "ランク帯（ティア）を選択（任意）",
+      "1～3（レディアントは空欄）",
       "例：PlayerName#JP1",
       "例：メインロール、使用エージェント、参加可能時間",
     ],
     lol: [
       "出場可否を選択",
-      "例：ゴールドIV、エメラルドII",
+      "ランク帯（ティア）を選択（任意）",
+      "1～4（マスター以上は空欄）",
       "例：PlayerName#JP1",
       "例：TOP、JG、MID、ADC、SUP",
     ],
@@ -345,6 +356,33 @@ test("each discipline only asks for identifiers that the game actually uses", as
   assert.equal(COMPETITION_DISCIPLINES.valorant.gameIdLabel, null);
   assert.equal(COMPETITION_DISCIPLINES.lol.gameIdLabel, null);
   assert.equal(COMPETITION_DISCIPLINES.minecraft.gameIdLabel, null);
+});
+
+test("rank tier and numeric division rules match each game", () => {
+  assert.doesNotThrow(() => validateCompetitionRank("unite", "ビギナー", "3"));
+  assert.throws(() => validateCompetitionRank("unite", "ビギナー", "4"), /1～3/);
+  assert.doesNotThrow(() => validateCompetitionRank("unite", "マスター", "1400"));
+
+  assert.doesNotThrow(() => validateCompetitionRank("mahjong", "雀豪", "3"));
+  assert.throws(() => validateCompetitionRank("mahjong", "雀豪", "4"), /1～3/);
+  assert.doesNotThrow(() => validateCompetitionRank("mahjong", "魂天", "20"));
+  assert.throws(() => validateCompetitionRank("mahjong", "魂天", "21"), /1～20/);
+
+  assert.doesNotThrow(() => validateCompetitionRank("fall_guys", "ゴールド", "5"));
+  assert.throws(() => validateCompetitionRank("fall_guys", "ゴールド", "6"), /1～5/);
+  assert.doesNotThrow(() => validateCompetitionRank("fall_guys", "スーパースター", ""));
+  assert.throws(() => validateCompetitionRank("fall_guys", "スーパースター", "1"), /空欄/);
+
+  assert.doesNotThrow(() => validateCompetitionRank("valorant", "プラチナ", "3"));
+  assert.throws(() => validateCompetitionRank("valorant", "プラチナ", "4"), /1～3/);
+  assert.doesNotThrow(() => validateCompetitionRank("valorant", "レディアント", ""));
+
+  assert.doesNotThrow(() => validateCompetitionRank("lol", "エメラルド", "4"));
+  assert.throws(() => validateCompetitionRank("lol", "エメラルド", "5"), /1～4/);
+  assert.doesNotThrow(() => validateCompetitionRank("lol", "マスター", ""));
+
+  assert.doesNotThrow(() => validateCompetitionRank("gf", "1500", ""));
+  assert.throws(() => validateCompetitionRank("gf", "高い", ""), /半角数字/);
 });
 
 test("singing modal omits category input and submission uses the gender role", async (t) => {
@@ -388,6 +426,7 @@ test("singing modal omits category input and submission uses the gender role", a
     discipline: "singing",
     availability: "available",
     rankName: "",
+    rankDivision: "",
     gameName: "♀",
     gameId: "",
     notes: "高音",
@@ -433,7 +472,8 @@ test("CSV includes schedule, overall notes and readable discipline labels", () =
     team: "blue",
     discipline: "mahjong",
     availability: "conditional",
-    rankName: "雀豪1",
+    rankName: "雀豪",
+    rankDivision: "1",
     gameName: "雀士",
     gameId: "999",
     notes: "夜のみ",
@@ -454,6 +494,8 @@ test("CSV includes schedule, overall notes and readable discipline labels", () =
   assert.match(csv, /"条件付き・要相談"/);
   assert.match(csv, /"名前,""改行 あり"/);
   assert.match(csv, /"1日目","2日目","3日目","全体備考"/);
+  assert.match(csv, /"ランク帯・レーティング","クラス・ディビジョン"/);
+  assert.match(csv, /"雀豪","1"/);
   assert.match(csv, /"◯","△","✕","2日目は夜から"/);
 });
 

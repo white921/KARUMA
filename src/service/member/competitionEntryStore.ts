@@ -13,6 +13,7 @@ type CompetitionEntryRow = RowDataPacket & {
   discipline: string;
   availability: CompetitionEntry["availability"];
   rank_name: string | null;
+  rank_division: string | null;
   game_name: string | null;
   game_id: string | null;
   notes: string | null;
@@ -38,6 +39,7 @@ function fromRow(row: CompetitionEntryRow): CompetitionEntry {
     discipline: row.discipline,
     availability: row.availability,
     rankName: row.rank_name ?? "",
+    rankDivision: row.rank_division ?? "",
     gameName: row.game_name ?? "",
     gameId: row.game_id ?? "",
     notes: row.notes ?? "",
@@ -112,7 +114,7 @@ export class CompetitionEntryStore {
     try {
       const [rows] = await connection.query<CompetitionEntryRow[]>(
         `SELECT user_id, display_name, team_key, discipline, availability,
-                rank_name, game_name, game_id, notes, updated_at
+                rank_name, rank_division, game_name, game_id, notes, updated_at
            FROM competition_entries
           WHERE user_id = ?`,
         [userId],
@@ -129,13 +131,14 @@ export class CompetitionEntryStore {
       await connection.execute(
         `INSERT INTO competition_entries
           (user_id, display_name, team_key, discipline, availability,
-           rank_name, game_name, game_id, notes)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+           rank_name, rank_division, game_name, game_id, notes)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
          ON DUPLICATE KEY UPDATE
            display_name = VALUES(display_name),
            team_key = VALUES(team_key),
            availability = VALUES(availability),
            rank_name = VALUES(rank_name),
+           rank_division = VALUES(rank_division),
            game_name = VALUES(game_name),
            game_id = VALUES(game_id),
            notes = VALUES(notes)`,
@@ -146,6 +149,7 @@ export class CompetitionEntryStore {
           entry.discipline,
           entry.availability,
           entry.rankName || null,
+          entry.rankDivision || null,
           entry.gameName || null,
           entry.gameId || null,
           entry.notes || null,
@@ -161,7 +165,7 @@ export class CompetitionEntryStore {
     try {
       const [rows] = await connection.query<CompetitionEntryRow[]>(
         `SELECT user_id, display_name, team_key, discipline, availability,
-                rank_name, game_name, game_id, notes, updated_at
+                rank_name, rank_division, game_name, game_id, notes, updated_at
            FROM competition_entries
           WHERE team_key = ?
           ORDER BY display_name ASC, discipline ASC`,

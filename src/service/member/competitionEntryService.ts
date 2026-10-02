@@ -20,6 +20,7 @@ import {
   COMPETITION_ENTRY_ACTIONS,
   COMPETITION_ENTRY_INPUT_IDS,
   COMPETITION_ENTRY_PREFIX,
+  COMPETITION_RANK_CONFIGS,
   competitionEntryCustomId,
   isCompetitionDisciplineKey,
   type CompetitionDisciplineKey,
@@ -226,6 +227,105 @@ function competitionAvailabilitySelect(
     .setStringSelectMenuComponent(select);
 }
 
+function rankTierSelect(
+  disciplineKey: keyof typeof COMPETITION_RANK_CONFIGS,
+  selected?: string,
+): LabelBuilder {
+  const config = COMPETITION_RANK_CONFIGS[disciplineKey];
+  const select = new StringSelectMenuBuilder()
+    .setCustomId(COMPETITION_ENTRY_INPUT_IDS.RANK)
+    .setPlaceholder(`${config.tierLabel}を選択（任意）`)
+    .setRequired(false)
+    .setMinValues(0)
+    .setMaxValues(1)
+    .addOptions(
+      config.tiers.map((tier) => ({
+        label: tier,
+        value: tier,
+        default: selected === tier,
+      })),
+    );
+  return new LabelBuilder()
+    .setLabel(config.tierLabel)
+    .setStringSelectMenuComponent(select);
+}
+
+function hasRankConfig(
+  discipline: CompetitionDisciplineKey,
+): discipline is keyof typeof COMPETITION_RANK_CONFIGS {
+  return discipline in COMPETITION_RANK_CONFIGS;
+}
+
+function rankValuesForEdit(
+  discipline: keyof typeof COMPETITION_RANK_CONFIGS,
+  entry: CompetitionEntry | undefined,
+): { tier: string; division: string } {
+  if (!entry) return { tier: "", division: "" };
+  if (entry.rankDivision) {
+    return { tier: entry.rankName, division: entry.rankDivision };
+  }
+  const tier = COMPETITION_RANK_CONFIGS[discipline].tiers.find(
+    (candidate) => entry.rankName === candidate || entry.rankName.startsWith(candidate),
+  );
+  if (!tier) return { tier: "", division: "" };
+  return {
+    tier,
+    division: entry.rankName.slice(tier.length).trim(),
+  };
+}
+
+export function validateCompetitionRank(
+  discipline: CompetitionDisciplineKey,
+  tier: string,
+  division: string,
+): void {
+  if (discipline === "gf") {
+    if (!tier) return;
+    if (!/^\d+$/.test(tier) || Number(tier) > 9999) {
+      throw new Error("GFの決闘レーティングは0～9999の半角数字で入力してください。");
+    }
+    return;
+  }
+  if (!hasRankConfig(discipline)) return;
+  const config = COMPETITION_RANK_CONFIGS[discipline];
+  if (!tier && !division) return;
+  if (!config.tiers.some((candidate) => candidate === tier)) {
+    throw new Error(`${config.tierLabel}を選択してください。`);
+  }
+
+  const noDivisionTiers: Partial<Record<keyof typeof COMPETITION_RANK_CONFIGS, readonly string[]>> = {
+    fall_guys: ["スーパースター"],
+    valorant: ["レディアント"],
+    lol: ["マスター", "グランドマスター", "チャレンジャー"],
+  };
+  if (noDivisionTiers[discipline]?.includes(tier)) {
+    if (division) {
+      throw new Error(`${tier}には${config.divisionLabel}がないため、数字欄は空欄にしてください。`);
+    }
+    return;
+  }
+  if (!division || !/^\d+$/.test(division)) {
+    throw new Error(`${config.divisionLabel}を半角数字で入力してください。`);
+  }
+
+  const value = Number(division);
+  let maximum: number;
+  if (discipline === "unite") {
+    maximum = tier === "ビギナー" ? 3 : tier === "スーパー" ? 4 : tier === "マスター" ? 9999 : 5;
+  } else if (discipline === "mahjong") {
+    maximum = tier === "魂天" ? 20 : 3;
+  } else if (discipline === "fall_guys") {
+    maximum = ["ゴールド", "エース", "スター"].includes(tier) ? 5 : 3;
+  } else if (discipline === "valorant") {
+    maximum = 3;
+  } else {
+    maximum = 4;
+  }
+  if (value < 1 || value > maximum) {
+    throw new Error(`${tier}の${config.divisionLabel}は1～${maximum}で入力してください。`);
+  }
+}
+
 function displayFieldLabel(label: string): string {
   return label.replace(/（任意）/g, "").trim();
 }
@@ -237,7 +337,13 @@ function formatEntry(
   if (!entry) return "**未回答**";
   const discipline = COMPETITION_DISCIPLINES[disciplineKey];
   const lines = [`出場可否：**${AVAILABILITY_LABELS[entry.availability]}**`];
-  if (entry.rankName && discipline.rankLabel) {
+  if (hasRankConfig(disciplineKey)) {
+    const rankConfig = COMPETITION_RANK_CONFIGS[disciplineKey];
+    if (entry.rankName) lines.push(`${rankConfig.tierLabel}：${entry.rankName}`);
+    if (entry.rankDivision) {
+      lines.push(`${rankConfig.divisionLabel}：${entry.rankDivision}`);
+    }
+  } else if (entry.rankName && discipline.rankLabel) {
     lines.push(`${displayFieldLabel(discipline.rankLabel)}：${entry.rankName}`);
   }
   if (entry.gameName) {
@@ -279,7 +385,7 @@ export function createCompetitionEntriesCsv(
     "チーム", "表示名", "DiscordユーザーID",
     "1日目", "2日目", "3日目", "全体備考",
     "競技", "出場可否",
-    "ランク・段位", "ゲーム内ネーム等", "ゲームID", "備考", "最終更新",
+    "ランク帯・レーティング", "クラス・ディビジョン", "ゲーム内ネーム等", "ゲームID", "備考", "最終更新",
   ];
   const profilesByUser = new Map(
     profiles.map((profile) => [profile.userId, profile]),
@@ -303,6 +409,7 @@ export function createCompetitionEntriesCsv(
       discipline,
       AVAILABILITY_LABELS[entry.availability],
       entry.rankName,
+      entry.rankDivision,
       entry.gameName,
       entry.gameId,
       entry.notes,
@@ -323,7 +430,7 @@ export function createCompetitionEntriesCsv(
       SCHEDULE_AVAILABILITY_LABELS[profile.day2Availability],
       SCHEDULE_AVAILABILITY_LABELS[profile.day3Availability],
       profile.overallNotes,
-      "", "", "", "", "", "", updatedAt,
+      "", "", "", "", "", "", "", updatedAt,
     ]);
   }
   const csv = [header, ...rows]
@@ -464,16 +571,25 @@ export class CompetitionEntryService {
     const availabilityField = competitionAvailabilitySelect(
       existing?.availability,
     );
+    const labelFields: LabelBuilder[] = [availabilityField];
     const rows: ActionRowBuilder<TextInputBuilder>[] = [];
-    if (discipline.rankLabel) {
+    if (hasRankConfig(disciplineKey)) {
+      const rankConfig = COMPETITION_RANK_CONFIGS[disciplineKey];
+      const rankValues = rankValuesForEdit(disciplineKey, existing);
+      labelFields.push(rankTierSelect(disciplineKey, rankValues.tier));
+      rows.push(
+        textInput(COMPETITION_ENTRY_INPUT_IDS.RANK_DIVISION, rankConfig.divisionLabel, {
+          value: rankValues.division,
+          placeholder: rankConfig.divisionPlaceholder,
+          maxLength: 4,
+        }),
+      );
+    } else if (discipline.rankLabel) {
       rows.push(
         textInput(COMPETITION_ENTRY_INPUT_IDS.RANK, discipline.rankLabel, {
           value: existing?.rankName,
-          placeholder:
-            "rankPlaceholder" in discipline
-              ? discipline.rankPlaceholder
-              : undefined,
-          maxLength: 64,
+          placeholder: "rankPlaceholder" in discipline ? discipline.rankPlaceholder : undefined,
+          maxLength: 4,
         }),
       );
     }
@@ -506,7 +622,7 @@ export class CompetitionEntryService {
         ),
       );
     }
-    if (rows.length < 4) {
+    if (labelFields.length + rows.length < 5) {
       rows.push(
         textInput(COMPETITION_ENTRY_INPUT_IDS.NOTES, discipline.notesLabel, {
           value: existing?.notes,
@@ -521,7 +637,7 @@ export class CompetitionEntryService {
       new ModalBuilder()
         .setCustomId(competitionEntryCustomId("modal", disciplineKey))
         .setTitle(`${discipline.label}の回答`)
-        .addLabelComponents(availabilityField)
+        .addLabelComponents(labelFields)
         .addComponents(rows),
     );
   }
@@ -544,7 +660,19 @@ export class CompetitionEntryService {
     );
 
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-    const member = await interaction.guild.members.fetch(interaction.user.id);
+    const [member, entries] = await Promise.all([
+      interaction.guild.members.fetch(interaction.user.id),
+      CompetitionEntryStore.findByUser(interaction.user.id),
+    ]);
+    const existing = entries.find((entry) => entry.discipline === discipline);
+    const rankName = hasRankConfig(discipline)
+      ? interaction.fields.getStringSelectValues(COMPETITION_ENTRY_INPUT_IDS.RANK)[0] ?? ""
+      : optionalField(interaction, COMPETITION_ENTRY_INPUT_IDS.RANK);
+    const rankDivision = optionalField(
+      interaction,
+      COMPETITION_ENTRY_INPUT_IDS.RANK_DIVISION,
+    );
+    validateCompetitionRank(discipline, rankName, rankDivision);
     const gameName = discipline === "singing"
       ? getSingingCategory(member)
       : submittedGameName;
@@ -554,10 +682,13 @@ export class CompetitionEntryService {
       team: getTeam(member),
       discipline,
       availability,
-      rankName: optionalField(interaction, COMPETITION_ENTRY_INPUT_IDS.RANK),
+      rankName,
+      rankDivision,
       gameName,
       gameId: optionalField(interaction, COMPETITION_ENTRY_INPUT_IDS.GAME_ID),
-      notes: optionalField(interaction, COMPETITION_ENTRY_INPUT_IDS.NOTES),
+      notes: interaction.fields.fields.has(COMPETITION_ENTRY_INPUT_IDS.NOTES)
+        ? optionalField(interaction, COMPETITION_ENTRY_INPUT_IDS.NOTES)
+        : existing?.notes ?? "",
     };
     await CompetitionEntryStore.upsert(entry);
     await interaction.editReply({
