@@ -138,7 +138,7 @@ test("answering requires exactly one team role", async (t) => {
   );
 });
 
-test("schedule modal saves day 1 to 3 as circle triangle cross and overall notes", async (t) => {
+test("schedule modal selects day 1 to 3 and saves overall notes", async (t) => {
   t.mock.method(CompetitionEntryStore, "findProfileByUser", async () => ({
     userId: "user", displayName: "回答者", team: "blue",
     day1Availability: "available", day2Availability: "conditional",
@@ -151,16 +151,27 @@ test("schedule modal saves day 1 to 3 as circle triangle cross and overall notes
     showModal: async (value) => { modal = value.toJSON(); },
   });
   assert.equal(modal.title, "日程・全体備考の回答");
-  const inputs = modal.components.map((row) => row.components[0]);
+  const inputs = modal.components.map((component) =>
+    component.component ?? component.components[0]
+  );
   assert.deepEqual(inputs.map((input) => input.custom_id), [
     COMPETITION_ENTRY_INPUT_IDS.DAY1,
     COMPETITION_ENTRY_INPUT_IDS.DAY2,
     COMPETITION_ENTRY_INPUT_IDS.DAY3,
     COMPETITION_ENTRY_INPUT_IDS.OVERALL_NOTES,
   ]);
-  assert.deepEqual(inputs.slice(0, 3).map((input) => input.value), ["◯", "△", "✕"]);
+  assert.deepEqual(inputs.slice(0, 3).map((input) => input.type), [3, 3, 3]);
   assert.deepEqual(inputs.slice(0, 3).map((input) => input.placeholder), [
-    "◯ / △ / ✕", "◯ / △ / ✕", "◯ / △ / ✕",
+    "参加可否を選択", "参加可否を選択", "参加可否を選択",
+  ]);
+  assert.deepEqual(
+    inputs.slice(0, 3).map((input) =>
+      input.options.find((option) => option.default)?.value
+    ),
+    ["available", "conditional", "unavailable"],
+  );
+  assert.deepEqual(inputs[0].options.map((option) => option.label), [
+    "◯ 参加可能", "△ 条件付き・要相談", "✕ 参加不可",
   ]);
   assert.match(inputs[3].placeholder, /2日目/);
 
@@ -169,9 +180,9 @@ test("schedule modal saves day 1 to 3 as circle triangle cross and overall notes
     saved = profile;
   });
   const values = new Map([
-    [COMPETITION_ENTRY_INPUT_IDS.DAY1, "◯"],
-    [COMPETITION_ENTRY_INPUT_IDS.DAY2, "△"],
-    [COMPETITION_ENTRY_INPUT_IDS.DAY3, "✕"],
+    [COMPETITION_ENTRY_INPUT_IDS.DAY1, "available"],
+    [COMPETITION_ENTRY_INPUT_IDS.DAY2, "conditional"],
+    [COMPETITION_ENTRY_INPUT_IDS.DAY3, "unavailable"],
     [COMPETITION_ENTRY_INPUT_IDS.OVERALL_NOTES, " 2日目は21時以降 "],
   ]);
   const replies = [];
@@ -182,6 +193,7 @@ test("schedule modal saves day 1 to 3 as circle triangle cross and overall notes
     fields: {
       fields: { has: (id) => values.has(id) },
       getTextInputValue: (id) => values.get(id),
+      getStringSelectValues: (id) => [values.get(id)],
     },
     deferReply: async (body) => replies.push(["defer", body]),
     editReply: async (body) => replies.push(["edit", body]),

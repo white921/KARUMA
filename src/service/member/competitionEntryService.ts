@@ -6,9 +6,11 @@ import {
   ButtonStyle,
   ChatInputCommandInteraction,
   EmbedBuilder,
+  LabelBuilder,
   MessageFlags,
   ModalBuilder,
   ModalSubmitInteraction,
+  StringSelectMenuBuilder,
   TextInputBuilder,
   TextInputStyle,
 } from "discord.js";
@@ -99,6 +101,13 @@ export function parseCompetitionAvailability(
 export function parseScheduleAvailability(
   rawValue: string,
 ): CompetitionAvailability {
+  if (
+    rawValue === "available" ||
+    rawValue === "conditional" ||
+    rawValue === "unavailable"
+  ) {
+    return rawValue;
+  }
   try {
     return parseCompetitionAvailability(rawValue);
   } catch {
@@ -151,6 +160,39 @@ function textInput(
   if (options.value) input.setValue(options.value);
   if (options.placeholder) input.setPlaceholder(options.placeholder);
   return new ActionRowBuilder<TextInputBuilder>().addComponents(input);
+}
+
+function scheduleSelect(
+  customId: string,
+  label: string,
+  selected?: CompetitionAvailability,
+): LabelBuilder {
+  const select = new StringSelectMenuBuilder()
+    .setCustomId(customId)
+    .setPlaceholder("参加可否を選択")
+    .setRequired(true)
+    .setMinValues(1)
+    .setMaxValues(1)
+    .addOptions(
+      {
+        label: "◯ 参加可能",
+        value: "available",
+        default: selected === "available",
+      },
+      {
+        label: "△ 条件付き・要相談",
+        value: "conditional",
+        default: selected === "conditional",
+      },
+      {
+        label: "✕ 参加不可",
+        value: "unavailable",
+        default: selected === "unavailable",
+      },
+    );
+  return new LabelBuilder()
+    .setLabel(label)
+    .setStringSelectMenuComponent(select);
 }
 
 function displayFieldLabel(label: string): string {
@@ -349,31 +391,29 @@ export class CompetitionEntryService {
       CompetitionEntryStore.findProfileByUser(interaction.user.id),
     ]);
     getTeam(member);
-    const rows = ([
+    const scheduleFields = ([
       [COMPETITION_ENTRY_INPUT_IDS.DAY1, "1日目の参加可否", profile?.day1Availability],
       [COMPETITION_ENTRY_INPUT_IDS.DAY2, "2日目の参加可否", profile?.day2Availability],
       [COMPETITION_ENTRY_INPUT_IDS.DAY3, "3日目の参加可否", profile?.day3Availability],
     ] as const).map(([customId, label, value]) =>
-      textInput(customId, label, {
-        value: value ? SCHEDULE_AVAILABILITY_LABELS[value] : undefined,
-        placeholder: "◯ / △ / ✕",
-        required: true,
-        maxLength: 1,
-      }),
+      scheduleSelect(customId, label, value),
     );
-    rows.push(
-      textInput(COMPETITION_ENTRY_INPUT_IDS.OVERALL_NOTES, "全体備考（任意）", {
+    const notesField = textInput(
+      COMPETITION_ENTRY_INPUT_IDS.OVERALL_NOTES,
+      "全体備考（任意）",
+      {
         value: profile?.overallNotes,
         placeholder: "例：2日目は21時以降参加可能",
         maxLength: 500,
         style: TextInputStyle.Paragraph,
-      }),
+      },
     );
     await interaction.showModal(
       new ModalBuilder()
         .setCustomId(COMPETITION_ENTRY_ACTIONS.SCHEDULE_MODAL)
         .setTitle("日程・全体備考の回答")
-        .addComponents(rows),
+        .addLabelComponents(scheduleFields)
+        .addComponents(notesField),
     );
   }
 
@@ -506,13 +546,13 @@ export class CompetitionEntryService {
   ): Promise<void> {
     if (!interaction.guild) throw new Error("サーバー内でのみ回答できます。");
     const day1Availability = parseScheduleAvailability(
-      interaction.fields.getTextInputValue(COMPETITION_ENTRY_INPUT_IDS.DAY1),
+      interaction.fields.getStringSelectValues(COMPETITION_ENTRY_INPUT_IDS.DAY1)[0] ?? "",
     );
     const day2Availability = parseScheduleAvailability(
-      interaction.fields.getTextInputValue(COMPETITION_ENTRY_INPUT_IDS.DAY2),
+      interaction.fields.getStringSelectValues(COMPETITION_ENTRY_INPUT_IDS.DAY2)[0] ?? "",
     );
     const day3Availability = parseScheduleAvailability(
-      interaction.fields.getTextInputValue(COMPETITION_ENTRY_INPUT_IDS.DAY3),
+      interaction.fields.getStringSelectValues(COMPETITION_ENTRY_INPUT_IDS.DAY3)[0] ?? "",
     );
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     const member = await interaction.guild.members.fetch(interaction.user.id);
