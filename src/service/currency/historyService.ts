@@ -1,3 +1,5 @@
+import { dailyReportAction, formatHighLowDaily, withoutIndividualHighLow } from "./highLowDailyReport";
+import { HighLowDailyService } from "./highLowDailyService";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
@@ -52,10 +54,19 @@ export class HistoryService {
     try {
       const [actions] = await connection.execute<Action[] & RowDataPacket[]>(
         `SELECT * FROM actions 
-         WHERE (from_user_id = ? OR to_user_id = ?);`,
+         WHERE (from_user_id = ? OR to_user_id = ?)
+           AND command_name NOT IN ('high_low_bet', 'high_low_payout');`,
         [userId, userId],
       );
-      return actions;
+      try {
+        const reports = await HighLowDailyService.readHistory(connection, userId);
+        return [...actions, ...reports.map(dailyReportAction)];
+      } catch (error: any) {
+        // Safe deployment order: normal history remains available before migration.
+        // Individual high-low transactions are never exposed as a fallback.
+        if (error?.code !== "ER_NO_SUCH_TABLE") throw error;
+        return actions;
+      }
     } catch (error: any) {
       throw error;
     } finally {
@@ -65,7 +76,7 @@ export class HistoryService {
 
   static filterActions(actions: Action[], userId: string, filters = emptyHistoryFilters()): Action[] {
     return actions.filter(action => matchesHistoryFilters(action, userId, filters))
-      .sort((a, b) => b.id - a.id);
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime() || b.id - a.id);
   }
 
   /** 1件の取引履歴を表示用文字列に変換する。 */
@@ -76,6 +87,8 @@ export class HistoryService {
     const type = historyActionType(action);
     const effect = historyEffect(action, userId);
     if (!effect) return null;
+    const daily = formatHighLowDaily(action);
+    if (daily) return daily;
     const titleText = HISTORY_TITLE_MAPPER[type] || "不明な取引";
     const sign = effect.delta > 0 ? "+" : effect.delta < 0 ? "-" : "";
     const isLeveliaGame = type === ACTION_TYPES.HIGH_LOW_BET || type === ACTION_TYPES.HIGH_LOW_PAYOUT;
@@ -245,7 +258,7 @@ export class HistoryService {
     if (!(await AccountService.hasAccount(userId))) {
       throw new Error(ACCOUNT_MESSAGES.ACCOUNT_NOT_FOUND);
     }
-    const actions = this.filterActions(await this.getActionsByUserId(userId), userId);
+    const actions = this.filterActions(withoutIndividualHighLow(await this.getActionsByUserId(userId)), userId);
     const historyStrings = this.filterActions(actions, userId, filters)
       .map(action => this.createHistoryString(action, userId))
       .filter((value): value is string => value !== null);
