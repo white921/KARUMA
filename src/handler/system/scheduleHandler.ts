@@ -21,8 +21,8 @@ export async function handleSchedule(client: Client) {
   );
 
   // 前日分を日本時間01:00に確定。未処理分は5分ごと・起動時に回復する。
-  cron.schedule(HIGH_LOW_DAILY_CRON, () => HighLowDailyService.runScheduled(client), { timezone: "Asia/Tokyo" });
-  void HighLowDailyService.runScheduled(client);
+  cron.schedule(HIGH_LOW_DAILY_CRON, () => HighLowDailyService.runScheduled(), { timezone: "Asia/Tokyo" });
+  void HighLowDailyService.runScheduled();
 
   // 23:00に通知。23時台は5分ごとに未完了分だけ再試行し、起動時にも確認する。
   cron.schedule(EVALUATION_REMINDER_CRON, () => EvaluationDeadlineReminderService.runScheduled(client), { timezone: "Asia/Tokyo" });

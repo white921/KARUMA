@@ -24,8 +24,7 @@ CREATE TABLE IF NOT EXISTS levelia_game_high_low_daily_state (
   created_at DATETIME(3) NOT NULL
 );
 
--- Backfill old history, but never flood members with historical DMs on rollout.
--- The first DM covers the JST date on which this migration first ran.
+-- Backfill old history. DM-related columns remain only for compatibility with existing deployments.
 INSERT IGNORE INTO levelia_game_high_low_daily_state
   (id, next_report_date, notify_from_date, created_at)
 SELECT 1,

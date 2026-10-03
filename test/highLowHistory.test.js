@@ -85,16 +85,17 @@ test('DB history excludes financial game rows, appends reports and handles missi
 
 test('scheduler is single-flight, catches failures and has an explicit work bound', async t => {
   let finish;
-  let days = 0, sends = 0;
+  let days = 0;
+  t.mock.method(HighLowDailyService, 'disablePendingDeliveries', async () => {});
   t.mock.method(HighLowDailyService, 'aggregateNextDay', async () => { days++; return days === 1 ? new Promise(resolve => { finish = resolve; }) : true; });
-  t.mock.method(HighLowDailyService, 'deliverPending', async () => { sends++; });
-  const first = HighLowDailyService.runScheduled({}, new Date('2026-10-02T16:00:00Z'));
-  assert.equal(HighLowDailyService.runScheduled({}), first);
+  const first = HighLowDailyService.runScheduled(new Date('2026-10-02T16:00:00Z'));
+  assert.equal(HighLowDailyService.runScheduled(), first);
+  await new Promise(resolve => setImmediate(resolve));
   finish(true); await first;
-  assert.equal(days, 31); assert.equal(sends, 1);
+  assert.equal(days, 31);
   const warnings = [];
   t.mock.method(console, 'warn', (...args) => warnings.push(args));
   HighLowDailyService.aggregateNextDay = async () => { throw { code: 'ER_NO_SUCH_TABLE' }; };
-  await HighLowDailyService.runScheduled({}); await HighLowDailyService.runScheduled({});
+  await HighLowDailyService.runScheduled(); await HighLowDailyService.runScheduled();
   assert.equal(warnings.length, 1);
 });
