@@ -310,10 +310,14 @@ client.on("interactionCreate", async (interaction) => {
       }
     }
   } else if (interaction.isModalSubmit()) {
+    // Some modal handlers defer internally, so `interaction.deferred` does not
+    // tell us whether the health monitor has already recorded the ACK.
+    let acknowledgementRecorded = false;
     if (shouldDeferVcModalReply(interaction.customId)) {
       try {
         await interaction.deferReply({ flags: MessageFlags.Ephemeral });
         BotHealthMonitor.recordAckSuccess(`${interactionContext}:deferReply`);
+        acknowledgementRecorded = true;
       } catch (error) {
         BotHealthMonitor.recordAckFailure(
           `${interactionContext}:deferReply`,
@@ -324,12 +328,17 @@ client.on("interactionCreate", async (interaction) => {
     }
     try {
       await handleModalSubmit(interaction);
-      if (!interaction.deferred) {
+      if (!acknowledgementRecorded) {
         BotHealthMonitor.recordAckSuccess(`${interactionContext}:handler`);
+        acknowledgementRecorded = true;
       }
     } catch (error: any) {
       console.error(error);
       if (interaction.deferred) {
+        if (!acknowledgementRecorded) {
+          BotHealthMonitor.recordAckSuccess(`${interactionContext}:handler`);
+          acknowledgementRecorded = true;
+        }
         await interaction.editReply({
           content: error.message,
         });
