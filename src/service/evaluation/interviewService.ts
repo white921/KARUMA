@@ -5,13 +5,24 @@ import {
 } from "discord.js";
 
 import { CATEGORY_IDS, ROLE_IDS } from "../../constant/shared/id";
-import { INTERVIEW_MESSAGES } from "../../constant/evaluation/interview";
+import {
+  INTERVIEW_ADDITIONAL_ROLE_START_AT,
+  INTERVIEW_MESSAGES,
+} from "../../constant/evaluation/interview";
 import { ACCOUNT_MESSAGES } from "../../constant/account/account";
 import { hasRole } from "../../util/member/role";
 import { AccountService } from "../account/accountService";
 import { hasSystemAdminRole } from "../../util/shared/operatorPermission";
 
 export class InterviewService {
+  static getPassRoleIds(passedAt: Date = new Date()): string[] {
+    const roleIds = [ROLE_IDS.CORE_MEMBER_ROLES.KARIMEN];
+    if (passedAt.getTime() >= INTERVIEW_ADDITIONAL_ROLE_START_AT) {
+      roleIds.push(ROLE_IDS.INTERVIEW_PASS_FROM_2026_10_14);
+    }
+    return roleIds;
+  }
+
   static validateCommandCategory(interaction: ChatInputCommandInteraction) {
     if (hasSystemAdminRole(interaction.member)) return;
     const channel = interaction.channel;

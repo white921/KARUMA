@@ -56,7 +56,9 @@ export async function execute(interaction: ChatInputCommandInteraction) {
         await InterviewService.validateInterviewTarget(targetMember);
 
         await deleteRole(targetMember, ROLE_IDS.CORE_MEMBER_ROLES.MENSETUMATI);
-        await addRole(targetMember, ROLE_IDS.CORE_MEMBER_ROLES.KARIMEN);
+        for (const roleId of InterviewService.getPassRoleIds()) {
+          await addRole(targetMember, roleId);
+        }
         await AccountService.createAccount(
           targetMember.id,
           targetMember.displayName,

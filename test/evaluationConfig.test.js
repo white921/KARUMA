@@ -8,7 +8,10 @@ const {
   MAX_EVALUATION_EXTENSION_DAYS,
 } = require("../dist/constant/evaluation/evaluation.js");
 const { data: extraExtend } = require("../dist/command/evaluation/extraExtend.js");
-const { CATEGORY_IDS } = require("../dist/constant/shared/id.js");
+const { CATEGORY_IDS, ROLE_IDS } = require("../dist/constant/shared/id.js");
+const {
+  INTERVIEW_ADDITIONAL_ROLE_START_AT,
+} = require("../dist/constant/evaluation/interview.js");
 const {
   EVALUATION_SHEET_MESSAGES,
 } = require("../dist/constant/evaluation/evaluationSheet.js");
@@ -33,6 +36,29 @@ test("面接通過と評価シートは説明会カテゴリで実行する", ()
   );
   assert.doesNotThrow(() =>
     EvaluationService.validateCommandCategory(interaction),
+  );
+});
+
+test("日本時間2026年10月14日0時以降の面接通過者に追加ロールを付与する", () => {
+  assert.equal(
+    INTERVIEW_ADDITIONAL_ROLE_START_AT,
+    Date.parse("2026-10-14T00:00:00+09:00"),
+  );
+  assert.equal(ROLE_IDS.INTERVIEW_PASS_FROM_2026_10_14, "1545773019023015966");
+  assert.deepEqual(
+    InterviewService.getPassRoleIds(
+      new Date("2026-10-13T23:59:59.999+09:00"),
+    ),
+    [ROLE_IDS.CORE_MEMBER_ROLES.KARIMEN],
+  );
+  assert.deepEqual(
+    InterviewService.getPassRoleIds(
+      new Date("2026-10-14T00:00:00+09:00"),
+    ),
+    [
+      ROLE_IDS.CORE_MEMBER_ROLES.KARIMEN,
+      ROLE_IDS.INTERVIEW_PASS_FROM_2026_10_14,
+    ],
   );
 });
 
