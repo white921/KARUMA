@@ -5,9 +5,10 @@ const { AccountService } = require("../dist/service/account/accountService.js");
 const { ActionService } = require("../dist/service/currency/actionService.js");
 const { DbService } = require("../dist/service/system/dbService.js");
 const { ROLE_IDS, BOT_ID } = require("../dist/constant/shared/id.js");
+const { MONTHLY_SEND_LIMIT_EXEMPT_RECIPIENT_IDS } = require("../dist/constant/currency/send.js");
 const { PANEL_COMMAND_NAMES } = require("../dist/constant/shared/command.js");
 
-function fixture(t, senderRoles = [], monthlySent = 500000, wallet = 2000000) {
+function fixture(t, senderRoles = [], monthlySent = 500000, wallet = 2000000, senderId = "sender") {
   t.mock.method(AccountService, "getAccountByUserId", async (id) => [{ user_id: id, wallet }]);
   t.mock.method(AccountService, "isLinkedMainAndSubAccount", async () => false);
   t.mock.method(SendService, "getMonthlySentAmount", async () => monthlySent);
@@ -24,7 +25,7 @@ function fixture(t, senderRoles = [], monthlySent = 500000, wallet = 2000000) {
     member: { roles: { cache: new Set([ROLE_IDS.SABANUSI]) } },
     guild: { members: { fetch: async (options) => {
       fetched.push(options);
-      assert.deepEqual(options, { user: "sender", force: true });
+      assert.deepEqual(options, { user: senderId, force: true });
       return { roles: { cache: new Set(senderRoles) } };
     } } },
     reply: async () => {},
@@ -58,6 +59,33 @@ test("対象外ロールは50万LIAちょうどまで許可し、1LIA超過か�
   );
   assert.deepEqual(writes, []);
 });
+
+for (const recipientId of MONTHLY_SEND_LIMIT_EXEMPT_RECIPIENT_IDS) {
+  for (const entry of ["command", "panel"]) {
+    test(`送金先${recipientId}への${entry}送金は月50万LIA超過後も実行して履歴を残す`, async (t) => {
+      const { interaction, writes, fetched, log } = fixture(t);
+      if (entry === "command") {
+        await SendService.sendByCommand(interaction, "sender", recipientId, 600000, "報酬");
+      } else {
+        await SendService.send(interaction, "sender", recipientId, 600000, "報酬", PANEL_COMMAND_NAMES.SEND);
+      }
+      assert.deepEqual(writes, [[1400000, "sender"], [2600000, recipientId]]);
+      assert.deepEqual(fetched, []);
+      assert.equal(log.mock.callCount(), 1);
+    });
+  }
+}
+
+for (const senderId of MONTHLY_SEND_LIMIT_EXEMPT_RECIPIENT_IDS) {
+  test(`送金元${senderId}から他ユーザーへの送金には月間上限を維持する`, async (t) => {
+    const { interaction, writes } = fixture(t, [], 500000, 2000000, senderId);
+    await assert.rejects(
+      SendService.sendByCommand(interaction, senderId, "recipient", 1, ""),
+      /月間送金上限/,
+    );
+    assert.deepEqual(writes, []);
+  });
+}
 
 test("送金元に免除ロールがなければ、操作メンバーの免除ロールでは上限を回避できない", async (t) => {
   const { interaction, writes } = fixture(t);

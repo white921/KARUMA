@@ -14,6 +14,7 @@ import { DbService } from "../system/dbService";
 
 import {
   MONTHLY_SEND_LIMIT,
+  MONTHLY_SEND_LIMIT_EXEMPT_RECIPIENT_IDS,
   MONTHLY_SEND_LIMIT_EXEMPT_ROLE_IDS,
   SEND_MESSAGES,
 } from "../../constant/currency/send";
@@ -216,6 +217,11 @@ export class SendService {
     }
     
     if (fromUserId === BOT_ID || toUserId === BOT_ID) {
+      return;
+    }
+
+    // 指定口座への送金は、送金元にかかわらず月間上限の対象外とする。
+    if (MONTHLY_SEND_LIMIT_EXEMPT_RECIPIENT_IDS.has(toUserId)) {
       return;
     }
 

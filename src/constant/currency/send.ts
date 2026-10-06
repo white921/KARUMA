@@ -9,6 +9,11 @@ export const MONTHLY_SEND_LIMIT_EXEMPT_ROLE_IDS = [
   ROLE_IDS.HOTEL_LEADER,
 ] as const;
 
+export const MONTHLY_SEND_LIMIT_EXEMPT_RECIPIENT_IDS = new Set([
+  "1363509186461176121", // 夏
+  "1508435688218169457", // 朱桜
+]);
+
 export const SEND_MESSAGES = {
   SAME_USER: "送金元と送金先が同じです。",
   NOT_FOUND_USER: "指定されたユーザーの口座が見つかりません。",
