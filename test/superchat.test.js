@@ -1,5 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
+const { Collection } = require("discord.js");
 
 const { PANEL_COMMAND_NAMES } = require("../dist/constant/shared/command.js");
 const {
@@ -15,6 +16,7 @@ const {
   SuperchatService,
 } = require("../dist/service/market/superchatService.js");
 const { COLOR } = require("../dist/constant/shared/color.js");
+const { GuildMemberCacheService } = require("../dist/service/system/guildMemberCacheService.js");
 const {
   createSuperchatPanelActionRow,
 } = require("../dist/panel/market/superchatPanelService.js");
@@ -38,18 +40,48 @@ test("superchat streamer threads are mapped by streamer user ID", () => {
     "1086598017345388685": "1540362283417600121",
     "820632259312091168": "1540362348370468894",
     "1290939535160639510": "1540362472719122482",
-    "649438093996195851": "1540358709677531187",
+    "1161955292674801704": "1557027238254219344",
   });
   assert.equal(hasSuperchatThread("1086598017345388685"), true);
+  assert.equal(hasSuperchatThread("1161955292674801704"), true);
+  assert.equal(hasSuperchatThread("649438093996195851"), false);
   assert.equal(hasSuperchatThread("000000000000000000"), false);
 });
 
-test("superchat recipient eligibility includes the three streamer roles and test Shiro", () => {
+test("superchat recipient eligibility requires one of the three streamer roles", () => {
   assert.equal(canReceiveSuperchat(member("1", [ROLE_IDS.STREAMER_MANAGER])), true);
   assert.equal(canReceiveSuperchat(member("2", [ROLE_IDS.SINGER_CROWN])), true);
   assert.equal(canReceiveSuperchat(member("3", [ROLE_IDS.VOICE_CROWN])), true);
-  assert.equal(canReceiveSuperchat(member("649438093996195851")), true);
+  assert.equal(canReceiveSuperchat(member("649438093996195851")), false);
   assert.equal(canReceiveSuperchat(member("4")), false);
+});
+
+test("superchat choices include the new singer, exclude Shiro, and omit repeated descriptions", async (t) => {
+  const singer = (id, displayName) => ({
+    id,
+    displayName,
+    user: { bot: false },
+    roles: { cache: { has: (roleId) => roleId === ROLE_IDS.SINGER_CROWN } },
+  });
+  t.mock.method(GuildMemberCacheService, "getMembers", async () => new Collection([
+    ["1161955292674801704", singer("1161955292674801704", "滅却師")],
+    ["649438093996195851", singer("649438093996195851", "シロ")],
+  ]));
+
+  let payload;
+  await SuperchatService.showStreamerSelect({
+    guild: {},
+    editReply: async (value) => { payload = value; },
+  });
+
+  const select = payload.components[0].toJSON().components[0];
+  assert.deepEqual(
+    select.options.map(({ label, value }) => ({ label, value })),
+    [{ label: "滅却師", value: "1161955292674801704" }],
+  );
+  assert.ok(select.options.every((option) => !("description" in option)));
+  assert.equal(payload.embeds[0].toJSON().description, "送金先を選択してください。");
+  assert.doesNotMatch(JSON.stringify(payload), /スパチャを送る配信者/);
 });
 
 test("superchat panel has send and balance buttons without emoji icons", () => {

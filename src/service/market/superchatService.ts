@@ -20,7 +20,6 @@ import { CURRENCY_NAMES } from "../../constant/currency/currency";
 import {
   ROLE_IDS,
   SUPERCHAT_STREAMER_THREAD_IDS,
-  SUPERCHAT_TEST_STREAMER_IDS,
   TEXT_CHANNEL_IDS,
 } from "../../constant/shared/id";
 import { SUPERCHAT_PANEL_MESSAGES } from "../../constant/panel/panel";
@@ -32,8 +31,7 @@ import { SendService } from "../currency/sendService";
 import { DbService } from "../system/dbService";
 
 export function canReceiveSuperchat(member: GuildMember): boolean {
-  return SUPERCHAT_TEST_STREAMER_IDS.has(member.id) ||
-    member.roles.cache.has(ROLE_IDS.STREAMER_MANAGER) ||
+  return member.roles.cache.has(ROLE_IDS.STREAMER_MANAGER) ||
     member.roles.cache.has(ROLE_IDS.SINGER_CROWN) ||
     member.roles.cache.has(ROLE_IDS.VOICE_CROWN);
 }
@@ -80,12 +78,11 @@ export class SuperchatService {
         streamers.first(25).map((member) => ({
           label: member.displayName.slice(0, 100),
           value: member.id,
-          description: "スパチャを送る配信者",
         })),
       );
     const embed = new EmbedBuilder()
       .setTitle("送金先を選択")
-      .setDescription("スパチャを送る配信者を選択してください。")
+      .setDescription("送金先を選択してください。")
       .setColor(COLOR.GREEN);
 
     await interaction.editReply({
