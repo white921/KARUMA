@@ -93,7 +93,7 @@ export const HOTEL_VC_PANEL_MESSAGES = {
 
 export const IN_CHAT_PANEL_MESSAGES = {
   TITLE: "VC操作パネル",
-  DESCRIPTION: "ボタンを押して各操作を行ってください。。",
+  DESCRIPTION: "ボタンを押して各操作を行ってください。",
 };
 
 export const CASINO_PANEL_MESSAGES = {
