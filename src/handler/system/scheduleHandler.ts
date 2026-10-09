@@ -11,6 +11,7 @@ import { InterviewShiftService } from "../../service/evaluation/interviewShiftSe
 import { GameService } from "../../service/game/gameService";
 import { SalesManagementService } from "../../service/market/salesManagementService";
 import { RedeployService } from "../../service/system/redeployService";
+import { isRuntimeFeatureEnabled } from "../../util/system/runtimeConfig";
 
 /**
  * 定期的な処理を実行するハンドラ
@@ -25,8 +26,12 @@ export async function handleSchedule(client: Client) {
   void HighLowDailyService.runScheduled();
 
   // 23:00に通知。23時台は5分ごとに未完了分だけ再試行し、起動時にも確認する。
-  cron.schedule(EVALUATION_REMINDER_CRON, () => EvaluationDeadlineReminderService.runScheduled(client), { timezone: "Asia/Tokyo" });
-  void EvaluationDeadlineReminderService.runScheduled(client);
+  if (isRuntimeFeatureEnabled(process.env.ENABLE_EVALUATION_DEADLINE_REMINDER, true)) {
+    cron.schedule(EVALUATION_REMINDER_CRON, () => EvaluationDeadlineReminderService.runScheduled(client), { timezone: "Asia/Tokyo" });
+    void EvaluationDeadlineReminderService.runScheduled(client);
+  } else {
+    console.log("[EvaluationReminder] disabled by ENABLE_EVALUATION_DEADLINE_REMINDER");
+  }
 
   // 毎分00秒に日時を判定。開始前は無変更、失敗・再起動時も未完了分だけ再試行する。
   cron.schedule("0 * * * * *", () => GachaCoinActivationService.runScheduledActivation(), { timezone: "Asia/Tokyo" });
