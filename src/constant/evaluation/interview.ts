@@ -13,9 +13,13 @@ export const INTERVIEW_MESSAGES = {
     "【適合世界】\n【声】\n【コミュ力】\n【モチベ】\n【ユーモア】\n【サーバー理解度】",
 };
 
-// 2026年10月14日 00:00（日本時間）以降の面接通過者に追加ロールを付与する。
+// 2026年10月14日 00:00〜10月25日 23:59:59.999（日本時間）の
+// 面接通過者に追加ロールを付与する。
 export const INTERVIEW_ADDITIONAL_ROLE_START_AT = Date.parse(
   "2026-10-14T00:00:00+09:00",
+);
+export const INTERVIEW_ADDITIONAL_ROLE_END_AT = Date.parse(
+  "2026-10-26T00:00:00+09:00",
 );
 
 export const WEEK_DAYS = ["日", "月", "火", "水", "木", "金", "土"];

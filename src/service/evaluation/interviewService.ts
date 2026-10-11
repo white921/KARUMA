@@ -6,6 +6,7 @@ import {
 
 import { CATEGORY_IDS, ROLE_IDS } from "../../constant/shared/id";
 import {
+  INTERVIEW_ADDITIONAL_ROLE_END_AT,
   INTERVIEW_ADDITIONAL_ROLE_START_AT,
   INTERVIEW_MESSAGES,
 } from "../../constant/evaluation/interview";
@@ -17,8 +18,12 @@ import { hasSystemAdminRole } from "../../util/shared/operatorPermission";
 export class InterviewService {
   static getPassRoleIds(passedAt: Date = new Date()): string[] {
     const roleIds = [ROLE_IDS.CORE_MEMBER_ROLES.KARIMEN];
-    if (passedAt.getTime() >= INTERVIEW_ADDITIONAL_ROLE_START_AT) {
-      roleIds.push(ROLE_IDS.INTERVIEW_PASS_FROM_2026_10_14);
+    const passedAtTime = passedAt.getTime();
+    if (
+      passedAtTime >= INTERVIEW_ADDITIONAL_ROLE_START_AT &&
+      passedAtTime < INTERVIEW_ADDITIONAL_ROLE_END_AT
+    ) {
+      roleIds.push(ROLE_IDS.INTERVIEW_PASS_FREE);
     }
     return roleIds;
   }
