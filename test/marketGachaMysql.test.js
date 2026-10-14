@@ -74,6 +74,17 @@ test('市場ガチャ更新 MySQL統合テスト',{skip:!process.env.MARKET_GACH
    }finally{random.mock.restore();}
   }
  });
+ await t.test('共同音源は全演者が対象ロールのときだけ抽選する',async()=>{
+  await reset();
+  await pool.execute("INSERT INTO market_gacha_audio_assets(category,performer_name,performer_user_id,performer_user_ids,file_name,object_key,public_url,is_active) VALUES ('superchat','共同','1002',JSON_ARRAY('1002','1004'),'duet','superchat/duet','https://example.com/duet',1)");
+  const random=t.mock.method(Math,'random',()=>1-Number.EPSILON);
+  const c=await DbService.getConnection();
+  try{
+   assert.notEqual((await Service.selectAudioAsset(c,'superchat',['1002'])).fileName,'duet');
+   const asset=await Service.selectAudioAsset(c,'superchat',['1002','1004']);
+   assert.equal(asset.fileName,'duet');assert.deepEqual(asset.performerUserIds,['1002','1004']);
+  }finally{c.release();random.mock.restore();}
+ });
  await t.test('全22景品で正しい付与枚数・残高・メッセージ・台帳',async()=>{
   for(const p of prizes){
    await reset();await draw(p.key);const s=await state();

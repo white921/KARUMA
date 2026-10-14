@@ -48,6 +48,7 @@ export type AudioAssetRow = RowDataPacket & {
   id: number;
   performer_name: string;
   performer_user_id: string | null;
+  performer_user_ids: string | string[] | null;
   file_name: string;
   public_url: string;
   created_at_epoch: number | string;
@@ -58,6 +59,7 @@ export type MarketGachaAudioAsset = {
   id: number;
   performerName: string;
   performerUserId?: string;
+  performerUserIds?: string[];
   fileName: string;
   publicUrl: string;
 };

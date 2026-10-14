@@ -191,14 +191,14 @@ TC `1549981844664229898` のパネルで商品を選択し、内容を確認し�
 - コイン景品：基本1枚込みの合計2枚（7%）・4枚（3%）・6枚（1.5%）。全景品の結果に増加枚数と付与後の所持数を表示する
 - 身分別5%枠：貴族・騎士（皇帝・英傑を含む）はどこでも通行券3日、賢者・旅人は通常ホテル無料券1枚、空位者は辺境の狭間無料券3枚、罪人は独房無料券1枚。罪人ロールを優先する。判定できない場合は料金を取らず中止する
 - 通常ホテル無料券：通常ホテル12時間に対して1枚優先消費。もともと無料のロール特典は券を消費しない。確認時と確定時で支払方法・料金が変わった場合は再確認する
-- サプボ・歌みた（各15%）：現在在籍して賢者以上のロールを持つ演者の有効音源から、R2の公開URLと録音者をDBで選び、当選案内とDMで実際の録音者をメンションしてURLを渡す。Discordの添付容量上限を受けない
+- サプボ・歌みた（各15%）：現在在籍して賢者以上のロールを持つ演者の有効音源から、R2の公開URLと録音者をDBで選び、当選案内とDMで実際の録音者をメンションしてURLを渡す。共同音源は全演者が条件を満たす場合だけ対象にし、全員をメンションする。Discordの添付容量上限を受けない
 - サプボ・歌みたの音源選択：登録から7日未満の音源は1本あたりの重みを1.5、それ以外は1とする。7日経過後は自動で通常に戻り、新規追加にも適用される。更新日時ではなく初回登録日時を使用し、カテゴリ自体の当選確率（各15%）は変わらない
 - 音源テーブルと配信履歴により、誰のどのファイルを渡したかを抽選ごとに記録する
 - 確認は本人・サーバー・チャンネルに紐づく10分間有効の一回限り。キャンセル・支払い方法の選び直し後や再起動前の確認からは抽選しない
 
 2026-09-26版の本番反映前に `src/sql/20260926_market_gacha.sql` を適用してください。全景品の表示例は `docs/market-gacha-20260926-messages.md`、予約反映とレビュー記録は `docs/market-gacha-20260926-release.md` を参照してください。
 
-既存DBに導入する場合は、デプロイ前に `src/sql/20260713_market_gacha.sql`、`src/sql/20260714_market_gacha_audio.sql`、`src/sql/20260718_shop_tickets.sql`、`src/sql/20260716_invite_points.sql`、`src/sql/20260716_market_gacha_audio_correction.sql`、`src/sql/20260727_game_free_tickets.sql`、`src/sql/20260727_item_inventory.sql`、`src/sql/20260901_game_vc.sql`、`src/sql/20260902_market_gacha_update.sql`、`src/sql/20260906_market_gacha_scarlet_mention.sql`、`src/sql/20260911_market_gacha_killer_audio.sql`、`src/sql/20260913_market_gacha_superchat_audio.sql`、`src/sql/20260913_market_gacha_tsuyogari_audio_correction.sql`、`src/sql/20260919_market_gacha_audio.sql`、`src/sql/20260924_market_gacha_audio.sql`、`src/sql/20260926_market_gacha_audio.sql`、`src/sql/20260926_market_gacha_audio_2.sql` をこの順で適用してください。新規DBでは `src/sql/createTable.sql` に含まれています。既存の3券種テーブルは移行確認のため残し、Botは `items` と `item_users` を参照します。適用後、技術統括が市場パネルのチャンネルで `/panel` を実行してパネルを更新してください。
+既存DBに導入する場合は、デプロイ前に `src/sql/20260713_market_gacha.sql`、`src/sql/20260714_market_gacha_audio.sql`、`src/sql/20260718_shop_tickets.sql`、`src/sql/20260716_invite_points.sql`、`src/sql/20260716_market_gacha_audio_correction.sql`、`src/sql/20260727_game_free_tickets.sql`、`src/sql/20260727_item_inventory.sql`、`src/sql/20260901_game_vc.sql`、`src/sql/20260902_market_gacha_update.sql`、`src/sql/20260906_market_gacha_scarlet_mention.sql`、`src/sql/20260911_market_gacha_killer_audio.sql`、`src/sql/20260913_market_gacha_superchat_audio.sql`、`src/sql/20260913_market_gacha_tsuyogari_audio_correction.sql`、`src/sql/20260919_market_gacha_audio.sql`、`src/sql/20260924_market_gacha_audio.sql`、`src/sql/20260926_market_gacha_audio.sql`、`src/sql/20260926_market_gacha_audio_2.sql`、`src/sql/20261014_market_gacha_audio.sql` をこの順で適用してください。新規DBでは `src/sql/createTable.sql` に含まれています。既存の3券種テーブルは移行確認のため残し、Botは `items` と `item_users` を参照します。適用後、技術統括が市場パネルのチャンネルで `/panel` を実行してパネルを更新してください。
 
 ## 転送VC（2026-08-18）
 

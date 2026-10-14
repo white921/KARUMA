@@ -187,23 +187,45 @@ export class MarketGachaService {
 
     if (!performerIds.length) throw new Error("賢者以上の当選音源がありません。運営へお問い合わせください。");
     const [rows] = await connection.execute<AudioAssetRow[]>(
-      `SELECT id, performer_name, performer_user_id, file_name, public_url,
+      `SELECT id, performer_name, performer_user_id, performer_user_ids, file_name, public_url,
          UNIX_TIMESTAMP(created_at) AS created_at_epoch, UNIX_TIMESTAMP() AS selection_epoch
        FROM market_gacha_audio_assets
        WHERE category = ? AND is_active = 1
-         AND performer_user_id IN (${performerIds.map(() => "?").join(",")})
        ORDER BY id`,
-      [category, ...performerIds],
+      [category],
     );
-    const asset = selectWeightedAudioAsset(rows, Number(rows[0]?.selection_epoch), Math.random());
+    const eligiblePerformerIds = new Set(performerIds);
+    const eligibleRows = rows.filter(row => {
+      const storedIds = Array.isArray(row.performer_user_ids)
+        ? row.performer_user_ids
+        : row.performer_user_ids
+          ? JSON.parse(row.performer_user_ids) as unknown
+          : row.performer_user_id
+            ? [row.performer_user_id]
+            : [];
+      if (!Array.isArray(storedIds) || storedIds.some(id => typeof id !== "string")) {
+        throw new Error(`音源ID ${row.id} の演者情報が不正です。`);
+      }
+      return storedIds.length > 0 && storedIds.every(id => eligiblePerformerIds.has(id));
+    });
+    const asset = selectWeightedAudioAsset(eligibleRows, Number(rows[0]?.selection_epoch), Math.random());
     if (!asset) {
       throw new Error("当選ファイルがまだ登録されていません。運営へお問い合わせください。");
     }
+
+    const performerUserIds = Array.isArray(asset.performer_user_ids)
+      ? asset.performer_user_ids
+      : asset.performer_user_ids
+        ? JSON.parse(asset.performer_user_ids) as string[]
+        : asset.performer_user_id
+          ? [asset.performer_user_id]
+          : [];
 
     return {
       id: Number(asset.id),
       performerName: asset.performer_name,
       performerUserId: asset.performer_user_id ?? undefined,
+      performerUserIds,
       fileName: asset.file_name,
       publicUrl: asset.public_url,
     };

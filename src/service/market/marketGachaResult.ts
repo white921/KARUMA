@@ -30,7 +30,14 @@ export function resolveMarketGachaPrize(prize: MarketGachaPrize, member: MemberR
 }
 
 export function performerMention(asset: MarketGachaAudioAsset): string {
-  return asset.performerUserId ? `<@${asset.performerUserId}>` : `**${asset.performerName}**`;
+  const performerUserIds = asset.performerUserIds?.length
+    ? asset.performerUserIds
+    : asset.performerUserId
+      ? [asset.performerUserId]
+      : [];
+  return performerUserIds.length
+    ? performerUserIds.map(id => `<@${id}>`).join(" & ")
+    : `**${asset.performerName}**`;
 }
 
 export function marketGachaInstructions(prize: MarketGachaPrize, audioAsset?: MarketGachaAudioAsset): string {

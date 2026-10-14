@@ -2,7 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { MARKET_GACHA_DAILY_LIMIT, MARKET_GACHA_PRICE, MARKET_GACHA_PRIZES: prizes, selectMarketGachaPrize, MARKET_GACHA_CONFIRMATION_PREFIX: prefix } = require('../dist/constant/market/marketGacha');
 const { MarketGachaService: Service, createMarketGachaPaymentSelectionRow, formatMarketGachaDrawLog } = require('../dist/service/market/marketGachaService');
-const { resolveMarketGachaPrize, formatMarketGachaResult, marketGachaInstructions, isSageOrHigherPerformer } = require('../dist/service/market/marketGachaResult');
+const { resolveMarketGachaPrize, formatMarketGachaResult, marketGachaInstructions, isSageOrHigherPerformer, performerMention } = require('../dist/service/market/marketGachaResult');
 const { ROLE_IDS: R, TEXT_CHANNEL_IDS, THREAD_IDS } = require('../dist/constant/shared/id');
 const { PANEL_COMMAND_NAMES: C } = require('../dist/constant/shared/command');
 const { shouldDeferButtonUpdate } = require('../dist/util/interaction/interactionAck');
@@ -75,6 +75,10 @@ test('音源メンション・DM失敗・禁止事項の出力', () => {
     const failed=formatMarketGachaResult(prize(key),1,4,asset,false);
     assert.match(failed,/DMに送信できませんでした/);assert.doesNotMatch(failed,/送信したので/);
   }
+});
+
+test('共同音源は全演者を記載する', () => {
+  assert.equal(performerMention({performerName:'夏&朱桜',performerUserId:'1',performerUserIds:['1','2']}),'<@1> & <@2>');
 });
 
 test('手動景品の案内・指定ロール・期間を保持', () => {
