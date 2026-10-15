@@ -15,6 +15,124 @@ import { DbService } from "../system/dbService";
 import { EvaluationSheetArchiveStorageService } from "./evaluationSheetArchiveStorageService";
 
 export class EvaluationSheetArchiveService {
+  static createRenamedSheetTitle(
+    currentTitle: string,
+    newDisplayName: string,
+  ): string | null {
+    const suffix = currentTitle.match(/[〜～]\s*\d{1,2}\/\d{1,2}\s*$/)?.[0];
+    return suffix ? `${newDisplayName}${suffix}` : null;
+  }
+
+  static async renameActiveSheetTitles(
+    client: Client,
+    userId: string,
+    newDisplayName: string,
+  ): Promise<number> {
+    const connection = await DbService.getConnection();
+    let rows: ThreadRow[];
+    try {
+      [rows] = await connection.execute<ThreadRow[]>(
+        `SELECT c.forum_id, c.thread_id
+         FROM evaluation_sheet_current_threads c
+         INNER JOIN evaluation_sheet_sessions s ON s.id = c.session_id
+         WHERE c.user_id = ? AND c.status = 'active' AND s.status = 'active'
+         ORDER BY c.forum_id`,
+        [userId],
+      );
+    } finally {
+      connection.release();
+    }
+
+    const plans: Array<{
+      thread: ThreadChannel;
+      oldTitle: string;
+      newTitle: string;
+      wasArchived: boolean;
+    }> = [];
+    for (const row of rows) {
+      const channel = await client.channels.fetch(row.thread_id);
+      if (!channel?.isThread()) {
+        throw new Error(`評価シートを取得できませんでした。(${row.thread_id})`);
+      }
+      const newTitle = this.createRenamedSheetTitle(channel.name, newDisplayName);
+      if (!newTitle) {
+        throw new Error(`評価シート名の形式が不正です。(${channel.name})`);
+      }
+      plans.push({
+        thread: channel,
+        oldTitle: channel.name,
+        newTitle,
+        wasArchived: channel.archived === true,
+      });
+    }
+
+    const updated: typeof plans = [];
+    try {
+      for (const plan of plans) {
+        updated.push(plan);
+        await this.renameThreadPreservingArchiveState(
+          plan.thread,
+          plan.newTitle,
+          "表示名変更に合わせて評価シート名を更新",
+          plan.wasArchived,
+        );
+      }
+    } catch (error: any) {
+      const rollbackErrors: string[] = [];
+      for (const plan of [...updated].reverse()) {
+        try {
+          await this.renameThreadPreservingArchiveState(
+            plan.thread,
+            plan.oldTitle,
+            "評価シート名の更新失敗に伴う復元",
+            plan.wasArchived,
+          );
+        } catch (rollbackError: any) {
+          rollbackErrors.push(rollbackError?.message ?? String(rollbackError));
+        }
+      }
+      const rollbackMessage = rollbackErrors.length
+        ? ` / 復元失敗: ${rollbackErrors.join(" / ")}`
+        : "";
+      throw new Error(`${error?.message ?? String(error)}${rollbackMessage}`);
+    }
+
+    return updated.length;
+  }
+
+  private static async renameThreadPreservingArchiveState(
+    thread: ThreadChannel,
+    newTitle: string,
+    reason: string,
+    archiveAfterRename: boolean,
+  ): Promise<void> {
+    let operationError: unknown;
+    try {
+      if (thread.archived === true) {
+        await thread.setArchived(false, reason);
+      }
+      await thread.setName(newTitle, reason);
+    } catch (error) {
+      operationError = error;
+    } finally {
+      if (archiveAfterRename && thread.archived !== true) {
+        try {
+          await thread.setArchived(true, reason);
+        } catch (restoreError: any) {
+          const operationMessage = operationError
+            ? `${(operationError as any)?.message ?? String(operationError)} / `
+            : "";
+          throw new Error(
+            `${operationMessage}アーカイブ状態の復元に失敗: ${restoreError?.message ?? String(restoreError)}`,
+          );
+        }
+      }
+    }
+    if (operationError) {
+      throw operationError;
+    }
+  }
+
   static async attachLatestArchiveToThread(
     userId: string,
     thread: ThreadChannel,

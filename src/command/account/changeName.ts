@@ -36,7 +36,8 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
     const user = await interaction.guild!.members.fetch(interaction.user);
     await ChangeNameService.validateChangeName(targetMember, newName, user);
-    await ChangeNameService.changeName(interaction, targetMember.id, newName);
+    const { evaluationSheetRenamedCount } =
+      await ChangeNameService.changeName(interaction, targetMember.id, newName);
 
     const subUserId = await AccountService.getSubUserIdByMainUserId(
       targetMember.id
@@ -50,7 +51,11 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     }
 
     await interaction.editReply({
-      content: `✅ 表示名を<@${targetMember.id}> に変更しました。`,
+      content:
+        `✅ 表示名を<@${targetMember.id}> に変更しました。` +
+        (evaluationSheetRenamedCount > 0
+          ? `\n評価シート ${evaluationSheetRenamedCount}件の名前も更新しました。`
+          : ""),
     });
   } catch (error) {
     throw error;
